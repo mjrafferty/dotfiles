@@ -1,0 +1,54 @@
+# Snippets for code blocks used oftenly in Apache files.
+# <Directory>
+snippet dir
+	<Directory ${1:/}>
+		DirectoryIndex ${0:index.html}
+		Order Deny,Allow
+		Deny from All
+	</Directory>
+# <FilesMatch>
+snippet filesmatch
+	<FilesMatch "${1:regex}">
+		${0}
+	</FilesMatch>
+# <IfModule>
+snippet ifmodule
+	<IfModule ${1:mod_example.c}>
+		${0}
+	</IfModule>
+# <LimitExcept>
+snippet limitexcept
+	<LimitExcept ${1:POST GET}>
+		${0}
+	</LimitExcept>
+# <Proxy>
+snippet proxy
+	<Proxy ${1:*}>
+		${0}
+	</Proxy>
+# <VirtualHost>
+snippet virtualhost
+	<VirtualHost ${1:*}:${2:80}>
+		ServerAdmin ${3:webmaster@example.com}
+		DocumentRoot ${4:/www/example.com}
+		ServerName ${0:www.example.com}
+	</VirtualHost>
+# <VirtualHost>
+snippet loc
+	<Location>
+		${0}
+	</Location>
+# <VirtualHost>
+snippet modsec
+	<IfModule mod_security2.c>
+		${0}
+	</IfModule>
+# <VirtualHost>
+snippet locma
+	<LocationMatch ${0}>
+		# Ticket ID ${1}
+		SecRuleRemoveById ${2}
+	</LocationMatch>
+# <VirtualHost>
+snippet secru
+	SecRuleRemoveById ${1}
