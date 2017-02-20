@@ -83,8 +83,3 @@ fi
 if [ -f ~/.zsh_environment ]; then
 source ~/.zsh_environment
 fi
-
-if [ "$(id -u)" != "0" ]; then
-	r
-	exit
-fi
