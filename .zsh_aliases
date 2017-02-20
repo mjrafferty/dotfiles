@@ -1,0 +1,9 @@
+alias r="/usr/bin/sudo HOME=$HOME /bin/zsh"
+
+# protect myself from myself
+alias rm='rm --preserve-root'
+alias chown='chown --preserve-root'
+alias chmod='chmod --preserve-root'
+alias chgrp='chgrp --preserve-root'
+
+alias ls='ls -F --color=auto'

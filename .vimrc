@@ -90,7 +90,7 @@ set dictionary+=/usr/share/dict/words
 
 " Makes popup completion menu act more like an IDE
 set completeopt=menu,longest,menuone
-set complete=.,w,b,u,k,kspell,k,s,i,d,]
+set complete=.,w,b,u,s,i,d,]
 
 " Enable Pathogen for maintaining plugins
 call pathogen#infect()
@@ -111,8 +111,8 @@ nnoremap <silent> <F8> :TlistToggle<CR>
 let Tlist_Use_Right_Window=1
 
 " Open NerdTree plugin on startup and move cursor back to main buffer
-autocmd VimEnter * NERDTree
-autocmd VimEnter * wincmd p
+"autocmd VimEnter * NERDTree
+"autocmd VimEnter * wincmd p
 
 set formatoptions=coql	" Text formating options
 
