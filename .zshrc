@@ -50,7 +50,7 @@ HIST_STAMPS="mm/dd/yyyy"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git colored-man-pages colorize command-not-found cp extract history history-substring-search tmux fasd)
+plugins=(git colored-man-pages colorize command-not-found cp extract history history-substring-search tmux fasd zsh-syntax-highlighting zsh-autosuggestions zsh-completions)
 
 # User configuration
 
