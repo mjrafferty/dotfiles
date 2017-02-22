@@ -66,9 +66,3 @@ function backup () {
 function blacklistcheck () {
 	for b in $1; do echo '++++++++++++++++++++++++++++'; echo $b;echo 'PHONE: 866-639-2377';  nslookup $b | grep addr;echo 'http://multirbl.valli.org/lookup/'$b'.html';echo 'http://www.senderbase.org/lookup/ip/?search_string='$b; echo 'https://www.senderscore.org/lookup.php?lookup='$b;echo '++++++++++++++++++++++++++++'; for x in hotmail.com yahoo.com aol.com earthlink.net verizon.net att.net sbcglobal.net comcast.net xmission.com cloudmark.com cox.net charter.net mac.me; do echo; echo $x;echo '--------------------'; swaks -q TO -t postmaster@$x -li $b| grep -iE 'block|rdns|550|521|554';done ;echo; echo 'gmail.com';echo '-----------------------'; swaks -4 -t iflcars.com@gmail.com -li $b| grep -iE 'block|rdns|550|521|554';echo; echo; done;
 }
-
-function modsecbyip () {
-	modsecrules $(grep $1 error.log | sed 's/.*unique_id \"//' | sed 's/\"]//')
-
-	grep $1 error.log | sed 's/.*uri \"//' | sed 's/\"].*//' | uniq
-}

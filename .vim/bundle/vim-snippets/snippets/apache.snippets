@@ -45,9 +45,9 @@ snippet modsec
 	</IfModule>
 # <VirtualHost>
 snippet locma
-	<LocationMatch ${0}>
-		# Ticket ID ${1}
-		SecRuleRemoveById ${2}
+	<LocationMatch ${1}>
+		# Ticket ID ${2}
+		SecRuleRemoveById ${0}
 	</LocationMatch>
 # <VirtualHost>
 snippet secru

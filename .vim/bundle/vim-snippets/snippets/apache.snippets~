@@ -46,7 +46,9 @@ snippet modsec
 # <VirtualHost>
 snippet locma
 	<LocationMatch ${0}>
-		\# Ticket ID ${1}
-		${2}
+		# Ticket ID ${1}
+		SecRuleRemoveById ${2}
 	</LocationMatch>
-
+# <VirtualHost>
+snippet secru
+	SecRuleRemoveById ${1}
