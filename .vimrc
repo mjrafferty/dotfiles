@@ -6,11 +6,6 @@ set nocompatible
 set backspace=indent,eol,start
 
 
-if has("vms")
-  set nobackup		" do not keep a backup file, use versions instead
-else
-  set backup		" keep a backup file
-endif
 set history=50		" keep 50 lines of command line history
 set ruler		" show the cursor position all the time
 set showcmd		" display incomplete commands
@@ -21,6 +16,11 @@ set scrolloff=3		" keeps cursor away from top and bottom edges
 set wildmenu
 set wildmode=full
 set undofile
+set undodir=$HOME/.vimfiles/undo// " where to save undo histories 
+set undolevels=1000 " How many undos 
+set undoreload=10000 " number of lines to save for undo "
+set backupdir=$HOME/.vimfiles/backup//
+set directory=$HOME/.vimfiles/swp//
 set gdefault
 set showmatch		" Show matching brackets.
 set ignorecase		" Do case insensitive matching
