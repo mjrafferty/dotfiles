@@ -126,3 +126,8 @@ set formatoptions=coql	" Text formating options
 
 let delimitMate_expand_space = 1
 let delimitMate_expand_cr= 1
+
+" Toggle Paste Mode to save indentation
+nnoremap <F2> :set invpaste paste?<CR>
+set pastetoggle=<F2>
+set showmode

@@ -93,7 +93,7 @@ set completeopt=menu,longest,menuone
 set complete=.,w,b,u,k,kspell,k,s,i,d,]
 
 " Enable Pathogen for maintaining plugins
-"call pathogen#infect()
+call pathogen#infect()
 
 "Changes the leader key to <Spacebar> for custom shortcuts
 let mapleader=" "
