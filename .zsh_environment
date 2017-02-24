@@ -1,5 +1,4 @@
 export PATH=$PATH:/usr/local/sbin:/sbin:/usr/sbin:/var/qmail/bin:/usr/nexkit/bin
-export GREP_OPTIONS='--color=auto'
 export PAGER=/usr/bin/less
 
 # formatted at 2000-03-14 03:14:15

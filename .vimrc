@@ -84,13 +84,13 @@ set background=dark
 :highlight PmenuThumb ctermbg=white ctermfg=red
 
 " Enables the system dictionary
-set dictionary+=/usr/share/dict/words
+"set dictionary+=/usr/share/dict/words
 
 "set tags+=~/.vim/systags
 
 " Makes popup completion menu act more like an IDE
 set completeopt=menu,longest,menuone
-set complete=.,w,b,u,s,i,d,]
+set complete=.,w,b,u,k,kspell,s,i,d,]
 
 " Enable Pathogen for maintaining plugins
 call pathogen#infect()
