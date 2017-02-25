@@ -33,6 +33,10 @@ if has('mouse')
 endif
 set tabstop=2
 
+au FileType sh let g:sh_fold_enabled=5
+set foldmethod=syntax
+set foldenable
+
 " Switch syntax highlighting on, when the terminal has colors
 " Also switch on highlighting the last used search pattern.
 if &t_Co > 2 || has("gui_running")
