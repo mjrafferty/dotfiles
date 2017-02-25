@@ -5,16 +5,6 @@
 ## Block viewing motd
 if [[ ! -f ~/.hushlogin ]]; then touch ~/.hushlogin; fi
 
-if [ $UID = 0 ]; then
-    # nexkit bash completion
-     if [ -e '/etc/bash_completion.d/nexkit' ]; then
-         source /etc/bash_completion.d/nexkit
-     fi
-    PS1="[${txtcyn}\$(date +%H:%M)${txtrst}][${bldred}\u${txtrst}@${txtylw}\h${txtrst} ${txtcyn}\W${txtrst}]\$ "
-else
-    PS1="[${txtcyn}\$(date +%H:%M)${txtrst}][\u@\h \W]\$ "
-fi
-
 ## My Aliases
 alias vi='vim -n'
 alias less='less -R'
@@ -62,29 +52,32 @@ getusr(){ pwd | sed 's:^/chroot::' | cut -d/ -f3; }
 serverName(){
   if [[ -n $(dig +time=1 +tries=1 +short $(hostname)) ]]; then hostname;
   else ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.' | head -1; fi
-  }
+}
 
 ## Print out most often accessed Nodeworx links
 lworx(){
   echo; if [[ -z "$1" ]]; then (for x in siteworx reseller dns/zone ip;
   do echo "$x : https://$(serverName):2443/nodeworx/$x"; done; echo "webmail : https://$(serverName):2443/webmail") | column -t
   else echo -e "Siteworx:\nLoginURL: https://$(serverName):2443/siteworx/?domain=$1"; fi; echo
-  }
+}
 
 ## Download and execute global-dns-checker script
 dnscheck(){
     wget -q -O ~/dns-check.sh nanobots.robotzombies.net/dns-check.sh;
-    chmod +x ~/dns-check.sh;  ~/./dns-check.sh "$@"; }
+    chmod +x ~/dns-check.sh;  ~/./dns-check.sh "$@"; 
+}
 
 ## Calculate the free slots on a server depending on the server type
 freeslots(){
     wget -q -O ~/freeslots.sh nanobots.robotzombies.net/freeslots.sh;
-    chmod +x ~/freeslots.sh;  ~/./freeslots.sh "$@"; }
+    chmod +x ~/freeslots.sh;  ~/./freeslots.sh "$@"; 
+}
 
 ## Add date and time with username and open server_notes.txt for editing
 srvnotes(){
     echo -e "\n#$(date) - $(echo $SUDO_USER | sed 's/nex//g')" >> /etc/nexcess/server_notes.txt;
-    nano /etc/nexcess/server_notes.txt; }
+    nano /etc/nexcess/server_notes.txt; 
+}
 
 ## Update IonCube for CentOS 5/6
 ioncubeupdate(){

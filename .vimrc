@@ -32,6 +32,8 @@ if has('mouse')
  "set mouse=a
 endif
 set tabstop=2
+set shiftwidth=2
+set noexpandtab
 
 au FileType sh let g:sh_fold_enabled=5
 set foldmethod=syntax
