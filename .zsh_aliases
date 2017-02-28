@@ -7,3 +7,4 @@ alias chmod='chmod --preserve-root'
 alias chgrp='chgrp --preserve-root'
 
 alias ls='ls -F --color=auto'
+alias less='less -i -n -S -F'
