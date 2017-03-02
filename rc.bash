@@ -5,92 +5,6 @@
 ## Block viewing motd
 if [[ ! -f ~/.hushlogin ]]; then touch ~/.hushlogin; fi
 
-## Source global definitions and Nexcess functions
-if [ -f /etc/bashrc ]; then . /etc/bashrc; fi
-if [ -f /etc/nexcess/bash_functions.sh ]; then . /etc/nexcess/bash_functions.sh; fi
-
-if [[ -n "$PS1" ]]; then ## --> interactive shell
-  ## Auto switch to root
-    if [[ $UID != "0" ]]; then r; fi;
-  NORMAL=$(tput sgr0); ## COLORS!
-   BLACK=$(tput setaf 0);     RED=$(tput setaf 1);   GREEN=$(tput setaf 2);   YELLOW=$(tput setaf 3);
-    BLUE=$(tput setaf 4);  PURPLE=$(tput setaf 5);    CYAN=$(tput setaf 6);    WHITE=$(tput setaf 7);
-  BRIGHT=$(tput bold);      BLINK=$(tput blink);    REVERSE=$(tput smso);  UNDERLINE=$(tput smul);
-  ## Once you switch to root, Lookup currently installed version of Iworx, and look to see who else is on the server
-    if [[ $UID == "0" ]]; then
-        IworxVersion=$(echo -n $(grep -A1 'user="iworx"' /home/interworx/iworx.ini | cut -d\" -f2 | sed 's/^\(.\)/\U\1/'));
-        echo -e "\n$IworxVersion\nCurrent Users\n-------------\n$(w | grep -Ev '[0-9]days')\n";
-    fi;
-fi
-
-export PATH=$PATH:/usr/local/sbin:/sbin:/usr/sbin:/var/qmail/bin/:/usr/nexkit/bin
-export GREP_OPTIONS='--color=auto'
-export PAGER=/usr/bin/less
-
-# formatted at 2000-03-14 03:14:15
-export HISTTIMEFORMAT="%F %T "
-
-export EDITOR=/usr/bin/nano
-export VISUAL=/usr/bin/nano
-
-# lulz
-alias rtfm=man
-
-# protect myself from myself
-alias rm='rm --preserve-root'
-alias chown='chown --preserve-root'
-alias chmod='chmod --preserve-root'
-alias chgrp='chgrp --preserve-root'
-
-# With -F, on listings append the following
-#    '*' for executable regular files
-#    '/' for directories
-#    '@' for symbolic links
-#    '|' for FIFOs
-#    '=' for sockets
-alias ls='ls -F --color=auto'
-alias la='ls -F --color=auto -lah'
-alias lr='ls -F --color=auto -larth'
-
-# only append to bash history to prevent it from overwriting it when you have multiple ssh windows open
-shopt -s histappend
-# save all lines of a multiple-line command in the same history entry
-shopt -s cmdhist
-# correct minor errors in the spelling of a directory component
-shopt -s cdspell
-# check the window size after each command and, if necessary, updates the values of LINES and COLUMNS
-shopt -s checkwinsize
-# add extended globing to bash to do regex pattern matching in file globs
-shopt -s extglob
-
-# RESET
-txtrst='\[\e[0m\]'    # Text Reset
-
-# NORMAL
-txtblk='\[\e[0;30m\]'; txtred='\[\e[0;31m\]'; txtgrn='\[\e[0;32m\]'
-txtylw='\[\e[0;33m\]'; txtblu='\[\e[0;34m\]'; txtpur='\[\e[0;35m\]'
-txtcyn='\[\e[0;36m\]'; txtwht='\[\e[0;37m\]';
-
-# BOLD
-bldblk='\[\e[1;30m\]'; bldred='\[\e[1;31m\]'; bldgrn='\[\e[1;32m\]'
-bldylw='\[\e[1;33m\]'; bldblu='\[\e[1;34m\]'; bldpur='\[\e[1;35m\]'
-bldcyn='\[\e[1;36m\]'; bldwht='\[\e[1;37m\]'
-
-# UNDERLINE
-unkblk='\[\e[4;30m\]'; undred='\[\e[4;31m\]'; undgrn='\[\e[4;32m\]'
-undylw='\[\e[4;33m\]'; undblu='\[\e[4;34m\]'; undpur='\[\e[4;35m\]'
-undcyn='\[\e[4;36m\]'; undwht='\[\e[4;37m\]'
-
-if [ $UID = 0 ]; then
-    # nexkit bash completion
-     if [ -e '/etc/bash_completion.d/nexkit' ]; then
-         source /etc/bash_completion.d/nexkit
-     fi
-    PS1="[${txtcyn}\$(date +%H:%M)${txtrst}][${bldred}\u${txtrst}@${txtylw}\h${txtrst} ${txtcyn}\W${txtrst}]\$ "
-else
-    PS1="[${txtcyn}\$(date +%H:%M)${txtrst}][\u@\h \W]\$ "
-fi
-
 ## My Aliases
 alias vi='vim -n'
 alias less='less -R'
@@ -138,29 +52,32 @@ getusr(){ pwd | sed 's:^/chroot::' | cut -d/ -f3; }
 serverName(){
   if [[ -n $(dig +time=1 +tries=1 +short $(hostname)) ]]; then hostname;
   else ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.' | head -1; fi
-  }
+}
 
 ## Print out most often accessed Nodeworx links
 lworx(){
   echo; if [[ -z "$1" ]]; then (for x in siteworx reseller dns/zone ip;
   do echo "$x : https://$(serverName):2443/nodeworx/$x"; done; echo "webmail : https://$(serverName):2443/webmail") | column -t
   else echo -e "Siteworx:\nLoginURL: https://$(serverName):2443/siteworx/?domain=$1"; fi; echo
-  }
+}
 
 ## Download and execute global-dns-checker script
 dnscheck(){
     wget -q -O ~/dns-check.sh nanobots.robotzombies.net/dns-check.sh;
-    chmod +x ~/dns-check.sh;  ~/./dns-check.sh "$@"; }
+    chmod +x ~/dns-check.sh;  ~/./dns-check.sh "$@"; 
+}
 
 ## Calculate the free slots on a server depending on the server type
 freeslots(){
     wget -q -O ~/freeslots.sh nanobots.robotzombies.net/freeslots.sh;
-    chmod +x ~/freeslots.sh;  ~/./freeslots.sh "$@"; }
+    chmod +x ~/freeslots.sh;  ~/./freeslots.sh "$@"; 
+}
 
 ## Add date and time with username and open server_notes.txt for editing
 srvnotes(){
     echo -e "\n#$(date) - $(echo $SUDO_USER | sed 's/nex//g')" >> /etc/nexcess/server_notes.txt;
-    nano /etc/nexcess/server_notes.txt; }
+    nano /etc/nexcess/server_notes.txt; 
+}
 
 ## Update IonCube for CentOS 5/6
 ioncubeupdate(){

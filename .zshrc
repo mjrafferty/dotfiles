@@ -13,7 +13,7 @@ ZSH_THEME="robbyrussell"
 
 # Uncomment the following line to use hyphen-insensitive completion. Case
 # sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
+HYPHEN_INSENSITIVE="true"
 
 # Uncomment the following line to disable bi-weekly auto-update checks.
 DISABLE_AUTO_UPDATE="true"
@@ -50,32 +50,18 @@ HIST_STAMPS="mm/dd/yyyy"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git colored-man-pages colorize command-not-found cp extract history history-substring-search tmux fasd zsh-syntax-highlighting zsh-autosuggestions zsh-completions)
+plugins=(git colored-man-pages colorize command-not-found cp extract history history-substring-search tmux redis-cli fasd zsh-syntax-highlighting zsh-autosuggestions zsh-completions)
 
 # User configuration
 
-# export MANPATH="/usr/local/man:$MANPATH"
+export ZSH_TMUX_AUTOSTART=true
 
 if [ "$(id -u)" != "0" ]; then
 	export ZSH_TMUX_AUTOSTART=true
 fi
 source $ZSH/oh-my-zsh.sh
 
-# You may need to manually set your language environment
 export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# ssh
-# export SSH_KEY_PATH="~/.ssh/dsa_id"
 
 if [ -f ~/.zsh_functions ]; then
 source ~/.zsh_functions
