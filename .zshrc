@@ -56,6 +56,9 @@ plugins=(git colored-man-pages colorize command-not-found cp extract history his
 
 # export MANPATH="/usr/local/man:$MANPATH"
 
+if [ "$(id -u)" != "0" ]; then
+	export ZSH_TMUX_AUTOSTART=true
+fi
 source $ZSH/oh-my-zsh.sh
 
 # You may need to manually set your language environment
@@ -88,3 +91,6 @@ if [ "$(id -u)" != "0" ]; then
 	r
 	exit
 fi
+
+
+# REMEMBER namei command

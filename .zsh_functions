@@ -68,7 +68,11 @@ function blacklistcheck () {
 }
 
 function modsecbyip () {
-	modsecrules $(grep $1 error.log | sed 's/.*unique_id \"//' | sed 's/\"]//')
+	modsecrules $(grep $1 error.log | grep ModSecurity | sed 's/.*unique_id \"//' | sed 's/\"]//')
 
-	grep $1 error.log | sed 's/.*uri \"//' | sed 's/\"].*//' | uniq
+	grep $1 error.log | grep ModSecurity | sed 's/.*uri \"//' | sed 's/\"].*//' | uniq
+}
+
+function maldetstat () {
+	for file in $(awk '{print $3}' /usr/local/maldetect/sess/session.hits.$1); do; stat $file; done
 }
