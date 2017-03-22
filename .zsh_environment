@@ -1,4 +1,4 @@
-export PATH=$PATH:/usr/local/sbin:/sbin:/usr/sbin:/var/qmail/bin:/usr/nexkit/bin
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/opt/puppetlabs/bin:/usr/local/sbin:/sbin:/usr/sbin:/var/qmail/bin:/usr/nexkit/bin:~/bin
 export PAGER=/usr/bin/less
 
 # formatted at 2000-03-14 03:14:15
@@ -7,6 +7,3 @@ export HISTTIMEFORMAT="%F %T "
 export EDITOR=/usr/bin/vim
 export VISUAL=/usr/bin/vim
 
-if [ -f /etc/nexcess/bash_functions.sh ]; then
-	. /etc/nexcess/bash_functions.sh
-fi

@@ -1,4 +1,25 @@
-alias complete=compctl
+if [ "$(id -u)" != "0" ]; then
+	/usr/bin/sudo HOME=/home/nexmrafferty /bin/zsh
+	exit
+fi
+
+export LANG=en_US.UTF-8
+
+if [ -f ~/.zsh_functions ]; then
+	source ~/.zsh_functions
+fi
+
+if [ -f ~/.zsh_aliases ]; then
+source ~/.zsh_aliases
+fi
+
+if [ -f ~/.zsh_environment ]; then
+source ~/.zsh_environment
+fi
+
+if [ -f .shell_functions ]; then
+source .shell_functions 
+fi
 # Path to your oh-my-zsh installation.
 export ZSH=~/.oh-my-zsh
 
@@ -55,28 +76,6 @@ plugins=(git colored-man-pages colorize command-not-found cp extract history his
 # User configuration
 
 export ZSH_TMUX_AUTOSTART=true
-
-if [ "$(id -u)" != "0" ]; then
-	export ZSH_TMUX_AUTOSTART=true
-fi
 source $ZSH/oh-my-zsh.sh
-
-export LANG=en_US.UTF-8
-
-if [ -f ~/.zsh_functions ]; then
-source ~/.zsh_functions
-fi
-if [ -f ~/.zsh_aliases ]; then
-source ~/.zsh_aliases
-fi
-if [ -f ~/.zsh_environment ]; then
-source ~/.zsh_environment
-fi
-
-if [ "$(id -u)" != "0" ]; then
-	r
-	exit
-fi
-
 
 # REMEMBER namei command
