@@ -8,3 +8,6 @@ alias chgrp='chgrp --preserve-root'
 
 alias ls='ls -F --color=auto'
 alias less='less -i -n -S -F'
+
+alias poweroff='systemctl poweroff'
+alias reboot='systemctl reboot'
