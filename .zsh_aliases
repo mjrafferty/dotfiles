@@ -9,9 +9,6 @@ alias chgrp='chgrp --preserve-root'
 alias ls='ls -F --color=auto'
 alias less='less -i -n -S -F'
 
-<<<<<<< HEAD
 alias poweroff='systemctl poweroff'
 alias reboot='systemctl reboot'
-=======
 alias connections="lsof -n | grep httpd | grep IPv | grep ESTABLISHED | sed 's/.*TCP //' | sed 's/.*->//' | sed 's/:.*//' |  sort | uniq -c | sort -nrk1"
->>>>>>> 0fdcf4b27100ee0ca82ec33b833ea55bbdc5091b
