@@ -17,6 +17,9 @@ if [ -f ~/.zsh_environment ]; then
 source ~/.zsh_environment
 fi
 
+if [ -f .shell_functions ]; then
+source .shell_functions 
+fi
 # Path to your oh-my-zsh installation.
 export ZSH=~/.oh-my-zsh
 

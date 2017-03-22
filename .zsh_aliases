@@ -8,3 +8,5 @@ alias chgrp='chgrp --preserve-root'
 
 alias ls='ls -F --color=auto'
 alias less='less -i -n -S -F'
+
+alias connections="lsof -n | grep httpd | grep IPv | grep ESTABLISHED | sed 's/.*TCP //' | sed 's/.*->//' | sed 's/:.*//' |  sort | uniq -c | sort -nrk1"

@@ -68,11 +68,17 @@ function blacklistcheck () {
 }
 
 function modsecbyip () {
-	modsecrules $(grep $1 error.log | grep ModSecurity | sed 's/.*unique_id \"//' | sed 's/\"]//')
-
+	for i in $(grep $1 error.log | grep ModSecurity | sed 's/.*unique_id \"//' | sed 's/\"]//')
+	do
+		modsecrules $i 
+	done | sort | uniq
 	grep $1 error.log | grep ModSecurity | sed 's/.*uri \"//' | sed 's/\"].*//' | uniq
 }
 
 function maldetstat () {
 	for file in $(awk '{print $3}' /usr/local/maldetect/sess/session.hits.$1); do; stat $file; done
+}
+
+function botsearch () {
+	for x in $(ls /home/$1/var/*/logs/transfer.log) ; do echo -e "\n####### $x" ; grep -v ' 403 ' "$x" | grep -iE 'bot|megaindex|crawl|spider|slurp' | cut -d\  -f12- | sort | uniq -c | sort -rn | head ; done
 }
