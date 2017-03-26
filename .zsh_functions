@@ -1,8 +1,8 @@
 function resellers {
-( nodeworx -u -n -c Siteworx -a listAccounts | sed 's/ /_/g' | awk '{print $5,$2,$10,$9}';
-  nodeworx -u -n -c Reseller -a listResellers | sed 's/ /_/g' | awk '{print $1,"0Reseller",$3, $2}')\
-	  | sort -n | column -t | sed 's/\(.*0Re.*\)/\n\1/'  > /tmp/rslr ;
-		cat /tmp/rslr | while read line; do awk '{if ($2 == "0Reseller") print "Reseller: " $3, "( "$4" )"; else if ($3 == "master") print ($2,$4); else print ($2,$3);}'; done | sed 's/_/ /g';
+	( nodeworx -u -n -c Siteworx -a listAccounts | sed 's/ /_/g' | awk '{print $5,$2,$10,$9}';
+	nodeworx -u -n -c Reseller -a listResellers | sed 's/ /_/g' | awk '{print $1,"0Reseller",$3, $2}')\
+		| sort -n | column -t | sed 's/\(.*0Re.*\)/\n\1/'  > /tmp/rslr ;
+	cat /tmp/rslr | while read line; do awk '{if ($2 == "0Reseller") print "Reseller: " $3, "( "$4" )"; else if ($3 == "master") print ($2,$4); else print ($2,$3);}'; done | sed 's/_/ /g';
 }
 
 whichsoft () {
@@ -15,27 +15,27 @@ quotacheck () {
 
 updatequota () {
 	if (( $# < 2 )); then
-    	echo -e "Must provide two arguments\n\nUsage: nwupdatequota \$master_domain \$new_quota\n\n";
-    	return;
-    	elif (( $# > 2)); then
-    	echo -e "Too many arguments\n\nUsage: nwupdatequota \$master_domain \$new_quota\n\n";
-    	return;
+		echo -e "must provide two arguments\n\nusage: nwupdatequota \$master_domain \$new_quota\n\n";
+		return;
+	elif (( $# > 2)); then
+		echo -e "too many arguments\n\nusage: nwupdatequota \$master_domain \$new_quota\n\n";
+		return;
 	fi
 	local master_domain=$1;
 	local new_disk_quota=$2;
-	nodeworx -u -n -c Siteworx -a edit --OPT_STORAGE $new_disk_quota --domain $master_domain;
+	nodeworx -u -n -c siteworx -a edit --opt_storage $new_disk_quota --domain $master_domain;
 }
 
 whodunit () {
-	echo -e "\n\n"; find /home/*/var/*/logs/ -name transfer.log -exec awk -v date="$(date +%d/%b/%Y:%H)" -v SUM=0 '$0 ~ date {SUM+=1} END{print "{} " SUM}' {} \; | grep -v :0 |grep -ve "\b0\b" | sort -nr -k 2 |awk 'BEGIN{print "\t\t\tTransfer Log\t\t\t\t\tHits Last Hour"}{printf "%-75s %-s\n", $1, $2}'; echo -e "\n\n"
+	echo -e "\n\n"; find /home/*/var/*/logs/ -name transfer.log -exec awk -v date="$(date +%d/%b/%y:%h)" -v sum=0 '$0 ~ date {sum+=1} end{print "{} " sum}' {} \; | grep -v :0 |grep -ve "\b0\b" | sort -nr -k 2 |awk 'begin{print "\t\t\ttransfer log\t\t\t\t\thits last hour"}{printf "%-75s %-s\n", $1, $2}'; echo -e "\n\n"
 }
 
 ttfb () {
-				curl -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" -s $1;
+	curl -o /dev/null -w "connect: %{time_connect} ttfb: %{time_starttransfer} total time: %{time_total} \n" -s $1;
 }
 
 topips () {
-	zless  $* | awk '{freq[$1]++} END {for (x in freq) {print freq[x], x}}' | sort -rn | head -20;
+	zless  $* | awk '{freq[$1]++} end {for (x in freq) {print freq[x], x}}' | sort -rn | head -20;
 }
 
 topuseragents () {
@@ -43,20 +43,22 @@ topuseragents () {
 }
 
 ipsbymb () {
-	zless  $* | awk '{tx[$1]+=$10} END {for (x in tx) {print x, "\t", tx[x]/1048576, "M"}}' | sort -k 2n | tail -n 20 | tac; 
+	zless  $* | awk '{tx[$1]+=$10} end {for (x in tx) {print x, "\t", tx[x]/1048576, "m"}}' | sort -k 2n | tail -n 20 | tac; 
 }
 
 function sshpass() {
-	mkpasswd -l 15 -d 3 -C 5 -s 0 $1;
- 	nksshd userControl --reset-failures $1;
+	mkpasswd -l 15 -d 3 -c 5 -s 0 $1;
+	nksshd usercontrol --reset-failures $1;
 }
 
 function hitsperhour () {
-	for x in $(seq -w 0 23); do echo -n "$x  "; grep -c "$(date +%d/%b/%Y:)$x" $*; done; 
+	for x in $(seq -w 0 23); do 
+		echo -n "$x  "; grep -c "$(date +%d/%b/%y:)$x" $*; 
+	done; 
 }
 
 function modsecrules () {
-	modgrep -s $1 -f /var/log/httpd/modsec_audit.log | grep "id " | grep -aEho "9[5-8][0-9]{4}" | sort | uniq | grep -v 981176;
+	modgrep -s $1 -f /var/log/httpd/modsec_audit.log | grep "id " | grep -aeho "9[5-8][0-9]{4}" | sort | uniq | grep -v 981176;
 }
 
 function backup () {
@@ -64,15 +66,35 @@ function backup () {
 }
 
 function blacklistcheck () {
-	for b in $1; do echo '++++++++++++++++++++++++++++'; echo $b;echo 'PHONE: 866-639-2377';  nslookup $b | grep addr;echo 'http://multirbl.valli.org/lookup/'$b'.html';echo 'http://www.senderbase.org/lookup/ip/?search_string='$b; echo 'https://www.senderscore.org/lookup.php?lookup='$b;echo '++++++++++++++++++++++++++++'; for x in hotmail.com yahoo.com aol.com earthlink.net verizon.net att.net sbcglobal.net comcast.net xmission.com cloudmark.com cox.net charter.net mac.me; do echo; echo $x;echo '--------------------'; swaks -q TO -t postmaster@$x -li $b| grep -iE 'block|rdns|550|521|554';done ;echo; echo 'gmail.com';echo '-----------------------'; swaks -4 -t iflcars.com@gmail.com -li $b| grep -iE 'block|rdns|550|521|554';echo; echo; done;
+	for b in $*; do 
+		echo '++++++++++++++++++++++++++++'; 
+		echo $b;echo 'phone: 866-639-2377';  
+		nslookup $b | grep addr;
+		echo 'http://multirbl.valli.org/lookup/'$b'.html';
+		echo 'http://www.senderbase.org/lookup/ip/?search_string='$b; 
+		echo 'https://www.senderscore.org/lookup.php?lookup='$b;
+		echo '++++++++++++++++++++++++++++'; 
+		for x in hotmail.com yahoo.com aol.com earthlink.net verizon.net att.net sbcglobal.net comcast.net xmission.com cloudmark.com cox.net charter.net mac.me; do 
+			echo; 
+			echo $x;
+			echo '--------------------'; 
+			swaks -q to -t postmaster@$x -li $b| grep -ie 'block|rdns|550|521|554';
+		done ;
+		echo;
+		echo 'gmail.com';
+		echo '-----------------------'; 
+		swaks -4 -t iflcars.com@gmail.com -li $b| grep -ie 'block|rdns|550|521|554';
+		echo; 
+		echo; 
+	done;
 }
 
 function modsecbyip () {
-	for i in $(grep $1 error.log | grep ModSecurity | sed 's/.*unique_id \"//' | sed 's/\"]//')
+	for i in $(grep $1 error.log | grep modsecurity | sed 's/.*unique_id \"//' | sed 's/\"]//')
 	do
 		modsecrules $i 
 	done | sort | uniq
-	grep $1 error.log | grep ModSecurity | sed 's/.*uri \"//' | sed 's/\"].*//' | uniq
+	grep $1 error.log | grep modsecurity | sed 's/.*uri \"//' | sed 's/\"].*//' | uniq
 }
 
 function maldetstat () {
@@ -80,5 +102,2113 @@ function maldetstat () {
 }
 
 function botsearch () {
-	for x in $(ls /home/$1/var/*/logs/transfer.log) ; do echo -e "\n####### $x" ; grep -v ' 403 ' "$x" | grep -iE 'bot|megaindex|crawl|spider|slurp' | cut -d\  -f12- | sort | uniq -c | sort -rn | head ; done
+	for x in $(ls /home/$1/var/*/logs/transfer.log) ; do 
+		echo -e "\n####### $x" ; 
+		grep -v ' 403 ' "$x" | grep -ie 'bot|megaindex|crawl|spider|slurp' | cut -d\  -f12- | sort | uniq -c | sort -rn | head ; 
+	done
+}
+
+# iworx db
+i(){ $(grep -b1 'dsn.orig=' ~iworx/iworx.ini | head -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -s \3 \4|') "$@"; }
+
+# vpopmail
+v(){ $(grep -a1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -s \3 \4|') "$@"; }
+
+# proftpd
+f(){ $(grep -a1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -s \3 \4|') "$@"; }
+
+## lookup mail account password (http://www.qmailwiki.org/vpopmail#vuserinfo)
+emailpass(){ echo -e "\nusername: $1\npassword: $(~vpopmail/bin/vuserinfo -c $1)\n"; }
+
+## set my account to use someone else's .bashrc
+# sourceme(){ if [[ -z "$1" ]]; then echo; read -p "username: " u; else u="$1"; fi; source /home/$u/.bashrc; }
+
+## send a bug report to my email regarding a function in my bashrc
+bugreport(){
+	echo -e "\nplease include information regarding what you were trying to do, any files
+	you were working with, the command you ran, and the error you received. i will
+	try and get back to you with either an explaination or a fix, as soon as i can.\n
+	once you save and exit this file, this message will be sent and this file removed.\n"
+	read -p "script is paused, press [enter] to begin editing the message ..."
+	echo -e "bug report (.bashrc): <put the subject here>\n\nserver: $(servername)\nuser: $sudo_user\npwd: $pwd\n\n$(cat /etc/redhat-release)\n$iworxversion\n\nfiles:\n\ncommands:\n\nerrors:\n\n" > ~/tmp.file
+	vim ~/tmp.file && cat ~/tmp.file | mail -s "$(head -1 ~/tmp.file)" "mcunningham@mdsc.info" && rm ~/tmp.file
+}
+
+## function to print a number of dashes to the screen
+dash(){ for ((i=1;i<=$1;i++)); do printf "-"; done; }
+
+## get the username from the pwd
+getusr(){ pwd | sed 's:^/chroot::' | cut -d/ -f3; }
+
+## print the hostname if it resolves, otherwise print the main ip
+servername(){
+	if [[ -n $(dig +time=1 +tries=1 +short $(hostname)) ]]; then hostname;
+	else ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -ev '^127\.' | head -1; fi
+}
+
+## print out most often accessed nodeworx links
+lworx(){
+	echo; if [[ -z "$1" ]]; then (for x in siteworx reseller dns/zone ip;
+do echo "$x : https://$(servername):2443/nodeworx/$x"; done; echo "webmail : https://$(servername):2443/webmail") | column -t
+else echo -e "siteworx:\nloginurl: https://$(servername):2443/siteworx/?domain=$1"; fi; echo
+}
+
+## download and execute global-dns-checker script
+dnscheck(){
+	wget -q -o ~/dns-check.sh nanobots.robotzombies.net/dns-check.sh;
+	chmod +x ~/dns-check.sh;  ~/./dns-check.sh "$@"; 
+}
+
+## calculate the free slots on a server depending on the server type
+freeslots(){
+	wget -q -o ~/freeslots.sh nanobots.robotzombies.net/freeslots.sh;
+	chmod +x ~/freeslots.sh;  ~/./freeslots.sh "$@"; 
+}
+
+## add date and time with username and open server_notes.txt for editing
+srvnotes(){
+	echo -e "\n#$(date) - $(echo $sudo_user | sed 's/nex//g')" >> /etc/nexcess/server_notes.txt;
+	nano /etc/nexcess/server_notes.txt; 
+}
+
+## update ioncube for centos 5/6
+ioncubeupdate(){
+	if [[ $1 =~ [0-9]\.[0-9] ]]; then ver="$1";
+	else read -p "what is the running php version: " ver; fi
+
+	# create download directory
+	if [[ ! -d ~/downloads ]]; then mkdir ~/downloads;
+	else rm -r ~/downloads; mkdir ~/downloads; fi
+
+	# download archive into directory and unpack
+	cd ~/downloads/
+	wget -o ioncube_loaders_lin_x86-64.tar.gz http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
+	tar -zxf ioncube_loaders_lin_x86-64.tar.gz; echo
+
+	# check for known configuration combinations
+	if [[ -f /etc/php.d/ioncube.ini && -f /usr/lib64/php5/ioncube.so ]]; then # centos 5
+		phpdir="/usr/lib64/php5/"; config="/etc/php.d/ioncube.ini"
+	elif [[ -d /usr/lib64/php/modules/ ]]; then # centos 6
+		phpdir="/usr/lib64/php/modules/"; config="/etc/php.d/ioncube-loader.ini"
+	fi
+
+	# copy the correct .so driver file to the target directory
+	if [[ -f ${phpdir}ioncube.so ]]; then
+		echo -e "\n${phpdir}ioncube.so driver file exist, backing up before continuing\n"
+		cp ~/downloads/ioncube/ioncube_loader_lin_${ver}* ${phpdir}
+		gzip ${phpdir}ioncube.so && mv ${phpdir}ioncube_loader_lin_${ver}.so ${phpdir}ioncube.so
+	elif [[ -f ${phpdir}ioncube_loader_lin_${ver}.so ]]; then
+		echo -e "\n${phpdir}ioncube_loader_lin_${ver}.so driver file exists, backing up before updating.\n"
+		gzip ${phpdir}ioncube_loader_lin_${ver}* && cp ~/downloads/ioncube/ioncube_loader_lin_${ver}* ${phpdir}
+	fi
+
+	# create correct config file for the service if necessary
+	if [[ -f ${config} ]]; then
+		echo -e "${config} file already exists!\n";
+	else
+		echo -e "setting up new /etc/php.d/ioncube-loader.ini file\n"
+		echo -e "zend_extension=${phpdir}ioncube_loader_lin_${ver}.so" >> /etc/php.d/ioncube-loader.ini;
+	fi
+
+	# check configs and restart php/httpd services
+	if [[ -d /etc/php-fpm.d/ ]]; then
+		php -v && service php-fpm restart
+	else
+		php -v && httpd -t && service httpd restart;
+	fi
+}
+
+## install zendguard for centos 5/6
+zendguardinstall(){
+	if [[ $1 =~ [0-9]\.[0-9] ]]; then ver="$1";
+	else read -p "what is the running php version: " ver; fi
+
+	# create download directory
+	if [[ ! -d ~/downloads ]]; then mkdir ~/downloads; fi
+
+	# download archive into directory and unpack
+	cd ~/downloads/
+	wget http://downloads.zend.com/guard/5.5.0/zendguardloader-php-${ver}-linux-glibc23-x86_64.tar.gz
+	tar -zxvf zendguardloader-php-${ver}-linux-glibc23-x86_64.tar.gz
+
+	# copy driver the correct .so file to the target directory
+	if [[ ! -f /usr/lib64/php/modules/zendguardloader.so ]]; then
+		cp ~/downloads/zendguardloader-php-${ver}-linux-glibc23-x86_64/php-${ver}.x/zendguardloader.so /usr/lib64/php/modules/
+	else echo "zendguardloader.so already exists! backing up current version before continuing.";
+		gzip /usr/lib64/php/modules/zendguardloader.so && cp ~/downloads/zendguardloader-php-${ver}-linux-glibc23-x86_64/php-${ver}.x/zendguardloader.so /usr/lib64/php/modules/
+	fi
+
+	# create correct config file for the service
+	if [[ ! -f /etc/php.d/zendguard.ini && ! -f /etc/php.d/ioncube.ini && ! -f /etc/php.d/ioncube-loader.ini ]]; then file="/etc/php.d/zendguard.ini"
+	elif [[ -f /etc/php.d/ioncube-loader.ini ]]; then file="/etc/php.d/ioncube-loader.ini";
+	elif [[ -f /etc/php.d/ioncube.ini ]]; then file="/etc/php.d/ioncube.ini"
+	elif [[ -f /etc/php.d/zendguard.ini ]]; then echo "zendguard.ini file already exists!";  file="/dev/null"; fi
+	echo "adding zend guard config to $file"
+	echo -e "\n; enable zend guard extension\nzend_extension=/usr/lib64/php/modules/zendguardloader.so\nzend_loader.enable=1\n" >> $file
+
+	# check configs and restart php/httpd services
+	if [[ -d /etc/php-fpm.d/ ]]; then php -v && service php-fpm restart
+	else httpd -t && service httpd restart; fi
+}
+
+## rewrite of ted wells sinfo
+sinfo(){
+	echo; fmt='%-14s: %s\n'
+	printf "$fmt" "hostname" "$(servername)"
+	printf "$fmt" "os (kernel)" "$(cat /etc/redhat-release | awk '{print $1,$3}') ($(uname -r))"
+	ssl="$(openssl version | awk '{print $2}')"
+	web="$(curl -s -i $(servername) | awk '/server:/ {print $2}')";
+	if [[ -z $web ]]; then web="$(curl -s -i $(servername):8080 | awk '/server:/ {print $2}')"; fi
+	if [[ $web =~ apache ]]; then webver=$(httpd -v | head -1 | awk '{print $3}' | sed 's:/: :');
+	elif [[ $web =~ litespeed ]]; then webver=$(/usr/local/lsws/bin/lshttpd -v | sed 's:/: :');
+	elif [[ $web =~ nginx ]]; then webver=$(nginx -v 2>&1 | head -1 | awk '{print $3}' | sed 's:/: :'); fi
+	printf "$fmt" "web server" "$webver; openssl ($ssl)"
+	if [[ -f /etc/init.d/varnish ]]; then printf "$fmt" "varnish" "$(varnishd -v 2>&1 | awk -f- 'nr<2 {print $2}' | tr -d \))"; fi
+	_phpversion(){
+		phpv=$($1 -v | awk '/^php/ {print $2}');
+		zend=$($1 -v | awk '/engine/ {print "; "$1,$2" ("$3")"}' | sed 's/v//;s/,//');
+		ionc=$($1 -v | awk '/ioncube/ {print "; "$3" ("$6")"}' | sed 's/v//;s/,//');
+		eacc=$($1 -v | awk '/eacc/ {print "; "$2" ("$3")"}' | sed 's/v//;s/,//');
+		guard=$($1 -v | awk '/guard/ {print "; "$2,$3" ("$5")"}' | sed 's/v//;s/,//');
+		suhos=$($1 -v | awk '/suhosin/ {print "; "$2" ("$3")"}' | sed 's/v//;s/,//');
+		opche=$($1 -v | awk '/opcache/ {print "; "$2,$3" ("$4")"}' | sed 's/v//;s/,//')
+		if [[ -d /etc/php-fpm.d/ ]]; then phpt='php-fpm'; else
+			phpt=$(awk '/^loadmodule/ {print $2}' /etc/httpd/conf.d/php.conf /etc/httpd/conf.d/suphp.conf | sed 's/php[0-9]_module/mod_php/;s/_module//'); fi;
+			printf "$fmt" "php version" "${phpt} (${phpv})${zend}${ionc}${guard}${opche}${eacc}${suhos}";
+		}
+		_phpversion /usr/bin/php; if [[ -f /opt/nexcess/php54u/root/usr/bin/php ]]; then for x in /opt/nexcess/*/root/usr/bin/php; do _phpversion $x; done; fi
+		modsecv=$(rpm -qi mod_security | awk '/version/ {print $3}' 2> /dev/null)
+		modsecr=$(awk -f\" '/seccomp.*\"$/ {print "("$2")"}' /etc/httpd/modsecurity.d/*_crs_10_*.conf 2> /dev/null)
+		printf "$fmt" "modsecurity" "${modsecv:-no modsecurity} ${modsecr}"
+		printf "$fmt" "mysql version" "$(mysql --version | awk '{print $5}' | tr -d ,) $(mysqld --version 2> /dev/null | grep -io 'percona' 2> /dev/null)"
+		pstgrs="/usr/*/bin/postgres"; if [[ -f $(echo $pstgrs) ]]; then printf "$fmt" "postgresql" "$($pstgrs -v | awk '{print $nf}')"; fi
+		printf "$fmt" "interworx" "$(grep -a1 'user="iworx"' /home/interworx/iworx.ini | tail -1 | cut -d\" -f2)"
+		if [[ $1 =~ -v ]]; then
+			printf "$fmt" "rev. control" "git ($(git --version | awk '{print $3}')); svn ($(svn --version | awk 'nr<2 {print $3}')); $(hg --version | awk 'nr<2 {print $1" ("$nf}')"
+			perlv=$(perl -v | awk '/v[0-9]/ {print "perl ("$4")"}' | sed 's/v//')
+			pythv=$(python -v 2>&1 | awk '{print $1" ("$2")"}')
+			rubyv=$(ruby -v | awk '{print "ruby ("$2")"}')
+			railv=$(if [[ ! $(which rails 2>&1) =~ /which ]]; then rails -v | awk '{print $1" ("$2")"}'; fi)
+			printf "$fmt" "script langs" "${perlv}; ${pythv}; ${rubyv}; ${railv:-no rails}"
+			printf "$fmt" "ftp/sftp/ssh" "proftpd ($(proftpd --version | awk '{print $3}')); openssh ($(ssh -v 2>&1 | cut -d, -f1 | awk -f_ '{print $2}'))"; fi
+			printf "\n$fmt" "cpus (type)" "$(awk '/model name/{print $4,$5,$7,$9,$10}' /proc/cpuinfo | uniq -c | awk '{print $1,"- "$2,$3" - "$4,$5,$6}')"
+			printf "$fmt" "memory (ram)" "$(free -m | awk '/mem/ {print ($2/1000)"g / "($4/1000)"g ("($4/$2*100)"% free)"}')"
+			printf "$fmt" "memory (swap)" "$(if [[ $(free -m | awk '/swap/ {print $2}') != 0 ]]; then free -m | awk '/swap/ {print ($2/1000)"g / "($4/1000)"g ("($4/$2*100)"% free)"}'; else echo 'no swap'; fi)"
+			printf "$fmt" "hdd (/home)" "$(df -h /home | tail -1 | awk '{print $2" / "$4" ("($4/$2*100)"% free)"}')"
+			echo
+		}
+
+## generate xkcd / iworx style passwords
+xkcd(){
+	if [[ $@ =~ -h ]]; then echo -e "\n  usage: xkcd [-l <length>] [-v]\n"; return 0; fi
+	if [[ $@ =~ -v ]]; then wordlist='/usr/share/dict/words'; else wordlist='/usr/local/interworx/lib/dict/words'; fi
+	if [[ $1 =~ -l ]]; then wordlength=$(( (${2} - 4) / 4 )); else wordlength="4,8"; fi
+	if [[ -x /usr/bin/shuf ]]; then
+		echo $(shuf -n1000 $wordlist | grep -e ^[a-z]{$wordlength}$ | shuf -n4 )$(( ($random % 9000) + 1000 ))\
+			| sed 's/\b\([a-za-z]\)/\u\1/g' | sed 's/ //g'
+	else
+		n=0;  word=(); len=$(wc -l < $wordlist)
+		while [[ $n -lt 4 ]]; do
+			rnd=$(( ( $(od -van -n4 -tu4 < /dev/urandom) )%($len)+1 ));
+			word[$n]=$(sed -n "${rnd}p" $wordlist | egrep "^[a-z]{4,8}$" | sed 's:\b\(.\):\u\1:');
+			if [[ -n ${word[$n]} ]]; then n=$n+1; fi;
+			done;
+			echo "${word[0]}${word[1]}${word[2]}${word[3]}$(( $random % 9000 + 1000 ))";
+			unset n word len
+		fi
+	}
+
+## find files in a directory that were modified a certain number of days ago
+recmod(){
+if [[ -z "$@" || "$1" == "-h" || "$1" == "--help" ]]; then
+	echo -e "\n usage: recmod [-p <path>] [days|{sequence}]\n  note: paths with * in them need to be quoted\n"; return 0;
+elif [[ "$1" == "-p" ]]; then
+	dir="$2"; shift; shift; else dir="."; fi;
+	for x in "$@"; do
+		echo "files modified within $x day(s) or $((${x}*24)) hours ago";
+		find $dir -type f -mtime $((${x}-1)) -exec ls -lath {} \; | grep -ev '(var|log|cache|media|tmp|jpg|png|gif)' | column -t; echo;
+	done
+}
+
+## archive a particular target, adding time and date information
+archive(){
+	echo; if [[ -z "$@" ]]; then echo -e " usage: archive <target>\n"; return 0; fi
+	file=$(getusr).$(hostname | cut -d. -f1)--$(echo "$1" | sed s/"\/"/"-"/g)-$(date +%y.%m.%d-%h.%m).tgz;
+	size=$(du -sb "$1" | cut -f1); sizem=$(echo "scale=3;$size/1024/1024" | bc); echo "compressing ${sizem}m ... please be patient."
+	if [[ -f /usr/bin/pv && -f /usr/bin/pigz ]]; then
+		tar -cf - "$1" | pv -s ${size} | pigz -c > $file;
+	elif [[ -f /usr/bin/pv ]]; then
+		tar -cf - "$1" | pv -s ${size} | gzip -c > $file;
+	else
+		echo "sorry, no idea how long this will take ..."; tar -zcf  $file "$1";
+	fi && echo -e "\narchive created successfully!\n\n$pwd/\n$file\n";
+	if [[ -f $file ]]; then
+		read -p "chown file to [r]oot or [u]ser? [r/u]: " yn;
+		if [[ $yn = "r" ]]; then
+			u='root';
+		else u=$(getusr); fi;
+			chown $u. $file && echo -e "archive owned to $u\n"; fi
+		}
+
+## update ownership to the username for the pwd
+fixowner(){
+	u=$(getusr)
+	if [[ -z $2 ]]; then p='.'; else p=$2; fi
+	case $1 in
+		-u|--user) owner="$u:$u" ;;
+		-a|--apache) owner="apache:$u" ;;
+		-r|--root) owner="root:root" ;;
+		*|-h|--help) echo -e "\n usage: fixowner [option] [path]\n    -u | --user ..... change ownership to $u:$u\n    -a | --apache ... change ownership to apache:$u\n    -r | --root ..... change ownership to root:root\n    -h | --help ..... show this help output\n"; return 0 ;;
+	esac
+	chown -r $owner $p && echo -e "\n files owned to $owner\n"
+}
+
+## set default permissions for files and directories
+fixperms(){
+	if [[ $1 == '-h' || $1 == '--help' ]]; then echo -e "\n usage: fixperms [path]\n    set file permissions to 644 and folder permissions to 2755\n"; return 0; fi
+	if [[ -n $1 ]]; then sitepath="$1"; else sitepath="."; fi
+
+	if [[ $(grep -i ^loadmodule.*php[0-9]_module /etc/httpd/conf.d/php.conf) ]]; then perms="664"; else perms="644"; fi
+	printf "\nfixing file permissions ($perms) ... "; find $sitepath -type f -exec chmod $perms {} \;
+	if [[ $(grep -i ^loadmodule.*php[0-9]_module /etc/httpd/conf.d/php.conf) ]]; then perms="2775"; else perms="2755"; fi
+	printf "fixing directory permissions ($perms) ... "; find $sitepath -type d -exec chmod $perms {} \;
+	printf "operation completed.\n\n";
+}
+
+## generate .ftpaccess file to create read only ftp user
+# http://www.proftpd.org/docs/howto/limit.html
+ftpreadonly(){
+	echo; if [[ -z "$1" ]]; then read -p "ftp username: " u; else u="$1"; fi
+	sudo -u $(getusr) echo -e "\n<limit write>\n  denyuser $u\n</limit>\n" >> .ftpaccess &&
+		echo -e "\n.ftpaccess file has been updated.\n"
+}
+
+compctl -w '-h --help -u --user -p --pass -l' htpasswdauth
+## generate or update .htpasswd file to add username
+htpasswdauth(){
+	if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+		echo -e "\n usage: htpasswdauth [-u|--user username] [-p|--pass password] [-l length]\n    ex: htpasswdauth -u username -p passwod\n    ex: htpasswdauth -u username -l 5\n    ex: htpasswdauth -u username\n"; return 0; fi
+		if [[ -z $1 ]]; then echo; read -p "username: " u; elif [[ $1 == '-u' || $1 == '--user' ]]; then u="$2"; fi;
+			if [[ -z $3 ]]; then p=$(xkcd); elif [[ $3 == '-p' || $3 == '--pass' ]]; then p="$4"; elif [[ $3 == '-l' ]]; then p=$(xkcd -l $4); fi
+			if [[ -f .htpasswd ]]; then sudo -u $(getusr) htpasswd -mb .htpasswd $u $p; else sudo -u $(getusr) htpasswd -cmb .htpasswd $u $p; fi;
+				echo -e "\nusername: $u\npassword: $p\n";
+			}
+
+## create or add http-auth section for given .htaccess file
+htaccessauth(){
+	sudo -u $(getusr) echo -e "\n# ----- password protection section -----
+	\nauthuserfile $(pwd)/.htpasswd
+	authgroupfile /dev/null
+	authname \"authorized access only\"
+	authtype basic
+	\nrequire valid-user
+	\n# ----- password protection section -----\n" >> .htaccess
+}
+
+## manage .htaccess black-lists, white-lists, and bot-lists.
+htlist(){
+	# parse through options/parameters
+	if [[ $1 =~ -p ]]; then sitepath=$2; shift; shift; else sitepath='.'; fi; opt=$1
+
+		# run correct for-loop given list type
+		case $opt in
+			-b | --black)
+				if ! grep -eq '.rder .llow,.eny' $sitepath/.htaccess &> /dev/null; then
+					sudo -u $(getusr) echo -e "order allow,deny\nallow from all" >> $sitepath/.htaccess &&
+						echo "$sitepath/.htaccess rules updated";
+				fi
+				shift; echo; for x in "$@"; do
+				sed -i "s/\b\(.rder .llow,.eny\)/\1\ndeny from $x/" $sitepath/.htaccess &&
+					echo "deny from $x ... added to $sitepath/.htaccess"
+			done; echo
+			;;
+
+		-w | --white)
+			if ! grep -eq '.rder .eny,.llow' $sitepath/.htaccess &> /dev/null; then
+				sudo -u $(getusr) echo -e "order deny,allow\ndeny from all" >> $sitepath/.htaccess &&
+					echo "$sitepath/.htaccess rules updated";
+			fi
+			shift; echo; for x in "$@"; do
+			sed -i "s/\b\(.rder .eny,.llow\)/\1\nallow from $x/" $sitepath/.htaccess &&
+				echo "allow from $x ... added to $sitepath/.htaccess"
+		done; echo
+		;;
+
+	-r | --robot)
+		if grep -eq '.rder .llow,.eny' $sitepath/.htaccess &> /dev/null; then
+			sed -i 's/\b\(.rder .llow,.eny\)/\1\ndeny from env=bad_bot/' $sitepath/.htaccess
+		else sudo -u $(getusr) echo -e "\norder allow,deny\ndeny from env=bad_bot\nallow from all" >> $sitepath/.htaccess && echo "$sitepath/.htaccess rules updated."; fi
+
+		shift; echo
+		echo -e "\n# ----- block bad bots section -----\n" >> $sitepath/.htaccess
+		for x in "$@"; do echo "browsermatchnocase $x bad_bot" | tee -a $sitepath/.htaccess; done
+		echo -e "\n# ----- block bad bots section -----\n" >> $sitepath/.htaccess; echo
+		;;
+
+	-h|--help|*)
+		echo -e "\n  usage: htlist [options] <listtype> <ip1> <ip2> ...\n
+		options:
+		-p | --path .... path to .htaccess file
+		-h | --help .... print this help and quit
+
+		list types:
+		-b | --black ... blacklist ips
+		-w | --white ... whitelist ips
+		-r | --robot ... block useragent\n";
+		return 0;
+		;;
+
+	esac
+}
+
+## generate nexinfo.php to view php info in browser
+nexinfo(){
+	sudo -u "$(getusr)" echo '<?php phpinfo(); ?>' > nexinfo.php
+	echo -e "\nhttp://$(pwd | sed 's:^/chroot::' | cut -d/ -f4-)/nexinfo.php created successfully.\n" | sed 's/html\///';
+}
+
+## system resource usage by account
+sysusage(){
+	echo; colsort="4"; printf "%-10s %10s %10s %10s %10s\n" "user" "mem (mb)" "process" "cpu(%)" "mem(%)"; echo "$(dash 54)"
+	ps aux | grep -v ^user | awk '{ mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } end { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' | sort -nrk$colsort | head; echo
+}
+
+# lookup siteworx account details
+acctdetail(){
+	nodeworx -u -n -c siteworx -a querysiteworxaccountdetails --domain $(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')\
+		| sed 's:\([a-za-z]\) \([a-za-z]\):\1_\2:g;s:\b1\b:yes:g;s:\b0\b:no:g' | column -t
+}
+
+## add an ip to a siteworx account
+addip(){ nodeworx -u -n -c siteworx -a addip --domain $(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}') --ipv4 $1; }
+
+## enable siteworx backups for an account
+addbackups(){ nodeworx -u -n -c siteworx -a edit --domain $(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}') --opt_backup 1; }
+
+## adjust user quota on the fly using nodeworx cli
+bumpquota(){
+	if [[ -z $@ || $1 =~ -h ]]; then echo -e "\n usage: bumpquota <username> <newquota>\n  note: <username> can be '.' to get user from pwd\n"; return 0;
+	elif [[ $1 =~ ^[a-z].*$ ]]; then u=$1; shift;
+	elif [[ $1 == '.' ]]; then u=$(getusr); shift; fi
+	newquota=$1; primarydomain=$(~iworx/bin/listaccounts.pex | grep $u | awk '{print $2}')
+	nodeworx -u -n -c siteworx -a edit --domain $primarydomain --opt_storage $newquota &&
+		echo -e "\ndisk quota for $u has been set to $newquota mb\n"; checkquota -u $u
+}
+
+compctl -w '-h --help -a --all -l --large -u --user' checkquota
+## check users quota usage
+checkquota(){
+	_quotaheader(){ echo; printf "%8s %12s %14s %14s\n" "username" "used(%)" "used(g)" "total(g)"; dash 51; }
+	_quotausage(){ printf "\n%-10s" "$1"; quota -g $1 2> /dev/null | tail -1 | awk '{printf "%10.3f%%  %10.3f gb  %10.3f gb",($2/$3*100),($2/1000/1024),($3/1000/1024)}' 2> /dev/null; }
+	case $1 in
+		-h|--help   ) echo -e "\n usage: checkquota [--user <username>|--all|--large]\n   -u|--user user1 [user2..] .. show quota usage for a user or list of users \n   -a|--all ................... list quota usage for all users\n   -l|--large ................. list all users at or above 80% of quota\n";;
+		-a|--all    ) _quotaheader; for x in $(laccounts); do _quotausage $x; done | sort; echo ;;
+		-l|--large  ) _quotaheader; echo; for x in $(laccounts); do _quotausage $x; done | sort | grep -e '[8,9][0-9]\..*%|1[0-9]{2}\..*%'; echo ;;
+		-u|--user|* ) _quotaheader; shift; if [[ -z "$@" ]]; then _quotausage $(getusr); else for x in "$@"; do _quotausage $x; done; fi; echo; echo ;;
+	esac
+}
+
+## show backupserver and disk usage for current home directory
+backupsvr(){
+	checkquota;
+	new_ipaddr=$(awk -f/ '/server.allow/ {print $nf}' /usr/sbin/r1soft/log/cdp.log | tail -1 | tr -d \' | sed 's/10\.17\./178\.17\./g; s/10\.1\./103\.1\./g; s/10\.240\./192\.240\./g');
+	all_ipaddr=$(awk -f/ '/server.allow/ {print $nf}' /usr/sbin/r1soft/log/cdp.log | sort | uniq | tr -d \' | sed 's/10\.17\./178\.17\./g; s/10\.1\./103\.1\./g; s/10\.240\./192\.240\./g');
+	if [[ $new_ipaddr =~ ^172\. ]]; then internal=$(curl -s http://mdsc.info/r1bs-internal); fi
+
+	_printbackupsvr(){
+		if [[ $1 =~ ^172\. ]]; then
+			for x in $internal; do echo -n $x | awk -f_ "/$1/"'{printf "r1soft ip..: https://"$3":8001\n" "r1soft rdns: https://"$2":8001\n"}'; done
+		else
+			ip=$1; rdns=$(dig +short -x $1 2> /dev/null);
+			echo "r1soft ip..: https://${ip}:8001";
+			if [[ -n $rdns ]]; then echo "r1soft rdns: https://$(echo $rdns | sed 's/\.$//'):8001"; fi;
+			fi
+			echo
+		}
+
+		firstseen=$(grep $(echo $new_ipaddr | cut -d. -f2-) /usr/sbin/r1soft/log/cdp.log | head -1 | awk '{print $1}');
+		echo "----- current r1soft server ----- $firstseen] $(dash 32)"; _printbackupsvr $new_ipaddr
+
+		for ipaddr in $all_ipaddr; do
+			if [[ $ipaddr != $new_ipaddr ]]; then
+				lastseen=$(grep $(echo $ipaddr | cut -d. -f2-) /usr/sbin/r1soft/log/cdp.log | tail -1 | awk '{print $1}');
+				echo "----- previous r1soft server ----- $lastseen] $(dash 31)"; _printbackupsvr $ipaddr
+			fi;
+		done
+	}
+
+## lookup the dns nameservers on the host
+nameserver(){ echo; for x in $(grep ns[1-2] ~iworx/iworx.ini | cut -d\" -f2;); do echo "$x ($(dig +short $x))"; done; echo; }
+
+## quick summary of domain dns info
+ddns(){
+if [[ -z "$@" ]]; then read -p "domain name: " d; else d="$@"; fi
+for x in $(echo $d | sed 's/\// /g'); do echo -e "\ndns summary: $x\n$(dash 79)";
+	for y in a aaaa ns mx txt soa; do dig +time=2 +tries=2 +short $y $x +noshort;
+		if [[ $y == 'ns' ]]; then dig +time=2 +tries=2 +short $(dig +short ns $x) +noshort | grep -v root; fi; done;
+			dig +short -x $(dig +time=2 +tries=2 +short $x) +noshort; echo; done
+		}
+
+## list server ips, and all domains configured on them.
+domainips(){
+	echo; for i in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -ev '^127\.'); do
+	printf "  ${bright}${yellow}%-15s${normal}  " "$i";
+	d=$(grep -l $i /etc/httpd/conf.d/vhost_[^000_]*.conf | cut -d_ -f2 | sed 's/.conf$//');
+	for x in $d; do printf "$x "; done; echo;
+	done; echo
+}
+
+## find ips in use by a siteowrx account
+accountips(){ domaincheck -a $1; }
+
+## find ips in use by a reseller account
+resellerips(){ domaincheck -r $1; }
+
+## match secondary domains to ips on the server using vhost files
+domaincheck(){
+	vhost="$(echo /etc/httpd/conf.d/vhost_[^000]*.conf)"; sub='';
+
+	case $1 in
+		-a) if [[ -n $2 ]]; then sub=$2; else sub=''; fi
+			vhost="$(grep -l $(getusr) /etc/httpd/conf.d/vhost_[^000]*.conf)" ;;
+		-r) if [[ -z $2 ]]; then read -p "resellerid: " r_id; else r_id=$2; fi;
+			vhost=$(for r_user in $(nodeworx -unc siteworx -a listaccounts | awk "(\$5 ~ /^$r_id$/)"'{print $2}'); do grep -l $r_user /etc/httpd/conf.d/vhost_[^000]*.conf; done | sort | uniq) ;;
+		-v) fmt=" %-15s  %-15s  %3s  %3s  %3s  %s\n"
+			hlt="${bright}${red} %-15s  %-15s  %3s  %3s  %3s  %s${normal}\n"
+			#printf "$fmt" " server ip" " live ip" "ssl" "fpm" "tmp" " domain"
+			#printf "$fmt" "$(dash 15)" "$(dash 15)" "---" "---" "---" "$(dash 44)"
+			;;
+	esac; echo
+
+	fmt=" %-15s  %-15s  %3s  %3s  %s\n"
+	hlt="${bright}${red} %-15s  %-15s  %3s  %3s  %s${normal}\n"
+	printf "$fmt" " server ip" " live ip" "ssl" "fpm" " domain"
+	printf "$fmt" "$(dash 15)" "$(dash 15)" "---" "---" "$(dash 44)"
+
+	for x in $vhost; do
+		d=$(basename $x .conf | cut -d_ -f2);
+		v=$(awk '/.irtual.ost/ {print $2}' $x | head -1 | cut -d: -f1);
+		i=$(dig +short +time=1 +tries=1 ${sub}$d | grep -e '^[0-9]{1,3}\.' | head -1);
+		s=$(if grep :443 $x &> /dev/null; then echo ssl; fi);
+		f=$(if grep mage_run $x &> /dev/null; then echo fix; fi);
+		if [[ "$i" != "$v" ]];
+		then printf "$hlt" "$v" "$i" "${s:- - }" "${f:- - }" "${sub}$d";
+		else printf "$fmt" "$v" "$i" "${s:- - }" "${f:- - }" "${sub}$d"; fi
+	done; echo
+}
+
+## find ips that are not configured in any vhost files
+freeips(){
+	echo; for x in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -ev '^127\.|^10\.|^172\.'); do
+	printf "\n%-15s " "$x"; grep -l $x /etc/httpd/conf.d/vhost_[^000_]*.conf 2> /dev/null;
+done | grep -v \.conf$ | column -t; echo
+}
+
+## check if gzip is working for domain(s)
+chkgzip(){
+echo; if [[ -z "$@" ]]; then read -p "domain name(s): " dname; else dname="$@"; fi
+for x in "$dname"; do curl -i -h 'accept-encoding: gzip,deflate' $x; done; echo
+}
+
+## check time to first byte with curl
+ttfb(){
+	if [[ -z "$1" || "$1" == "-h" || "$1" == "--help" ]]; then echo -e "\n usage: ttfb [mag] <domain>\n"; return 0; fi;
+
+		_timetofirstbyte(){ curl -so /dev/null -w "http: %{http_code} connect: %{time_connect} ttfb: %{time_starttransfer} total time: %{time_total} redirect url: %{redirect_url}\n" "$1"; }
+		if [[ "$1" == "m" || "$1" == "mag" ]]; then if [[ -z "$2" ]]; then read -p "domain: " d; else d="$2"; fi;
+			for x in index.php robots.txt; do echo -e "\n$d/$x"; _timetofirstbyte "$d/$x"; done;
+			else d="$1"; echo; _timetofirstbyte "$d"; fi; echo
+			}
+
+## cd to document root in vhost containing the given domain
+cdomain(){
+	if [[ -z "$@" ]]; then echo -e "\n  usage: cdomain <domain.tld>\n"; return 0; fi
+	vhost=$(grep -l " $(echo $1 | sed 's/\(.*\)/\l\1/g')" /etc/httpd/conf.d/vhost_[^000]*.conf)
+	if [[ -n $vhost ]]; then cd $(awk '/documentroot/ {print $2}' $vhost | head -1); pwd;
+	else echo -e "\ncould not find $1 in the vhost files!\n"; fi
+}
+
+## attempt to list secondary domains on an account
+ldomains(){
+	dir=$pwd; cd /home/$(getusr); for x in */html; do echo $x | sed 's/\/html//g'; done; cd $dir
+}
+
+## edit a list of vhosts in a loop for adding temp fixes
+tempfix(){
+	for x in $(echo "$@" | sed 's/\// /g'); do nano /etc/httpd/conf.d/vhost_$x.conf; done; httpd -t && service httpd reload
+	}
+
+## list the usernames for all accounts on the server
+laccounts(){ ~iworx/bin/listaccounts.pex | awk '{print $1}'; }
+
+## list sitworx accouts sorted by reseller
+lreseller(){
+( nodeworx -u -n -c siteworx -a listaccounts | sed 's/ /_/g' | awk '{print $5,$2,$10}';
+nodeworx -u -n -c reseller -a listresellers | sed 's/ /_/g' | awk '{print $1,"0.reseller",$3}' )\
+	| sort -n | column -t | sed 's/\(.*0\.re.*\)/\n\1/' | grep -ev '^1 '; echo
+}
+
+## list the daily snapshots for a database to see the dates/times on the snapshots
+lsnapshots(){
+echo; if [[ -z "$1" ]]; then read -p "database name: " dbname; else dbname="$1"; fi
+ls -lah /home/.snapshots/daily.*/localhost/mysql/$dbname.sql.gz; echo
+}
+
+## backup, and restore a database from a snapshot file
+restoredb(){
+echo; if [[ -z "$1" ]]; then read -p "backup filename: " dbfile; else dbfile="$1"; fi;
+
+dbname=$(echo $dbfile | cut -d. -f1);
+echo "creating current $dbname backup ..."; mdz $dbname;
+echo "dropping current $dbname ..."; m -e"drop database $dbname";
+echo "creating empty $dbname ..."; m -e"create database $dbname";
+echo "importing backup $dbfile ...";
+
+if [[ $dbfile =~ \.gz$ ]]; then size=$(gzip -l $dbfile | awk 'end {print $2}');
+elif [[ $dbfile =~ \.zip$ ]]; then size=$(unzip -l $dbfile | awk '{print $1}'); fi
+
+if [[ -f /usr/bin/pv ]]; then zcat -f $dbfile | pv -s $size | m $dbname;
+else zcat -f $dbfile | m $dbname; fi;
+
+	if [[ -d /home/mysql/$dbname/ ]]; then echo "fixing ownership on new db ..."; chown -r mysql:$(echo $dbname | cut -d_ -f1) /home/mysql/$dbname/; fi
+	echo
+}
+
+## kill select or sleep queries on a server, potentialy for just one username
+killqueries(){
+	_querieslog(){ filename="mytop-dump--$(date +%y.%m.%d-%h.%m).dump";
+		mytop -b --nocolor > ~/"$filename"; echo -e "\n~/$filename created ...\nbegin killing queries ..."; }
+		case $1 in
+			sel|select) _querieslog; x=$(awk '/select/ {print $1}' ~/"$filename");
+				for i in $x; do echo "killing: $i"; m -e"kill $i"; done; echo -e "operation completed.\n" ;;
+				sle|sleep) _querieslog; x=$(awk '/sleep/ {print $1}' ~/"$filename");
+					for i in $x; do echo "killing $i"; m -e"kill $i"; done; echo -e "operation completed.\n" ;;
+					-h|--help|*) echo -e "\n usage: killqueries [sleep|select]\n" ;;
+				esac
+			}
+
+## create user functions for memcached socket configured in local.xml
+memcachedalias(){
+	if [[ -z $1 || $1 == '-h' || $1 == '--help' ]]; then
+		echo -e "\n usage: memcachealias [sitepath] [name]\n"
+	elif [[ -f $1/app/etc/local.xml ]]; then
+		if [[ -n $2 ]]; then name="_$2"; else name='_memcached'; fi
+		u=$(getusr);
+		cache_socket=$(grep -eo '\/var.*_cache\.sock' $1/app/etc/local.xml | head -1)
+		sessions_socket=$(grep -eo '\/var.*_sessions\.sock' $1/app/etc/local.xml | head -1)
+
+		echo; for x in flush_all stats; do
+		if [[ -n $sessions_socket ]]; then
+			echo "adding ${x}${name}_cache to /home/$u/.bashrc ... ";
+			sudo -u $u echo "${x}${name}_cache(){ echo $x \$@ | nc -u $cache_socket; }" >> /home/$u/.bashrc;
+			echo "adding ${x}${name}_sessions to /home/$u/.bashrc ... ";
+			sudo -u $u echo "${x}${name}_sessions(){ echo $x \$@ | nc -u $sessions_socket; }" >> /home/$u/.bashrc;
+		else
+			echo "adding ${x}${name}_cache to /home/$u/.bashrc ... ";
+			sudo -u $u echo "${x}${name}_cache(){ echo $x \$@ | nc -u $cache_socket; }" >> /home/$u/.bashrc; fi;
+		done; echo;
+
+		echo "adding bash completion for stats function"
+		sudo -u $u echo -e "\ncomplete -w 'items slabs detail sizes reset' stats${name}_cache" >> /home/$u/.bashrc
+		sudo -u $u echo -e "\ncomplete -w 'items slabs detail sizes reset' stats${name}_sessions" >> /home/$u/.bashrc
+		echo "adding $u to the (nc) group"; usermod -a -g nc $u; echo;
+	else echo "\n could not find local.xml file in $1\n"; fi;
+	}
+
+## add php-fpm fix for pointer method magento multistores
+fpmfix(){
+if [[ -z $1 || $1 == '.' ]]; then d=$(pwd | sed 's:^/chroot::' | cut -d/ -f4);
+else d=$(echo $1 | sed 's:/::g'); fi
+vhost="/etc/httpd/conf.d/vhost_${d}.conf"
+
+if [[ -f $vhost ]]; then
+	sed -i 's/\(rewritecond.*\.fcgi\)/\1\n  # ----- php-fpm-multistore-fix -----\n  setenvif redirect_mage_run_code (\.\+) mage_run_code=\$1\n  setenvif redirect_mage_run_type (\.\+) mage_run_type=\$1\n  # ----- php-fpm-multistore-fix -----/g' $vhost
+	httpd -t && service httpd reload && echo -e "\nfpm fix has been applied to $(basename $vhost)\n"
+else echo -e "\n$(basename $vhost) not found!\n";
+fi
+}
+
+
+## set common and custom php-fpm configuration options
+fpmconfig(){
+
+if [[ -f $(echo /opt/nexcess/php5*/root/etc/php-fpm.d/$(getusr).conf) ]]; then
+	config="/opt/nexcess/php5*/root/etc/php-fpm.d/$(getusr).conf";
+	srv="$(echo $config | cut -d/ -f4)-php-fpm";
+elif [[ -f /etc/php-fpm.d/$(getusr).conf ]]; then
+	config="/etc/php-fpm.d/$(getusr).conf";
+	srv="php-fpm"; fi;
+
+	_fpmconfig(){
+		if [[ $(grep $1 $config 2> /dev/null) ]]; then
+			echo -e "\n$1 is already configured in the php-fpm pool $config\n";
+			awk "/$1/"'{print}' $config; echo
+		elif [[ -f $(echo $config) ]]; then
+			echo "php_admin_value[$1] = $2" >> $config && service $srv reload && echo -e "\n$1 has been set to $2 in the php-fpm pool for $config\n";
+		else
+			echo -e "\n could not find $config !\n try running this from the user's /home/dir/\n"; fi;
+		}
+
+		case $1 in
+			-a) _fpmconfig apc.enabled off ;;
+			-b) _fpmconfig open_basedir "$(php -i | awk '/open_basedir/ {print $nf}'):$2" ;;
+			-c) _fpmconfig $2 $3 ;;
+			-d) _fpmconfig display_errors on ;;
+			-e) _fpmconfig max_execution_time $2 ;;
+			-f) _fpmconfig allow_url_fopen on ;;
+			-g|-z) _fpmconfig zlib.output_compression on ;;
+			-m) _fpmconfig memory_limit $2 ;;
+			-s) _fpmconfig session.cookie_lifetime $2; _fpmconfig session.gc_maxlifetime $2 ;;
+			-u) _fpmconfig upload_max_filesize $2; _fpmconfig post_max_size $2 ;;
+			-h) echo -e "\n usage: fpmconfig [option] [value]
+				options:
+				-a ... disable apc
+				-b ... set open_basedir
+				-c ... set a custom [parameter] to [value]
+				-d ... enable display_errors
+				-e ... set max_execution_time to [value]
+				-f ... enable allow_url_fopen
+				-g ... enable gzip (zlib.output_compression)
+				-m ... set memory_limit to [value]
+				-s ... set session timeouts (session.gc_maxlifetime, session.cookie_lifetime)
+				-u ... set upload_max_filesize and post_max_size to [value]
+				-z ... enable gzip (zlib.output_compression)
+
+				-h ... print this help output and quit
+				default behavior is to print the contents and location of config file.\n"
+				;;
+
+			*) echo; ls $config; echo; cat $config; echo;;
+		esac;
+
+		unset srv config;
+	}
+
+## enable zlib.output_compression for a user's php-fpm config pool
+fpmgzip(){ fpmconfig -g; }
+
+## enable allow_url_fopen for a users php-fpm config pool
+fpmfopen(){ fpmconfig -f; }
+
+## setup parallel downloads in vhost
+magparallel(){
+if [[ -z $@ || $1 == '-h' || $1 == '--help' ]]; then echo -e '\n usage: parallel <domain> \n'; return 0;
+elif [[ -f /etc/httpd/conf.d/vhost_$1.conf ]]; then d=$1;
+elif [[ $1 == '.' && -f /etc/httpd/conf.d/vhost_$(pwd | sed 's:^/chroot::' | cut -d/ -f4).conf ]]; then d=$(pwd | sed 's:^/chroot::' | cut -d/ -f4)
+else echo -e '\ncould not find requested vhost file!\n'; return 1; fi
+domain=$(echo $d | sed 's:\.:\\\\\\.:g'); # covert domain into regex
+# place comment followed by a blank line, logic for parallel downloads, then another comment preceded by a blank line
+sed -i "s:\(.*rewritecond %{http_host}...$domain.\[nc\]\):\1\n  \# ----- magento-parallel-downloads -----\n:g" /etc/httpd/conf.d/vhost_$d.conf
+for x in skin media js; do sed -i "s:\(.*rewritecond %{http_host}...$domain.\[nc\]\):\1\n  rewritecond %{http_host} \!\^$x\\\.$domain [nc]:g" /etc/httpd/conf.d/vhost_$d.conf; done
+sed -i "s:\(.*rewritecond %{http_host}...$domain.\[nc\]\):\1\n\n  \# ----- magento-parallel-downloads -----:g" /etc/httpd/conf.d/vhost_$d.conf
+httpd -t && service httpd reload && echo -e "\nparallel downloads configure for $d\n" # test and restart apache, print success message
+}
+
+## download scheduler.php and then list out the magento cron jobs
+magcrons(){
+if [[ -z "$1" ]]; then sitepath="."; else sitepath="$1"; fi
+baseurl=$(nkmagento info $sitepath | awk '/^base/ {print $4}')
+sudo -u $(getusr) wget -q -o $sitepath/scheduler.php nanobots.robotzombies.net/scheduler
+curl -s "$baseurl/scheduler.php" | less; echo
+read -p "remove scheduler.php? [y/n]: " yn; if [[ $yn == "n" ]]; then echo "link: $baseurl/scheduler.php";
+else rm $sitepath/scheduler.php; echo "scheduler.php has been removed."; fi; echo
+}
+
+## create magento multi-store symlinks
+magsymlinks(){
+echo; u=$(getusr); if [[ -z $1 ]]; then read -p "domain name: " d; else d=$1; fi
+for x in app includes js lib media skin var; do sudo -u $u ln -s /home/$u/$d/html/$x/ $x; done;
+	echo; read -p "copy .htaccess and index.php? [y/n]: " yn; if [[ $yn == "y" ]]; then
+	for y in index.php .htaccess; do sudo -u $u cp /home/$u/$d/html/$y .; done; fi
+}
+
+## look up large tables of a given database to see what's taking up space
+tablesize(){
+	if [[ -z $1 || $1 == '-h' || $1 = '--help' ]]; then
+		echo -e "\n  usage: tablesize [dbname] [option] [linecount]\n\n  options:\n    -r ... sort by most rows\n    -d ... sort by largest data_size\n    -i ... sort by largest index_size\n"; return 0; fi
+		if [[ $1 == '.' ]]; then dbname=$(finddb); shift;
+		elif [[ $1 =~ ^[a-z]{1,}_.*$ ]]; then dbname="$1"; shift;
+		else read -p "database: " dbname; fi
+		case $1 in
+			-r ) col='4'; shift;;
+			-d ) col='6'; shift;;
+			-i ) col='8'; shift;;
+			* ) col='6';;
+		esac
+		if [[ $1 =~ [0-9]{1,} ]]; then top="$1"; else top="20" ; fi
+		echo -e "\ndatabase: $dbname\n$(dash 93)"; printf "| %-50s | %8s | %11s | %11s |\n" "name" "rows" "data_size" "index_size"; echo "$(dash 93)";
+		echo "show table status" | m $dbname | awk 'nr>1 {printf "| %-50s | %8s | %10.2fm | %10.2fm |\n",$1,$5,($7/1024000),($9/1024000)}' | sort -rnk$col | head -n$top
+		echo -e "$(dash 93)\n"
+	}
+
+## find magento database connection info, and run common queries
+magdb(){
+echo; runonce=0;
+if [[ $1 =~ ^-.*$ ]]; then sitepath='.'; opt="$1"; shift; param="$@";
+else sitepath="$1"; opt="$2"; shift; shift; param="$@"; fi;
+
+	tables="core_cache core_cache_option core_cache_tag core_session dataflow_batch_import dataflow_batch_export\
+		index_process_event log_customer log_quote log_summary log_summary_type\
+		log_url log_url_info log_visitor log_visitor_info log_visitor_online\
+		report_viewed_product_index report_compared_product_index report_event catalog_compare_item"
+
+	prefix="$(echo 'cat /config/global/resources/db/table_prefix/text()' | xmllint --nocdata --shell $sitepath/app/etc/local.xml | sed '1d;$d')"
+	adminurl="$(echo 'cat /config/admin/routers/adminhtml/args/frontname/text()' | xmllint --nocdata --shell $sitepath/app/etc/local.xml | sed '1d;$d')"
+
+	# if [[ -f $sitepath/app/etc/local.xml ]]; then continue=1; else echo -e "\n ${red}could not find magento configuration file!${normal}\n"; return 0; fi
+
+	_magdbusage(){ echo " usage: magdb [<path>] <option> [<query>]
+		-a | --amazon .... show amazon errors from the exception log
+		-a | --admin ..... add a new admin user into the database ${cyan}(new)${normal}
+		-b | --base ...... show all configured base urls
+		-b | --backup .... backup the magento database as the user
+		-c | --cron ...... show cron jobs and their statuses
+		-d | --dataflow .. show size of dataflow batch tables
+		-e | --execute ... execute a custom query (use '*' and \\\")
+		-i | --info ...... display user credentials for database
+		-l | --login ..... log into database using user credentials
+		-l | --logsize ... show size of the log tables
+		-m | --multi ..... show multistore information (urls/codes)
+		-o | --logclean .. clean out (truncate) log tables
+		-o | --optimize .. truncate and optimize log tables
+		-p | --parallel .. show all parallel download base_urls
+		-p | --password .. update or reset password for user
+		-r | --rewrite ... show the count of url rewrites
+		-s | --swap ...... temporarily swap out admin password ${red}${bright}(beta!)${normal}
+		-u | --users ..... show all admin users' information
+		-v | --visit ..... show count of visitors in the log
+		-x | --index ..... show current status of all re-index processes
+		-x | --reindex ... execute a reindex as the user (indexer.php)
+		-z | --zend ...... clear user's zend cache files in /tmp/
+
+		-h | --help ...... display this help output and quit"
+		return 0; }
+
+		_magdbinfo(){ if [[ -f $sitepath/app/etc/local.xml ]]; then #magento
+			dbhost="$(echo 'cat /config/global/resources/default_setup/connection/host/text()' | xmllint --nocdata --shell $sitepath/app/etc/local.xml | sed '1d;$d')"
+			dbuser="$(echo 'cat /config/global/resources/default_setup/connection/username/text()' | xmllint --nocdata --shell $sitepath/app/etc/local.xml | sed '1d;$d')"
+			dbpass="$(echo 'cat /config/global/resources/default_setup/connection/password/text()' | xmllint --nocdata --shell $sitepath/app/etc/local.xml | sed '1d;$d')"
+			dbname="$(echo 'cat /config/global/resources/default_setup/connection/dbname/text()' | xmllint --nocdata --shell $sitepath/app/etc/local.xml | sed '1d;$d')"
+			ver=($(grep 'function getversioninfo' -a8 $sitepath/app/mage.php | grep major -a4 | cut -d\' -f4)); version="${ver[0]}.${ver[1]}.${ver[2]}.${ver[3]}"
+			if grep -e 'enterprise edition|commercial edition' $sitepath/app/mage.php > /dev/null; then edition="enterprise edition"; else edition="community edition"; fi
+		else echo "${red}could not find configuration file!${normal}"; return 1; fi; }
+
+			_magdbsum(){ echo -e "${bright}$edition: ${red}$version ${normal}\n${bright}connection summary: ${red}$dbuser:$dbname$(if [[ -n $prefix ]]; then echo .$prefix; fi)${normal}\n"; }
+
+			_magdbconnect(){ _magdbinfo && if [[ $runonce -eq 0 ]]; then _magdbsum; runonce=1; fi && mysql -u"$dbuser" -p"$dbpass" -h $dbhost $dbname "$@"; }
+
+			_magdbbackup(){ _magdbinfo;
+				if [[ -x /usr/bin/pigz ]]; then compress="/usr/bin/pigz"; echo "compressing with pigz";
+				else compress="/usr/bin/gzip"; echo "compressing with gzip"; fi
+				echo "using: mysqldump --opt --skip-lock-tables -u'$dbuser' -p'$dbpass' -h $dbhost $dbname";
+				if [[ -f /usr/bin/pv ]]; then sudo -u $(getusr) mysqldump --opt --skip-lock-tables -u"$dbuser" -p"$dbpass" -h $dbhost $dbname \
+					| pv -n 'mysql-dump' | $compress --fast | pv -n 'compression' > ${dbname}-$(date +%y.%m.%d-%h.%m).sql.gz;
+			else sudo -u $(getusr) mysqldump --opt --skip-lock-tables -u"$dbuser" -p"$dbpass" -h $dbhost $dbname \
+				| $compress --fast > ${dbname}-$(date +%y.%m.%d-%h.%m).sql.gz; fi; }
+
+			case $opt in
+				-a|--amazon) _magdbconnect -e "select * from ${prefix}amazon_log_exception order by log_id desc limit 1;";;
+				-a|--admin) read -p "firstname: " firstname; read -p "lastname: " lastname; read -p "email: " emailaddr; read -p "username: " username; password=$(xkcd);
+					_magdbconnect -e "insert into ${prefix}admin_user select null \`user_id\`, \"$firstname\" \`firstname\`, \"$lastname\" \`lastname\`, \"$emailaddr\" \`email\`, \"$username\" \`username\`, md5(\"$password\") \`password\`, now() \`created\`, null \`modified\`, null \`logdate\`, 0 \`lognum\`, 0 \`reload_acl_flag\`, 1 \`is_active\`, null \`extra\`, null \`rp_token\`, now() \`rp_token_created_at\`";
+					_magdbconnect -e "insert into ${prefix}admin_role select null \`role_id\`, (select \`role_id\` from ${prefix}admin_role where \`role_name\` = 'administrators') \`parent_id\`, 2 \`tree_level\`, 0 \`sort_order\`, 'u' \`role_type\`, (select \`user_id\` from ${prefix}admin_user where \`username\` = \"$username\") \`user_id\`, 'admin' \`role_name\`;";
+					echo -e "username: $username\npassword: $password" ;;
+				-b|--base) _magdbconnect -e "select * from ${prefix}core_config_data where path rlike \"base_url\";";;
+				-b|--backup) _magdbbackup ;;
+				-c|--cron) runonce=1; if [[ -z $param ]]; then
+					_magdbconnect -e "select * from ${prefix}cron_schedule;"
+				elif [[ $param =~ ^clear$ ]]; then
+					_magdbconnect -e "delete from ${prefix}cron_schedule where status rlike \"success|missed\";"
+					echo "cron_schedule table has been cleared of old crons"
+				elif [[ $param =~ ^clear.*-f$ ]]; then
+					_magdbconnect -e "truncate ${prefix}cron_schedule;"
+					echo "cron_schedule table has been truncated"
+				elif [[ $param == '-h' || $param == '--help' ]]; then
+					echo -e " usage: magdb [<path>] <-c|--cron> [clear] [-f]\n    clear : remove completed or missed cron jobs\n    clear -f : truncate the cron_schedule table"
+				fi ;;
+			-e|--execute) _magdbconnect -e "${param};" ;;
+			-i|--info) _magdbinfo; echo "database connection info:";
+				echo -e "\nloc.conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $dbhost \nrem.conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $(hostname)\n";
+				echo -e "username: $dbuser \npassword: $dbpass \ndatabase: $dbname $(if [[ -n $prefix ]]; then echo \\nprefix..: $prefix; fi) \nloc.host: $dbhost \nrem.host: $(hostname)";;
+			-l|--login) _magdbconnect;;
+			-l|--logsize|-d|--dataflow|-v|--visit|-r|--rewrite) _magdbinfo; _magdbsum; datatotal=0; indextotal=0; rowtotal=0; freetotal=0;
+				if [[ $opt == '-d' || $opt == '--dataflow' ]]; then tables="dataflow_batch_import dataflow_batch_export";
+				elif [[ $opt == '-v' || $opt == '--visit' ]]; then tables="log_visitor log_visitor_info log_visitor_online";
+				elif [[ $opt == '-r' || $opt == '--rewrite' ]]; then tables="core_url_rewrite"; fi
+				div='+------------------------------------------+-----------------+----------------+----------------+'
+				logfmt="| %-40s | %15s | %12s m | %12s m |\n"
+				echo $div; printf "$logfmt" "table name" "row count" "data size" "index size"; echo $div
+				for x in $tables; do
+					datasize=$(_magdbconnect -e "select data_length/1024000 from information_schema.tables where table_name = \"${prefix}$x\";" | tail -1)
+					datatotal=$(echo "scale=3;$datatotal + $datasize" | bc)
+					indexsize=$(_magdbconnect -e "select index_length/1024000 from information_schema.tables where table_name = \"${prefix}$x\";" | tail -1)
+					indextotal=$(echo "scale=3;$indextotal+$indexsize" | bc)
+					rowcount=$(_magdbconnect -e "select table_rows from information_schema.tables where table_name = \"${prefix}$x\";" | tail -1)
+					rowtotal=$(($rowcount+$rowtotal))
+					printf "$logfmt" "$x" "$rowcount" "$datasize" "$indexsize"
+				done
+				echo $div; printf "$logfmt" "totals" "$rowtotal" "$datatotal" "$indextotal"; echo $div ;;
+			-m|--multi) _magdbconnect -e "select * from ${prefix}core_config_data where path rlike \"base_url\"; select * from ${prefix}core_website; select * from ${prefix}core_store";;
+			-o|--logclean|-o|--optimize)
+				if [[ -z $param ]]; then tablename='-h'; else tablename="$param"; fi; runonce=1;
+					if [[ $tablename != *-h* ]]; then touch $sitepath/maintenance.flag && echo -e "maintenance flag set while cleaning tables\n"; fi
+					case $tablename in
+						all) if [[ $opt == '-o' || $opt == '--logclean' ]];
+						then for x in $tables; do echo "truncating ${prefix}$x"; _magdbconnect -e "truncate ${prefix}$x;" >> /dev/null; done;
+						else for x in $tables; do echo; echo "truncating/optimizing ${prefix}$x"; _magdbconnect -e "truncate ${prefix}$x; optimize table ${prefix}$x;" >> /dev/null; done; fi ;;
+						-h|--help) echo -e " usage: magdb $sitepath $opt [<option>]\n    <option> can be a table_name, 'list of tables', or 'all'\n\n  individual table names\n $(dash 78)";
+							(for x in $tables; do echo "  $x"; done) | column -x;;
+							*)  if [[ $opt == '-o' || $opt == '--logclean' ]];
+							then for x in $tablename; do echo "truncating ${prefix}$x"; _magdbconnect -e "truncate ${prefix}$x;" >> /dev/null; done;
+							else for x in $tablename; do echo; echo "truncating/optimizing ${prefix}$x"; _magdbconnect -e "truncate ${prefix}$x; optimize table ${prefix}$x;" >> /dev/null; done; fi ;;
+						esac
+						if [[ -f $sitepath/maintenance.flag ]]; then rm $sitepath/maintenance.flag && echo -e "\ntable cleaning complete, maintenance.flag removed"; fi ;;
+						-p|--parallel) _magdbconnect -e "select * from ${prefix}core_config_data where path rlike \"base.*url\";";;
+						-p|--password) runonce=1;
+							if [[ -n $param ]]; then
+								username=$(echo $param | awk '{print $1}'); password=$(echo $param | awk '{print $2}');
+								_magdbconnect -e "update ${prefix}admin_user set password = md5(\"$password\") where ${prefix}admin_user.username = \"$username\";"
+								echo -e "new magento login credentials:\nusername: $username\npassword: $password"
+							elif [[ -z $param || $param == '-h' || $param == '--help' ]]; then
+								echo -e " usage: magdb [<path>] <-p|--password> <username> <password>"
+							fi ;;
+						-s|--swap )
+							username=$(_magdbconnect -e "select username from ${prefix}admin_user where is_active = 1 limit 1;" | tail -1)
+							password=$(_magdbconnect -e "select password from ${prefix}admin_user where is_active = 1 limit 1;" | tail -1 | sed 's/\$/\\\$/g')
+							_magdbconnect -e "update ${prefix}admin_user set password=md5('nexpassword') where is_active = 1 limit 1";
+							echo -e "you have 20 seconds to login using the following credentials\n"
+							echo -n "loginurl: "; _magdbconnect -e "select value from ${prefix}core_config_data where path like \"web/unsecure/base_url\" limit 1;" | tail -1 | sed "s/\/$/\/$adminurl/"
+							echo -e "username: $username\npassword: nexpassword\n"
+							for x in {1..20}; do sleep 1; printf ". "; done; echo
+								_magdbconnect -e "update ${prefix}admin_user set password=\"$password\" where is_active = 1 limit 1";
+								echo -e "\npassword has been reverted." ;;
+							-u|--user|--users)
+								if [[ -z $param ]]; then _magdbconnect -e "select * from ${prefix}admin_user\g" | grep -v 'extra:';
+								elif [[ $param =~ -s ]]; then _magdbconnect -e "select username,concat( firstname,\" \",lastname ) as \"full name\",email,password from ${prefix}admin_user";
+								elif [[ $param == '-h' || $param == '--help' ]]; then echo -e " usage: magdb [path] <-u|--user> [-s|--short]"; fi
+								;;
+							-x|--index) _magdbconnect -e "select * from ${prefix}index_process";;
+							-x|--reindex) if [[ -z $param ]]; then index='help' ; else index="$param"; fi
+								_magdbinfo; _magdbsum; dir=$pwd; cd $sitepath; sudo -u $(getusr) php -f shell/indexer.php -- $index; cd $dir;;
+							-z|--zend)
+								if [[ -z $param ]]; then
+									echo "there are $(find /tmp/ -type f -name zend* -user $(getusr) -print | wc -l) zend cache files for $(getusr) in /tmp/";
+								elif [[ $param =~ ^clear$ ]]; then
+									echo "clearing zend cache files for $(getusr) in /tmp/";
+									for x in $(find /tmp/ -type f -name zend* -user $(getusr) -print); do echo -n $x; rm $x && echo "... removed"; done;
+									else
+										echo "$param is not a valid parameter for this option."
+									fi ;;
+								-h|--help|*) _magdbusage;;
+							esac; echo; dbhost=''; dbuser=''; dbpass=''; dbname=''; prefix='';
+							version=''; edition=''; adminurl=''; username=''; password='';
+						}
+
+## find wordpress database configuration and run common queries
+wpdb(){
+	echo; runonce=0;
+	if [[ $1 =~ ^-.*$ ]]; then sitepath='.'; opt="$1"; shift; param="$@";
+	else sitepath="$1"; opt="$2"; shift; shift; param="$@"; fi;
+
+		if [[ -f $sitepath/wp-includes/version.php ]]; then
+			version=$(grep "wp_version =" $sitepath/wp-includes/version.php | cut -d\' -f2)
+			dbversion=$(grep "wp_db_version =" $sitepath/wp-includes/version.php | awk '{print $3}' | tr -d \;)
+		fi
+
+		if [[ -f $sitepath/wp-config.php ]]; then
+			if grep -eqi "multisite...true" $sitepath/wp-config.php; then
+				edition='wp multisite'; else edition='wordpress'; fi
+				prefix=$(grep table_prefix $sitepath/wp-config.php | cut -d\' -f2);
+			fi
+
+			# if [[ -f $sitepath/wp-config.php ]]; then continue=1; else echo -e "\n ${red}could not find worpdress configuration file!${normal}\n"; return 0; fi
+
+			_wpdbinfo(){
+				dbconnect=($(grep db_ $sitepath/wp-config.php 2> /dev/null | cut -d\' -f4));
+				dbname=${dbconnect[0]}; dbuser="${dbconnect[1]}"; dbpass="${dbconnect[2]}"; dbhost=${dbconnect[3]};
+			}
+
+			_wpdbusage(){ echo " usage: wpdb [<path>] <option> [<query>]
+				-b | --base ...... show configured base urls in the database
+				-b | --backup .... backup the wordpress database as the user
+				-c | --clean ..... remove unapproved comments or old post revisions. ${cyan}(new)${normal}
+				-e | --execute ... execute a custom query (use '*' and \\\")
+				-i | --info ...... display user credentials for database
+				-l | --login ..... log into database using user credentials
+				-m | --multi ..... display multisite information (ids/domains/paths)
+				-p | --password .. update or reset password for a user ${cyan}(new)${normal}
+				-s | --swap ...... temporarily swap out user password ${red}${bright}(beta!)${normal}
+				-u | --users ..... show users configured within the database
+
+				-h | --help ....... display this help information and quit"
+				return 0; }
+
+				_wpdbsum(){ echo -e "${bright}$edition: ${red}$version ($dbversion) ${normal}\n${bright}connection: ${red}$dbuser:$dbname$(if [[ -n $prefix ]]; then echo .$prefix; fi)${normal}\n"; }
+
+				_wpdbconnect(){
+					_wpdbinfo &&
+						if [[ $runonce -eq 0 ]]; then _wpdbsum; runonce=1; fi &&
+							mysql -u $dbuser -p$dbpass -h $dbhost $dbname "$@";
+				}
+
+				_wpdbbackup(){ _wpdbinfo;
+					if [[ -x /usr/bin/pigz ]]; then compress="/usr/bin/pigz"; echo "compressing with pigz";
+					else compress="/usr/bin/gzip"; echo "compressing with gzip"; fi
+					echo "using: mysqldump --opt --skip-lock-tables -u'$dbuser' -p'$dbpass' -h $dbhost $dbname";
+					if [[ -f /usr/bin/pv ]]; then sudo -u $(getusr) mysqldump --opt --skip-lock-tables -u"$dbuser" -p"$dbpass" -h $dbhost $dbname \
+						| pv -n 'mysql-dump' | $compress --fast | pv -n 'compression' > ${dbname}-$(date +%y.%m.%d-%h.%m).sql.gz;
+				else sudo -u $(getusr) mysqldump --opt --skip-lock-tables -u"$dbuser" -p"$dbpass" -h $dbhost $dbname \
+					| $compress --fast > ${dbname}-$(date +%y.%m.%d-%h.%m).sql.gz; fi;
+			}
+
+			case $opt in
+				-b | --base ) option_tables=$(_wpdbconnect -e "show table status" | awk '($1 ~ /options/) {print $1}');
+					for x in $option_tables; do _wpdbconnect -e "select * from $x where option_name = \"siteurl\" or option_name = \"home\" or option_name = \"blogname\";"; echo -e "options table name: $x\n"; done ;;
+					-b | --backup ) _wpdbbackup ;;
+					-c | --clean ) if [[ $param =~ ^com.* ]]; then _wpdbconnect -e "delete from ${prefix}comments where comment_approved = '0';"
+					elif [[ $param =~ ^rev.* ]]; then _wpdbconnect -e "delete from ${prefix}posts where post_type = 'revision';"; fi ;;
+					-e | --execute ) _wpdbconnect -e "${param};" ;;
+					-i | --info ) _wpdbinfo; echo "database connection info:";
+						echo -e "\nloc.conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $dbhost \nrem.conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $(hostname)\n";
+						echo -e "username: $dbuser \npassword: $dbpass \ndatabase: $dbname $(if [[ -n $prefix ]]; then echo \\nprefix..: $prefix; fi) \nloc.host: $dbhost \nrem.host: $(hostname)" ;;
+					-l | --login ) _wpdbconnect ;;
+					-m | --multi ) _wpdbconnect -e "select * from ${prefix}blogs;" ;;
+					-p | --password )
+						if [[ -n $param ]]; then user_login=$(echo $param | awk '{print $1}'); user_pass=$(echo $param | awk '{print $2}');
+							_wpdbconnect -e "update ${prefix}users set user_pass = md5(\"$user_pass\") where ${prefix}users.user_login = \"$user_login\";"
+							echo -e "\nnew wp login credentials:\nusername: $user_login\npassword: $user_pass\n"
+						elif [[ -z $param || $param == '-h' || $param == '--help' ]]; then echo -e "\n usage: wpdb [<path>] <option> <username> <password>\n"; fi ;;
+						-u | --users )
+							if [[ -z $param ]]; then _wpdbconnect -e "select * from ${prefix}users\g";
+							elif [[ $param =~ -s ]]; then _wpdbconnect -e "select id,user_login,display_name,user_email,user_pass from ${prefix}users order by id";
+							elif [[ $param == '-h' || $param == '--help' ]]; then echo -e " usage: wpdb [path] <-u|--user> [-s|--short]"; fi ;;
+							-s | --swap )
+								user_login=$(_wpdbconnect -e "select user_login from ${prefix}users order by id limit 1;" | tail -1)
+								user_pass=$(_wpdbconnect -e "select user_pass from ${prefix}users order by id limit 1;" | tail -1 | sed 's/\$/\\\$/g')
+								_wpdbconnect -e "update ${prefix}users set user_pass=md5('nexpassword') where user_login = \"$user_login\"";
+								echo -e "you can now login using the following credentials\nonce you un-pause this script the password will be reset\n"
+								echo -n "loginurl: "; _wpdbconnect -e "select option_value from ${prefix}options where option_name like \"siteurl\";" | tail -1 | sed 's/\/$/\/wp-admin/'
+								echo -e "username: $user_login\npassword: nexpassword\n"
+								read -p "press [enter] to continue ... " pause;
+								_wpdbconnect -e "update ${prefix}users set user_pass=\"$user_pass\" where user_login = \"$user_login\"";
+								echo -e "\npassword has been reverted." ;;
+							-h | --help | * ) _wpdbusage ;;
+						esac; echo; dbhost=''; dbuser=''; dbpass=''; dbname=''; prefix=''; edition=''; version=''; user_login=''; user_pass='';
+					}
+
+## find joomla information and perform some common tasks
+nkjoomla(){
+	# set path to joomla install
+	echo; runonce=0;
+	if [[ $1 =~ ^-.*$ ]]; then sitepath='.'; opt="$1"; shift; param="$@";
+	elif [[ -z $@ ]]; then sitepath='.'; else sitepath="$1"; opt="$2"; shift; shift; param="$@"; fi;
+
+		# set path to configuration.php file
+		config="$sitepath/configuration.php"
+
+		# check if there is a joomla install here (sanity check)
+		if [[ -f "$config" ]]; then
+
+			# gather db connection info
+			dbtype=$(grep '$dbtype ' $config | cut -d\' -f2)
+			dbhost=$(grep '$host ' $config | cut -d\' -f2)
+			dbuser=$(grep '$user ' $config | cut -d\' -f2)
+			dbpass=$(grep '$password ' $config | cut -d\' -f2)
+			dbname=$(grep '$db ' $config | cut -d\' -f2)
+			prefix=$(grep '$dbprefix ' $config | cut -d\' -f2)
+
+			# check location of version file
+			if [[ -f "$sitepath/libraries/cms/version/version.php" ]]; then verfile="$sitepath/libraries/cms/version/version.php"; else verfile="$sitepath/libraries/joomla/version.php"; fi
+
+			# gather version information
+			release="$(grep '$release' $verfile | cut -d\' -f2)";
+			dev_level="$(grep '$dev_level' $verfile | cut -d\' -f2)";
+			dev_status="$(grep '$dev_status' $verfile | cut -d\' -f2)";
+			build="$(grep '$build' $verfile | cut -d\' -f2)";
+			reldate="$(grep '$reldate' $verfile | cut -d\' -f2)";
+			codename="$(grep '$codename' $verfile | cut -d\' -f2)";
+			version="$release.$dev_level $dev_status ($reldate) $build";
+
+			_joomlausage(){
+				echo " usage: nkjoomla [path] option [query]
+				-b | --backup .... backup the joomla database as the user
+				-c | --clear ..... clear joomla cache
+				-c | --cache ..... enable/disable cache
+				-e | --execute ... execute a custom query (use '*' and \\\")
+				-g | --gzip ...... enable/disable gzip compression
+				-i | --info ...... display user credentials for database
+				-l | --login ..... log into database using user credentials
+				-p | --password .. update or reset password for a user
+				-s | --swap ...... temporarily swap out user password
+				-u | --users ..... show users configured within the database
+
+				-h | --help ....... display this help and quit
+				if run with no options, returns summary information"
+					return 0; }
+
+					_joomlainfo(){
+						# output collected information
+						format="%-18s: %s\n"
+						printf "$format" "base path" "$(cd $sitepath; pwd -p)"
+						printf "$format" "product name" "$(grep '$product' $verfile | cut -d\' -f2) \"$codename\""
+						printf "$format" "site title" "$(grep '$sitename ' $config | cut -d\' -f2)"
+						printf "$format" "install date" "$(stat $verfile | awk '/change/ {print $2,$3}' | cut -d. -f1)"
+						printf "$format" "encryption key" "$(grep '$secret' $config | cut -d\' -f2)"
+						printf "$format" "version (date)" "$version"
+						printf "$format" "front end url" "http://$(cd $sitepath; pwd -p | sed 's:^/chroot::' | cut -d/ -f4- | sed 's:/html::')/"
+						printf "$format" "back end url" "http://$(cd $sitepath; pwd -p | sed 's:^/chroot::' | cut -d/ -f4- | sed 's:/html::')/administrator"
+						printf "$format" "return-path email" "$(grep '$mailfrom' $config | cut -d\' -f2)"
+						printf "$format" "gzip compression" "$(grep '$gzip' $config | cut -d\' -f2 | sed 's/0/disabled/;s/1/enabled/')"
+						printf "$format" "db connection" "$dbtype://$dbuser:$dbpass@$dbhost/$dbname$(if [[ -n $prefix ]]; then echo .$prefix*; fi)"
+						printf "$format" "session method" "$(grep '$session' $config | cut -d\' -f2)"
+						printf "$format" "cache method" "$(grep '$cache_' $config | cut -d\' -f2) / $(grep '$caching' $config | cut -d\' -f2 | sed 's/0/disabled/;s/1/enabled/')"
+
+						## show installed: components, modules, plugins, and templates
+						# component module plugin template
+						for x in plugin; do printf "%-18s: " "active ${x}s"; mysql -u"$dbuser" -p"$dbpass" -h $dbhost $dbname \
+							-e "select name,type from ${prefix}extensions where type like \"$x\" and enabled = 1;"\
+							| egrep -v 'name.*type|^plg' | sed 's/ /_/g' | sort | uniq | awk '{printf "%s, ",$1}' | sed 's/, $//';
+						echo; done; }
+
+						_joomlasum(){ echo -e "${bright}joomla! \"$codename\": ${red}$version ${normal}\n${bright}connection: ${red}$dbuser:$dbname$(if [[ -n $prefix ]]; then echo .$prefix; fi)${normal}\n"; }
+
+						_joomlaconnect(){
+							if [[ $runonce -eq 0 ]]; then _joomlasum; runonce=1; fi &&
+								mysql -u $dbuser -p$dbpass -h $dbhost $dbname -e "$@";
+						}
+
+						_joomlabackup(){ _joomlasum;
+							if [[ -x /usr/bin/pigz ]]; then compress="/usr/bin/pigz"; echo "compressing with pigz"; else compress="/usr/bin/gzip"; echo "compressing with gzip"; fi
+							echo "using: mysqldump --opt --skip-lock-tables -u'$dbuser' -p'$dbpass' -h $dbhost $dbname";
+							if [[ -f /usr/bin/pv ]]; then mysqldump --opt --skip-lock-tables -u"$dbuser" -p"dbpass" -h $dbhost $dbname \
+								| pv -n 'mysql-dump' | $compress --fast | pv -n 'compression' > ${dbname}-$(date +%y.%m.%d-%h.%m).sql.gz;
+						else mysqldump --opt --skip-lock-tables -u"$dbuser" -p"$dbpass" -h $dbhost $dbname \
+							| $compress --fast > ${dbname}-$(date +%y.%m.%d-%h.%m).sql.gz; fi;
+					}
+
+					case $opt in
+						-b|--backup) _joomlabackup ;;
+						-c|--clear) cd $sitepath/cache/ && for x in */; do echo "clearing $x cache" | sed 's:/::'; find $x -type f -exec rm {} \;; done; cd - &> /dev/null ;;
+						-c|--cache)
+							if [[ $(grep "caching = '0'" $config 2> /dev/null) ]]; then sed -i "s/caching = '0'/caching = '1'/" $config; echo "caching is ${bright}${green}enabled${normal}";\
+							else sed -i "s/caching = '1'/caching = '0'/" $config; echo "caching is ${bright}${green}disabled${normal}"; fi ;;
+							-e|--execute) _joomlaconnect "${param};";;
+							-g|--gzip)
+								if [[ $(grep "gzip = '0'" $config 2> /dev/null) ]]; then sed -i "s/gzip = '0'/gzip = '1'/" $config; echo "gzip is ${bright}${green}enabled${normal}";\
+								else sed -i "s/gzip = '1'/gzip = '0'/g" $config; echo "gzip is ${bright}${green}disabled${normal}"; fi ;;
+								-i|--info) echo "database connection info:";
+									echo -e "\nloc.conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $dbhost \nrem.conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $(hostname)\n";
+									echo -e "username: $dbuser \npassword: $dbpass \ndatabase: $dbname $(if [[ -n $prefix ]]; then echo \\nprefix..: $prefix; fi) \nloc.host: $dbhost \nrem.host: $(hostname)" ;;
+								-l|--login) mysql -u $dbuser -p$dbpass -h $dbhost $dbname ;;
+								-p|--password)
+									if [[ -n $param ]]; then
+										username=$(echo $param | awk '{print $1}'); password=$(echo $param | awk '{print $2}'); salt=$(echo $param | awk '{print $3}');
+										_joomlaconnect "update ${prefix}users set password = md5(\"${password}\") where ${prefix}users.username = \"$username\";"
+										echo -e "new joomla login credentials:\nusername: $username\npassword: $password"
+									elif [[ -z $param || $param == '-h' || $param == '--help' ]]; then
+										echo -e " usage: nkjoomla [path] <-p|--password> <username> <password>"
+									fi
+									;;
+								-s|--swap)
+									username=$(_joomlaconnect "select username from ${prefix}users order by id limit 1;" | tail -1)
+									password=$(_joomlaconnect "select password from ${prefix}users order by id limit 1;" | tail -1 | sed 's/\$/\\\$/g')
+									_joomlaconnect "update ${prefix}users set password=md5('nexpassword') order by id limit 1";
+									echo -e "you have 20 seconds to login using the following credentials\n"
+									echo -e "loginurl: http://$(cd $sitepath; pwd -p | sed "s:^/chroot::" | cut -d/ -f4- | sed 's:html/::')/administrator"
+									echo -e "username: $username\npassword: nexpassword\n"
+									for x in {1..20}; do sleep 1; printf ". "; done; echo
+										_joomlaconnect "update ${prefix}users set password=\"$password\" order by id limit 1";
+										echo -e "\npassword has been reverted."
+										;;
+									-u|--user)
+										if [[ -z $param ]]; then _joomlaconnect "select * from ${prefix}users\g";
+										elif [[ $param =~ -s ]]; then _joomlaconnect "select id,username,name,email,password from ${prefix}users order by id";
+										elif [[ $param == '-h' || $param == '--help' ]]; then echo -e " usage: nkjoomla [path] <-u|--user> [-s|--short]"; fi
+										;;
+									-h|--help) _joomlausage ;;
+									* ) _joomlainfo ;;
+								esac; echo
+
+							else echo -e "could not find joomla install at $sitepath\n"; fi
+						}
+
+## find basic drupal information and display it in the nexkit-style
+nkdrupal(){
+	if [[ -n $1 ]]; then sitepath="$1"; else sitepath='.'; fi
+	config="${sitepath}/sites/default/settings.php"
+
+	if [[ -f ${config} ]]; then
+
+		# version information
+		if [[ -n $(grep "define('version'" ${sitepath}/modules/system/system.module) ]]; then
+			verfile="${sitepath}/modules/system/system.module"
+		elif [[ -n $(grep "define('version'" ${sitepath}/includes/bootstrap.inc) ]]; then
+			verfile="${sitepath}/includes/bootstrap.inc"
+		fi;
+		version=$(grep "define('version'" $verfile | cut -d\' -f4)
+		installdate=$(stat $verfile | awk '/change/ {print $2,$3}' | cut -d. -f1)
+
+		# database config (7.x)
+		# database, username, password, host, driver, prefix
+		if [[ $version =~ ^7 || $version =~ ^8 ]]; then
+			dbname=$(awk '($1 ~ /database/ && $3 !~ /array/) {print $3}' $config | cut -d\' -f2)
+			dbuser=$(awk '($1 ~ /username/) {print $3}' $config | cut -d\' -f2)
+			dbpass=$(awk '($1 ~ /password/) {print $3}' $config | cut -d\' -f2)
+			dbhost=$(awk '($1 ~ /host/) {print $3}' $config | cut -d\' -f2)
+			dbdriv=$(awk '($1 ~ /driver/) {print $3}' $config | cut -d\' -f2)
+			prefix=$(awk '($1 ~ /prefix/) {print $3}' $config | cut -d\' -f2)
+
+			# database config (6.x)
+			# mysql://username:password@localhost/database
+		elif [[ $version =~ ^6 || $version =~ ^5 ]]; then
+			dbase=$(awk '($1 ~ /db_url/) {print $3}' $config | cut -d\' -f2)
+			dbname=$(echo $dbase | cut -d@ -f2 | cut -d/ -f2)
+			dbuser=$(echo $dbase | cut -d: -f2 | cut -d/ -f3)
+			dbpass=$(echo $dbase | cut -d: -f3 | cut -d@ -f1)
+			dbhost=$(echo $dbase | cut -d@ -f2 | cut -d/ -f1)
+			dbdriv=$(echo $dbase | cut -d: -f1)
+			prefix=$(awk '($1 ~ /db_prefix/) {print $3}' $config | cut -d\' -f2)
+
+		fi
+		database="${dbdriv}://${dbuser}:${dbpass}@${dbhost}/${dbname}$(if [[ -n ${prefix} ]]; then echo .${prefix}*; fi)"
+
+		base_path=$(cd $sitepath; pwd -p;)
+		base_url=$(cd $sitepath; pwd -p | sed 's:/chroot::g;s:/html::g' | cut -d/ -f4-)
+		sitename=$(mysql -u $dbuser -p"$dbpass" $dbname -h $dbhost -e "select name,value from ${prefix}variable where name=\"site_name\";" | tail -1 | cut -d\" -f2)
+		posts=$(mysql -u $dbuser -p"$dbpass" $dbname -h $dbhost -e "select count(*) from ${prefix}node;" | tail -1)
+
+		echo
+		fmt="%-18s: %s\n"
+		printf "$fmt" "base path" "${base_path}"
+		printf "$fmt" "site title" "${sitename}"
+		printf "$fmt" "install date" "${installdate}"
+		printf "$fmt" "version" "${version}"
+		printf "$fmt" "front end url" "http://${base_url}"
+		printf "$fmt" "back end url" "http://${base_url}/admin"
+		printf "$fmt" "post count" "${posts}"
+		printf "$fmt" "db connection" "${database}"
+		echo
+		unset verfile version config base_url posts database dbname dbpass dbuser base_path installdate dbhost dbdriv prefix
+
+	else echo -e "\ncould not find drupal install at ${sitepath}\n"; fi
+}
+
+## check the usual suspects when things aren't working right
+usual_suspects(){
+	pid_start(){ ps -o lstart --pid=$(pgrep $1 | head -1) 2> /dev/null | tail -1; }
+
+	if [[ $@ =~ -h ]]; then
+		echo -e "\n  usage: usual_suspects [linecount] [option]\n\n options:
+		-q|--quiet .... skip sar and magento log output
+		-v|--verbose .. also display users at or near disk quota
+		-h|--help ..... show this help output and exit\n";
+		return 0;
+	fi
+
+	if [[ $1 =~ [0-9].*$ ]]; then linecount=$1; else linecount=10; fi
+
+	## simple service check (web, php, mysql, dns)
+	echo
+	format="%-10s %-26s %s\n";
+	printf "$format" " service" " started" " status";
+	printf "$format" "--core----" "$(dash 26)" "$(dash 42)";
+
+	# need to make sure lsws exist and it's configured to run
+	# if [[ -x /etc/init.d/lsws && $(chkconfig --list | grep lsws.*3:on) ]]; then
+	# ^^^ should switch to this if it works right.
+	if [[ -f /etc/init.d/lsws ]]; then printf "$format" " litespeed" " $(pid_start lite)" " litespeed (pid $(echo $(pgrep lite))) is running ...";
+	elif [[ -f /etc/init.d/nginx ]]; then printf "$format" " nginx" " $(pid_start nginx)" " $(service nginx status)";
+	else printf "$format" " apache" " $(pid_start httpd)" " $(service httpd status)"; fi;
+
+		if [[ -f /etc/init.d/php-fpm ]]; then printf "$format" " php-fpm" " $(pid_start php-fpm)" " $(service php-fpm status)"; fi;
+
+			printf "$format" " mysql" " $(pid_start mysqld)" " $(service mysqld status | sed s/' success! '//g)";
+			printf "$format" " memcache" " $(pid_start memcached)" " $(service memcached-multi status | head -1)";
+			printf "$format" " djbdns" " $(pid_start tinydns)" " tinydns is$(service djbdns status | head -n1 | awk -f: '{print $2}')";
+			printf "$format" " proftp" " $(pid_start proftpd)" " $(service proftpd status)";
+
+			printf "$format" "--mail----" "$(dash 26)" "$(dash 42)";
+			printf "$format" " clamav" " $(pid_start clamd)" " $(service clamd status)";
+			printf "$format" " smtp" " $(pid_start send)" " smtp is$(service smtp status | head -n1 | awk -f: '{print $2}')";
+			printf "$format" " pop3" " $(ps -o lstart --pid=$(service pop3-ssl status | grep -eo '[0-9]{2,}\)' | tr -d \) ) | tail -1)" " pop3-ssl$(service pop3-ssl status | awk -f: '{print $2}')";
+			printf "$format" " imap4" " $(ps -o lstart --pid=$(service imap4-ssl status | grep -eo '[0-9]{2,}\)' | tr -d \) ) | tail -1)" " imap4-ssl$(service imap4-ssl status | awk -f: '{print $2}')";
+
+			printf "$format" "--other---" "$(dash 26)" "$(dash 42)";
+			printf "$format" " snmp" " $(pid_start snmpd)" " $(service snmpd status)";
+			printf "$format" " iworx" " $(pid_start iworx)" " $(service iworx status)";
+
+			## check if /var /tmp /chroot are full
+			echo -e "\ndisk space and inode usage:"; dash 80; echo;
+			for ((i=1 ; i<=$(df | wc -l) ; i++)); do
+				df="$(df -h | head -n$i | tail -n1 | awk '{printf "%-12s %-6s %-6s %-6s %-5s",$1,$2,$3,$4,$5}')";
+				di="$(df -i | head -n$i | tail -n1 | sed 's/ounted on/ounted_on/g' | awk '{printf "%-9s %-9s %-9s %-6s %s",$2,$3,$4,$5,$6}')";
+				if [[ $df =~ [8,9][0-9]\% || $df =~ 1[0-9]{2}\% || $di =~ [8,9][0-9]\% || $di =~ 1[0-9]{2}\% ]]; then color="${bright}${red}"; else color=''; fi
+				echo -n "${color}${df} | "; echo "${color}${di}${normal}"
+			done
+
+			## check if the server hit apache maxclients or php-fpm max_children
+			# look for apache maxclients errors
+			if grep -qi maxclients /var/log/httpd/error_log 2> /dev/null; then
+				echo -e "\nlast $linecount times httpd hit maxclients"; dash 80; echo;
+				grep -i maxclients /var/log/httpd/error_log | tail -n$linecount;
+				echo -e "\ncount per day httpd hit maxclients"; dash 80; echo;
+				grep -i maxclients /var/log/httpd/error_log | cut -d' ' -f1,2,3,5- | sort | uniq -c;
+			fi
+
+			# look for php-fpm max_children errors
+			if [[ -f /var/log/php-fpm/error.log ]]; then
+				if grep -qi max_children /var/log/php-fpm/error.log 2> /dev/null; then
+					echo -e "\nmax_kids: last ($linecount) errors"; dash 80; echo;
+					grep -i max_children /var/log/php-fpm/error.log | tail -n$linecount;
+					echo -e "\nmax_kids: count/user/day"; dash 80; echo;
+					grep -i max_children /var/log/php-fpm/error.log | cut -d' ' -f1,5- | sort | uniq -c;
+				fi;
+			fi
+
+			if [[ ! $@ =~ -q ]]; then
+				## check sar for high ram or cpu usage
+				echo -e "\nrecent processor load"; dash 80; echo;
+				sar -p | pee "head -n3 | tail -n1" "tail -n$linecount";
+				echo -e "\nrecent ram usage"; dash 80; echo;
+				sar -r | pee "head -n3 | tail -n1" "tail -n$linecount";
+
+				## if you're in a html directory then check the magento logs
+				if [[ -f app/etc/local.xml ]]; then
+					echo -e "\nrunning crons from this user:"; dash 80; echo;
+					ps aux | head -1; ps aux | awk "(\$1 ~ /$(pwd | sed 's:^/chroot::' | cut -d/ -f3)/) && /cron/"'{print}'; echo
+				fi;
+				if [[ -f var/log/system.log ]]; then
+					echo -e "\nmagento system.log"; dash 80; echo;
+					tail -n$linecount var/log/system.log 2> /dev/null; echo;
+				fi;
+				if [[ -f var/log/exception.log ]]; then
+					echo -e "\nmagento exception.log"; dash 80; echo;
+					tail -n$linecount var/log/exception.log 2> /dev/null; echo;
+				fi;
+			fi;
+
+			## if using verbose to check user quotas
+			if [[ $@ =~ -v ]]; then checkquota -l; fi;
+				echo;
+			}
+
+## find configuration file, and echo configured db name
+finddb(){
+	if [[ -z "$1" ]]; then sitepath="."; else sitepath="$1"; fi;
+		if [[ -f $sitepath/app/etc/local.xml ]]; then	# if site is mage
+			echo $(grep dbname $sitepath/app/etc/local.xml | cut -d\[ -f3 | cut -d\] -f1)
+		elif [[ -f $sitepath/wp-config.php ]]; then		# if site is wp
+			echo $(grep db_name $sitepath/wp-config.php | cut -d\' -f4)
+		elif [[ -f $sitepath/configuration.php ]]; then	# if site is joomla
+			echo $(grep '$db ' $sitepath/configuration.php | cut -d\' -f2)
+		elif [[ -f $sitepath/sugar_version.php ]]; then	# if site is surgarcrm
+			echo $(grep db_name $sitepath/config.php | cut -d\' -f4)
+		elif [[ -f $sitepath/includes/config.php ]]; then	# if site is vbulletin 4.x
+			echo $(grep dbname $sitepath/includes/config.php | cut -d\' -f6)
+		elif [[ -f $sitepath/upload/core/includes/config.php ]]; then	# if site is vbulletin 5.x
+			echo $(grep dbname $sitepath/upload/core/includes/config.php | cut -d\' -f6)
+		elif [[ "$1" == "ee" || "$1" == "ee" ]]; then	# if site is ee or another codeigniter app
+			if [[ -z "$2" ]]; then sitepath="/home/$(getusr)"; else sitepath="$2"; fi
+			config=$(find $sitepath -type f -name database.php -print)
+			echo $(grep \'database\' $config | cut -d\' -f6)
+		else # if there is no config to be found ...
+			echo "${red}could not find configuration file!${normal}"; fi
+			# done .. that was a lot of work!
+		}
+
+## look up what domain is covered by the ssl loading at the requested domain
+findssl(){
+	if [[ $2 == '-p' ]]; then p=$3; else p=443; fi
+	if [[ $@ =~ -v ]]; then type="subject issuer"; else type="subject"; fi
+
+	d=$(echo $1 | sed 's/\///g')
+	echo; echo "$d:$p"; dash 80; echo;
+
+	if [[ $(cat /etc/redhat-release) =~ 6\.[0-9] ]]; then sni="-servername $d"; fi;
+
+		for x in $type; do
+			echo | openssl s_client -nbio -connect $d:$p $sni 2> /dev/null\
+				| grep $x | sed 's/ /_/g;s/\/\([a-ze]\)/\n\1/g;s/=/: /g' | grep ^[a-ze] | column -t | sed 's/_/ /g';
+			echo;
+		done
+
+		echo "ssl return code"; dash 80; echo
+		rcode=$(echo | openssl s_client -nbio -connect $d:$p $sni 2>/dev/null | grep verify.*)
+		echo $rcode
+		if [[ $(echo $rcode | awk '{print $4}') =~ [0-9]{2} ]]; then
+			curl -s https://www.openssl.org/docs/apps/verify.html | grep -a4 "$(echo $rcode | awk '{print $4}') x509" | grep -v x509 | sed 's/<[^>]*>//g' | tr '\n' ' '; echo;
+		fi;
+		echo -e "\nhttps://www.sslshopper.com/ssl-checker.html#hostname=${d}\nhttps://certlogik.com/ssl-checker/${d}:${p}/\n"
+	}
+
+## use csr or crt, generate a new key and csr (sha-256).
+sslrekey(){
+	if [[ -z $1 ]]; then read -p "domain name: " domain; else domain="$(echo $1 | sed 's:/::g')"; fi
+	csrfile="/home/*/var/${domain}/ssl/${domain}.csr"
+	crtfile="/home/*/var/${domain}/ssl/${domain}.crt"
+	if [[ -f $(echo $csrfile) ]]; then
+		subject="$(openssl req -in $csrfile -subject -noout | sed 's/^subject=//' | sed -n l0 | sed 's/$$//')"
+		openssl req -nodes -sha256 -newkey rsa:2048 -keyout new.$domain.priv.key -out new.$domain.csr -subj "$subject" && cat new.${domain}.*
+	elif [[ -f $(echo $crtfile) ]]; then
+		subject="$(openssl x509 -in $crtfile -subject -noout | sed 's/^subject= //' | sed -n l0 | sed 's/$$//')"
+		openssl req -nodes -sha256 -newkey rsa:2048 -keyout new.$domain.priv.key -out new.$domain.csr -subj "$subject" && cat new.${domain}.*
+	else
+		echo -e "\nno csr/crt to souce from!\n"
+	fi
+}
+
+## use csr or crt, and key, generate new csr (sha-256)
+sslrehash(){
+	if [[ -z $1 ]]; then read -p "domain name: " domain; else domain="$(echo $1 | sed 's:/::g')"; fi
+	keyfile="/home/*/var/${domain}/ssl/${domain}.priv.key"
+	csrfile="/home/*/var/${domain}/ssl/${domain}.csr"
+	crtfile="/home/*/var/${domain}/ssl/${domain}.crt"
+
+	if [[ -f $(echo $csrfile) && -f $(echo $keyfile) ]]; then
+		subject="$(openssl req -in $csrfile -subject -noout | sed 's/^subject=//' | sed -n l0 | sed 's/$$//')"
+		openssl req -nodes -sha256 -new -key $keyfile -out $domain.sha256.csr -subj "${subject}" && cat $domain.sha256.csr
+	elif [[ -f $(echo $crtfile) && -f $(echo $keyfile) ]]; then
+		subject="$(openssl x509 -in $crtfile -subject -noout | sed 's/^subject= //' | sed -n l0 | sed 's/$$//')"
+		openssl req -nodes -sha256 -new -key $keyfile -out $domain.sha256.csr -subj "${subject}" && cat $domain.sha256.csr
+	else
+		echo -e "\nno csr/crt or key to souce from!\n"
+	fi
+}
+
+## generate dcv file from the hash of the csr for a domain
+dcvfile(){
+	if [[ -z $1 ]]; then read -p "domain: " domain;
+	elif [[ $1 == '.' ]]; then domain=$(pwd -p | sed 's:/chroot::' | cut -d/ -f4);
+	else domain=$1; fi
+	csrfile="/home/*/var/${domain}/ssl/${domain}.csr"
+	if [[ -f $(echo $csrfile) ]]; then
+		md5=$(openssl req -in $csrfile -outform der | openssl dgst -md5 | awk '{print $2}' | sed 's/\(.*\)/\u\1/g');
+		sha1=$(openssl req -in $csrfile -outform der | openssl dgst -sha1 | awk '{print $2}' | sed 's/\(.*\)/\u\1/g');
+		echo -e "${sha1}\ncomodoca.com" > ${md5}.txt; chown $(getusr). ${md5}.txt
+	else echo "could not find csr for ${domain}!"; fi
+}
+
+## swap new ssl into place of old ssl and reload apache
+sslswap(){
+	domain=$(pwd -p | sed 's:/chroot::' | cut -d/ -f5)
+	nano ${domain}.new.crt ${domain}.new.chain.crt;
+
+	keyhash=$(openssl rsa -noout -modulus -in ${domain}.priv.key | openssl md5 | awk '{print $2}')
+	crthash=$(openssl x509 -noout -modulus -in ${domain}.new.crt | openssl md5 | awk '{print $2}')
+
+	if [[ $keyhash != $crthash ]]; then
+		rm ${domain}.new.crt ${domain}.new.chain.crt
+		echo -e "\n[${bright}${red}failed${normal}] .. ssl does not match priv.key!\n\npriv.key .. [${yellow}${keyhash}${normal}]\nssl.cert .. [${yellow}${crthash}${normal}]\n";
+
+	else
+		echo -e "\n[${bright}${green}update${normal}] .. ssl certificate"
+		rm ${domain}.crt 2> /dev/null; mv ${domain}{.new.crt,.crt}
+		chmod 600 ${domain}.crt; chown iworx. ${domain}.crt
+
+		# check if new chain cert exists and is non-zero; then remove and replace the old one
+		if [[ -f ${domain}.new.chain.crt && -n $(cat ${domain}.new.chain.crt 2> /dev/null) ]]; then
+			echo "[${bright}${green}update${normal}] .. chain certificate"
+			rm ${domain}.chain.crt 2> /dev/null; mv ${domain}{.new.chain.crt,.chain.crt}
+			chmod 600 ${domain}.chain.crt; chown iworx. ${domain}.chain.crt
+		fi
+
+		# check if new chain cert exists and is non-zero; then install new ssl with chain, else exclude chain
+		if [[ -f ${domain}.chain.crt && -n $(cat ${domain}.chain.crt 2> /dev/null) ]]; then
+			sudo -u $(getusr) siteworx -unc ssl -a install --domain $domain --chain 1
+		else
+			sudo -u $(getusr) siteworx -unc ssl -a install --domain $domain --chain 0
+		fi
+
+		echo -e "[${bright}${green}reload${normal}] .. ssl update successful\n"
+		echo -e "\nhttps://www.sslshopper.com/ssl-checker.html#hostname=${domain}\nhttps://certlogik.com/ssl-checker/${domain}:443/\n"
+	fi
+}
+
+## create symlinks to log directories for user
+linklogs(){
+	dir=$pwd; u=$(getusr); cd /home/$u/; sudo -u $u mkdir logs
+	for x in var/*/logs/; do sudo -u $u ln -s ../$x logs/$(echo $x | awk -f/ '{print $2}'); done;
+		if [[ -f var/php-fpm/error.log ]]; then sudo -u $u ln -s ../var/php-fpm/ logs/php-fpm; fi
+		echo -e "\nlinks to log directories created in:\n$pwd/logs/\n"; cd $dir
+	}
+
+## find files group owned by username in employee folders or temp directories
+savethequota(){
+	find /home/tmp -type f -size +100000k -group $(getusr) -exec ls -lah {} \;
+	find /tmp -type f -size +100000k -group $(getusr) -exec ls -lah {} \;
+	find /home/nex* -type f -group $(getusr) -exec ls -lah {} \;
+}
+
+## give a breakdown of user's large disk objects
+diskhogs(){
+	if [[ $@ =~ "-h" ]]; then echo -e "\n usage: diskhogs [maxdepth] [-d]\n"; return 0; fi;
+		if [[ $@ =~ [0-9]{1,} ]]; then depth=$(echo $@ | grep -eo '[0-9]{1,}'); else depth=3; fi;
+			echo -e "\n---------- large directories $(dash 51)"; du -h --max-depth $depth | grep -e '[0-9]g|[0-9]{3}m';
+			if [[ ! $@ =~ '-d' ]]; then echo -e "\n---------- large files $(dash 57)"; find . -type f -size +100000k -group $(getusr) -exec ls -lah {} \;; fi;
+				echo -e "\n---------- large databases $(dash 53)"; du -sh /var/lib/mysql/$(getusr)_* | grep -e '[0-9]g|[0-9]{3}m';
+				echo
+			}
+
+## give a breakdown of user's disk usage by area of use
+diskusage(){
+	dir=$pwd; cd /home/$(getusr)
+	echo -e "\n---------- file usage ----------"; du -h --max-depth 2 | grep -v var;
+	echo -e "\n---------- mail usage ----------"; du -sh var/*/mail/*/maildir;
+	echo -e "\n---------- log file usage ----------"; du -sh var/*/logs; du -sh var/php-fpm/ 2> /dev/null;
+	echo -e "\n---------- database usage ----------"; du -sh /var/lib/mysql/$(getusr)_*;
+	echo; cd $dir
+}
+
+#compctl -w '-d -e -f -h --list -m -n -p -r -s -x' iworxcredz
+## list users, or reset passwords for ftp/siteworx/reseller/nodeworx
+iworxcredz(){
+
+	# generate a password using the xkcd function
+	genpass(){
+		if [[ $1 == '-m' ]]; then newpass=$(mkpasswd -l 15);
+		elif [[ $1 == '-x' ]]; then newpass=$(xkcd);
+		elif [[ $1 == '-p' ]]; then newpass="$2";
+		else newpass=$(xkcd); fi
+	}
+
+	if [[ $1 == '-d' ]]; then primarydomain=$2; shift; shift;
+	else primarydomain=$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}'); fi
+
+	case $1 in
+		-e ) # listing/updating email passwords
+			if [[ -z $2 || $2 == '--list' ]]; then
+				echo -e "\n----- emailaddresses -----"
+				for x in /home/$(getusr)/var/*/mail/*/maildir/; do echo $(echo $x | awk -f/ '{print $7"@"$5}'); done; echo
+				else
+					emailaddress=$2; genpass $3 $4
+					~vpopmail/bin/vpasswd $emailaddress $newpass
+					echo -e "\nloginurl: https://$(servername):2443/webmail\nusername: $emailaddress\npassword: $newpass\n"
+				fi
+				;;
+
+			-f ) # listing/updating ftp users
+				if [[ -z $2 || $2 == '--list' ]]; then
+					echo; (echo "shortname fullname"; sudo -u $(getusr) siteworx -unc ftp -a list) | column -t; echo
+				elif [[ $2 == '.' ]]; then
+					ftpuser='ftp'; genpass $3 $4
+					sudo -u $(getusr) siteworx -u --login_domain $primarydomain -n -c ftp -a edit --password $newpass --confirm_password $newpass --user $ftpuser
+					echo -e "\nfor testing: \nlftp -e'ls;quit' -u ${ftpuser}@${primarydomain},'$newpass' $(servername)"
+					echo -e "\nhostname: $(servername)\nusername: ${ftpuser}@${primarydomain}\npassword: $newpass\n"
+				else
+					ftpuser=$2; genpass $3 $4;
+					sudo -u $(getusr) siteworx -u --login_domain $primarydomain -n -c ftp -a edit --password $newpass --confirm_password $newpass --user $ftpuser
+					echo -e "\nfor testing: \nlftp -e'ls;quit' -u ${ftpuser}@${primarydomain},'$newpass' $(servername)"
+					echo -e "\nhostname: $(servername)\nusername: ${ftpuser}@${primarydomain}\npassword: $newpass\n"
+				fi
+				;;
+
+			-s ) # listing/updating siteworx users
+				if [[ -z $2 || $2 = '--list' ]]; then
+					echo; (echo "emailaddress name status"; sudo -u $(getusr) siteworx -unc users -a listusers | sed 's/ /_/g' | awk '{print $2,$3,$5}') | column -t; echo
+				elif [[ $2 == '.' ]]; then # lookup primary domain and primary email address
+					primaryemail=$(nodeworx -unc siteworx -a querysiteworxaccounts --domain $primarydomain --account_data email)
+					genpass $3 $4
+					nodeworx -unc siteworx -a edit --password "$newpass" --confirm_password "$newpass" --domain $primarydomain
+					echo -e "\nloginurl: https://$(servername):2443/siteworx/?domain=$primarydomain\nusername: $primaryemail\npassword: $newpass\ndomain: $primarydomain\n"
+				else # update password for specific user
+					emailaddress=$2; genpass $3 $4
+					sudo -u $(getusr) siteworx -unc users -a edit --user $emailaddress --password $newpass --confirm_password $newpass
+					echo -e "\nfor testing:\nsiteworx --login_email $emailaddress --login_password $newpass --login_domain $primarydomain"
+					echo -e "\nloginurl: https://$(servername):2443/siteworx/?domain=$primarydomain\nusername: $emailaddress\npassword: $newpass\ndomain: $primarydomain\n"
+				fi
+				;;
+
+			-r ) # listing/updating reseller users
+				if [[ -z $2 || $2 == '--list' ]]; then # list out resellers nicely
+					echo; (echo "id reseller_email name"; nodeworx -unc reseller -a listresellers | sed 's/ /_/g' | awk '{print $1,$2,$3}') | column -t; echo
+				else # update password for specific reseller
+					resellerid=$2; genpass $3 $4
+					nodeworx -unc reseller -a edit --reseller_id $resellerid --password $newpass --confirm_password $newpass
+					emailaddress=$(nodeworx -unc reseller -a listresellers | grep ^$resellerid | awk '{print $2}')
+					echo -e "\nfor testing:\nnodeworx --login_email $emailaddress --login_password $newpass"
+					echo -e "\nloginurl: https://$(servername):2443/nodeworx/\nusername: $emailaddress\npassword: $newpass\n\n"
+				fi
+				;;
+
+			-m ) # listing/updating mysql users
+				if [[ -z $2 || $2 == '--list' ]]; then
+					echo; ( echo -e "username   databases"
+					sudo -u $(getusr) siteworx -unc mysqluser -a listmysqlusers | awk '{print $2,$3}' ) | column -t; echo
+				else
+					genpass $3 $4
+					dbs=$(sudo -u $(getusr) siteworx -unc mysqluser -a listmysqlusers | grep "$2" | awk '{print $3}' | sed 's/,/, /')
+					sudo -u $(getusr) siteworx -unc mysqluser -a edit --name $(echo $2 | sed "s/$(getusr)_//") --password $newpass --confirm_password $newpass
+					echo -e "\nfor testing: \nmysql -u'$2' -p'$newpass' $(echo $dbs | cut -d, -f1)"
+					echo -e "\nusername: $2\npassword: $newpass\ndatabases: $dbs\n"
+				fi
+				;;
+
+			-n ) # listing/updating nodeworx users
+				if [[ -z $2 || $2 == '--list' ]]; then # list nodeworx (non-nexcess) users
+					echo; (echo "email_address name"; nodeworx -unc users -a list | grep -v nexcess.net | sed 's/ /_/g') | column -t; echo
+				elif [[ ! $2 =~ nexcess\.net$ ]]; then # update password for specific nodeworx user
+					emailaddress=$2; genpass $3 $4
+					nodeworx -unc users -a edit --user $emailaddress --password $newpass --confirm_password $newpass
+					echo -e "\nfor testing:\nnodeworx --login_email $emailaddress --login_password $newpass"
+					echo -e "\nloginurl: https://$(servername):2443/nodeworx/\nusername: $emailaddress\npassword: $newpass\n\n"
+				fi
+				;;
+
+			-h | --help | * )
+				echo -e "\n  for ftp and siteworx, run this from within the user's /home/dir/\n
+				usage: iworxcredz option [--list] [user/id] password [newpassword]
+				ex: iworxcredz -d secondarydomain -f ftpusername -m
+				ex: iworxcredz -f ftpusername -p newpassword
+				ex: iworxcredz -s emailaddress -x
+				ex: iworxcredz -r --list
+
+				options: (use '--list' to list available users)
+				-d [domain] . specify domain for secondary ftp users
+				-e [email] .. email users
+				-f [user] ... ftp users (default is ftp@primarydomain.tld)
+				-s [email] .. siteworx users (default is primary user)
+				-r [id] ..... reseller users
+				-n [email] .. nodeworx users
+				-m [user] ... mysql users
+
+				password: (password generation or input)
+				-m ... generate password using mkpasswd
+				-x ... generate password using xkcd (default)
+				-p ... specify new password directly (-p <password>)\n"; return 0;
+				;;
+
+			esac
+			unset primarydomain primaryemail emailaddress resellerid newpass # cleanup
+		}
+
+## setup or reset ssh account
+sshcredz(){
+	if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+		echo -e "\n usage: sshcredz [-p <password>] [-i \"<ip1> <ip2> <ip3> ...\"] [comment]\n"; return 0; fi
+
+		# if password specified
+		if [[ $1 == '-p' ]]; then newpass="$2"; shift; shift; else newpass=$(mkpasswd -l 15); fi
+
+		# if whitelist specified
+		if [[ $1 == '-i' ]]; then whitelist ssh "$2" "$3"; fi
+
+		# set shell, and add to ssh user's group; then reset failed logins, and reset password.
+		usermod -s /bin/bash -a -g sshusers $(getusr) && echo -n "user $(getusr) added to sshusers, and shell set to /bin/bash ... "
+		pam_tally2 -u $(getusr) -r &> /dev/null && echo -n "failures for $(getusr) reset ... "
+		echo "$newpass" | passwd --stdin $(getusr) &> /dev/null && echo "password set to $newpass"
+
+		# output block for copy pasta
+		echo -e "\nhostname: $(servername)\nusername: $(getusr)\npassword: $newpass\n";
+	}
+
+## setup ssh for me, so i can transfer files from host
+givemessh(){
+	echo; pass=$(xkcd) && nksshd usercontrol -csr $sudo_user -p $pass
+	if [[ -z "$1" ]]; then echo; read -p "hostname: " host; else host="$1"; fi
+	whitelist ssh $(dig +short $host) "# $host for file transfer"
+}
+
+## bash completion for whitelist
+_whitelist(){
+	local cur prev opts base
+	compreply=()
+	cur="${comp_words[comp_cword]}"
+	prev="${comp_words[comp_cword-1]}"
+	opts="ftp mysql other ssh -h --help"
+
+	case ${prev} in
+		f|ftp|m|mysql|o|other )
+			compreply=( $(compgen -w "in out" -- ${cur}) )
+			return 0 ;;
+		*) ;;
+	esac
+
+	compreply=( $(compgen -w "${opts}" -- ${cur}) )
+	return 0;
+}
+compctl -f _whitelist whitelist;
+
+## whitelist a hostname or ip address in the appropriate config
+whitelist(){
+	if [[ "$2" == "in" ]]; then src="d="; dst="s=";
+	elif [[ "$2" == "out" ]]; then src="d="; dst="d=";
+	else src=""; dst=""; fi;
+		host="$3"; cmnt="$4"; type=""
+
+		_addrule(){
+			echo; if ! grep -q "^\#.*$(getusr)" $config; then echo -e "\n# $(getusr)" >> $config; fi
+			for x in $host;
+			do echo "${src}${port}${dst}${x} .. added to $config";
+				sed -i "s|\(^\#.*$(getusr).*$\)|\1\n${src}${port}${dst}${x}|" $config
+			done;
+			sed -i "s|\(^\#.*$(getusr).*$\)|\1\n# ${type} ${cmnt}|" $config;
+			echo -e "\nhello,\n\ni have white-listed the requested ip address(es) ( $(for x in $host; do printf "$x, "; done)) for $type access on $(hostname).\nyou should be all set. please let us know if you need any further assistance.\n\nsincerely,\n"
+			if [[ "$src" != "sshd" ]]; then echo; service apf restart; fi;
+			}
+
+			case $1 in
+				f|ftp ) config='/etc/apf/allow_hosts.rules'; type="(ftp $2)"; port="21:"; _addrule ;;
+				m|mysql ) config='/etc/apf/allow_hosts.rules'; type="(mysql $2)"; port="3306:"; _addrule ;;
+				o|other ) config='/etc/apf/allow_hosts.rules'; type="(port $4 $2)"; port="${4}:"; cmnt="$5" ; _addrule ;;
+				s|ssh )
+					if [[ $(grep 'sshd: all' /etc/hosts.allow 2> /dev/null) ]]; then config='/etc/apf/allow_hosts.rules';
+						if [[ "$2" != "in" && "$2" != "out" ]]; then host="$2"; cmnt="$3"; fi; type="(ssh/sftp)"; src="d="; dst="s="; port="22:"; _addrule
+						else config='/etc/hosts.allow';
+							if [[ "$2" != "in" && "$2" != "out" ]]; then host="$2"; cmnt="$3"; fi; type="(ssh/sftp)"; src="sshd"; dst=": "; port=""; _addrule
+							fi
+							;;
+						-h|--help|*) echo -e "\n usage: whitelist [ftp|mysql|ssh|other] [in|out] <ip/host> [port#] [comment]
+							ex: whitelist ssh \"10.0.0.1 10.0.1.1 10.1.1.1\" abcd-1234
+							ex: whitelist mysql in 10.0.0.2 efgh-5678
+							ex: whitelist other out 10.0.0.3 1187 ijkl-6543\n" ;;
+					esac
+				}
+
+## shortcut for piping math equation(s) into bc
+calc(){
+	if [[ -z "$@" ]]; then echo -e "\nthis function requires a parameter.\n"; else
+		echo; for x in "$@"; do printf "$x = "; echo "scale=5;$x" | bc; done; echo; fi
+	}
+
+## send a file to an email address
+sendthis(){
+if [[ $@ == '-h' || $@ == '--help' || -z $@ ]]; then echo -e "\n usage: sendthis <filename> <subject> <emailaddr>\n"; return 0; fi
+if [[ -n $1 ]]; then file=$1; else read -p "filename: " file; fi
+if [[ -n $2 ]]; then subject=$2; else read -p "subject: " subject; fi
+if [[ -n $3 ]]; then email=$3; else read -p "email: " email; fi
+if grep -fqi 'centos release 6' /etc/redhat-release; then echo "see attached" | mail -s "$subject" -a "$file" "$email";
+else cat "$file" | mail -s "$subject" "$email"; fi;
+}
+
+## truncate large log files, chown and move the original for later review
+trimfile(){
+	u=$(getusr); if [[ -z "$1" ]]; then echo; read -p "file name (without path): " file; else file="$1"; fi
+	chown root:root $file && tail -n10000 $file > temp.txt && mv $file ~/"$(pwd | sed 's:^/::;s:/:-:g')--$(date +%y.%m.%d)--$file" && mv temp.txt $file && chown $u. $file
+	echo "operation completed."; echo
+}
+
+compctl -w 'ftp php mysql http ssh cron all -h --help' logs
+## quick log check of the major logs to see what might be the matter
+logs(){
+	if [[ -z "$2" ]]; then n=20; else n="$2"; fi
+	case "$1" in
+		ftp  ) echo; tail -n"$n" /var/log/proftpd/auth.log /var/log/proftpd/xfer.log; echo ;;
+		php  ) echo; tail -n"$n" /var/log/php-fpm/error.log; echo ;;
+		mysql) echo; tail -n"$n" /var/log/mysqld.log; echo ;;
+		http ) echo; tail -n"$n" /var/log/httpd/error_log; echo ;;
+		ssh  ) echo; grep -v 'did not receive' /var/log/secure | tail -n$n; echo ;;
+		cron ) echo; tail -n"$n" /var/log/cron; echo ;;
+		all  ) echo -e "\n---------- apache log ----------\n$(tail -n$n /var/log/httpd/error_log)\n"
+			if [[ -f /var/log/php-fpm/error.log ]]; then echo -e "\n---------- php log ----------\n$(tail -n$n /var/log/php-fpm/error.log)\n"; fi
+			echo -e "\n---------- mysql log ----------\n$(tail -n$n /var/log/mysqld.log)\n"
+			echo -e "\n---------- ssh log ----------\n$(grep -v 'did not receive' /var/log/secure | tail -n$n)\n"
+			echo -e "\n---------- cron log ----------\n$(tail -n$n /var/log/cron)\n"
+			echo -e "\n---------- ftp logs ----------\n$(tail -n$n /var/log/proftpd/auth.log /var/log/proftpd/xfer.log)" ;;
+		-h|--help) echo -e "\n usage: logs [ftp|php|sql|http|ssh|cron|all] [linecount]\n" ;;
+		* ) echo -e "\n---------- apache log ----------\n$(tail -n$n /var/log/httpd/error_log)\n"
+			if [[ -f /var/log/php-fpm/error.log ]]; then echo -e "\n---------- php log ----------\n$(tail -n$n /var/log/php-fpm/error.log)\n"; fi
+			echo -e "\n---------- mysql log ----------\n$(tail -n$n /var/log/mysqld.log)\n" ;;
+	esac
+}
+
+## list the last 10 reboots
+findreboot(){ last | awk '/boot/ {$4=""; print}' | head -n10 | column -t; }
+
+## simple system status to check if services that should be running are running
+srvstatus(){
+	echo; format="%-18s %s\n";
+	printf "$format" " service" " status";
+	printf "$format" "$(dash 18)" "$(dash 55)";
+	for x in $(chkconfig --list | awk '/3:on/ {print $1}' | sort); do
+		printf "$format" " $x" " $(service $x status 2> /dev/null | head -1)";
+	done; echo
+}
+
+## show geographical and network information about a given ip address
+ipinfo(){
+	for x in "$@"; do echo; echo -e "geo-ip info: ($x)\n$(dash 79)";
+		curl -s ipinfo.io/$x | sed 's/,\"/\n\"/g' | awk -f\" '/[a-z]/ {printf "%8s : %s\n",$2,$4}';
+	done; echo
+}
+
+## watch connections to server, and the ips those connections are coming from
+liveips(){
+	if [[ -n $(grep ' 4\.' /etc/redhat-release) ]]; then # centos 4
+		if [[ $1 =~ -q ]]; then # established connections
+			watch -n0.1 "netstat -ant | awk -f: '/ffff.*:80.*est/{print \$4,\"<--\",\$8}' | column -t | sort | uniq -c | sort -rn"
+		else # verbose (est and wait connections)
+			watch -n0.1 "netstat -ant | awk -f: '/ffff.*:80/{print \$4,\"<--\",\$8}' | column -t | sort | uniq -c | sort -rn"
+		fi
+	else # not centos 4
+		if [[ -n "$(ss -ant | grep ffff.*:80)" ]]; then # pseudo ipv6
+			if [[ $1 =~ -q ]]; then # established connections
+				watch -n0.1 "ss -ant | awk -f: '/est.*ffff.*:80/{print \$4,\"<--\",\$8}' | column -t | sort | uniq -c | sort -rn"
+			else # verbose (est and wait connections)
+				watch -n0.1 "ss -ant | awk -f: '/ffff.*:80/{print \$4,\"<--\",\$8}' | column -t | sort | uniq -c | sort -rn"
+			fi
+		else # ipv4
+			if [[ $1 =~ -q ]]; then # established connections
+				watch -n0.1 "ss -ant | awk '/est/ && (\$4 ~ /:80/) && !/\*/ {print \$4,\"<--\",\$5}' | sed 's/:80//g; s/:.*$//g' | column -t | sort | uniq -c | sort -rn"
+			else # verbose (est and wait connections)
+				watch -n0.1 "ss -ant | awk '(\$4 ~ /:80/) && !/\*/ {print \$4,\"<--\",\$5}' | sed 's/:80//g; s/:.*$//g' | column -t | sort | uniq -c | sort -rn"
+			fi
+		fi
+	fi
+}
+
+## find modsec error codes in an apache error.log for a domain
+modsec(){
+	if [[ "$1" == '-h' || "$1" == '--help' ]]; then
+		echo -e "\n usage: modsec <domain> [-i|--ip <ipaddr>]\n if <domain> is . attempt to get domain from path\n <ipaddr> can be a full ip address, regex, 'otr', or 'mel'\n"; return 0; fi;
+
+		echo;
+		if [[ -z "$1" ]]; then read -p "domain: " d; echo;
+		elif [[ $1 == '.' ]]; then d="$(pwd | sed 's:^/chroot::' | cut -d/ -f4)"; else d="$(echo $1 | sed 's/\///g')"; fi
+		if [[ "$2" == '-i' && -z "$3" || "$2" == '--ip' && -z "$3" ]]; then read -p "ipaddress: " ip; echo;
+		elif [[ "$3" == 'otr' ]]; then ip='208.69.120.120'; elif [[ "$3" == 'mel' ]]; then ip="192.240.191.2"; else ip="$3"; fi
+
+		format="%-8s %-9s %s\n";
+		printf "$format" " count#" " error#" " ip-address";
+		printf "$format" "--------" "---------" "$(dash 17)";
+		if grep -qei '\[id: [0-9]{6,}\]' /home/*/var/$d/logs/error.log; then
+			grep -eio "client.$ip.*\] |id.*[0-9]{6,}\]" /home/*/var/$d/logs/error.log | awk 'begin {rs="]\nc"} {print $4,$2}'\
+				| tr -d \] | sort | uniq -c | awk '{printf "%7s   %-8s  %s\n",$1,$2,$3}'
+		else
+			grep -eio "client.$ip.*id..[0-9]{6,}\"" /home/*/var/$d/logs/error.log | awk '{print $nf,$2}'\
+				| sort | uniq -c | tr -d \" | tr -d \] | awk '{printf "%7s   %-8s  %s\n",$1,$2,$3}';
+		fi; echo
+	}
+
+## show requests to all sites on server for the last hour in the transfer logs
+hits_lasthour(){
+	if [[ -z $1 ]]; then top=10; else top=$1; fi
+	echo;
+	printf "%-30s %-10s\n" " domain name" " hits";
+	printf "%-30s %-10s\n" "$(dash 30)" "$(dash 10)";
+	for x in /home/*/var/*/logs/transfer.log; do
+		printf "%-30s %-10s\n" " $(echo $x | cut -d/ -f5)" " $(grep -ec "$(date +%d/%b/%y:%h:)" $x)";
+	done | sort -rn -k2 | head -n$top
+	echo
+}
+
+## change docroot to disabled, enabled, or check current docroot
+haxed(){
+	if [[ -z $2 || $1 == '.' ]]; then d="$(pwd | sed 's:^/chroot::' | cut -d/ -f4)"; else d=$(echo $1 | sed 's/\///g'); fi
+	if [[ -z $2 ]]; then opt=$1; else opt=$2; fi
+
+	case $opt in
+		-c|--check  )
+			if [[ -f /etc/httpd/conf.d/vhost_${d}.conf ]]; then
+				if grep -eq 'documentroot.*disabled$' /etc/httpd/conf.d/vhost_${d}.conf > /dev/null; then echo -e "\n$d is disabled\n";
+				elif grep -eq 'documentroot.*html$' /etc/httpd/conf.d/vhost_${d}.conf > /dev/null; then echo -e "\n$d is enabled\n"; fi
+			else echo -e "\n/etc/httpd/conf.d/vhost_${d}.conf does not appear to exist on this server.\n"; fi ;;
+			-d|--disable)
+				sed -i 's/\(documentroot.*html$\)/documentroot \/home\/interworx\/var\/errors\/disabled\n  \#\1/g' /etc/httpd/conf.d/vhost_${d}.conf &&\
+					httpd -t && service httpd reload && echo -e "\ndocumentroot changed to disabled\n" ;;
+			-e|--enable )
+				sed -i 's/documentroot.*disabled$//g' /etc/httpd/conf.d/vhost_${d}.conf &&\
+					sed -i 's/\#\(documentroot.*html$\)/\1/g' /etc/httpd/conf.d/vhost_${d}.conf &&\
+					httpd -t && service httpd reload && echo -e "\ndocumentroot changed to enabled\n" ;;
+			-h|--help|*)
+				echo "
+				usage: haxed [<domain>] <option>
+				-c | --check ..... check if documentroot is set to disabled
+				-d | --disable ... change documentroot to disabled in vhost file
+				-e | --enable .... change documentroot back to the user directory
+				-h | --help ...... print this help dialogue and exit
+
+				if <domain> is . or empty, haxed will attempt to get the domain from the pwd.
+					";;
+			esac
+		}
+
+## print hits per hour for all domains on the server (using current transfer.log's)
+sum_traffic(){
+echo; fmt=" %5s"
+
+## header
+printf "${bright} %9s" "user/hour"
+for hour in $(seq -w 0 23); do printf "$fmt" "$hour:00"; done
+printf "%8s %-s${normal}\n" "total" " domain name"
+
+## initializations
+hourtotal=($(for ((i=0;i<23;i++)); do echo 0; done)); grandtotal=0
+
+# caclulate filname suffix of previous logs
+if [[ $1 == '-d' ]]; then decomp='zgrep' date="-$(date --date="-$2 day" +%m%d%y).zip"; shift; shift; else decomp='grep' date=''; fi
+
+## data gathering and display
+for logfile in /home/*/var/*/logs/transfer.log${date}; do
+	total=0; i=0;
+	if [[ $1 != '-n' && $1 != '--nocolor' ]]; then color="${blue}"; else color=''; fi
+	printf "${color} %9s" "$(echo $logfile | cut -d/ -f3)"
+	for hour in $(seq -w 0 23); do
+		count=$($decomp -ec "[0-9]{4}:$hour:" $logfile);
+		hourtotal[$i]=$((${hourtotal[$i]}+$count))
+
+		## color version (heat map)
+		if [[ $1 != '-n' && $1 != '--nocolor' ]]; then
+			if [[ $count -gt 20000 ]]; then color="${bright}${red}";
+			elif [[ $count -gt 2000 ]]; then color="${red}";
+			elif [[ $count -gt 200 ]]; then color="${yellow}";
+			else color="${green}"; fi
+		else color=''; fi
+		printf "${color}$fmt${normal}" "$count"
+		total=$((${total}+${count})); i=$(($i+1))
+	done
+	grandtotal=$(($grandtotal+$total))
+
+	if [[ $1 != '-n' && $1 != '--nocolor' ]]; then ## color version
+		printf "${cyan}%8s ${purple}%-s${normal}\n" "$total" "$(echo $logfile | cut -d/ -f5)"
+	else printf "%8s %-s\n" "$total" "$(echo $logfile | cut -d/ -f5)"; fi
+
+done
+
+## footer
+printf "${bright} %9s" "total"
+for i in $(seq 0 23); do printf "$fmt" "${hourtotal[$i]}"; done
+printf "%8s %-s${normal}\n" "$grandtotal" "<< grand total"
+echo
+}
+
+## check for sites getting more than 1000 post requests from a single ip.
+brutecheck(){
+	echo; if [[ -n $1 ]]; then search="$1"; echo "search: $search"; else read -p 'search: ' search; fi; echo
+	for x in $(grep -ec "post.*${search}" /home/*/var/*/logs/transfer.log /var/log/interworx/*/*/logs/transfer.log /var/log/interworx/*/logs/transfer.log 2> /dev/null | grep -e [0-9]{4}$ | cut -d/ -f5); do
+		echo $x; traffic $x ip -s "post.*${search}" | grep -e [0-9]{4}; echo;
+	done
+}
+
+# http://www.the-art-of-web.com/system/logs/
+## Traffic stats / information (collection of Apache one-liners)
+	traffic(){
+		_trafficDash(){ for ((i=1;i<=$1;i++));do printf '#'; done; }
+		_trafficUsage(){
+			echo " Usage: traffic DOMAIN COMMAND [OPTIONS]
+
+			Commands:
+			ua | useragent . Top User Agents by # of hits
+			bot | robots .... Top User Agents identifying as bots by # of hits
+			scr | scripts.... Top empty User Agents (likely scripts) by # of hits
+			ip | ipaddress . Top IPs by # of hits
+			bw | bandwidth . Top IPs by bandwidth usage
+			bwt | bwtotal ... Total bandwidth used for a given day
+			url | file ...... Top URLs/files by # of hits
+			ref | referrer .. Top Referrers by # of hits
+			type | request ... Summary of request types (GET/HEAD/POST)
+			sum | summary ... Summary of response codes and user agents for top ips
+			hr | hour ...... # of hits per hour
+			gr | graph ..... # of hits per hour with visual graph
+			min | minute .... Hits per min during some range
+			code | response .. Response Codes (per Day/Hour/Min)
+			s | search .... Only search the log for -s 'search string'
+			This does not have a line limit (ignores -n)
+
+			Options:
+			-s | --search .. Search \"string\" (executed before analysis)
+			For a timeframe use 'YYYY:HH:MM:SS' or 'regex'
+				-d | --days .... Days before today (1..7) (historical logs)
+				-n | --lines ... Number of results to print to the screen
+				-v | --verbose . Debugging output (prints parameter values)
+				-h | --help .... Print this help and exit
+
+				Notes:
+				DOMAIN can be '.' to find the domain from the PWD"; return 0;
+			}
+
+			# Check how the domain is specified.
+			if [[ $1 == '.' ]]; then DOMAIN=$(pwd | sed 's:^/chroot::' | cut -d/ -f4); shift;
+			else DOMAIN=$(echo $1 | sed 's:/$::'); shift; fi
+
+			opt=$1; shift; # Set option variable using command parameter
+
+			# Determin Log File Location
+			VHOST="/etc/httpd/conf.d/vhost_${DOMAIN}.conf"
+			if [[ $(hostname) =~ .*-lb ]]; then LOGFILE="/var/log/interworx/*/${DOMAIN}/logs/transfer.log";
+			else LOGFILE="$(awk '/CustomLog/ {print $2}' $VHOST | head -n1)${DATE}"; fi
+
+			SEARCH=''; DATE=''; TOP='20'; DECOMP='egrep -h'; VERBOSE=0; # Initialize variables
+			OPTIONS=$(getopt -o "s:d:n:hv" --long "search:,days:,lines:,help,verbose" -- "$@") # Execute getopt
+			eval set -- "$OPTIONS" # Magic
+
+			while true; do # Evaluate the options for their options
+				case $1 in
+					-s|--search ) SEARCH="$2"; shift ;; # search string (regex)
+					-d|--days   ) DATE="-$(date --date="-$((${2}-1)) day" +%m%d%Y).zip"; DECOMP='zegrep';
+						echo; date --date="-${2} day" +"%A, %B %d, %Y -- %Y.%m.%d";
+						LOGFILE="/home/*/var/${DOMAIN}/logs/transfer.log${DATE}"; shift ;; # days back
+					-n|--lines  ) TOP=$2; shift ;; # results
+					-v|--verbose) VERBOSE=1 ;; # Debugging Output
+					--          ) shift; break ;; # More Magic
+					-h|--help|* ) _trafficUsage; return 0 ;; # print help info
+				esac;
+				shift;
+			done
+
+			echo
+			case $opt in
+
+				ua|useragent	) $DECOMP "$SEARCH" $LOGFILE | awk -F\" '{freq[$6]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}'\
+					| sort -rn | head -n$TOP ;;
+
+			bot|robots	) $DECOMP "$SEARCH" $LOGFILE | awk -F\" '($6 ~ /[Bb]ot|[Cc]rawler|[Ss]pider/) {freq[$6]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}'\
+				| sort -rn | head -n$TOP ;;
+
+		scr|scripts	) $DECOMP "$SEARCH" $LOGFILE | awk -F\" '($6 ~ /^-?$/) {print $1}' | awk '{freq[$1]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}'\
+			| sort -rn | head -n$TOP ;;
+
+
+	ip|ipaddress	) $DECOMP "$SEARCH" $LOGFILE | awk '{freq[$1]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}'\
+		| sort -rn | head -n$TOP ;;
+
+
+bw|bandwidth	) $DECOMP "$SEARCH" $LOGFILE | awk '{tx[$1]+=$10} END {for (x in tx) {printf "   %-15s   %8s M\n",x,(tx[x]/1024000)}}'\
+	| sort -k 2n | tail -n$TOP | tac ;;
+
+bwt|bwtotal     ) $DECOMP "$SEARCH" $LOGFILE | awk '{tx+=$10} END {print (tx/1024000)"M"}' ;;
+
+sum|summary	) for x in $($DECOMP "$SEARCH" $LOGFILE | awk '{freq[$1]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}' | sort -rn | head -n$TOP | awk '{print $2}'); do
+echo $x; $DECOMP "$SEARCH" $LOGFILE | grep $x | cut -d' ' -f9,12- | sort | uniq -c | sort -rn | head -n$TOP | tr -d \"; echo;
+done ;;
+
+s|search	) $DECOMP "$SEARCH" $LOGFILE ;;
+
+hr|hour 	) for x in $(seq -w 0 23); do echo -n "${x}:00 "; $DECOMP "$SEARCH" $LOGFILE | egrep -c "/[0-9]{4}:$x:"; done ;;
+
+gr|graph	) for x in $(seq -w 0 23); do echo -n "${x}:00"; count=$($DECOMP "$SEARCH" $LOGFILE | egrep -c "/[0-9]{4}:$x:");
+printf "%7s |%s\n" "$count" "$(_trafficDash $(($count/500)))"; done;;
+
+min|minute	) $DECOMP "$SEARCH" $LOGFILE | awk '{print $4}' | awk -F: '{print $1" "$2":"$3}' | sort | uniq -c | tr -d \[ ;;
+
+type|request	) $DECOMP "$SEARCH" $LOGFILE | awk '{freq[$6]++} END {for (x in freq) {print x,freq[x]}}' | tr -d \" | sed 's/-/TIMEOUT/' | column -t ;;
+
+url|file	) $DECOMP "$SEARCH" $LOGFILE | awk '{freq[$7]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}'\
+| sort -rn | head -n$TOP ;;
+
+ref|referrer	) $DECOMP "$SEARCH" $LOGFILE | awk '{freq[$11]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}'\
+| tr -d \" | sort -rn | head -n$TOP ;;
+
+code|response	) $DECOMP "$SEARCH" $LOGFILE | awk '{print $4":"$9}' | awk -F: '{print $1,$5}' | sort | uniq -c | tr -d \[ ;;
+
+-h|--help|*) _trafficUsage ;;
+
+esac
+
+if [[ $VERBOSE == '1' ]]; then echo; echo -e "DECOMP: $DECOMP\nSEARCH: $SEARCH\nDATE: $DATE\nTOP: $TOP\nLOGFILE: $LOGFILE\n" | column -t; fi # Debugging
+
+echo;
+unset DOMAIN SEARCH DATE TOP TIME LOGFILE DECOMP VERBOSE # Variable Cleanup
+}
+
+# http://qmailrocks.thibs.com/qmqtool.php
+compctl -W 'sub rec send sdom radd rdom ladd ldom -h --help' qmq
+## Series of qmqtool one-liners for checking the makeup of mail stuck in the queue
+qmq(){
+	if [[ -n "$1" && -z "$2" ]]; then N=20; else N=$2; fi; echo;
+		case "$1" in
+			sub ) qmqtool -R | grep "Subject: " | sort | uniq -c | sort -rn | head -n$N ;;
+			rec ) qmqtool -R | awk '/Recipient:/ { print $3 }' | sort | uniq -c | sort -n ;;
+			send ) qmqtool -R | grep "From: " | sort | uniq -c | sort -rn | head -n$N ;;
+			sdom ) qmqtool -R | grep "From: " | grep -Eo '\@[a-z0-9].*\>' | sort | uniq -c | sort -rn | head -n$N;;
+			radd|raddress ) qmqtool -R | grep "To: " | sort | uniq -c | sort -rn | head -n$N ;;
+			rdom|rdomain ) qmqtool -R | grep "To: " | cut -d @ -f2 | tr -d '>' | sort | uniq -c | sort -rn | head -n$N ;;
+			ladd|laddress ) qmqtool -L | grep "To: " | sort | uniq -c | sort -rn | head -n$N ;;
+			ldom|ldomain ) qmqtool -L | grep "To: " | cut -d @ -f2 | tr -d '>' | sort | uniq -c | sort -rn | head -n$N ;;
+			-h|--help) echo -e " Usage: qmq [sub|rec|send|sdom|radd|rdom|ladd|ldom] [top#]\n    sub ... Top Subject in Remote Queue\n    send .. Top Sender in Remote Queue\n    sdom .. Top Sending Domain in the Remote Queue\n    rec ... Top Recipient in Remote Queue\n    radd .. Top Receive Address in Remote Queue\n    rdom .. Top Receive Domains in Remote Queue\n    ladd .. Top Receive Address in Local Queue\n    ldom .. Top Receive Domains in Local Queue" ;;
+			*) qmqtool -s ;;
+		esac; echo
+	}
+
+# http://stackoverflow.com/questions/2552402/cat-file-vs-file
+compctl -W 'send smtp smtp2 pop3 pop3-ssl imap4 imap4-ssl' q
+## Load the desired mail log through the necessary timestamp converter
+q(){
+	case "$1" in
+		'send'      ) log='/var/log/send/current'      ;;
+		'smtp'      ) log='/var/log/smtp/current'      ;;
+		'smtp2'     ) log='/var/log/smtp2/current'     ;;
+		'pop3'      ) log='/var/log/pop3/current'      ;;
+		'pop3-ssl'  ) log='/var/log/pop3-ssl/current'  ;;
+		'imap4'     ) log='/var/log/imap4/current'     ;;
+		'imap4-ssl' ) log='/var/log/imap4-ssl/current' ;;
+		# works
+		#*[0-9]*    ) log="/var/log/send/$1"           ;;
+		*[0-9]*     ) log="$(find /var/log/{send,smtp,smtp2,pop3,pop3-ssl,imap4,imap4-ssl}/ -name '*$1*' -type f | head -1)" ;;
+	esac
+	echo "$log"
+	/usr/bin/tai64nlocal < "$log" | $PAGER
+}
+
+## Search send log(s) for a domain (look for error messages)
+sendlog(){
+	if [[ -n $1 ]]; then D=$1; else read -p "Domain: " D; fi
+	if [[ $2 == 'all' ]]; then cat /var/log/send/* | tai64nlocal | egrep -B2 -A8 "$D" | less;
+	else cat /var/log/send/current | tai64nlocal | egrep -B2 -A8 "$D" | less; fi
+}
+
+## Check/Enable/Disable Local Delivery for domain(s)
+localdelivery(){
+	if [[ $2 == 'all' ]]; then domain='';
+	elif [[ -n $2 ]]; then domain=$(echo $2 | sed 's:/::g');
+	else domain=$(pwd | sed 's:^/chroot::' | cut -d/ -f4); fi
+
+	if [[ -n $2 && ${#2} -gt 3 ]]; then
+		vhost=$(grep -l " $(echo $domain | sed 's/\(.*\)/\L\1/g')" /etc/httpd/conf.d/vhost_*);
+		unixuser=$(awk '/SuexecUserGroup/ {print $2}' $vhost | head -1);
+	else unixuser=$(getusr); fi
+
+	_localDeliveryCheck(){
+		echo; echo "----- Local Delivery Status -----"
+		sudo -u $unixuser -- siteworx -u -n -c EmailRemotesetup -a listLocalDeliveryStatus | awk '{print $1,$NF}' | grep -E "^${domain}"\
+			| sed "s/0$/${BRIGHT}${RED}Disabled${NORMAL}/g;s/1$/${BRIGHT}${GREEN}Enabled${NORMAL}/g" | column -t; echo
+	}
+
+	case $1 in
+		-c | --check) # Check
+			_localDeliveryCheck ;;
+		-d | --disable) # Disable
+			sudo -u $unixuser -- siteworx -u -n -c EmailRemotesetup -a disableLocalDelivery --domain ${domain}; _localDeliveryCheck ;;
+		-e | --enable) # Enable
+			sudo -u $unixuser -- siteworx -u -n -c EmailRemotesetup -a enableLocalDelivery --domain ${domain}; _localDeliveryCheck ;;
+		-h | --help | *) # Help
+			echo -e "\n  Usage: localDelivery [option] [domain]
+			-c | --check [domain|all] . Check Local Delivery status for domain(s)
+			-d | --disable [domain] ... Disable Local Delivery for the domain
+			-e | --enable [domain] .... Enable Local Delivery for the domain\n" ;;
+	esac
+}
+
+## Setup Google MX records and turn off local delivery
+googlemx(){
+	if [[ -z $1 || $1 == '-h' || $1 == '--help' ]]; then
+		echo -e "\n Usage: googlemx OPTION DOMAIN
+		EX: googlemx -a DOMAIN\n    Ex: googlemx -c DOMAIN\n    Ex: googlemx --list\n\n OPTIONS
+		-a ... Remove old MX records and add Google MX\n     -c ... Check existing MX records for domain\n --list ... List domains and ids for the account\n";
+	fi
+
+	if [[ $1 == --list ]]; then
+		echo; (echo 'ID Domain'; sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk '($2 !~ /nextmp/) {print $1,$2}') | column -t; echo
+	elif [[ $1 = '-c' && -n $2 ]]; then
+		zoneid=$(sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk "(\$2 ~ /$2/)"'{print $1}')
+		echo -e "\nID ... MX-Records-for: $2"
+		(sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' | sort -nk3 | column -t; echo
+	fi
+
+	if [[ $1 == '-a' && -n $2 ]]; then
+		zoneid=$(sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk "(\$2 ~ /$2/)"'{print $1}')
+		echo -e "\nID ... MX-Records-for: $1"
+		(sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' | sort -nk3 | column -t; echo
+
+		echo "Removing old records"
+		mxrecord=$((sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1}')
+		for x in $mxrecord; do nodeworx -u -n -c DnsRecord -a delete --record_id $x; done
+
+		echo
+		sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 1 --mail_server ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ASPMX.L.GOOGLE.COM'
+		sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 5 --mail_server ALT1.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT1.ASPMX.L.GOOGLE.COM'
+		sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 5 --mail_server ALT2.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT2.ASPMX.L.GOOGLE.COM'
+		sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 10 --mail_server ALT3.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT3.ASPMX.L.GOOGLE.COM'
+		sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 10 --mail_server ALT4.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT4.ASPMX.L.GOOGLE.COM'
+
+		localdelivery -d $2
+	fi
 }

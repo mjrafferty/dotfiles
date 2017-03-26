@@ -2,13 +2,7 @@
 # Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
 # https://creativecommons.org/licenses/by-sa/3.0/
 
-## Block viewing motd
-if [[ ! -f ~/.hushlogin ]]; then touch ~/.hushlogin; fi
-
 ## My Aliases
-alias vi='vim -n'
-alias less='less -R'
-alias h='echo; serverName; echo'
 alias os='echo; cat /etc/redhat-release; echo'
 alias getrsync='wget updates.nexcess.net/scripts/rsync.sh; chmod +x rsync.sh'
 alias omg='curl -s http://nanobots.robotzombies.net/aboutbashrc | less'
@@ -291,7 +285,7 @@ sudo -u $(getusr) echo -e "\n<Limit WRITE>\n  DenyUser $U\n</Limit>\n" >> .ftpac
 echo -e "\n.ftpaccess file has been updated.\n"
 }
 
-complete -W '-h --help -u --user -p --pass -l' htpasswdauth
+compctl -W '-h --help -u --user -p --pass -l' htpasswdauth
 ## Generate or update .htpasswd file to add username
 htpasswdauth(){
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
@@ -403,7 +397,7 @@ nodeworx -u -n -c Siteworx -a edit --domain $primaryDomain --OPT_STORAGE $newQuo
 echo -e "\nDisk Quota for $U has been set to $newQuota MB\n"; checkquota -u $U
 }
 
-complete -W '-h --help -a --all -l --large -u --user' checkquota
+compctl -W '-h --help -a --all -l --large -u --user' checkquota
 ## Check users quota usage
 checkquota(){
 _quotaheader(){ echo; printf "%8s %12s %14s %14s\n" "Username" "Used(%)" "Used(G)" "Total(G)"; dash 51; }
@@ -1466,7 +1460,7 @@ echo -e "\n---------- Database Usage ----------"; du -sh /var/lib/mysql/$(getusr
 echo; cd $DIR
 }
 
-complete -W '-d -e -f -h --list -m -n -p -r -s -x' iworxcredz
+compctl -W '-d -e -f -h --list -m -n -p -r -s -x' iworxcredz
 ## List Users, or Reset passwords for FTP/Siteworx/Reseller/Nodeworx
 iworxcredz(){
 
@@ -1633,7 +1627,7 @@ esac
 COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
 return 0;
 }
-complete -F _whitelist whitelist;
+compctl -F _whitelist whitelist;
 
 ## Whitelist a hostname or ip address in the appropriate config
 whitelist(){
@@ -1694,7 +1688,7 @@ chown root:root $FILE && tail -n10000 $FILE > temp.txt && mv $FILE ~/"$(pwd | se
 echo "Operation completed."; echo
 }
 
-complete -W 'ftp php mysql http ssh cron all -h --help' logs
+compctl -W 'ftp php mysql http ssh cron all -h --help' logs
 ## Quick log check of the major logs to see what might be the matter
 logs(){
 if [[ -z "$2" ]]; then N=20; else N="$2"; fi
@@ -2008,7 +2002,7 @@ unset DOMAIN SEARCH DATE TOP TIME LOGFILE DECOMP VERBOSE # Variable Cleanup
 }
 
 # http://qmailrocks.thibs.com/qmqtool.php
-complete -W 'sub rec send sdom radd rdom ladd ldom -h --help' qmq
+compctl -W 'sub rec send sdom radd rdom ladd ldom -h --help' qmq
 ## Series of qmqtool one-liners for checking the makeup of mail stuck in the queue
 qmq(){
 if [[ -n "$1" && -z "$2" ]]; then N=20; else N=$2; fi; echo;
@@ -2027,7 +2021,7 @@ esac; echo
 }
 
 # http://stackoverflow.com/questions/2552402/cat-file-vs-file
-complete -W 'send smtp smtp2 pop3 pop3-ssl imap4 imap4-ssl' q
+compctl -W 'send smtp smtp2 pop3 pop3-ssl imap4 imap4-ssl' q
 ## Load the desired mail log through the necessary timestamp converter
 q(){
     case "$1" in
