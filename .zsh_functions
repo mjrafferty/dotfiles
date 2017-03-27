@@ -109,146 +109,78 @@ function botsearch () {
 }
 
 # iworx db
-i(){ $(grep -b1 'dsn.orig=' ~iworx/iworx.ini | head -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -s \3 \4|') "$@"; }
+i () { 
+	$(grep -b1 'dsn.orig=' ~iworx/iworx.ini | head -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -s \3 \4|') "$@"; 
+}
 
 # vpopmail
-v(){ $(grep -a1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -s \3 \4|') "$@"; }
+v () { 
+	$(grep -a1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -s \3 \4|') "$@"; 
+}
 
 # proftpd
-f(){ $(grep -a1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -s \3 \4|') "$@"; }
+f () { 
+	$(grep -a1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -s \3 \4|') "$@"; 
+}
 
 ## lookup mail account password (http://www.qmailwiki.org/vpopmail#vuserinfo)
-emailpass(){ echo -e "\nusername: $1\npassword: $(~vpopmail/bin/vuserinfo -c $1)\n"; }
-
-## set my account to use someone else's .bashrc
-# sourceme(){ if [[ -z "$1" ]]; then echo; read -p "username: " u; else u="$1"; fi; source /home/$u/.bashrc; }
-
-## send a bug report to my email regarding a function in my bashrc
-bugreport(){
-	echo -e "\nplease include information regarding what you were trying to do, any files
-	you were working with, the command you ran, and the error you received. i will
-	try and get back to you with either an explaination or a fix, as soon as i can.\n
-	once you save and exit this file, this message will be sent and this file removed.\n"
-	read -p "script is paused, press [enter] to begin editing the message ..."
-	echo -e "bug report (.bashrc): <put the subject here>\n\nserver: $(servername)\nuser: $sudo_user\npwd: $pwd\n\n$(cat /etc/redhat-release)\n$iworxversion\n\nfiles:\n\ncommands:\n\nerrors:\n\n" > ~/tmp.file
-	vim ~/tmp.file && cat ~/tmp.file | mail -s "$(head -1 ~/tmp.file)" "mcunningham@mdsc.info" && rm ~/tmp.file
+emailpass () { 
+	echo -e "\nusername: $1\npassword: $(~vpopmail/bin/vuserinfo -c $1)\n"; 
 }
 
 ## function to print a number of dashes to the screen
-dash(){ for ((i=1;i<=$1;i++)); do printf "-"; done; }
+dash () { 
+	for ((i=1;i<=$1;i++)); do 
+		printf "-"; 
+	done; 
+}
 
 ## get the username from the pwd
-getusr(){ pwd | sed 's:^/chroot::' | cut -d/ -f3; }
+getusr () { 
+	pwd | sed 's:^/chroot::' | cut -d/ -f3; 
+}
 
 ## print the hostname if it resolves, otherwise print the main ip
 servername(){
-	if [[ -n $(dig +time=1 +tries=1 +short $(hostname)) ]]; then hostname;
-	else ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -ev '^127\.' | head -1; fi
+	if [[ -n $(dig +time=1 +tries=1 +short $(hostname)) ]]; then 
+		hostname;
+	else 
+		ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -ev '^127\.' | head -1; 
+	fi
 }
 
 ## print out most often accessed nodeworx links
-lworx(){
-	echo; if [[ -z "$1" ]]; then (for x in siteworx reseller dns/zone ip;
-do echo "$x : https://$(servername):2443/nodeworx/$x"; done; echo "webmail : https://$(servername):2443/webmail") | column -t
-else echo -e "siteworx:\nloginurl: https://$(servername):2443/siteworx/?domain=$1"; fi; echo
+lworx () {
+	echo; 
+	if [[ -z "$1" ]]; then 
+		(for x in siteworx reseller dns/zone ip; do 
+			echo "$x : https://$(servername):2443/nodeworx/$x"; 
+		done; 
+		echo "webmail : https://$(servername):2443/webmail") | column -t
+	else 
+		echo -e "siteworx:\nloginurl: https://$(servername):2443/siteworx/?domain=$1"; 
+	fi; 
+	echo;
 }
 
 ## download and execute global-dns-checker script
-dnscheck(){
+dnscheck () {
 	wget -q -o ~/dns-check.sh nanobots.robotzombies.net/dns-check.sh;
-	chmod +x ~/dns-check.sh;  ~/./dns-check.sh "$@"; 
+	chmod +x ~/dns-check.sh;  
+	~/./dns-check.sh "$@"; 
 }
 
 ## calculate the free slots on a server depending on the server type
-freeslots(){
+freeslots () {
 	wget -q -o ~/freeslots.sh nanobots.robotzombies.net/freeslots.sh;
-	chmod +x ~/freeslots.sh;  ~/./freeslots.sh "$@"; 
+	chmod +x ~/freeslots.sh;  
+	~/./freeslots.sh "$@"; 
 }
 
 ## add date and time with username and open server_notes.txt for editing
-srvnotes(){
+srvnotes () {
 	echo -e "\n#$(date) - $(echo $sudo_user | sed 's/nex//g')" >> /etc/nexcess/server_notes.txt;
-	nano /etc/nexcess/server_notes.txt; 
-}
-
-## update ioncube for centos 5/6
-ioncubeupdate(){
-	if [[ $1 =~ [0-9]\.[0-9] ]]; then ver="$1";
-	else read -p "what is the running php version: " ver; fi
-
-	# create download directory
-	if [[ ! -d ~/downloads ]]; then mkdir ~/downloads;
-	else rm -r ~/downloads; mkdir ~/downloads; fi
-
-	# download archive into directory and unpack
-	cd ~/downloads/
-	wget -o ioncube_loaders_lin_x86-64.tar.gz http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
-	tar -zxf ioncube_loaders_lin_x86-64.tar.gz; echo
-
-	# check for known configuration combinations
-	if [[ -f /etc/php.d/ioncube.ini && -f /usr/lib64/php5/ioncube.so ]]; then # centos 5
-		phpdir="/usr/lib64/php5/"; config="/etc/php.d/ioncube.ini"
-	elif [[ -d /usr/lib64/php/modules/ ]]; then # centos 6
-		phpdir="/usr/lib64/php/modules/"; config="/etc/php.d/ioncube-loader.ini"
-	fi
-
-	# copy the correct .so driver file to the target directory
-	if [[ -f ${phpdir}ioncube.so ]]; then
-		echo -e "\n${phpdir}ioncube.so driver file exist, backing up before continuing\n"
-		cp ~/downloads/ioncube/ioncube_loader_lin_${ver}* ${phpdir}
-		gzip ${phpdir}ioncube.so && mv ${phpdir}ioncube_loader_lin_${ver}.so ${phpdir}ioncube.so
-	elif [[ -f ${phpdir}ioncube_loader_lin_${ver}.so ]]; then
-		echo -e "\n${phpdir}ioncube_loader_lin_${ver}.so driver file exists, backing up before updating.\n"
-		gzip ${phpdir}ioncube_loader_lin_${ver}* && cp ~/downloads/ioncube/ioncube_loader_lin_${ver}* ${phpdir}
-	fi
-
-	# create correct config file for the service if necessary
-	if [[ -f ${config} ]]; then
-		echo -e "${config} file already exists!\n";
-	else
-		echo -e "setting up new /etc/php.d/ioncube-loader.ini file\n"
-		echo -e "zend_extension=${phpdir}ioncube_loader_lin_${ver}.so" >> /etc/php.d/ioncube-loader.ini;
-	fi
-
-	# check configs and restart php/httpd services
-	if [[ -d /etc/php-fpm.d/ ]]; then
-		php -v && service php-fpm restart
-	else
-		php -v && httpd -t && service httpd restart;
-	fi
-}
-
-## install zendguard for centos 5/6
-zendguardinstall(){
-	if [[ $1 =~ [0-9]\.[0-9] ]]; then ver="$1";
-	else read -p "what is the running php version: " ver; fi
-
-	# create download directory
-	if [[ ! -d ~/downloads ]]; then mkdir ~/downloads; fi
-
-	# download archive into directory and unpack
-	cd ~/downloads/
-	wget http://downloads.zend.com/guard/5.5.0/zendguardloader-php-${ver}-linux-glibc23-x86_64.tar.gz
-	tar -zxvf zendguardloader-php-${ver}-linux-glibc23-x86_64.tar.gz
-
-	# copy driver the correct .so file to the target directory
-	if [[ ! -f /usr/lib64/php/modules/zendguardloader.so ]]; then
-		cp ~/downloads/zendguardloader-php-${ver}-linux-glibc23-x86_64/php-${ver}.x/zendguardloader.so /usr/lib64/php/modules/
-	else echo "zendguardloader.so already exists! backing up current version before continuing.";
-		gzip /usr/lib64/php/modules/zendguardloader.so && cp ~/downloads/zendguardloader-php-${ver}-linux-glibc23-x86_64/php-${ver}.x/zendguardloader.so /usr/lib64/php/modules/
-	fi
-
-	# create correct config file for the service
-	if [[ ! -f /etc/php.d/zendguard.ini && ! -f /etc/php.d/ioncube.ini && ! -f /etc/php.d/ioncube-loader.ini ]]; then file="/etc/php.d/zendguard.ini"
-	elif [[ -f /etc/php.d/ioncube-loader.ini ]]; then file="/etc/php.d/ioncube-loader.ini";
-	elif [[ -f /etc/php.d/ioncube.ini ]]; then file="/etc/php.d/ioncube.ini"
-	elif [[ -f /etc/php.d/zendguard.ini ]]; then echo "zendguard.ini file already exists!";  file="/dev/null"; fi
-	echo "adding zend guard config to $file"
-	echo -e "\n; enable zend guard extension\nzend_extension=/usr/lib64/php/modules/zendguardloader.so\nzend_loader.enable=1\n" >> $file
-
-	# check configs and restart php/httpd services
-	if [[ -d /etc/php-fpm.d/ ]]; then php -v && service php-fpm restart
-	else httpd -t && service httpd restart; fi
+	vim /etc/nexcess/server_notes.txt; 
 }
 
 ## rewrite of ted wells sinfo
