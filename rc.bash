@@ -1,223 +1,275 @@
-# This code asside from external tools and programs are covered under:
-# Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
-# https://creativecommons.org/licenses/by-sa/3.0/
-
-## My Aliases
-alias os='echo; cat /etc/redhat-release; echo'
-alias getrsync='wget updates.nexcess.net/scripts/rsync.sh; chmod +x rsync.sh'
-alias omg='curl -s http://nanobots.robotzombies.net/aboutbashrc | less'
-alias wtf="grep -B1 '^[a-z].*(){' /home/nexmcunningham/.bashrc | sed 's/(){.*$//' | less"
-alias credits='curl -s http://nanobots.robotzombies.net/credits | less'
-alias quotas='checkquota'
-
 # Iworx DB
-i(){ $(grep -B1 'dsn.orig=' ~iworx/iworx.ini | head -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@"; }
+i () { 
+	$(grep -B1 'dsn.orig=' ~iworx/iworx.ini | head -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@"; 
+}
 
 # Vpopmail
-v(){ $(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@"; }
+v () { 
+	$(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@"; 
+}
 
 # ProFTPd
-f(){ $(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@"; }
+f () { 
+	$(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@"; 
+}
 
 ## Lookup mail account password (http://www.qmailwiki.org/Vpopmail#vuserinfo)
-emailpass(){ echo -e "\nUsername: $1\nPassword: $(~vpopmail/bin/vuserinfo -C $1)\n"; }
-
-## Set my account to use someone else's .bashrc
-# sourceme(){ if [[ -z "$1" ]]; then echo; read -p "Username: " U; else U="$1"; fi; source /home/$U/.bashrc; }
-
-## Send a bug report to my email regarding a function in my bashrc
-bugreport(){
-echo -e "\nPlease include information regarding what you were trying to do, any files
-you were working with, the command you ran, and the error you received. I will
-try and get back to you with either an explaination or a fix, as soon as I can.\n
-Once you save and exit this file, this message will be sent and this file removed.\n"
-read -p "Script is paused, press [Enter] to begin editing the message ..."
-echo -e "Bug Report (.bashrc): <Put the subject here>\n\nSERVER: $(serverName)\nUSER: $SUDO_USER\nPWD: $PWD\n\n$(cat /etc/redhat-release)\n$IworxVersion\n\nFiles:\n\nCommands:\n\nErrors:\n\n" > ~/tmp.file
-vim ~/tmp.file && cat ~/tmp.file | mail -s "$(head -1 ~/tmp.file)" "mcunningham@mdsc.info" && rm ~/tmp.file
+emailpass () { 
+	echo -e "\nUsername: $1\nPassword: $(~vpopmail/bin/vuserinfo -C $1)\n"; 
 }
 
 ## Function to print a number of dashes to the screen
-dash(){ for ((i=1;i<=$1;i++)); do printf "-"; done; }
+dash () { 
+	for ((i=1;i<=$1;i++)); do 
+		printf "-"; 
+	done; 
+}
 
 ## Get the username from the PWD
-getusr(){ pwd | sed 's:^/chroot::' | cut -d/ -f3; }
+getusr () { 
+	pwd | sed 's:^/chroot::' | cut -d/ -f3; 
+}
 
 ## Print the hostname if it resolves, otherwise print the main IP
-serverName(){
-  if [[ -n $(dig +time=1 +tries=1 +short $(hostname)) ]]; then hostname;
-  else ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.' | head -1; fi
+serverName () {
+  if [[ -n $(dig +time=1 +tries=1 +short $(hostname)) ]]; then 
+		hostname;
+  else 
+		ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.' | head -1; 
+	fi
 }
 
 ## Print out most often accessed Nodeworx links
-lworx(){
-  echo; if [[ -z "$1" ]]; then (for x in siteworx reseller dns/zone ip;
-  do echo "$x : https://$(serverName):2443/nodeworx/$x"; done; echo "webmail : https://$(serverName):2443/webmail") | column -t
-  else echo -e "Siteworx:\nLoginURL: https://$(serverName):2443/siteworx/?domain=$1"; fi; echo
+lworx () {
+  echo; 
+	if [[ -z "$1" ]]; then 
+		(for x in siteworx reseller dns/zone ip; do 
+			echo "$x : https://$(serverName):2443/nodeworx/$x"; 
+		done; 
+		echo "webmail : https://$(serverName):2443/webmail") | column -t
+  else 
+		echo -e "Siteworx:\nLoginURL: https://$(serverName):2443/siteworx/?domain=$1"; 
+	fi; 
+	echo
 }
 
 ## Download and execute global-dns-checker script
-dnscheck(){
+dnscheck () {
     wget -q -O ~/dns-check.sh nanobots.robotzombies.net/dns-check.sh;
-    chmod +x ~/dns-check.sh;  ~/./dns-check.sh "$@"; 
+    chmod +x ~/dns-check.sh;  
+		~/./dns-check.sh "$@"; 
 }
 
 ## Calculate the free slots on a server depending on the server type
-freeslots(){
+freeslots () {
     wget -q -O ~/freeslots.sh nanobots.robotzombies.net/freeslots.sh;
-    chmod +x ~/freeslots.sh;  ~/./freeslots.sh "$@"; 
+    chmod +x ~/freeslots.sh;  
+		~/./freeslots.sh "$@"; 
 }
 
 ## Add date and time with username and open server_notes.txt for editing
-srvnotes(){
+srvnotes () {
     echo -e "\n#$(date) - $(echo $SUDO_USER | sed 's/nex//g')" >> /etc/nexcess/server_notes.txt;
     nano /etc/nexcess/server_notes.txt; 
 }
 
 ## Update IonCube for CentOS 5/6
-ioncubeupdate(){
-if [[ $1 =~ [0-9]\.[0-9] ]]; then ver="$1";
-else read -p "What is the running PHP version: " ver; fi
+ioncubeupdate () {
+	if [[ $1 =~ [0-9]\.[0-9] ]]; then 
+		ver="$1";
+	else 
+		read -p "What is the running PHP version: " ver; 
+	fi
 
-# Create Download Directory
-if [[ ! -d ~/downloads ]]; then mkdir ~/downloads;
-else rm -r ~/downloads; mkdir ~/downloads; fi
+	# Create Download Directory
+	if [[ ! -d ~/downloads ]]; then 
+		mkdir ~/downloads;
+	else 
+		rm -r ~/downloads; 
+		mkdir ~/downloads; 
+	fi
 
-# Download archive into directory and unpack
-cd ~/downloads/
-wget -O ioncube_loaders_lin_x86-64.tar.gz http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
-tar -zxf ioncube_loaders_lin_x86-64.tar.gz; echo
+	# Download archive into directory and unpack
+	cd ~/downloads/
+	wget -O ioncube_loaders_lin_x86-64.tar.gz http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
+	tar -zxf ioncube_loaders_lin_x86-64.tar.gz; 
+	echo
 
-# check for known configuration combinations
-if [[ -f /etc/php.d/ioncube.ini && -f /usr/lib64/php5/ioncube.so ]]; then # CentOS 5
-  phpdir="/usr/lib64/php5/"; config="/etc/php.d/ioncube.ini"
-elif [[ -d /usr/lib64/php/modules/ ]]; then # CentOS 6
-  phpdir="/usr/lib64/php/modules/"; config="/etc/php.d/ioncube-loader.ini"
-fi
+	# check for known configuration combinations
+	if [[ -f /etc/php.d/ioncube.ini && -f /usr/lib64/php5/ioncube.so ]]; then # CentOS 5
+  	phpdir="/usr/lib64/php5/"; config="/etc/php.d/ioncube.ini"
+	elif [[ -d /usr/lib64/php/modules/ ]]; then # CentOS 6
+  	phpdir="/usr/lib64/php/modules/"; 
+		config="/etc/php.d/ioncube-loader.ini"
+	fi
 
-# Copy the correct .so driver file to the target directory
-if [[ -f ${phpdir}ioncube.so ]]; then
-  echo -e "\n${phpdir}ioncube.so driver file exist, backing up before continuing\n"
-  cp ~/downloads/ioncube/ioncube_loader_lin_${ver}* ${phpdir}
-  gzip ${phpdir}ioncube.so && mv ${phpdir}ioncube_loader_lin_${ver}.so ${phpdir}ioncube.so
-elif [[ -f ${phpdir}ioncube_loader_lin_${ver}.so ]]; then
-  echo -e "\n${phpdir}ioncube_loader_lin_${ver}.so driver file exists, backing up before updating.\n"
-  gzip ${phpdir}ioncube_loader_lin_${ver}* && cp ~/downloads/ioncube/ioncube_loader_lin_${ver}* ${phpdir}
-fi
+	# Copy the correct .so driver file to the target directory
+	if [[ -f ${phpdir}ioncube.so ]]; then
+		echo -e "\n${phpdir}ioncube.so driver file exist, backing up before continuing\n"
+		cp ~/downloads/ioncube/ioncube_loader_lin_${ver}* ${phpdir}
+		gzip ${phpdir}ioncube.so && mv ${phpdir}ioncube_loader_lin_${ver}.so ${phpdir}ioncube.so
+	elif [[ -f ${phpdir}ioncube_loader_lin_${ver}.so ]]; then
+		echo -e "\n${phpdir}ioncube_loader_lin_${ver}.so driver file exists, backing up before updating.\n"
+		gzip ${phpdir}ioncube_loader_lin_${ver}* && cp ~/downloads/ioncube/ioncube_loader_lin_${ver}* ${phpdir}
+	fi
 
-# Create correct config file for the service if necessary
-if [[ -f ${config} ]]; then
-  echo -e "${config} file already exists!\n";
-else
-  echo -e "Setting up new /etc/php.d/ioncube-loader.ini file\n"
-  echo -e "zend_extension=${phpdir}ioncube_loader_lin_${ver}.so" >> /etc/php.d/ioncube-loader.ini;
-fi
+	# Create correct config file for the service if necessary
+	if [[ -f ${config} ]]; then
+		echo -e "${config} file already exists!\n";
+	else
+		echo -e "Setting up new /etc/php.d/ioncube-loader.ini file\n"
+		echo -e "zend_extension=${phpdir}ioncube_loader_lin_${ver}.so" >> /etc/php.d/ioncube-loader.ini;
+	fi
 
-# Check configs and restart php/httpd services
-if [[ -d /etc/php-fpm.d/ ]]; then
-  php -v && service php-fpm restart
-else
-  php -v && httpd -t && service httpd restart;
-fi
+	# Check configs and restart php/httpd services
+	if [[ -d /etc/php-fpm.d/ ]]; then
+		php -v && service php-fpm restart
+	else
+		php -v && httpd -t && service httpd restart;
+	fi
 }
 
 ## Install ZendGuard for CentOS 5/6
-zendguardinstall(){
-if [[ $1 =~ [0-9]\.[0-9] ]]; then ver="$1";
-else read -p "What is the running PHP version: " ver; fi
+zendguardinstall () {
+	if [[ $1 =~ [0-9]\.[0-9] ]]; then 
+		ver="$1";
+	else read -p "What is the running PHP version: " ver; 
+	fi
 
-# Create Download Directory
-if [[ ! -d ~/downloads ]]; then mkdir ~/downloads; fi
+	# Create Download Directory
+	if [[ ! -d ~/downloads ]]; then mkdir ~/downloads; fi
 
-# Download archive into directory and unpack
-cd ~/downloads/
-wget http://downloads.zend.com/guard/5.5.0/ZendGuardLoader-php-${ver}-linux-glibc23-x86_64.tar.gz
-tar -zxvf ZendGuardLoader-php-${ver}-linux-glibc23-x86_64.tar.gz
+	# Download archive into directory and unpack
+	cd ~/downloads/
+	wget http://downloads.zend.com/guard/5.5.0/ZendGuardLoader-php-${ver}-linux-glibc23-x86_64.tar.gz
+	tar -zxvf ZendGuardLoader-php-${ver}-linux-glibc23-x86_64.tar.gz
 
-# Copy driver the correct .so file to the target directory
-if [[ ! -f /usr/lib64/php/modules/ZendGuardLoader.so ]]; then
-cp ~/downloads/ZendGuardLoader-php-${ver}-linux-glibc23-x86_64/php-${ver}.x/ZendGuardLoader.so /usr/lib64/php/modules/
-else echo "ZendGuardLoader.so already exists! Backing up current version before continuing.";
-gzip /usr/lib64/php/modules/ZendGuardLoader.so && cp ~/downloads/ZendGuardLoader-php-${ver}-linux-glibc23-x86_64/php-${ver}.x/ZendGuardLoader.so /usr/lib64/php/modules/
-fi
+	# Copy driver the correct .so file to the target directory
+	if [[ ! -f /usr/lib64/php/modules/ZendGuardLoader.so ]]; then
+		cp ~/downloads/ZendGuardLoader-php-${ver}-linux-glibc23-x86_64/php-${ver}.x/ZendGuardLoader.so /usr/lib64/php/modules/
+	else 
+		echo "ZendGuardLoader.so already exists! Backing up current version before continuing.";
+		gzip /usr/lib64/php/modules/ZendGuardLoader.so && cp ~/downloads/ZendGuardLoader-php-${ver}-linux-glibc23-x86_64/php-${ver}.x/ZendGuardLoader.so /usr/lib64/php/modules/
+	fi
 
-# Create correct config file for the service
-if [[ ! -f /etc/php.d/ZendGuard.ini && ! -f /etc/php.d/ioncube.ini && ! -f /etc/php.d/ioncube-loader.ini ]]; then file="/etc/php.d/ZendGuard.ini"
-elif [[ -f /etc/php.d/ioncube-loader.ini ]]; then file="/etc/php.d/ioncube-loader.ini";
-elif [[ -f /etc/php.d/ioncube.ini ]]; then file="/etc/php.d/ioncube.ini"
-elif [[ -f /etc/php.d/ZendGuard.ini ]]; then echo "ZendGuard.ini file already exists!";  file="/dev/null"; fi
-echo "Adding Zend Guard config to $file"
-echo -e "\n; Enable Zend Guard extension\nzend_extension=/usr/lib64/php/modules/ZendGuardLoader.so\nzend_loader.enable=1\n" >> $file
+	# Create correct config file for the service
+	if [[ ! -f /etc/php.d/ZendGuard.ini && ! -f /etc/php.d/ioncube.ini && ! -f /etc/php.d/ioncube-loader.ini ]]; then 
+		file="/etc/php.d/ZendGuard.ini"
+	elif [[ -f /etc/php.d/ioncube-loader.ini ]]; then 
+		file="/etc/php.d/ioncube-loader.ini";
+	elif [[ -f /etc/php.d/ioncube.ini ]]; then 
+		file="/etc/php.d/ioncube.ini"
+	elif [[ -f /etc/php.d/ZendGuard.ini ]]; then 
+		echo "ZendGuard.ini file already exists!";  
+		file="/dev/null"; fi
+	echo "Adding Zend Guard config to $file"
+	echo -e "\n; Enable Zend Guard extension\nzend_extension=/usr/lib64/php/modules/ZendGuardLoader.so\nzend_loader.enable=1\n" >> $file
 
-# Check configs and restart php/httpd services
-if [[ -d /etc/php-fpm.d/ ]]; then php -v && service php-fpm restart
-else httpd -t && service httpd restart; fi
+	# Check configs and restart php/httpd services
+	if [[ -d /etc/php-fpm.d/ ]]; then 
+		php -v && service php-fpm restart
+	else 
+		httpd -t && service httpd restart; 
+	fi
 }
 
 ## Rewrite of Ted Wells sinfo
-sinfo(){
-echo; FMT='%-14s: %s\n'
-printf "$FMT" "Hostname" "$(serverName)"
-printf "$FMT" "OS (Kernel)" "$(cat /etc/redhat-release | awk '{print $1,$3}') ($(uname -r))"
-ssl="$(openssl version | awk '{print $2}')"
-web="$(curl -s -I $(serverName) | awk '/Server:/ {print $2}')";
-if [[ -z $web ]]; then web="$(curl -s -I $(serverName):8080 | awk '/Server:/ {print $2}')"; fi
-if [[ $web =~ Apache ]]; then webver=$(httpd -v | head -1 | awk '{print $3}' | sed 's:/: :');
-elif [[ $web =~ LiteSpeed ]]; then webver=$(/usr/local/lsws/bin/lshttpd -v | sed 's:/: :');
-elif [[ $web =~ nginx ]]; then webver=$(nginx -v 2>&1 | head -1 | awk '{print $3}' | sed 's:/: :'); fi
-printf "$FMT" "Web Server" "$webver; OpenSSL ($ssl)"
-if [[ -f /etc/init.d/varnish ]]; then printf "$FMT" "Varnish" "$(varnishd -V 2>&1 | awk -F- 'NR<2 {print $2}' | tr -d \))"; fi
-_phpversion(){
-    phpv=$($1 -v | awk '/^PHP/ {print $2}');
-    zend=$($1 -v | awk '/Engine/ {print "; "$1,$2" ("$3")"}' | sed 's/v//;s/,//');
-    ionc=$($1 -v | awk '/ionCube/ {print "; "$3" ("$6")"}' | sed 's/v//;s/,//');
-    eacc=$($1 -v | awk '/eAcc/ {print "; "$2" ("$3")"}' | sed 's/v//;s/,//');
-    guard=$($1 -v | awk '/Guard/ {print "; "$2,$3" ("$5")"}' | sed 's/v//;s/,//');
-    suhos=$($1 -v | awk '/Suhosin/ {print "; "$2" ("$3")"}' | sed 's/v//;s/,//');
-    opche=$($1 -v | awk '/OPcache/ {print "; "$2,$3" ("$4")"}' | sed 's/v//;s/,//')
-    if [[ -d /etc/php-fpm.d/ ]]; then phpt='php-fpm'; else
-      phpt=$(awk '/^LoadModule/ {print $2}' /etc/httpd/conf.d/php.conf /etc/httpd/conf.d/suphp.conf | sed 's/php[0-9]_module/mod_php/;s/_module//'); fi;
-    printf "$FMT" "PHP Version" "${phpt} (${phpv})${zend}${ionc}${guard}${opche}${eacc}${suhos}";
-}
-_phpversion /usr/bin/php; if [[ -f /opt/nexcess/php54u/root/usr/bin/php ]]; then for x in /opt/nexcess/*/root/usr/bin/php; do _phpversion $x; done; fi
-modsecv=$(rpm -qi mod_security | awk '/Version/ {print $3}' 2> /dev/null)
-modsecr=$(awk -F\" '/SecComp.*\"$/ {print "("$2")"}' /etc/httpd/modsecurity.d/*_crs_10_*.conf 2> /dev/null)
-printf "$FMT" "ModSecurity" "${modsecv:-No ModSecurity} ${modsecr}"
-printf "$FMT" "MySQL Version" "$(mysql --version | awk '{print $5}' | tr -d ,) $(mysqld --version 2> /dev/null | grep -io 'percona' 2> /dev/null)"
-pstgrs="/usr/*/bin/postgres"; if [[ -f $(echo $pstgrs) ]]; then printf "$FMT" "PostgreSQL" "$($pstgrs -V | awk '{print $NF}')"; fi
-printf "$FMT" "Interworx" "$(grep -A1 'user="iworx"' /home/interworx/iworx.ini | tail -1 | cut -d\" -f2)"
-if [[ $1 =~ -v ]]; then
-printf "$FMT" "Rev. Control" "Git ($(git --version | awk '{print $3}')); SVN ($(svn --version | awk 'NR<2 {print $3}')); $(hg --version | awk 'NR<2 {print $1" ("$NF}')"
-perlv=$(perl -v | awk '/v[0-9]/ {print "Perl ("$4")"}' | sed 's/v//')
-pythv=$(python -V 2>&1 | awk '{print $1" ("$2")"}')
-rubyv=$(ruby -v | awk '{print "Ruby ("$2")"}')
-railv=$(if [[ ! $(which rails 2>&1) =~ /which ]]; then rails -v | awk '{print $1" ("$2")"}'; fi)
-printf "$FMT" "Script Langs" "${perlv}; ${pythv}; ${rubyv}; ${railv:-No Rails}"
-printf "$FMT" "FTP/sFTP/SSH" "ProFTPD ($(proftpd --version | awk '{print $3}')); OpenSSH ($(ssh -V 2>&1 | cut -d, -f1 | awk -F_ '{print $2}'))"; fi
-printf "\n$FMT" "CPUs (Type)" "$(awk '/model name/{print $4,$5,$7,$9,$10}' /proc/cpuinfo | uniq -c | awk '{print $1,"- "$2,$3" - "$4,$5,$6}')"
-printf "$FMT" "Memory (RAM)" "$(free -m | awk '/Mem/ {print ($2/1000)"G / "($4/1000)"G ("($4/$2*100)"% Free)"}')"
-printf "$FMT" "Memory (Swap)" "$(if [[ $(free -m | awk '/Swap/ {print $2}') != 0 ]]; then free -m | awk '/Swap/ {print ($2/1000)"G / "($4/1000)"G ("($4/$2*100)"% Free)"}'; else echo 'No Swap'; fi)"
-printf "$FMT" "HDD (/home)" "$(df -h /home | tail -1 | awk '{print $2" / "$4" ("($4/$2*100)"% Free)"}')"
-echo
+sinfo () {
+	echo; 
+	FMT='%-14s: %s\n'
+	printf "$FMT" "Hostname" "$(serverName)"
+	printf "$FMT" "OS (Kernel)" "$(cat /etc/redhat-release | awk '{print $1,$3}') ($(uname -r))"
+	ssl="$(openssl version | awk '{print $2}')"
+	web="$(curl -s -I $(serverName) | awk '/Server:/ {print $2}')";
+	if [[ -z $web ]]; then 
+		web="$(curl -s -I $(serverName):8080 | awk '/Server:/ {print $2}')"; 
+	fi
+	if [[ $web =~ Apache ]]; then 
+		webver=$(httpd -v | head -1 | awk '{print $3}' | sed 's:/: :');
+	elif [[ $web =~ LiteSpeed ]]; then 
+		webver=$(/usr/local/lsws/bin/lshttpd -v | sed 's:/: :');
+	elif [[ $web =~ nginx ]]; then 
+		webver=$(nginx -v 2>&1 | head -1 | awk '{print $3}' | sed 's:/: :'); 
+	fi
+	printf "$FMT" "Web Server" "$webver; OpenSSL ($ssl)"
+	if [[ -f /etc/init.d/varnish ]]; then 
+		printf "$FMT" "Varnish" "$(varnishd -V 2>&1 | awk -F- 'NR<2 {print $2}' | tr -d \))"; 
+	fi
+	_phpversion(){
+			phpv=$($1 -v | awk '/^PHP/ {print $2}');
+			zend=$($1 -v | awk '/Engine/ {print "; "$1,$2" ("$3")"}' | sed 's/v//;s/,//');
+			ionc=$($1 -v | awk '/ionCube/ {print "; "$3" ("$6")"}' | sed 's/v//;s/,//');
+			eacc=$($1 -v | awk '/eAcc/ {print "; "$2" ("$3")"}' | sed 's/v//;s/,//');
+			guard=$($1 -v | awk '/Guard/ {print "; "$2,$3" ("$5")"}' | sed 's/v//;s/,//');
+			suhos=$($1 -v | awk '/Suhosin/ {print "; "$2" ("$3")"}' | sed 's/v//;s/,//');
+			opche=$($1 -v | awk '/OPcache/ {print "; "$2,$3" ("$4")"}' | sed 's/v//;s/,//')
+			if [[ -d /etc/php-fpm.d/ ]]; then 
+				phpt='php-fpm';
+		 	else
+				phpt=$(awk '/^LoadModule/ {print $2}' /etc/httpd/conf.d/php.conf /etc/httpd/conf.d/suphp.conf | sed 's/php[0-9]_module/mod_php/;s/_module//'); 
+			fi;
+			printf "$FMT" "PHP Version" "${phpt} (${phpv})${zend}${ionc}${guard}${opche}${eacc}${suhos}";
+	}
+	_phpversion /usr/bin/php; 
+	if [[ -f /opt/nexcess/php54u/root/usr/bin/php ]]; then 
+		for x in /opt/nexcess/*/root/usr/bin/php; do 
+			_phpversion $x; 
+		done; 
+	fi
+	modsecv=$(rpm -qi mod_security | awk '/Version/ {print $3}' 2> /dev/null)
+	modsecr=$(awk -F\" '/SecComp.*\"$/ {print "("$2")"}' /etc/httpd/modsecurity.d/*_crs_10_*.conf 2> /dev/null)
+	printf "$FMT" "ModSecurity" "${modsecv:-No ModSecurity} ${modsecr}"
+	printf "$FMT" "MySQL Version" "$(mysql --version | awk '{print $5}' | tr -d ,) $(mysqld --version 2> /dev/null | grep -io 'percona' 2> /dev/null)"
+	pstgrs="/usr/*/bin/postgres"; 
+	if [[ -f $(echo $pstgrs) ]]; then 
+		printf "$FMT" "PostgreSQL" "$($pstgrs -V | awk '{print $NF}')"; 
+	fi
+	printf "$FMT" "Interworx" "$(grep -A1 'user="iworx"' /home/interworx/iworx.ini | tail -1 | cut -d\" -f2)"
+	if [[ $1 =~ -v ]]; then
+		printf "$FMT" "Rev. Control" "Git ($(git --version | awk '{print $3}')); SVN ($(svn --version | awk 'NR<2 {print $3}')); $(hg --version | awk 'NR<2 {print $1" ("$NF}')"
+	perlv=$(perl -v | awk '/v[0-9]/ {print "Perl ("$4")"}' | sed 's/v//')
+	pythv=$(python -V 2>&1 | awk '{print $1" ("$2")"}')
+	rubyv=$(ruby -v | awk '{print "Ruby ("$2")"}')
+	railv=$(if [[ ! $(which rails 2>&1) =~ /which ]]; then rails -v | awk '{print $1" ("$2")"}'; fi)
+	printf "$FMT" "Script Langs" "${perlv}; ${pythv}; ${rubyv}; ${railv:-No Rails}"
+	printf "$FMT" "FTP/sFTP/SSH" "ProFTPD ($(proftpd --version | awk '{print $3}')); OpenSSH ($(ssh -V 2>&1 | cut -d, -f1 | awk -F_ '{print $2}'))"; fi
+	printf "\n$FMT" "CPUs (Type)" "$(awk '/model name/{print $4,$5,$7,$9,$10}' /proc/cpuinfo | uniq -c | awk '{print $1,"- "$2,$3" - "$4,$5,$6}')"
+	printf "$FMT" "Memory (RAM)" "$(free -m | awk '/Mem/ {print ($2/1000)"G / "($4/1000)"G ("($4/$2*100)"% Free)"}')"
+	printf "$FMT" "Memory (Swap)" "$(if [[ $(free -m | awk '/Swap/ {print $2}') != 0 ]]; then free -m | awk '/Swap/ {print ($2/1000)"G / "($4/1000)"G ("($4/$2*100)"% Free)"}'; else echo 'No Swap'; fi)"
+	printf "$FMT" "HDD (/home)" "$(df -h /home | tail -1 | awk '{print $2" / "$4" ("($4/$2*100)"% Free)"}')"
+	echo
 }
 
 ## Generate xkcd / iworx style passwords
-xkcd(){
-if [[ $@ =~ -h ]]; then echo -e "\n  Usage: xkcd [-l <length>] [-v]\n"; return 0; fi
-if [[ $@ =~ -v ]]; then wordList='/usr/share/dict/words'; else wordList='/usr/local/interworx/lib/dict/words'; fi
-if [[ $1 =~ -l ]]; then wordLength=$(( (${2} - 4) / 4 )); else wordLength="4,8"; fi
-if [[ -x /usr/bin/shuf ]]; then
-echo $(shuf -n1000 $wordList | grep -E ^[a-z]{$wordLength}$ | shuf -n4 )$(( ($RANDOM % 9000) + 1000 ))\
-  | sed 's/\b\([a-zA-Z]\)/\u\1/g' | sed 's/ //g'
-else
-  n=0;  word=(); len=$(wc -l < $wordList)
-  while [[ $n -lt 4 ]]; do
-    rnd=$(( ( $(od -vAn -N4 -tu4 < /dev/urandom) )%($len)+1 ));
-    word[$n]=$(sed -n "${rnd}p" $wordList | egrep "^[a-z]{4,8}$" | sed 's:\b\(.\):\u\1:');
-    if [[ -n ${word[$n]} ]]; then n=$n+1; fi;
-  done;
-  echo "${word[0]}${word[1]}${word[2]}${word[3]}$(( $RANDOM % 9000 + 1000 ))";
-  unset n word len
-fi
+xkcd () {
+	if [[ $@ =~ -h ]]; then 
+		echo -e "\n  Usage: xkcd [-l <length>] [-v]\n"; 
+		return 0; 
+	fi
+	if [[ $@ =~ -v ]]; then 
+		wordList='/usr/share/dict/words'; 
+	else 
+		wordList='/usr/local/interworx/lib/dict/words'; 
+	fi
+	if [[ $1 =~ -l ]]; then 
+		wordLength=$(( (${2} - 4) / 4 )); 
+	else 
+		wordLength="4,8"; 
+	fi
+	if [[ -x /usr/bin/shuf ]]; then
+		echo $(shuf -n1000 $wordList | grep -E ^[a-z]{$wordLength}$ | shuf -n4 )$(( ($RANDOM % 9000) + 1000 )) | sed 's/\b\([a-zA-Z]\)/\u\1/g' | sed 's/ //g'
+	else
+		n=0;  word=(); len=$(wc -l < $wordList)
+		while [[ $n -lt 4 ]]; do
+			rnd=$(( ( $(od -vAn -N4 -tu4 < /dev/urandom) )%($len)+1 ));
+			word[$n]=$(sed -n "${rnd}p" $wordList | egrep "^[a-z]{4,8}$" | sed 's:\b\(.\):\u\1:');
+			if [[ -n ${word[$n]} ]]; then 
+				n=$n+1; 
+			fi;
+		done;
+		echo "${word[0]}${word[1]}${word[2]}${word[3]}$(( $RANDOM % 9000 + 1000 ))";
+		unset n word len
+	fi
 }
 
 ## Find files in a directory that were modified a certain number of days ago

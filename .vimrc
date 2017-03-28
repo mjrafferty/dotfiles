@@ -29,7 +29,7 @@ set nowrap		" Do not wrap code
 set autowrite		" Automatically save before commands like :next and :make
 " In many terminal emulators the mouse works just fine, thus enable it.
 if has('mouse')
- "set mouse=a
+ set mouse=a
 endif
 set tabstop=2
 set shiftwidth=2
