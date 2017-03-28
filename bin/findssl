@@ -1,0 +1,26 @@
+#! /bin/bash
+
+
+## look up what domain is covered by the ssl loading at the requested domain
+
+if [[ $2 == '-p' ]]; then p=$3; else p=443; fi
+if [[ $@ =~ -v ]]; then type="subject issuer"; else type="subject"; fi
+
+d=$(echo $1 | sed 's/\///g')
+echo; echo "$d:$p"; dash 80; echo;
+
+if [[ $(cat /etc/redhat-release) =~ 6\.[0-9] ]]; then sni="-servername $d"; fi;
+
+	for x in $type; do
+		echo | openssl s_client -nbio -connect $d:$p $sni 2> /dev/null\
+			| grep $x | sed 's/ /_/g;s/\/\([a-ze]\)/\n\1/g;s/=/: /g' | grep ^[a-ze] | column -t | sed 's/_/ /g';
+		echo;
+	done
+
+	echo "ssl return code"; dash 80; echo
+	rcode=$(echo | openssl s_client -nbio -connect $d:$p $sni 2>/dev/null | grep verify.*)
+	echo $rcode
+	if [[ $(echo $rcode | awk '{print $4}') =~ [0-9]{2} ]]; then
+		curl -s https://www.openssl.org/docs/apps/verify.html | grep -a4 "$(echo $rcode | awk '{print $4}') x509" | grep -v x509 | sed 's/<[^>]*>//g' | tr '\n' ' '; echo;
+	fi;
+	echo -e "\nhttps://www.sslshopper.com/ssl-checker.html#hostname=${d}\nhttps://certlogik.com/ssl-checker/${d}:${p}/\n"

@@ -1,0 +1,62 @@
+#! /bin/bash
+
+## find basic drupal information and display it in the nexkit-style
+
+if [[ -n $1 ]]; then sitepath="$1"; else sitepath='.'; fi
+config="${sitepath}/sites/default/settings.php"
+
+if [[ -f ${config} ]]; then
+
+	# version information
+	if [[ -n $(grep "define('version'" ${sitepath}/modules/system/system.module) ]]; then
+		verfile="${sitepath}/modules/system/system.module"
+	elif [[ -n $(grep "define('version'" ${sitepath}/includes/bootstrap.inc) ]]; then
+		verfile="${sitepath}/includes/bootstrap.inc"
+	fi;
+	version=$(grep "define('version'" $verfile | cut -d\' -f4)
+	installdate=$(stat $verfile | awk '/change/ {print $2,$3}' | cut -d. -f1)
+
+	# database config (7.x)
+	# database, username, password, host, driver, prefix
+	if [[ $version =~ ^7 || $version =~ ^8 ]]; then
+		dbname=$(awk '($1 ~ /database/ && $3 !~ /array/) {print $3}' $config | cut -d\' -f2)
+		dbuser=$(awk '($1 ~ /username/) {print $3}' $config | cut -d\' -f2)
+		dbpass=$(awk '($1 ~ /password/) {print $3}' $config | cut -d\' -f2)
+		dbhost=$(awk '($1 ~ /host/) {print $3}' $config | cut -d\' -f2)
+		dbdriv=$(awk '($1 ~ /driver/) {print $3}' $config | cut -d\' -f2)
+		prefix=$(awk '($1 ~ /prefix/) {print $3}' $config | cut -d\' -f2)
+
+		# database config (6.x)
+		# mysql://username:password@localhost/database
+	elif [[ $version =~ ^6 || $version =~ ^5 ]]; then
+		dbase=$(awk '($1 ~ /db_url/) {print $3}' $config | cut -d\' -f2)
+		dbname=$(echo $dbase | cut -d@ -f2 | cut -d/ -f2)
+		dbuser=$(echo $dbase | cut -d: -f2 | cut -d/ -f3)
+		dbpass=$(echo $dbase | cut -d: -f3 | cut -d@ -f1)
+		dbhost=$(echo $dbase | cut -d@ -f2 | cut -d/ -f1)
+		dbdriv=$(echo $dbase | cut -d: -f1)
+		prefix=$(awk '($1 ~ /db_prefix/) {print $3}' $config | cut -d\' -f2)
+
+	fi
+	database="${dbdriv}://${dbuser}:${dbpass}@${dbhost}/${dbname}$(if [[ -n ${prefix} ]]; then echo .${prefix}*; fi)"
+
+	base_path=$(cd $sitepath; pwd -p;)
+	base_url=$(cd $sitepath; pwd -p | sed 's:/chroot::g;s:/html::g' | cut -d/ -f4-)
+	sitename=$(mysql -u $dbuser -p"$dbpass" $dbname -h $dbhost -e "select name,value from ${prefix}variable where name=\"site_name\";" | tail -1 | cut -d\" -f2)
+	posts=$(mysql -u $dbuser -p"$dbpass" $dbname -h $dbhost -e "select count(*) from ${prefix}node;" | tail -1)
+
+	echo
+	fmt="%-18s: %s\n"
+	printf "$fmt" "base path" "${base_path}"
+	printf "$fmt" "site title" "${sitename}"
+	printf "$fmt" "install date" "${installdate}"
+	printf "$fmt" "version" "${version}"
+	printf "$fmt" "front end url" "http://${base_url}"
+	printf "$fmt" "back end url" "http://${base_url}/admin"
+	printf "$fmt" "post count" "${posts}"
+	printf "$fmt" "db connection" "${database}"
+	echo
+	unset verfile version config base_url posts database dbname dbpass dbuser base_path installdate dbhost dbdriv prefix
+
+else echo -e "\ncould not find drupal install at ${sitepath}\n"; fi
+
