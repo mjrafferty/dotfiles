@@ -1,0 +1,162 @@
+#! /bin/bash
+
+## find magento database connection info, and run common queries
+echo; runonce=0;
+if [[ $1 =~ ^-.*$ ]]; then sitepath='.'; opt="$1"; shift; param="$@";
+else sitepath="$1"; opt="$2"; shift; shift; param="$@"; fi;
+
+	tables="core_cache core_cache_option core_cache_tag core_session dataflow_batch_import dataflow_batch_export\
+		index_process_event log_customer log_quote log_summary log_summary_type\
+		log_url log_url_info log_visitor log_visitor_info log_visitor_online\
+		report_viewed_product_index report_compared_product_index report_event catalog_compare_item"
+
+	prefix="$(echo 'cat /config/global/resources/db/table_prefix/text()' | xmllint --nocdata --shell $sitepath/app/etc/local.xml | sed '1d;$d')"
+	adminurl="$(echo 'cat /config/admin/routers/adminhtml/args/frontname/text()' | xmllint --nocdata --shell $sitepath/app/etc/local.xml | sed '1d;$d')"
+
+	# if [[ -f $sitepath/app/etc/local.xml ]]; then continue=1; else echo -e "\n ${red}could not find magento configuration file!${normal}\n"; return 0; fi
+
+	_magdbusage(){ echo " usage: magdb [<path>] <option> [<query>]
+		-a | --amazon .... show amazon errors from the exception log
+		-a | --admin ..... add a new admin user into the database ${cyan}(new)${normal}
+		-b | --base ...... show all configured base urls
+		-b | --backup .... backup the magento database as the user
+		-c | --cron ...... show cron jobs and their statuses
+		-d | --dataflow .. show size of dataflow batch tables
+		-e | --execute ... execute a custom query (use '*' and \\\")
+		-i | --info ...... display user credentials for database
+		-l | --login ..... log into database using user credentials
+		-l | --logsize ... show size of the log tables
+		-m | --multi ..... show multistore information (urls/codes)
+		-o | --logclean .. clean out (truncate) log tables
+		-o | --optimize .. truncate and optimize log tables
+		-p | --parallel .. show all parallel download base_urls
+		-p | --password .. update or reset password for user
+		-r | --rewrite ... show the count of url rewrites
+		-s | --swap ...... temporarily swap out admin password ${red}${bright}(beta!)${normal}
+		-u | --users ..... show all admin users' information
+		-v | --visit ..... show count of visitors in the log
+		-x | --index ..... show current status of all re-index processes
+		-x | --reindex ... execute a reindex as the user (indexer.php)
+		-z | --zend ...... clear user's zend cache files in /tmp/
+
+		-h | --help ...... display this help output and quit"
+		return 0; }
+
+		_magdbinfo(){ if [[ -f $sitepath/app/etc/local.xml ]]; then #magento
+			dbhost="$(echo 'cat /config/global/resources/default_setup/connection/host/text()' | xmllint --nocdata --shell $sitepath/app/etc/local.xml | sed '1d;$d')"
+			dbuser="$(echo 'cat /config/global/resources/default_setup/connection/username/text()' | xmllint --nocdata --shell $sitepath/app/etc/local.xml | sed '1d;$d')"
+			dbpass="$(echo 'cat /config/global/resources/default_setup/connection/password/text()' | xmllint --nocdata --shell $sitepath/app/etc/local.xml | sed '1d;$d')"
+			dbname="$(echo 'cat /config/global/resources/default_setup/connection/dbname/text()' | xmllint --nocdata --shell $sitepath/app/etc/local.xml | sed '1d;$d')"
+			ver=($(grep 'function getversioninfo' -a8 $sitepath/app/mage.php | grep major -a4 | cut -d\' -f4)); version="${ver[0]}.${ver[1]}.${ver[2]}.${ver[3]}"
+			if grep -e 'enterprise edition|commercial edition' $sitepath/app/mage.php > /dev/null; then edition="enterprise edition"; else edition="community edition"; fi
+		else echo "${red}could not find configuration file!${normal}"; return 1; fi; }
+
+			_magdbsum(){ echo -e "${bright}$edition: ${red}$version ${normal}\n${bright}connection summary: ${red}$dbuser:$dbname$(if [[ -n $prefix ]]; then echo .$prefix; fi)${normal}\n"; }
+
+			_magdbconnect(){ _magdbinfo && if [[ $runonce -eq 0 ]]; then _magdbsum; runonce=1; fi && mysql -u"$dbuser" -p"$dbpass" -h $dbhost $dbname "$@"; }
+
+			_magdbbackup(){ _magdbinfo;
+				if [[ -x /usr/bin/pigz ]]; then compress="/usr/bin/pigz"; echo "compressing with pigz";
+				else compress="/usr/bin/gzip"; echo "compressing with gzip"; fi
+				echo "using: mysqldump --opt --skip-lock-tables -u'$dbuser' -p'$dbpass' -h $dbhost $dbname";
+				if [[ -f /usr/bin/pv ]]; then sudo -u $(getusr) mysqldump --opt --skip-lock-tables -u"$dbuser" -p"$dbpass" -h $dbhost $dbname \
+					| pv -n 'mysql-dump' | $compress --fast | pv -n 'compression' > ${dbname}-$(date +%y.%m.%d-%h.%m).sql.gz;
+			else sudo -u $(getusr) mysqldump --opt --skip-lock-tables -u"$dbuser" -p"$dbpass" -h $dbhost $dbname \
+				| $compress --fast > ${dbname}-$(date +%y.%m.%d-%h.%m).sql.gz; fi; }
+
+			case $opt in
+				-a|--amazon) _magdbconnect -e "select * from ${prefix}amazon_log_exception order by log_id desc limit 1;";;
+				-a|--admin) read -p "firstname: " firstname; read -p "lastname: " lastname; read -p "email: " emailaddr; read -p "username: " username; password=$(xkcd);
+					_magdbconnect -e "insert into ${prefix}admin_user select null \`user_id\`, \"$firstname\" \`firstname\`, \"$lastname\" \`lastname\`, \"$emailaddr\" \`email\`, \"$username\" \`username\`, md5(\"$password\") \`password\`, now() \`created\`, null \`modified\`, null \`logdate\`, 0 \`lognum\`, 0 \`reload_acl_flag\`, 1 \`is_active\`, null \`extra\`, null \`rp_token\`, now() \`rp_token_created_at\`";
+					_magdbconnect -e "insert into ${prefix}admin_role select null \`role_id\`, (select \`role_id\` from ${prefix}admin_role where \`role_name\` = 'administrators') \`parent_id\`, 2 \`tree_level\`, 0 \`sort_order\`, 'u' \`role_type\`, (select \`user_id\` from ${prefix}admin_user where \`username\` = \"$username\") \`user_id\`, 'admin' \`role_name\`;";
+					echo -e "username: $username\npassword: $password" ;;
+				-b|--base) _magdbconnect -e "select * from ${prefix}core_config_data where path rlike \"base_url\";";;
+				-b|--backup) _magdbbackup ;;
+				-c|--cron) runonce=1; if [[ -z $param ]]; then
+					_magdbconnect -e "select * from ${prefix}cron_schedule;"
+				elif [[ $param =~ ^clear$ ]]; then
+					_magdbconnect -e "delete from ${prefix}cron_schedule where status rlike \"success|missed\";"
+					echo "cron_schedule table has been cleared of old crons"
+				elif [[ $param =~ ^clear.*-f$ ]]; then
+					_magdbconnect -e "truncate ${prefix}cron_schedule;"
+					echo "cron_schedule table has been truncated"
+				elif [[ $param == '-h' || $param == '--help' ]]; then
+					echo -e " usage: magdb [<path>] <-c|--cron> [clear] [-f]\n    clear : remove completed or missed cron jobs\n    clear -f : truncate the cron_schedule table"
+				fi ;;
+			-e|--execute) _magdbconnect -e "${param};" ;;
+			-i|--info) _magdbinfo; echo "database connection info:";
+				echo -e "\nloc.conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $dbhost \nrem.conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $(hostname)\n";
+				echo -e "username: $dbuser \npassword: $dbpass \ndatabase: $dbname $(if [[ -n $prefix ]]; then echo \\nprefix..: $prefix; fi) \nloc.host: $dbhost \nrem.host: $(hostname)";;
+			-l|--login) _magdbconnect;;
+			-l|--logsize|-d|--dataflow|-v|--visit|-r|--rewrite) _magdbinfo; _magdbsum; datatotal=0; indextotal=0; rowtotal=0; freetotal=0;
+				if [[ $opt == '-d' || $opt == '--dataflow' ]]; then tables="dataflow_batch_import dataflow_batch_export";
+				elif [[ $opt == '-v' || $opt == '--visit' ]]; then tables="log_visitor log_visitor_info log_visitor_online";
+				elif [[ $opt == '-r' || $opt == '--rewrite' ]]; then tables="core_url_rewrite"; fi
+				div='+------------------------------------------+-----------------+----------------+----------------+'
+				logfmt="| %-40s | %15s | %12s m | %12s m |\n"
+				echo $div; printf "$logfmt" "table name" "row count" "data size" "index size"; echo $div
+				for x in $tables; do
+					datasize=$(_magdbconnect -e "select data_length/1024000 from information_schema.tables where table_name = \"${prefix}$x\";" | tail -1)
+					datatotal=$(echo "scale=3;$datatotal + $datasize" | bc)
+					indexsize=$(_magdbconnect -e "select index_length/1024000 from information_schema.tables where table_name = \"${prefix}$x\";" | tail -1)
+					indextotal=$(echo "scale=3;$indextotal+$indexsize" | bc)
+					rowcount=$(_magdbconnect -e "select table_rows from information_schema.tables where table_name = \"${prefix}$x\";" | tail -1)
+					rowtotal=$(($rowcount+$rowtotal))
+					printf "$logfmt" "$x" "$rowcount" "$datasize" "$indexsize"
+				done
+				echo $div; printf "$logfmt" "totals" "$rowtotal" "$datatotal" "$indextotal"; echo $div ;;
+			-m|--multi) _magdbconnect -e "select * from ${prefix}core_config_data where path rlike \"base_url\"; select * from ${prefix}core_website; select * from ${prefix}core_store";;
+			-o|--logclean|-o|--optimize)
+				if [[ -z $param ]]; then tablename='-h'; else tablename="$param"; fi; runonce=1;
+					if [[ $tablename != *-h* ]]; then touch $sitepath/maintenance.flag && echo -e "maintenance flag set while cleaning tables\n"; fi
+					case $tablename in
+						all) if [[ $opt == '-o' || $opt == '--logclean' ]];
+						then for x in $tables; do echo "truncating ${prefix}$x"; _magdbconnect -e "truncate ${prefix}$x;" >> /dev/null; done;
+						else for x in $tables; do echo; echo "truncating/optimizing ${prefix}$x"; _magdbconnect -e "truncate ${prefix}$x; optimize table ${prefix}$x;" >> /dev/null; done; fi ;;
+						-h|--help) echo -e " usage: magdb $sitepath $opt [<option>]\n    <option> can be a table_name, 'list of tables', or 'all'\n\n  individual table names\n $(dash 78)";
+							(for x in $tables; do echo "  $x"; done) | column -x;;
+							*)  if [[ $opt == '-o' || $opt == '--logclean' ]];
+							then for x in $tablename; do echo "truncating ${prefix}$x"; _magdbconnect -e "truncate ${prefix}$x;" >> /dev/null; done;
+							else for x in $tablename; do echo; echo "truncating/optimizing ${prefix}$x"; _magdbconnect -e "truncate ${prefix}$x; optimize table ${prefix}$x;" >> /dev/null; done; fi ;;
+						esac
+						if [[ -f $sitepath/maintenance.flag ]]; then rm $sitepath/maintenance.flag && echo -e "\ntable cleaning complete, maintenance.flag removed"; fi ;;
+						-p|--parallel) _magdbconnect -e "select * from ${prefix}core_config_data where path rlike \"base.*url\";";;
+						-p|--password) runonce=1;
+							if [[ -n $param ]]; then
+								username=$(echo $param | awk '{print $1}'); password=$(echo $param | awk '{print $2}');
+								_magdbconnect -e "update ${prefix}admin_user set password = md5(\"$password\") where ${prefix}admin_user.username = \"$username\";"
+								echo -e "new magento login credentials:\nusername: $username\npassword: $password"
+							elif [[ -z $param || $param == '-h' || $param == '--help' ]]; then
+								echo -e " usage: magdb [<path>] <-p|--password> <username> <password>"
+							fi ;;
+						-s|--swap )
+							username=$(_magdbconnect -e "select username from ${prefix}admin_user where is_active = 1 limit 1;" | tail -1)
+							password=$(_magdbconnect -e "select password from ${prefix}admin_user where is_active = 1 limit 1;" | tail -1 | sed 's/\$/\\\$/g')
+							_magdbconnect -e "update ${prefix}admin_user set password=md5('nexpassword') where is_active = 1 limit 1";
+							echo -e "you have 20 seconds to login using the following credentials\n"
+							echo -n "loginurl: "; _magdbconnect -e "select value from ${prefix}core_config_data where path like \"web/unsecure/base_url\" limit 1;" | tail -1 | sed "s/\/$/\/$adminurl/"
+							echo -e "username: $username\npassword: nexpassword\n"
+							for x in {1..20}; do sleep 1; printf ". "; done; echo
+								_magdbconnect -e "update ${prefix}admin_user set password=\"$password\" where is_active = 1 limit 1";
+								echo -e "\npassword has been reverted." ;;
+							-u|--user|--users)
+								if [[ -z $param ]]; then _magdbconnect -e "select * from ${prefix}admin_user\g" | grep -v 'extra:';
+								elif [[ $param =~ -s ]]; then _magdbconnect -e "select username,concat( firstname,\" \",lastname ) as \"full name\",email,password from ${prefix}admin_user";
+								elif [[ $param == '-h' || $param == '--help' ]]; then echo -e " usage: magdb [path] <-u|--user> [-s|--short]"; fi
+								;;
+							-x|--index) _magdbconnect -e "select * from ${prefix}index_process";;
+							-x|--reindex) if [[ -z $param ]]; then index='help' ; else index="$param"; fi
+								_magdbinfo; _magdbsum; dir=$pwd; cd $sitepath; sudo -u $(getusr) php -f shell/indexer.php -- $index; cd $dir;;
+							-z|--zend)
+								if [[ -z $param ]]; then
+									echo "there are $(find /tmp/ -type f -name zend* -user $(getusr) -print | wc -l) zend cache files for $(getusr) in /tmp/";
+								elif [[ $param =~ ^clear$ ]]; then
+									echo "clearing zend cache files for $(getusr) in /tmp/";
+									for x in $(find /tmp/ -type f -name zend* -user $(getusr) -print); do echo -n $x; rm $x && echo "... removed"; done;
+									else
+										echo "$param is not a valid parameter for this option."
+									fi ;;
+								-h|--help|*) _magdbusage;;
+							esac; echo; dbhost=''; dbuser=''; dbpass=''; dbname=''; prefix='';
+							version=''; edition=''; adminurl=''; username=''; password='';
+

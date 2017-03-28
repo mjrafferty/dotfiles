@@ -1,0 +1,55 @@
+#! /bin/bash
+
+## set common and custom php-fpm configuration options
+
+if [[ -f $(echo /opt/nexcess/php5*/root/etc/php-fpm.d/$(getusr).conf) ]]; then
+	config="/opt/nexcess/php5*/root/etc/php-fpm.d/$(getusr).conf";
+	srv="$(echo $config | cut -d/ -f4)-php-fpm";
+elif [[ -f /etc/php-fpm.d/$(getusr).conf ]]; then
+	config="/etc/php-fpm.d/$(getusr).conf";
+	srv="php-fpm"; fi;
+
+	_fpmconfig(){
+		if [[ $(grep $1 $config 2> /dev/null) ]]; then
+			echo -e "\n$1 is already configured in the php-fpm pool $config\n";
+			awk "/$1/"'{print}' $config; echo
+		elif [[ -f $(echo $config) ]]; then
+			echo "php_admin_value[$1] = $2" >> $config && service $srv reload && echo -e "\n$1 has been set to $2 in the php-fpm pool for $config\n";
+		else
+			echo -e "\n could not find $config !\n try running this from the user's /home/dir/\n"; fi;
+		}
+
+		case $1 in
+			-a) _fpmconfig apc.enabled off ;;
+			-b) _fpmconfig open_basedir "$(php -i | awk '/open_basedir/ {print $nf}'):$2" ;;
+			-c) _fpmconfig $2 $3 ;;
+			-d) _fpmconfig display_errors on ;;
+			-e) _fpmconfig max_execution_time $2 ;;
+			-f) _fpmconfig allow_url_fopen on ;;
+			-g|-z) _fpmconfig zlib.output_compression on ;;
+			-m) _fpmconfig memory_limit $2 ;;
+			-s) _fpmconfig session.cookie_lifetime $2; _fpmconfig session.gc_maxlifetime $2 ;;
+			-u) _fpmconfig upload_max_filesize $2; _fpmconfig post_max_size $2 ;;
+			-h) echo -e "\n usage: fpmconfig [option] [value]
+				options:
+				-a ... disable apc
+				-b ... set open_basedir
+				-c ... set a custom [parameter] to [value]
+				-d ... enable display_errors
+				-e ... set max_execution_time to [value]
+				-f ... enable allow_url_fopen
+				-g ... enable gzip (zlib.output_compression)
+				-m ... set memory_limit to [value]
+				-s ... set session timeouts (session.gc_maxlifetime, session.cookie_lifetime)
+				-u ... set upload_max_filesize and post_max_size to [value]
+				-z ... enable gzip (zlib.output_compression)
+
+				-h ... print this help output and quit
+				default behavior is to print the contents and location of config file.\n"
+				;;
+
+			*) echo; ls $config; echo; cat $config; echo;;
+		esac;
+
+		unset srv config;
+

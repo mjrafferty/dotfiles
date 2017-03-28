@@ -1,0 +1,47 @@
+zR /bin/bash
+
+## rewrite of ted wells sinfo
+echo; fmt='%-14s: %s\n'
+printf "$fmt" "hostname" "$(servername)"
+printf "$fmt" "os (kernel)" "$(cat /etc/redhat-release | awk '{print $1,$3}') ($(uname -r))"
+ssl="$(openssl version | awk '{print $2}')"
+web="$(curl -s -i $(servername) | awk '/server:/ {print $2}')";
+if [[ -z $web ]]; then web="$(curl -s -i $(servername):8080 | awk '/server:/ {print $2}')"; fi
+if [[ $web =~ apache ]]; then webver=$(httpd -v | head -1 | awk '{print $3}' | sed 's:/: :');
+elif [[ $web =~ litespeed ]]; then webver=$(/usr/local/lsws/bin/lshttpd -v | sed 's:/: :');
+elif [[ $web =~ nginx ]]; then webver=$(nginx -v 2>&1 | head -1 | awk '{print $3}' | sed 's:/: :'); fi
+printf "$fmt" "web server" "$webver; openssl ($ssl)"
+if [[ -f /etc/init.d/varnish ]]; then printf "$fmt" "varnish" "$(varnishd -v 2>&1 | awk -f- 'nr<2 {print $2}' | tr -d \))"; fi
+_phpversion(){
+	phpv=$($1 -v | awk '/^php/ {print $2}');
+	zend=$($1 -v | awk '/engine/ {print "; "$1,$2" ("$3")"}' | sed 's/v//;s/,//');
+	ionc=$($1 -v | awk '/ioncube/ {print "; "$3" ("$6")"}' | sed 's/v//;s/,//');
+	eacc=$($1 -v | awk '/eacc/ {print "; "$2" ("$3")"}' | sed 's/v//;s/,//');
+	guard=$($1 -v | awk '/guard/ {print "; "$2,$3" ("$5")"}' | sed 's/v//;s/,//');
+	suhos=$($1 -v | awk '/suhosin/ {print "; "$2" ("$3")"}' | sed 's/v//;s/,//');
+	opche=$($1 -v | awk '/opcache/ {print "; "$2,$3" ("$4")"}' | sed 's/v//;s/,//')
+	if [[ -d /etc/php-fpm.d/ ]]; then phpt='php-fpm'; else
+		phpt=$(awk '/^loadmodule/ {print $2}' /etc/httpd/conf.d/php.conf /etc/httpd/conf.d/suphp.conf | sed 's/php[0-9]_module/mod_php/;s/_module//'); fi;
+		printf "$fmt" "php version" "${phpt} (${phpv})${zend}${ionc}${guard}${opche}${eacc}${suhos}";
+	}
+	_phpversion /usr/bin/php; if [[ -f /opt/nexcess/php54u/root/usr/bin/php ]]; then for x in /opt/nexcess/*/root/usr/bin/php; do _phpversion $x; done; fi
+	modsecv=$(rpm -qi mod_security | awk '/version/ {print $3}' 2> /dev/null)
+	modsecr=$(awk -f\" '/seccomp.*\"$/ {print "("$2")"}' /etc/httpd/modsecurity.d/*_crs_10_*.conf 2> /dev/null)
+	printf "$fmt" "modsecurity" "${modsecv:-no modsecurity} ${modsecr}"
+	printf "$fmt" "mysql version" "$(mysql --version | awk '{print $5}' | tr -d ,) $(mysqld --version 2> /dev/null | grep -io 'percona' 2> /dev/null)"
+	pstgrs="/usr/*/bin/postgres"; if [[ -f $(echo $pstgrs) ]]; then printf "$fmt" "postgresql" "$($pstgrs -v | awk '{print $nf}')"; fi
+	printf "$fmt" "interworx" "$(grep -a1 'user="iworx"' /home/interworx/iworx.ini | tail -1 | cut -d\" -f2)"
+	if [[ $1 =~ -v ]]; then
+		printf "$fmt" "rev. control" "git ($(git --version | awk '{print $3}')); svn ($(svn --version | awk 'nr<2 {print $3}')); $(hg --version | awk 'nr<2 {print $1" ("$nf}')"
+		perlv=$(perl -v | awk '/v[0-9]/ {print "perl ("$4")"}' | sed 's/v//')
+		pythv=$(python -v 2>&1 | awk '{print $1" ("$2")"}')
+		rubyv=$(ruby -v | awk '{print "ruby ("$2")"}')
+		railv=$(if [[ ! $(which rails 2>&1) =~ /which ]]; then rails -v | awk '{print $1" ("$2")"}'; fi)
+		printf "$fmt" "script langs" "${perlv}; ${pythv}; ${rubyv}; ${railv:-no rails}"
+		printf "$fmt" "ftp/sftp/ssh" "proftpd ($(proftpd --version | awk '{print $3}')); openssh ($(ssh -v 2>&1 | cut -d, -f1 | awk -f_ '{print $2}'))"; fi
+		printf "\n$fmt" "cpus (type)" "$(awk '/model name/{print $4,$5,$7,$9,$10}' /proc/cpuinfo | uniq -c | awk '{print $1,"- "$2,$3" - "$4,$5,$6}')"
+		printf "$fmt" "memory (ram)" "$(free -m | awk '/mem/ {print ($2/1000)"g / "($4/1000)"g ("($4/$2*100)"% free)"}')"
+		printf "$fmt" "memory (swap)" "$(if [[ $(free -m | awk '/swap/ {print $2}') != 0 ]]; then free -m | awk '/swap/ {print ($2/1000)"g / "($4/1000)"g ("($4/$2*100)"% free)"}'; else echo 'no swap'; fi)"
+		printf "$fmt" "hdd (/home)" "$(df -h /home | tail -1 | awk '{print $2" / "$4" ("($4/$2*100)"% free)"}')"
+		echo
+

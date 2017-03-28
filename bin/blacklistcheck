@@ -1,0 +1,23 @@
+#! /bin/bash
+
+for b in $*; do 
+	echo '++++++++++++++++++++++++++++'; 
+	echo $b;echo 'phone: 866-639-2377';  
+	nslookup $b | grep addr;
+	echo 'http://multirbl.valli.org/lookup/'$b'.html';
+	echo 'http://www.senderbase.org/lookup/ip/?search_string='$b; 
+	echo 'https://www.senderscore.org/lookup.php?lookup='$b;
+	echo '++++++++++++++++++++++++++++'; 
+	for x in hotmail.com yahoo.com aol.com earthlink.net verizon.net att.net sbcglobal.net comcast.net xmission.com cloudmark.com cox.net charter.net mac.me; do 
+		echo; 
+		echo $x;
+		echo '--------------------'; 
+		swaks -q to -t postmaster@$x -li $b| grep -ie 'block|rdns|550|521|554';
+	done ;
+	echo;
+	echo 'gmail.com';
+	echo '-----------------------'; 
+	swaks -4 -t iflcars.com@gmail.com -li $b| grep -ie 'block|rdns|550|521|554';
+	echo; 
+	echo; 
+done;

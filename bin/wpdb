@@ -1,0 +1,91 @@
+#! /bin/bash
+
+## find wordpress database configuration and run common queries
+echo; runonce=0;
+if [[ $1 =~ ^-.*$ ]]; then sitepath='.'; opt="$1"; shift; param="$@";
+else sitepath="$1"; opt="$2"; shift; shift; param="$@"; fi;
+
+	if [[ -f $sitepath/wp-includes/version.php ]]; then
+		version=$(grep "wp_version =" $sitepath/wp-includes/version.php | cut -d\' -f2)
+		dbversion=$(grep "wp_db_version =" $sitepath/wp-includes/version.php | awk '{print $3}' | tr -d \;)
+	fi
+
+	if [[ -f $sitepath/wp-config.php ]]; then
+		if grep -eqi "multisite...true" $sitepath/wp-config.php; then
+			edition='wp multisite'; else edition='wordpress'; fi
+			prefix=$(grep table_prefix $sitepath/wp-config.php | cut -d\' -f2);
+		fi
+
+		# if [[ -f $sitepath/wp-config.php ]]; then continue=1; else echo -e "\n ${red}could not find worpdress configuration file!${normal}\n"; return 0; fi
+
+		_wpdbinfo(){
+			dbconnect=($(grep db_ $sitepath/wp-config.php 2> /dev/null | cut -d\' -f4));
+			dbname=${dbconnect[0]}; dbuser="${dbconnect[1]}"; dbpass="${dbconnect[2]}"; dbhost=${dbconnect[3]};
+		}
+
+		_wpdbusage(){ echo " usage: wpdb [<path>] <option> [<query>]
+			-b | --base ...... show configured base urls in the database
+			-b | --backup .... backup the wordpress database as the user
+			-c | --clean ..... remove unapproved comments or old post revisions. ${cyan}(new)${normal}
+			-e | --execute ... execute a custom query (use '*' and \\\")
+			-i | --info ...... display user credentials for database
+			-l | --login ..... log into database using user credentials
+			-m | --multi ..... display multisite information (ids/domains/paths)
+			-p | --password .. update or reset password for a user ${cyan}(new)${normal}
+			-s | --swap ...... temporarily swap out user password ${red}${bright}(beta!)${normal}
+			-u | --users ..... show users configured within the database
+
+			-h | --help ....... display this help information and quit"
+			return 0; }
+
+			_wpdbsum(){ echo -e "${bright}$edition: ${red}$version ($dbversion) ${normal}\n${bright}connection: ${red}$dbuser:$dbname$(if [[ -n $prefix ]]; then echo .$prefix; fi)${normal}\n"; }
+
+			_wpdbconnect(){
+				_wpdbinfo &&
+					if [[ $runonce -eq 0 ]]; then _wpdbsum; runonce=1; fi &&
+						mysql -u $dbuser -p$dbpass -h $dbhost $dbname "$@";
+			}
+
+			_wpdbbackup(){ _wpdbinfo;
+				if [[ -x /usr/bin/pigz ]]; then compress="/usr/bin/pigz"; echo "compressing with pigz";
+				else compress="/usr/bin/gzip"; echo "compressing with gzip"; fi
+				echo "using: mysqldump --opt --skip-lock-tables -u'$dbuser' -p'$dbpass' -h $dbhost $dbname";
+				if [[ -f /usr/bin/pv ]]; then sudo -u $(getusr) mysqldump --opt --skip-lock-tables -u"$dbuser" -p"$dbpass" -h $dbhost $dbname \
+					| pv -n 'mysql-dump' | $compress --fast | pv -n 'compression' > ${dbname}-$(date +%y.%m.%d-%h.%m).sql.gz;
+			else sudo -u $(getusr) mysqldump --opt --skip-lock-tables -u"$dbuser" -p"$dbpass" -h $dbhost $dbname \
+				| $compress --fast > ${dbname}-$(date +%y.%m.%d-%h.%m).sql.gz; fi;
+		}
+
+		case $opt in
+			-b | --base ) option_tables=$(_wpdbconnect -e "show table status" | awk '($1 ~ /options/) {print $1}');
+				for x in $option_tables; do _wpdbconnect -e "select * from $x where option_name = \"siteurl\" or option_name = \"home\" or option_name = \"blogname\";"; echo -e "options table name: $x\n"; done ;;
+				-b | --backup ) _wpdbbackup ;;
+				-c | --clean ) if [[ $param =~ ^com.* ]]; then _wpdbconnect -e "delete from ${prefix}comments where comment_approved = '0';"
+				elif [[ $param =~ ^rev.* ]]; then _wpdbconnect -e "delete from ${prefix}posts where post_type = 'revision';"; fi ;;
+				-e | --execute ) _wpdbconnect -e "${param};" ;;
+				-i | --info ) _wpdbinfo; echo "database connection info:";
+					echo -e "\nloc.conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $dbhost \nrem.conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $(hostname)\n";
+					echo -e "username: $dbuser \npassword: $dbpass \ndatabase: $dbname $(if [[ -n $prefix ]]; then echo \\nprefix..: $prefix; fi) \nloc.host: $dbhost \nrem.host: $(hostname)" ;;
+				-l | --login ) _wpdbconnect ;;
+				-m | --multi ) _wpdbconnect -e "select * from ${prefix}blogs;" ;;
+				-p | --password )
+					if [[ -n $param ]]; then user_login=$(echo $param | awk '{print $1}'); user_pass=$(echo $param | awk '{print $2}');
+						_wpdbconnect -e "update ${prefix}users set user_pass = md5(\"$user_pass\") where ${prefix}users.user_login = \"$user_login\";"
+						echo -e "\nnew wp login credentials:\nusername: $user_login\npassword: $user_pass\n"
+					elif [[ -z $param || $param == '-h' || $param == '--help' ]]; then echo -e "\n usage: wpdb [<path>] <option> <username> <password>\n"; fi ;;
+					-u | --users )
+						if [[ -z $param ]]; then _wpdbconnect -e "select * from ${prefix}users\g";
+						elif [[ $param =~ -s ]]; then _wpdbconnect -e "select id,user_login,display_name,user_email,user_pass from ${prefix}users order by id";
+						elif [[ $param == '-h' || $param == '--help' ]]; then echo -e " usage: wpdb [path] <-u|--user> [-s|--short]"; fi ;;
+						-s | --swap )
+							user_login=$(_wpdbconnect -e "select user_login from ${prefix}users order by id limit 1;" | tail -1)
+							user_pass=$(_wpdbconnect -e "select user_pass from ${prefix}users order by id limit 1;" | tail -1 | sed 's/\$/\\\$/g')
+							_wpdbconnect -e "update ${prefix}users set user_pass=md5('nexpassword') where user_login = \"$user_login\"";
+							echo -e "you can now login using the following credentials\nonce you un-pause this script the password will be reset\n"
+							echo -n "loginurl: "; _wpdbconnect -e "select option_value from ${prefix}options where option_name like \"siteurl\";" | tail -1 | sed 's/\/$/\/wp-admin/'
+							echo -e "username: $user_login\npassword: nexpassword\n"
+							read -p "press [enter] to continue ... " pause;
+							_wpdbconnect -e "update ${prefix}users set user_pass=\"$user_pass\" where user_login = \"$user_login\"";
+							echo -e "\npassword has been reverted." ;;
+						-h | --help | * ) _wpdbusage ;;
+					esac; echo; dbhost=''; dbuser=''; dbpass=''; dbname=''; prefix=''; edition=''; version=''; user_login=''; user_pass='';

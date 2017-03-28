@@ -1,0 +1,28 @@
+#! /bin/bash
+
+## create user functions for memcached socket configured in local.xml
+if [[ -z $1 || $1 == '-h' || $1 == '--help' ]]; then
+	echo -e "\n usage: memcachealias [sitepath] [name]\n"
+elif [[ -f $1/app/etc/local.xml ]]; then
+	if [[ -n $2 ]]; then name="_$2"; else name='_memcached'; fi
+	u=$(getusr);
+	cache_socket=$(grep -eo '\/var.*_cache\.sock' $1/app/etc/local.xml | head -1)
+	sessions_socket=$(grep -eo '\/var.*_sessions\.sock' $1/app/etc/local.xml | head -1)
+
+	echo; for x in flush_all stats; do
+	if [[ -n $sessions_socket ]]; then
+		echo "adding ${x}${name}_cache to /home/$u/.bashrc ... ";
+		sudo -u $u echo "${x}${name}_cache(){ echo $x \$@ | nc -u $cache_socket; }" >> /home/$u/.bashrc;
+		echo "adding ${x}${name}_sessions to /home/$u/.bashrc ... ";
+		sudo -u $u echo "${x}${name}_sessions(){ echo $x \$@ | nc -u $sessions_socket; }" >> /home/$u/.bashrc;
+	else
+		echo "adding ${x}${name}_cache to /home/$u/.bashrc ... ";
+		sudo -u $u echo "${x}${name}_cache(){ echo $x \$@ | nc -u $cache_socket; }" >> /home/$u/.bashrc; fi;
+	done; echo;
+
+	echo "adding bash completion for stats function"
+	sudo -u $u echo -e "\ncomplete -w 'items slabs detail sizes reset' stats${name}_cache" >> /home/$u/.bashrc
+	sudo -u $u echo -e "\ncomplete -w 'items slabs detail sizes reset' stats${name}_sessions" >> /home/$u/.bashrc
+	echo "adding $u to the (nc) group"; usermod -a -g nc $u; echo;
+else echo "\n could not find local.xml file in $1\n"; fi;
+

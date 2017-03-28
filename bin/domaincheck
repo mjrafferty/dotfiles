@@ -1,0 +1,34 @@
+#! /bin/bash
+
+# match secondary domains to ips on the server using vhost files
+
+vhost="$(echo /etc/httpd/conf.d/vhost_[^000]*.conf)"; sub='';
+
+case $1 in
+	-a) if [[ -n $2 ]]; then sub=$2; else sub=''; fi
+		vhost="$(grep -l $(getusr) /etc/httpd/conf.d/vhost_[^000]*.conf)" ;;
+	-r) if [[ -z $2 ]]; then read -p "resellerid: " r_id; else r_id=$2; fi;
+		vhost=$(for r_user in $(nodeworx -unc siteworx -a listaccounts | awk "(\$5 ~ /^$r_id$/)"'{print $2}'); do grep -l $r_user /etc/httpd/conf.d/vhost_[^000]*.conf; done | sort | uniq) ;;
+	-v) fmt=" %-15s  %-15s  %3s  %3s  %3s  %s\n"
+		hlt="${bright}${red} %-15s  %-15s  %3s  %3s  %3s  %s${normal}\n"
+		#printf "$fmt" " server ip" " live ip" "ssl" "fpm" "tmp" " domain"
+		#printf "$fmt" "$(dash 15)" "$(dash 15)" "---" "---" "---" "$(dash 44)"
+		;;
+esac; echo
+
+fmt=" %-15s  %-15s  %3s  %3s  %s\n"
+hlt="${bright}${red} %-15s  %-15s  %3s  %3s  %s${normal}\n"
+printf "$fmt" " server ip" " live ip" "ssl" "fpm" " domain"
+printf "$fmt" "$(dash 15)" "$(dash 15)" "---" "---" "$(dash 44)"
+
+for x in $vhost; do
+	d=$(basename $x .conf | cut -d_ -f2);
+	v=$(awk '/.irtual.ost/ {print $2}' $x | head -1 | cut -d: -f1);
+	i=$(dig +short +time=1 +tries=1 ${sub}$d | grep -e '^[0-9]{1,3}\.' | head -1);
+	s=$(if grep :443 $x &> /dev/null; then echo ssl; fi);
+	f=$(if grep mage_run $x &> /dev/null; then echo fix; fi);
+	if [[ "$i" != "$v" ]];
+	then printf "$hlt" "$v" "$i" "${s:- - }" "${f:- - }" "${sub}$d";
+	else printf "$fmt" "$v" "$i" "${s:- - }" "${f:- - }" "${sub}$d"; fi
+done; echo
+
