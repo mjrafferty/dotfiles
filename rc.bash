@@ -73,482 +73,424 @@ srvnotes () {
     nano /etc/nexcess/server_notes.txt; 
 }
 
-## Update IonCube for CentOS 5/6
-ioncubeupdate () {
-	if [[ $1 =~ [0-9]\.[0-9] ]]; then 
-		ver="$1";
-	else 
-		read -p "What is the running PHP version: " ver; 
-	fi
-
-	# Create Download Directory
-	if [[ ! -d ~/downloads ]]; then 
-		mkdir ~/downloads;
-	else 
-		rm -r ~/downloads; 
-		mkdir ~/downloads; 
-	fi
-
-	# Download archive into directory and unpack
-	cd ~/downloads/
-	wget -O ioncube_loaders_lin_x86-64.tar.gz http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
-	tar -zxf ioncube_loaders_lin_x86-64.tar.gz; 
-	echo
-
-	# check for known configuration combinations
-	if [[ -f /etc/php.d/ioncube.ini && -f /usr/lib64/php5/ioncube.so ]]; then # CentOS 5
-  	phpdir="/usr/lib64/php5/"; config="/etc/php.d/ioncube.ini"
-	elif [[ -d /usr/lib64/php/modules/ ]]; then # CentOS 6
-  	phpdir="/usr/lib64/php/modules/"; 
-		config="/etc/php.d/ioncube-loader.ini"
-	fi
-
-	# Copy the correct .so driver file to the target directory
-	if [[ -f ${phpdir}ioncube.so ]]; then
-		echo -e "\n${phpdir}ioncube.so driver file exist, backing up before continuing\n"
-		cp ~/downloads/ioncube/ioncube_loader_lin_${ver}* ${phpdir}
-		gzip ${phpdir}ioncube.so && mv ${phpdir}ioncube_loader_lin_${ver}.so ${phpdir}ioncube.so
-	elif [[ -f ${phpdir}ioncube_loader_lin_${ver}.so ]]; then
-		echo -e "\n${phpdir}ioncube_loader_lin_${ver}.so driver file exists, backing up before updating.\n"
-		gzip ${phpdir}ioncube_loader_lin_${ver}* && cp ~/downloads/ioncube/ioncube_loader_lin_${ver}* ${phpdir}
-	fi
-
-	# Create correct config file for the service if necessary
-	if [[ -f ${config} ]]; then
-		echo -e "${config} file already exists!\n";
-	else
-		echo -e "Setting up new /etc/php.d/ioncube-loader.ini file\n"
-		echo -e "zend_extension=${phpdir}ioncube_loader_lin_${ver}.so" >> /etc/php.d/ioncube-loader.ini;
-	fi
-
-	# Check configs and restart php/httpd services
-	if [[ -d /etc/php-fpm.d/ ]]; then
-		php -v && service php-fpm restart
-	else
-		php -v && httpd -t && service httpd restart;
-	fi
-}
-
-## Install ZendGuard for CentOS 5/6
-zendguardinstall () {
-	if [[ $1 =~ [0-9]\.[0-9] ]]; then 
-		ver="$1";
-	else read -p "What is the running PHP version: " ver; 
-	fi
-
-	# Create Download Directory
-	if [[ ! -d ~/downloads ]]; then mkdir ~/downloads; fi
-
-	# Download archive into directory and unpack
-	cd ~/downloads/
-	wget http://downloads.zend.com/guard/5.5.0/ZendGuardLoader-php-${ver}-linux-glibc23-x86_64.tar.gz
-	tar -zxvf ZendGuardLoader-php-${ver}-linux-glibc23-x86_64.tar.gz
-
-	# Copy driver the correct .so file to the target directory
-	if [[ ! -f /usr/lib64/php/modules/ZendGuardLoader.so ]]; then
-		cp ~/downloads/ZendGuardLoader-php-${ver}-linux-glibc23-x86_64/php-${ver}.x/ZendGuardLoader.so /usr/lib64/php/modules/
-	else 
-		echo "ZendGuardLoader.so already exists! Backing up current version before continuing.";
-		gzip /usr/lib64/php/modules/ZendGuardLoader.so && cp ~/downloads/ZendGuardLoader-php-${ver}-linux-glibc23-x86_64/php-${ver}.x/ZendGuardLoader.so /usr/lib64/php/modules/
-	fi
-
-	# Create correct config file for the service
-	if [[ ! -f /etc/php.d/ZendGuard.ini && ! -f /etc/php.d/ioncube.ini && ! -f /etc/php.d/ioncube-loader.ini ]]; then 
-		file="/etc/php.d/ZendGuard.ini"
-	elif [[ -f /etc/php.d/ioncube-loader.ini ]]; then 
-		file="/etc/php.d/ioncube-loader.ini";
-	elif [[ -f /etc/php.d/ioncube.ini ]]; then 
-		file="/etc/php.d/ioncube.ini"
-	elif [[ -f /etc/php.d/ZendGuard.ini ]]; then 
-		echo "ZendGuard.ini file already exists!";  
-		file="/dev/null"; fi
-	echo "Adding Zend Guard config to $file"
-	echo -e "\n; Enable Zend Guard extension\nzend_extension=/usr/lib64/php/modules/ZendGuardLoader.so\nzend_loader.enable=1\n" >> $file
-
-	# Check configs and restart php/httpd services
-	if [[ -d /etc/php-fpm.d/ ]]; then 
-		php -v && service php-fpm restart
-	else 
-		httpd -t && service httpd restart; 
-	fi
-}
-
-## Rewrite of Ted Wells sinfo
-sinfo () {
-	echo; 
-	FMT='%-14s: %s\n'
-	printf "$FMT" "Hostname" "$(serverName)"
-	printf "$FMT" "OS (Kernel)" "$(cat /etc/redhat-release | awk '{print $1,$3}') ($(uname -r))"
-	ssl="$(openssl version | awk '{print $2}')"
-	web="$(curl -s -I $(serverName) | awk '/Server:/ {print $2}')";
-	if [[ -z $web ]]; then 
-		web="$(curl -s -I $(serverName):8080 | awk '/Server:/ {print $2}')"; 
-	fi
-	if [[ $web =~ Apache ]]; then 
-		webver=$(httpd -v | head -1 | awk '{print $3}' | sed 's:/: :');
-	elif [[ $web =~ LiteSpeed ]]; then 
-		webver=$(/usr/local/lsws/bin/lshttpd -v | sed 's:/: :');
-	elif [[ $web =~ nginx ]]; then 
-		webver=$(nginx -v 2>&1 | head -1 | awk '{print $3}' | sed 's:/: :'); 
-	fi
-	printf "$FMT" "Web Server" "$webver; OpenSSL ($ssl)"
-	if [[ -f /etc/init.d/varnish ]]; then 
-		printf "$FMT" "Varnish" "$(varnishd -V 2>&1 | awk -F- 'NR<2 {print $2}' | tr -d \))"; 
-	fi
-	_phpversion(){
-			phpv=$($1 -v | awk '/^PHP/ {print $2}');
-			zend=$($1 -v | awk '/Engine/ {print "; "$1,$2" ("$3")"}' | sed 's/v//;s/,//');
-			ionc=$($1 -v | awk '/ionCube/ {print "; "$3" ("$6")"}' | sed 's/v//;s/,//');
-			eacc=$($1 -v | awk '/eAcc/ {print "; "$2" ("$3")"}' | sed 's/v//;s/,//');
-			guard=$($1 -v | awk '/Guard/ {print "; "$2,$3" ("$5")"}' | sed 's/v//;s/,//');
-			suhos=$($1 -v | awk '/Suhosin/ {print "; "$2" ("$3")"}' | sed 's/v//;s/,//');
-			opche=$($1 -v | awk '/OPcache/ {print "; "$2,$3" ("$4")"}' | sed 's/v//;s/,//')
-			if [[ -d /etc/php-fpm.d/ ]]; then 
-				phpt='php-fpm';
-		 	else
-				phpt=$(awk '/^LoadModule/ {print $2}' /etc/httpd/conf.d/php.conf /etc/httpd/conf.d/suphp.conf | sed 's/php[0-9]_module/mod_php/;s/_module//'); 
-			fi;
-			printf "$FMT" "PHP Version" "${phpt} (${phpv})${zend}${ionc}${guard}${opche}${eacc}${suhos}";
-	}
-	_phpversion /usr/bin/php; 
-	if [[ -f /opt/nexcess/php54u/root/usr/bin/php ]]; then 
-		for x in /opt/nexcess/*/root/usr/bin/php; do 
-			_phpversion $x; 
-		done; 
-	fi
-	modsecv=$(rpm -qi mod_security | awk '/Version/ {print $3}' 2> /dev/null)
-	modsecr=$(awk -F\" '/SecComp.*\"$/ {print "("$2")"}' /etc/httpd/modsecurity.d/*_crs_10_*.conf 2> /dev/null)
-	printf "$FMT" "ModSecurity" "${modsecv:-No ModSecurity} ${modsecr}"
-	printf "$FMT" "MySQL Version" "$(mysql --version | awk '{print $5}' | tr -d ,) $(mysqld --version 2> /dev/null | grep -io 'percona' 2> /dev/null)"
-	pstgrs="/usr/*/bin/postgres"; 
-	if [[ -f $(echo $pstgrs) ]]; then 
-		printf "$FMT" "PostgreSQL" "$($pstgrs -V | awk '{print $NF}')"; 
-	fi
-	printf "$FMT" "Interworx" "$(grep -A1 'user="iworx"' /home/interworx/iworx.ini | tail -1 | cut -d\" -f2)"
-	if [[ $1 =~ -v ]]; then
-		printf "$FMT" "Rev. Control" "Git ($(git --version | awk '{print $3}')); SVN ($(svn --version | awk 'NR<2 {print $3}')); $(hg --version | awk 'NR<2 {print $1" ("$NF}')"
-	perlv=$(perl -v | awk '/v[0-9]/ {print "Perl ("$4")"}' | sed 's/v//')
-	pythv=$(python -V 2>&1 | awk '{print $1" ("$2")"}')
-	rubyv=$(ruby -v | awk '{print "Ruby ("$2")"}')
-	railv=$(if [[ ! $(which rails 2>&1) =~ /which ]]; then rails -v | awk '{print $1" ("$2")"}'; fi)
-	printf "$FMT" "Script Langs" "${perlv}; ${pythv}; ${rubyv}; ${railv:-No Rails}"
-	printf "$FMT" "FTP/sFTP/SSH" "ProFTPD ($(proftpd --version | awk '{print $3}')); OpenSSH ($(ssh -V 2>&1 | cut -d, -f1 | awk -F_ '{print $2}'))"; fi
-	printf "\n$FMT" "CPUs (Type)" "$(awk '/model name/{print $4,$5,$7,$9,$10}' /proc/cpuinfo | uniq -c | awk '{print $1,"- "$2,$3" - "$4,$5,$6}')"
-	printf "$FMT" "Memory (RAM)" "$(free -m | awk '/Mem/ {print ($2/1000)"G / "($4/1000)"G ("($4/$2*100)"% Free)"}')"
-	printf "$FMT" "Memory (Swap)" "$(if [[ $(free -m | awk '/Swap/ {print $2}') != 0 ]]; then free -m | awk '/Swap/ {print ($2/1000)"G / "($4/1000)"G ("($4/$2*100)"% Free)"}'; else echo 'No Swap'; fi)"
-	printf "$FMT" "HDD (/home)" "$(df -h /home | tail -1 | awk '{print $2" / "$4" ("($4/$2*100)"% Free)"}')"
-	echo
-}
-
-## Generate xkcd / iworx style passwords
-xkcd () {
-	if [[ $@ =~ -h ]]; then 
-		echo -e "\n  Usage: xkcd [-l <length>] [-v]\n"; 
-		return 0; 
-	fi
-	if [[ $@ =~ -v ]]; then 
-		wordList='/usr/share/dict/words'; 
-	else 
-		wordList='/usr/local/interworx/lib/dict/words'; 
-	fi
-	if [[ $1 =~ -l ]]; then 
-		wordLength=$(( (${2} - 4) / 4 )); 
-	else 
-		wordLength="4,8"; 
-	fi
-	if [[ -x /usr/bin/shuf ]]; then
-		echo $(shuf -n1000 $wordList | grep -E ^[a-z]{$wordLength}$ | shuf -n4 )$(( ($RANDOM % 9000) + 1000 )) | sed 's/\b\([a-zA-Z]\)/\u\1/g' | sed 's/ //g'
-	else
-		n=0;  word=(); len=$(wc -l < $wordList)
-		while [[ $n -lt 4 ]]; do
-			rnd=$(( ( $(od -vAn -N4 -tu4 < /dev/urandom) )%($len)+1 ));
-			word[$n]=$(sed -n "${rnd}p" $wordList | egrep "^[a-z]{4,8}$" | sed 's:\b\(.\):\u\1:');
-			if [[ -n ${word[$n]} ]]; then 
-				n=$n+1; 
-			fi;
-		done;
-		echo "${word[0]}${word[1]}${word[2]}${word[3]}$(( $RANDOM % 9000 + 1000 ))";
-		unset n word len
-	fi
-}
-
 ## Find files in a directory that were modified a certain number of days ago
-recmod(){
-if [[ -z "$@" || "$1" == "-h" || "$1" == "--help" ]]; then
-    echo -e "\n Usage: recmod [-p <path>] [days|{sequence}]\n  Note: Paths with * in them need to be quoted\n"; return 0;
-elif [[ "$1" == "-p" ]]; then
-   DIR="$2"; shift; shift; else DIR="."; fi;
-for x in "$@"; do
-  echo "Files modified within $x day(s) or $((${x}*24)) hours ago";
-  find $DIR -type f -mtime $((${x}-1)) -exec ls -lath {} \; | grep -Ev '(var|log|cache|media|tmp|jpg|png|gif)' | column -t; echo;
-done
-}
-
-## Archive a particular target, adding time and date information
-archive(){
-echo; if [[ -z "$@" ]]; then echo -e " Usage: archive <target>\n"; return 0; fi
-FILE=$(getusr).$(hostname | cut -d. -f1)--$(echo "$1" | sed s/"\/"/"-"/g)-$(date +%Y.%m.%d-%H.%M).tgz;
-SIZE=$(du -sb "$1" | cut -f1); SIZEM=$(echo "scale=3;$SIZE/1024/1024" | bc); echo "Compressing ${SIZEM}M ... please be patient."
-if [[ -f /usr/bin/pv && -f /usr/bin/pigz ]]; then
-    tar -cf - "$1" | pv -s ${SIZE} | pigz -c > $FILE;
-elif [[ -f /usr/bin/pv ]]; then
-    tar -cf - "$1" | pv -s ${SIZE} | gzip -c > $FILE;
-else
-    echo "Sorry, no idea how long this will take ..."; tar -zcf  $FILE "$1";
-fi && echo -e "\nArchive created successfully!\n\n$PWD/\n$FILE\n";
-if [[ -f $FILE ]]; then
-    read -p "Chown file to [r]oot or [u]ser? [r/u]: " yn;
-    if [[ $yn = "r" ]]; then
-	U='root';
-    else U=$(getusr); fi;
-    chown $U. $FILE && echo -e "Archive owned to $U\n"; fi
+recmod () {
+	if [[ -z "$@" || "$1" == "-h" || "$1" == "--help" ]]; then
+			echo -e "\n Usage: recmod [-p <path>] [days|{sequence}]\n  Note: Paths with * in them need to be quoted\n"; return 0;
+	elif [[ "$1" == "-p" ]]; then
+		 DIR="$2"; 
+		 shift; 
+		 shift; 
+	 else 
+		 DIR="."; 
+	 fi;
+	for x in "$@"; do
+		echo "Files modified within $x day(s) or $((${x}*24)) hours ago";
+		find $DIR -type f -mtime $((${x}-1)) -exec ls -lath {} \; | grep -Ev '(var|log|cache|media|tmp|jpg|png|gif)' | column -t; 
+		echo;
+	done
 }
 
 ## Update ownership to the username for the PWD
-fixowner(){
-U=$(getusr)
-if [[ -z $2 ]]; then P='.'; else P=$2; fi
-case $1 in
-    -u|--user) owner="$U:$U" ;;
-    -a|--apache) owner="apache:$U" ;;
-    -r|--root) owner="root:root" ;;
-    *|-h|--help) echo -e "\n Usage: fixowner [option] [path]\n    -u | --user ..... Change ownership to $U:$U\n    -a | --apache ... Change ownership to apache:$U\n    -r | --root ..... Change ownership to root:root\n    -h | --help ..... Show this help output\n"; return 0 ;;
-esac
-chown -R $owner $P && echo -e "\n Files owned to $owner\n"
+fixowner () {
+	U=$(getusr)
+	if [[ -z $2 ]]; then 
+		P='.'; 
+	else 
+		P=$2; 
+	fi
+	case $1 in
+			-u|--user) owner="$U:$U" ;;
+			-a|--apache) owner="apache:$U" ;;
+			-r|--root) owner="root:root" ;;
+			*|-h|--help) echo -e "\n Usage: fixowner [option] [path]\n    -u | --user ..... Change ownership to $U:$U\n    -a | --apache ... Change ownership to apache:$U\n    -r | --root ..... Change ownership to root:root\n    -h | --help ..... Show this help output\n"; return 0 ;;
+	esac
+	chown -R $owner $P && echo -e "\n Files owned to $owner\n"
 }
 
 ## Set default permissions for files and directories
-fixperms(){
-if [[ $1 == '-h' || $1 == '--help' ]]; then echo -e "\n Usage: fixperms [path]\n    Set file permissions to 644 and folder permissions to 2755\n"; return 0; fi
-if [[ -n $1 ]]; then SITEPATH="$1"; else SITEPATH="."; fi
+fixperms () {
+	if [[ $1 == '-h' || $1 == '--help' ]]; then 
+		echo -e "\n Usage: fixperms [path]\n    Set file permissions to 644 and folder permissions to 2755\n"; 
+		return 0; 
+	fi
+	if [[ -n $1 ]]; then 
+		SITEPATH="$1"; 
+	else 
+		SITEPATH="."; 
+	fi
 
-if [[ $(grep -i ^loadmodule.*php[0-9]_module /etc/httpd/conf.d/php.conf) ]]; then perms="664"; else perms="644"; fi
-printf "\nFixing File Permissions ($perms) ... "; find $SITEPATH -type f -exec chmod $perms {} \;
-if [[ $(grep -i ^loadmodule.*php[0-9]_module /etc/httpd/conf.d/php.conf) ]]; then perms="2775"; else perms="2755"; fi
-printf "Fixing Directory Permissions ($perms) ... "; find $SITEPATH -type d -exec chmod $perms {} \;
-printf "Operation Completed.\n\n";
+	if [[ $(grep -i ^loadmodule.*php[0-9]_module /etc/httpd/conf.d/php.conf) ]]; then 
+		perms="664"; 
+	else 
+		perms="644"; 
+	fi
+	printf "\nFixing File Permissions ($perms) ... "; 
+	find $SITEPATH -type f -exec chmod $perms {} \;
+	if [[ $(grep -i ^loadmodule.*php[0-9]_module /etc/httpd/conf.d/php.conf) ]]; then 
+		perms="2775"; 
+	else 
+		perms="2755"; 
+	fi
+	printf "Fixing Directory Permissions ($perms) ... "; 
+	find $SITEPATH -type d -exec chmod $perms {} \;
+	printf "Operation Completed.\n\n";
 }
 
 ## Generate .ftpaccess file to create read only FTP user
 # http://www.proftpd.org/docs/howto/Limit.html
-ftpreadonly(){
-echo; if [[ -z "$1" ]]; then read -p "FTP Username: " U; else U="$1"; fi
-sudo -u $(getusr) echo -e "\n<Limit WRITE>\n  DenyUser $U\n</Limit>\n" >> .ftpaccess &&
-echo -e "\n.ftpaccess file has been updated.\n"
+ftpreadonly () {
+	echo; 
+	if [[ -z "$1" ]]; then 
+		read -p "FTP Username: " U; 
+	else 
+		U="$1"; 
+	fi
+	sudo -u $(getusr) echo -e "\n<Limit WRITE>\n  DenyUser $U\n</Limit>\n" >> .ftpaccess &&
+	echo -e "\n.ftpaccess file has been updated.\n"
 }
 
 compctl -W '-h --help -u --user -p --pass -l' htpasswdauth
 ## Generate or update .htpasswd file to add username
-htpasswdauth(){
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-echo -e "\n Usage: htpasswdauth [-u|--user username] [-p|--pass password] [-l length]\n    Ex: htpasswdauth -u username -p passwod\n    Ex: htpasswdauth -u username -l 5\n    Ex: htpasswdauth -u username\n"; return 0; fi
-if [[ -z $1 ]]; then echo; read -p "Username: " U; elif [[ $1 == '-u' || $1 == '--user' ]]; then U="$2"; fi;
-if [[ -z $3 ]]; then P=$(xkcd); elif [[ $3 == '-p' || $3 == '--pass' ]]; then P="$4"; elif [[ $3 == '-l' ]]; then P=$(xkcd -l $4); fi
-if [[ -f .htpasswd ]]; then sudo -u $(getusr) htpasswd -mb .htpasswd $U $P; else sudo -u $(getusr) htpasswd -cmb .htpasswd $U $P; fi;
-echo -e "\nUsername: $U\nPassword: $P\n";
+htpasswdauth () {
+	if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+		echo -e "\n Usage: htpasswdauth [-u|--user username] [-p|--pass password] [-l length]\n    Ex: htpasswdauth -u username -p passwod\n    Ex: htpasswdauth -u username -l 5\n    Ex: htpasswdauth -u username\n"; 
+		return 0; 
+	fi
+	if [[ -z $1 ]]; then 
+		echo; 
+		read -p "Username: " U; 
+	elif [[ $1 == '-u' || $1 == '--user' ]]; then 
+		U="$2"; 
+	fi;
+	if [[ -z $3 ]]; then 
+		P=$(xkcd); 
+	elif [[ $3 == '-p' || $3 == '--pass' ]]; then 
+		P="$4"; 
+	elif [[ $3 == '-l' ]]; then 
+		P=$(xkcd -l $4); 
+	fi
+	if [[ -f .htpasswd ]]; then 
+		sudo -u $(getusr) htpasswd -mb .htpasswd $U $P; 
+	else 
+		sudo -u $(getusr) htpasswd -cmb .htpasswd $U $P; 
+	fi;
+	echo -e "\nUsername: $U\nPassword: $P\n";
 }
 
 ## Create or add http-auth section for given .htaccess file
-htaccessauth(){
-sudo -u $(getusr) echo -e "\n# ----- Password Protection Section -----
-\nAuthUserFile $(pwd)/.htpasswd
-AuthGroupFile /dev/null
-AuthName \"Authorized Access Only\"
-AuthType Basic
-\nRequire valid-user
-\n# ----- Password Protection Section -----\n" >> .htaccess
+htaccessauth () {
+	sudo -u $(getusr) echo -e "\n# ----- Password Protection Section -----
+	\nAuthUserFile $(pwd)/.htpasswd
+	AuthGroupFile /dev/null
+	AuthName \"Authorized Access Only\"
+	AuthType Basic
+	\nRequire valid-user
+	\n# ----- Password Protection Section -----\n" >> .htaccess
 }
 
 ## Manage .htaccess black-lists, white-lists, and bot-lists.
-htlist(){
-# Parse through options/parameters
-if [[ $1 =~ -p ]]; then SITEPATH=$2; shift; shift; else SITEPATH='.'; fi; opt=$1
+htlist () {
+	# Parse through options/parameters
+	if [[ $1 =~ -p ]]; then 
+		SITEPATH=$2; 
+		shift; 
+		shift; 
+	else 
+		SITEPATH='.'; 
+	fi; 
+	opt=$1
 
-# Run correct for-loop given list type
-case $opt in
--b | --black)
-  if ! grep -Eq '.rder .llow,.eny' $SITEPATH/.htaccess &> /dev/null; then
-    sudo -u $(getusr) echo -e "Order Allow,Deny\nAllow From All" >> $SITEPATH/.htaccess &&
-    echo "$SITEPATH/.htaccess rules updated";
-  fi
-  shift; echo; for x in "$@"; do
-    sed -i "s/\b\(.rder .llow,.eny\)/\1\nDeny From $x/" $SITEPATH/.htaccess &&
-    echo "Deny From $x ... Added to $SITEPATH/.htaccess"
-  done; echo
-  ;;
+	# Run correct for-loop given list type
+	case $opt in
+	-b | --black)
+		if ! grep -Eq '.rder .llow,.eny' $SITEPATH/.htaccess &> /dev/null; then
+			sudo -u $(getusr) echo -e "Order Allow,Deny\nAllow From All" >> $SITEPATH/.htaccess &&
+			echo "$SITEPATH/.htaccess rules updated";
+		fi
+		shift; 
+		echo; 
+		for x in "$@"; do
+			sed -i "s/\b\(.rder .llow,.eny\)/\1\nDeny From $x/" $SITEPATH/.htaccess &&
+			echo "Deny From $x ... Added to $SITEPATH/.htaccess"
+		done; 
+		echo
+		;;
 
--w | --white)
-  if ! grep -Eq '.rder .eny,.llow' $SITEPATH/.htaccess &> /dev/null; then
-    sudo -u $(getusr) echo -e "Order Deny,Allow\nDeny From All" >> $SITEPATH/.htaccess &&
-    echo "$SITEPATH/.htaccess rules updated";
-  fi
-  shift; echo; for x in "$@"; do
-    sed -i "s/\b\(.rder .eny,.llow\)/\1\nAllow From $x/" $SITEPATH/.htaccess &&
-    echo "Allow From $x ... Added to $SITEPATH/.htaccess"
-  done; echo
-  ;;
+	-w | --white)
+		if ! grep -Eq '.rder .eny,.llow' $SITEPATH/.htaccess &> /dev/null; then
+			sudo -u $(getusr) echo -e "Order Deny,Allow\nDeny From All" >> $SITEPATH/.htaccess &&
+			echo "$SITEPATH/.htaccess rules updated";
+		fi
+		shift; 
+		echo; 
+		for x in "$@"; do
+			sed -i "s/\b\(.rder .eny,.llow\)/\1\nAllow From $x/" $SITEPATH/.htaccess &&
+			echo "Allow From $x ... Added to $SITEPATH/.htaccess"
+		done; 
+		echo
+		;;
 
--r | --robot)
-  if grep -Eq '.rder .llow,.eny' $SITEPATH/.htaccess &> /dev/null; then
-  sed -i 's/\b\(.rder .llow,.eny\)/\1\nDeny from env=bad_bot/' $SITEPATH/.htaccess
-  else sudo -u $(getusr) echo -e "\nOrder Allow,Deny\nDeny from env=bad_bot\nAllow from All" >> $SITEPATH/.htaccess && echo "$SITEPATH/.htaccess rules updated."; fi
+	-r | --robot)
+		if grep -Eq '.rder .llow,.eny' $SITEPATH/.htaccess &> /dev/null; then
+		sed -i 's/\b\(.rder .llow,.eny\)/\1\nDeny from env=bad_bot/' $SITEPATH/.htaccess
+		else 
+			sudo -u $(getusr) echo -e "\nOrder Allow,Deny\nDeny from env=bad_bot\nAllow from All" >> $SITEPATH/.htaccess && echo "$SITEPATH/.htaccess rules updated."; 
+		fi
+		shift; 
+		echo
+		echo -e "\n# ----- Block Bad Bots Section -----\n" >> $SITEPATH/.htaccess
+		for x in "$@"; do 
+			echo "BrowserMatchNoCase $x bad_bot" | tee -a $SITEPATH/.htaccess; 
+		done
+		echo -e "\n# ----- Block Bad Bots Section -----\n" >> $SITEPATH/.htaccess; 
+		echo
+		;;
 
-  shift; echo
-  echo -e "\n# ----- Block Bad Bots Section -----\n" >> $SITEPATH/.htaccess
-  for x in "$@"; do echo "BrowserMatchNoCase $x bad_bot" | tee -a $SITEPATH/.htaccess; done
-  echo -e "\n# ----- Block Bad Bots Section -----\n" >> $SITEPATH/.htaccess; echo
-  ;;
+	-h|--help|*)
+		echo -e "\n  Usage: htlist [options] <listType> <IP1> <IP2> ...\n
+			Options:
+			-p | --path .... Path to .htaccess file
+			-h | --help .... Print this help and quit
 
--h|--help|*)
-  echo -e "\n  Usage: htlist [options] <listType> <IP1> <IP2> ...\n
-    Options:
-    -p | --path .... Path to .htaccess file
-    -h | --help .... Print this help and quit
+			List Types:
+			-b | --black ... Blacklist IPs
+			-w | --white ... Whitelist IPs
+			-r | --robot ... Block UserAgent\n";
+			return 0;
+		;;
 
-    List Types:
-    -b | --black ... Blacklist IPs
-    -w | --white ... Whitelist IPs
-    -r | --robot ... Block UserAgent\n";
-    return 0;
-  ;;
-
-esac
+	esac
 }
 
 ## Generate nexinfo.php to view php info in browser
-nexinfo(){
-sudo -u "$(getusr)" echo '<?php phpinfo(); ?>' > nexinfo.php
-echo -e "\nhttp://$(pwd | sed 's:^/chroot::' | cut -d/ -f4-)/nexinfo.php created successfully.\n" | sed 's/html\///';
+nexinfo () {
+	sudo -u "$(getusr)" echo '<?php phpinfo(); ?>' > nexinfo.php
+	echo -e "\nhttp://$(pwd | sed 's:^/chroot::' | cut -d/ -f4-)/nexinfo.php created successfully.\n" | sed 's/html\///';
 }
 
 ## System resource usage by account
-sysusage(){
-echo; colsort="4"; printf "%-10s %10s %10s %10s %10s\n" "User" "Mem (MB)" "Process" "CPU(%)" "MEM(%)"; echo "$(dash 54)"
-ps aux | grep -v ^USER | awk '{ mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' | sort -nrk$colsort | head; echo
+sysusage () {
+	echo; 
+	colsort="4"; 
+	printf "%-10s %10s %10s %10s %10s\n" "User" "Mem (MB)" "Process" "CPU(%)" "MEM(%)"; 
+	echo "$(dash 54)"
+	ps aux | grep -v ^USER | awk '{ mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' | sort -nrk$colsort | head; 
+	echo
 }
 
 # Lookup Siteworx account details
-acctdetail(){
+acctdetail () {
   nodeworx -u -n -c Siteworx -a querySiteworxAccountDetails --domain $(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')\
   | sed 's:\([a-zA-Z]\) \([a-zA-Z]\):\1_\2:g;s:\b1\b:YES:g;s:\b0\b:NO:g' | column -t
 }
 
 ## Add an IP to a Siteworx account
-addip(){ nodeworx -u -n -c Siteworx -a addIp --domain $(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}') --ipv4 $1; }
+addip () { 
+	nodeworx -u -n -c Siteworx -a addIp --domain $(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}') --ipv4 $1; 
+}
 
 ## Enable Siteworx backups for an account
-addbackups(){ nodeworx -u -n -c Siteworx -a edit --domain $(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}') --OPT_BACKUP 1; }
+addbackups () { 
+	nodeworx -u -n -c Siteworx -a edit --domain $(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}') --OPT_BACKUP 1; 
+}
 
 ## Adjust user quota on the fly using Nodeworx CLI
 bumpquota(){
-if [[ -z $@ || $1 =~ -h ]]; then echo -e "\n Usage: bumpquota <username> <newquota>\n  Note: <username> can be '.' to get user from PWD\n"; return 0;
-elif [[ $1 =~ ^[a-z].*$ ]]; then U=$1; shift;
-elif [[ $1 == '.' ]]; then U=$(getusr); shift; fi
-newQuota=$1; primaryDomain=$(~iworx/bin/listaccounts.pex | grep $U | awk '{print $2}')
-nodeworx -u -n -c Siteworx -a edit --domain $primaryDomain --OPT_STORAGE $newQuota &&
-echo -e "\nDisk Quota for $U has been set to $newQuota MB\n"; checkquota -u $U
+	if [[ -z $@ || $1 =~ -h ]]; then 
+		echo -e "\n Usage: bumpquota <username> <newquota>\n  Note: <username> can be '.' to get user from PWD\n"; 
+		return 0;
+	elif [[ $1 =~ ^[a-z].*$ ]]; then 
+		U=$1; 
+		shift;
+	elif [[ $1 == '.' ]]; then 
+		U=$(getusr); 
+		shift; 
+	fi
+	newQuota=$1; 
+	primaryDomain=$(~iworx/bin/listaccounts.pex | grep $U | awk '{print $2}')
+	nodeworx -u -n -c Siteworx -a edit --domain $primaryDomain --OPT_STORAGE $newQuota &&
+	echo -e "\nDisk Quota for $U has been set to $newQuota MB\n"; 
+	checkquota -u $U
 }
 
 compctl -W '-h --help -a --all -l --large -u --user' checkquota
 ## Check users quota usage
-checkquota(){
-_quotaheader(){ echo; printf "%8s %12s %14s %14s\n" "Username" "Used(%)" "Used(G)" "Total(G)"; dash 51; }
-_quotausage(){ printf "\n%-10s" "$1"; quota -g $1 2> /dev/null | tail -1 | awk '{printf "%10.3f%%  %10.3f GB  %10.3f GB",($2/$3*100),($2/1000/1024),($3/1000/1024)}' 2> /dev/null; }
-case $1 in
-  -h|--help   ) echo -e "\n Usage: checkquota [--user <username>|--all|--large]\n   -u|--user user1 [user2..] .. Show quota usage for a user or list of users \n   -a|--all ................... List quota usage for all users\n   -l|--large ................. List all users at or above 80% of quota\n";;
-  -a|--all    ) _quotaheader; for x in $(laccounts); do _quotausage $x; done | sort; echo ;;
-  -l|--large  ) _quotaheader; echo; for x in $(laccounts); do _quotausage $x; done | sort | grep -E '[8,9][0-9]\..*%|1[0-9]{2}\..*%'; echo ;;
-  -u|--user|* ) _quotaheader; shift; if [[ -z "$@" ]]; then _quotausage $(getusr); else for x in "$@"; do _quotausage $x; done; fi; echo; echo ;;
-esac
+checkquota () {
+	_quotaheader () { 
+		echo; 
+		printf "%8s %12s %14s %14s\n" "Username" "Used(%)" "Used(G)" "Total(G)"; 
+		dash 51; 
+	}
+	_quotausage () { 
+		printf "\n%-10s" "$1"; 
+		quota -g $1 2> /dev/null | tail -1 | awk '{printf "%10.3f%%  %10.3f GB  %10.3f GB",($2/$3*100),($2/1000/1024),($3/1000/1024)}' 2> /dev/null; 
+	}
+	case $1 in
+		-h|--help   ) 
+			echo -e "\n Usage: checkquota [--user <username>|--all|--large]\n   -u|--user user1 [user2..] .. Show quota usage for a user or list of users \n   -a|--all ................... List quota usage for all users\n   -l|--large ................. List all users at or above 80% of quota\n";;
+		-a|--all    ) 
+			_quotaheader; 
+			for x in $(laccounts); do 
+				_quotausage $x; 
+			done | sort; echo ;;
+		-l|--large  ) 
+			_quotaheader; 
+			echo; 
+			for x in $(laccounts); do 
+				_quotausage $x; 
+			done | sort | grep -E '[8,9][0-9]\..*%|1[0-9]{2}\..*%'; 
+			echo ;;
+		-u|--user|* ) 
+			_quotaheader; 
+			shift; 
+			if [[ -z "$@" ]]; then 
+				_quotausage $(getusr); 
+			else 
+				for x in "$@"; do 
+					_quotausage $x; 
+				done; 
+			fi; 
+			echo; 
+			echo ;;
+	esac
 }
 
 ## Show backupserver and disk usage for current home directory
-backupsvr(){
-checkquota;
-NEW_IPADDR=$(awk -F/ '/server.allow/ {print $NF}' /usr/sbin/r1soft/log/cdp.log | tail -1 | tr -d \' | sed 's/10\.17\./178\.17\./g; s/10\.1\./103\.1\./g; s/10\.240\./192\.240\./g');
-ALL_IPADDR=$(awk -F/ '/server.allow/ {print $NF}' /usr/sbin/r1soft/log/cdp.log | sort | uniq | tr -d \' | sed 's/10\.17\./178\.17\./g; s/10\.1\./103\.1\./g; s/10\.240\./192\.240\./g');
-if [[ $NEW_IPADDR =~ ^172\. ]]; then INTERNAL=$(curl -s http://mdsc.info/r1bs-internal); fi
+backupsvr () {
+	checkquota;
+	NEW_IPADDR=$(awk -F/ '/server.allow/ {print $NF}' /usr/sbin/r1soft/log/cdp.log | tail -1 | tr -d \' | sed 's/10\.17\./178\.17\./g; s/10\.1\./103\.1\./g; s/10\.240\./192\.240\./g');
+	ALL_IPADDR=$(awk -F/ '/server.allow/ {print $NF}' /usr/sbin/r1soft/log/cdp.log | sort | uniq | tr -d \' | sed 's/10\.17\./178\.17\./g; s/10\.1\./103\.1\./g; s/10\.240\./192\.240\./g');
+	if [[ $NEW_IPADDR =~ ^172\. ]]; then 
+		INTERNAL=$(curl -s http://mdsc.info/r1bs-internal); 
+	fi
 
-_printbackupsvr(){
-  if [[ $1 =~ ^172\. ]]; then
-    for x in $INTERNAL; do echo -n $x | awk -F_ "/$1/"'{printf "R1Soft IP..: https://"$3":8001\n" "R1Soft rDNS: https://"$2":8001\n"}'; done
-  else
-    IP=$1; RDNS=$(dig +short -x $1 2> /dev/null);
-    echo "R1Soft IP..: https://${IP}:8001";
-    if [[ -n $RDNS ]]; then echo "R1Soft rDNS: https://$(echo $RDNS | sed 's/\.$//'):8001"; fi;
-  fi
-  echo
-}
+	_printbackupsvr () {
+		if [[ $1 =~ ^172\. ]]; then
+			for x in $INTERNAL; do 
+				echo -n $x | awk -F_ "/$1/"'{printf "R1Soft IP..: https://"$3":8001\n" "R1Soft rDNS: https://"$2":8001\n"}'; 
+			done
+		else
+			IP=$1; 
+			RDNS=$(dig +short -x $1 2> /dev/null);
+			echo "R1Soft IP..: https://${IP}:8001";
+			if [[ -n $RDNS ]]; then 
+				echo "R1Soft rDNS: https://$(echo $RDNS | sed 's/\.$//'):8001"; 
+			fi;
+		fi
+		echo
+	}
 
-FIRSTSEEN=$(grep $(echo $NEW_IPADDR | cut -d. -f2-) /usr/sbin/r1soft/log/cdp.log | head -1 | awk '{print $1}');
-echo "----- Current R1Soft Server ----- $FIRSTSEEN] $(dash 32)"; _printbackupsvr $NEW_IPADDR
+	FIRSTSEEN=$(grep $(echo $NEW_IPADDR | cut -d. -f2-) /usr/sbin/r1soft/log/cdp.log | head -1 | awk '{print $1}');
+	echo "----- Current R1Soft Server ----- $FIRSTSEEN] $(dash 32)"; 
+	_printbackupsvr $NEW_IPADDR
 
-for IPADDR in $ALL_IPADDR; do
-  if [[ $IPADDR != $NEW_IPADDR ]]; then
-    LASTSEEN=$(grep $(echo $IPADDR | cut -d. -f2-) /usr/sbin/r1soft/log/cdp.log | tail -1 | awk '{print $1}');
-    echo "----- Previous R1Soft Server ----- $LASTSEEN] $(dash 31)"; _printbackupsvr $IPADDR
-  fi;
-done
+	for IPADDR in $ALL_IPADDR; do
+		if [[ $IPADDR != $NEW_IPADDR ]]; then
+			LASTSEEN=$(grep $(echo $IPADDR | cut -d. -f2-) /usr/sbin/r1soft/log/cdp.log | tail -1 | awk '{print $1}');
+			echo "----- Previous R1Soft Server ----- $LASTSEEN] $(dash 31)"; _printbackupsvr $IPADDR
+		fi;
+	done
 }
 
 ## Lookup the DNS Nameservers on the host
-nameserver(){ echo; for x in $(grep ns[1-2] ~iworx/iworx.ini | cut -d\" -f2;); do echo "$x ($(dig +short $x))"; done; echo; }
+nameserver () { 
+	echo; 
+	for x in $(grep ns[1-2] ~iworx/iworx.ini | cut -d\" -f2;); do 
+		echo "$x ($(dig +short $x))"; 
+	done; 
+	echo; 
+}
 
 ## Quick summary of domain DNS info
-ddns(){
-if [[ -z "$@" ]]; then read -p "Domain Name: " D; else D="$@"; fi
-for x in $(echo $D | sed 's/\// /g'); do echo -e "\nDNS Summary: $x\n$(dash 79)";
-for y in a aaaa ns mx txt soa; do dig +time=2 +tries=2 +short $y $x +noshort;
-if [[ $y == 'ns' ]]; then dig +time=2 +tries=2 +short $(dig +short ns $x) +noshort | grep -v root; fi; done;
-dig +short -x $(dig +time=2 +tries=2 +short $x) +noshort; echo; done
+ddns () {
+	if [[ -z "$@" ]]; then 
+		read -p "Domain Name: " D; 
+	else 
+		D="$@"; 
+	fi
+	for x in $(echo $D | sed 's/\// /g'); do 
+		echo -e "\nDNS Summary: $x\n$(dash 79)";
+		for y in a aaaa ns mx txt soa; do 
+			dig +time=2 +tries=2 +short $y $x +noshort;
+			if [[ $y == 'ns' ]]; then 
+				dig +time=2 +tries=2 +short $(dig +short ns $x) +noshort | grep -v root; 
+			fi; 
+		done;
+		dig +short -x $(dig +time=2 +tries=2 +short $x) +noshort; 
+		echo; 
+	done
 }
 
 ## List server IPs, and all domains configured on them.
-domainips(){
-echo; for I in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.'); do
-    printf "  ${BRIGHT}${YELLOW}%-15s${NORMAL}  " "$I";
-    D=$(grep -l $I /etc/httpd/conf.d/vhost_[^000_]*.conf | cut -d_ -f2 | sed 's/.conf$//');
-    for x in $D; do printf "$x "; done; echo;
-done; echo
+domainips () {
+	echo; 
+	for I in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.'); do
+		printf "  ${BRIGHT}${YELLOW}%-15s${NORMAL}  " "$I";
+		D=$(grep -l $I /etc/httpd/conf.d/vhost_[^000_]*.conf | cut -d_ -f2 | sed 's/.conf$//');
+		for x in $D; do 
+			printf "$x "; 
+		done; 
+		echo;
+	done; 
+	echo
 }
 
 ## Find IPs in use by a Siteowrx account
-accountips(){ domaincheck -a $1; }
+accountips () { 
+	domaincheck -a $1; 
+}
 
 ## Find IPs in use by a Reseller account
-resellerips(){ domaincheck -r $1; }
+resellerips () { 
+	domaincheck -r $1; 
+}
 
 ## Match secondary domains to IPs on the server using vhost files
-domaincheck(){
-vhost="$(echo /etc/httpd/conf.d/vhost_[^000]*.conf)"; sub='';
+domaincheck () {
+	vhost="$(echo /etc/httpd/conf.d/vhost_[^000]*.conf)"; sub='';
 
-case $1 in
-  -a) if [[ -n $2 ]]; then sub=$2; else sub=''; fi
-      vhost="$(grep -l $(getusr) /etc/httpd/conf.d/vhost_[^000]*.conf)" ;;
-  -r) if [[ -z $2 ]]; then read -p "ResellerID: " r_id; else r_id=$2; fi;
-      vhost=$(for r_user in $(nodeworx -unc Siteworx -a listAccounts | awk "(\$5 ~ /^$r_id$/)"'{print $2}'); do grep -l $r_user /etc/httpd/conf.d/vhost_[^000]*.conf; done | sort | uniq) ;;
-  -v) FMT=" %-15s  %-15s  %3s  %3s  %3s  %s\n"
-      HLT="${BRIGHT}${RED} %-15s  %-15s  %3s  %3s  %3s  %s${NORMAL}\n"
-      #printf "$FMT" " Server IP" " Live IP" "SSL" "FPM" "TMP" " Domain"
-      #printf "$FMT" "$(dash 15)" "$(dash 15)" "---" "---" "---" "$(dash 44)"
-      ;;
-esac; echo
+	case $1 in
+		-a) 
+			if [[ -n $2 ]]; then 
+				sub=$2; 
+			else 
+				sub=''; 
+			fi
+			vhost="$(grep -l $(getusr) /etc/httpd/conf.d/vhost_[^000]*.conf)" ;;
 
-FMT=" %-15s  %-15s  %3s  %3s  %s\n"
-HLT="${BRIGHT}${RED} %-15s  %-15s  %3s  %3s  %s${NORMAL}\n"
-printf "$FMT" " Server IP" " Live IP" "SSL" "FPM" " Domain"
-printf "$FMT" "$(dash 15)" "$(dash 15)" "---" "---" "$(dash 44)"
+		-r)
+			if [[ -z $2 ]]; then 
+				read -p "ResellerID: " r_id; 
+			else 
+				r_id=$2; 
+			fi;
+			vhost=$(for r_user in $(nodeworx -unc Siteworx -a listAccounts | awk "(\$5 ~ /^$r_id$/)"'{print $2}'); do grep -l $r_user /etc/httpd/conf.d/vhost_[^000]*.conf; done | sort | uniq) ;;
 
-for x in $vhost; do
-   D=$(basename $x .conf | cut -d_ -f2);
-   V=$(awk '/.irtual.ost/ {print $2}' $x | head -1 | cut -d: -f1);
-   I=$(dig +short +time=1 +tries=1 ${sub}$D | grep -E '^[0-9]{1,3}\.' | head -1);
-   S=$(if grep :443 $x &> /dev/null; then echo SSL; fi);
-   F=$(if grep MAGE_RUN $x &> /dev/null; then echo FIX; fi);
-   if [[ "$I" != "$V" ]];
-   then printf "$HLT" "$V" "$I" "${S:- - }" "${F:- - }" "${sub}$D";
-   else printf "$FMT" "$V" "$I" "${S:- - }" "${F:- - }" "${sub}$D"; fi
- done; echo
+		-v) 
+			FMT=" %-15s  %-15s  %3s  %3s  %3s  %s\n"
+			HLT="${BRIGHT}${RED} %-15s  %-15s  %3s  %3s  %3s  %s${NORMAL}\n";;
+	esac; 
+	echo
+
+	FMT=" %-15s  %-15s  %3s  %3s  %s\n"
+	HLT="${BRIGHT}${RED} %-15s  %-15s  %3s  %3s  %s${NORMAL}\n"
+	printf "$FMT" " Server IP" " Live IP" "SSL" "FPM" " Domain"
+	printf "$FMT" "$(dash 15)" "$(dash 15)" "---" "---" "$(dash 44)"
+
+	for x in $vhost; do
+		D=$(basename $x .conf | cut -d_ -f2);
+		V=$(awk '/.irtual.ost/ {print $2}' $x | head -1 | cut -d: -f1);
+		I=$(dig +short +time=1 +tries=1 ${sub}$D | grep -E '^[0-9]{1,3}\.' | head -1);
+		S=$(if grep :443 $x &> /dev/null; then echo SSL; fi);
+		F=$(if grep MAGE_RUN $x &> /dev/null; then echo FIX; fi);
+		if [[ "$I" != "$V" ]]; then 
+			printf "$HLT" "$V" "$I" "${S:- - }" "${F:- - }" "${sub}$D";
+		else 
+			printf "$FMT" "$V" "$I" "${S:- - }" "${F:- - }" "${sub}$D"; 
+		fi
+	done; 
+	echo
 }
 
 ## Find IPs that are not configured in any vhost files
