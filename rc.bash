@@ -494,247 +494,424 @@ domaincheck () {
 }
 
 ## Find IPs that are not configured in any vhost files
-freeips(){
-echo; for x in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.|^10\.|^172\.'); do
-  printf "\n%-15s " "$x"; grep -l $x /etc/httpd/conf.d/vhost_[^000_]*.conf 2> /dev/null;
-done | grep -v \.conf$ | column -t; echo
+freeips () {
+	echo; 
+	for x in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.|^10\.|^172\.'); do
+		printf "\n%-15s " "$x"; grep -l $x /etc/httpd/conf.d/vhost_[^000_]*.conf 2> /dev/null;
+	done | grep -v \.conf$ | column -t; 
+	echo
 }
 
 ## Check if gzip is working for domain(s)
-chkgzip(){
-echo; if [[ -z "$@" ]]; then read -p "Domain name(s): " DNAME; else DNAME="$@"; fi
-for x in "$DNAME"; do curl -I -H 'Accept-Encoding: gzip,deflate' $x; done; echo
+chkgzip () {
+	echo; 
+	if [[ -z "$@" ]]; then 
+		read -p "Domain name(s): " DNAME; 
+	else 
+		DNAME="$@"; 
+	fi
+	for x in "$DNAME"; do 
+		curl -I -H 'Accept-Encoding: gzip,deflate' $x; 
+	done; 
+	echo
 }
 
 ## Check Time To First Byte with curl
-ttfb(){
-if [[ -z "$1" || "$1" == "-h" || "$1" == "--help" ]]; then echo -e "\n Usage: ttfb [mag] <domain>\n"; return 0; fi;
+ttfb () {
+	if [[ -z "$1" || "$1" == "-h" || "$1" == "--help" ]]; then 
+		echo -e "\n Usage: ttfb [mag] <domain>\n"; 
+		return 0; 
+	fi;
 
-_timetofirstbyte(){ curl -so /dev/null -w "HTTP: %{http_code} Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} Redirect URL: %{redirect_url}\n" "$1"; }
-if [[ "$1" == "m" || "$1" == "mag" ]]; then if [[ -z "$2" ]]; then read -p "Domain: " D; else D="$2"; fi;
-for x in index.php robots.txt; do echo -e "\n$D/$x"; _timetofirstbyte "$D/$x"; done;
-else D="$1"; echo; _timetofirstbyte "$D"; fi; echo
+	_timetofirstbyte () { 
+		curl -so /dev/null -w "HTTP: %{http_code} Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} Redirect URL: %{redirect_url}\n" "$1"; 
+	}
+	if [[ "$1" == "m" || "$1" == "mag" ]]; then 
+		if [[ -z "$2" ]]; then 
+			read -p "Domain: " D; 
+		else 
+			D="$2"; 
+		fi;
+		for x in index.php robots.txt; do 
+			echo -e "\n$D/$x"; _timetofirstbyte "$D/$x"; 
+		done;
+	else 
+		D="$1"; 
+		echo; 
+		_timetofirstbyte "$D"; 
+	fi; 
+	echo
 }
 
 ## CD to document root in vhost containing the given domain
-cdomain(){
-if [[ -z "$@" ]]; then echo -e "\n  Usage: cdomain <domain.tld>\n"; return 0; fi
-vhost=$(grep -l " $(echo $1 | sed 's/\(.*\)/\L\1/g')" /etc/httpd/conf.d/vhost_[^000]*.conf)
-if [[ -n $vhost ]]; then cd $(awk '/DocumentRoot/ {print $2}' $vhost | head -1); pwd;
-else echo -e "\nCould not find $1 in the vhost files!\n"; fi
+cdomain () {
+	if [[ -z "$@" ]]; then 
+		echo -e "\n  Usage: cdomain <domain.tld>\n"; 
+		return 0; 
+	fi
+	vhost=$(grep -l " $(echo $1 | sed 's/\(.*\)/\L\1/g')" /etc/httpd/conf.d/vhost_[^000]*.conf)
+	if [[ -n $vhost ]]; then 
+		cd $(awk '/DocumentRoot/ {print $2}' $vhost | head -1); 
+		pwd;
+	else 
+		echo -e "\nCould not find $1 in the vhost files!\n"; 
+	fi
 }
 
 ## Attempt to list Secondary Domains on an account
-ldomains(){
-DIR=$PWD; cd /home/$(getusr); for x in */html; do echo $x | sed 's/\/html//g'; done; cd $DIR
+ldomains () {
+	DIR=$PWD; 
+	cd /home/$(getusr); 
+	for x in */html; do 
+		echo $x | sed 's/\/html//g'; 
+	done; 
+	cd $DIR
 }
 
 ## Edit a list of vhosts in a loop for adding temp fixes
 tempfix(){
-for x in $(echo "$@" | sed 's/\// /g'); do nano /etc/httpd/conf.d/vhost_$x.conf; done; httpd -t && service httpd reload
+	for x in $(echo "$@" | sed 's/\// /g'); do 
+		vim /etc/httpd/conf.d/vhost_$x.conf; 
+	done; 
+	httpd -t && service httpd reload
 }
 
 ## List the usernames for all accounts on the server
-laccounts(){ ~iworx/bin/listaccounts.pex | awk '{print $1}'; }
+laccounts () { 
+	~iworx/bin/listaccounts.pex | awk '{print $1}'; 
+}
 
 ## List Sitworx accouts sorted by Reseller
-lreseller(){
-( nodeworx -u -n -c Siteworx -a listAccounts | sed 's/ /_/g' | awk '{print $5,$2,$10}';
+lreseller () {
+	( nodeworx -u -n -c Siteworx -a listAccounts | sed 's/ /_/g' | awk '{print $5,$2,$10}';
   nodeworx -u -n -c Reseller -a listResellers | sed 's/ /_/g' | awk '{print $1,"0.Reseller",$3}' )\
   | sort -n | column -t | sed 's/\(.*0\.Re.*\)/\n\1/' | grep -Ev '^1 '; echo
 }
 
 ## List the daily snapshots for a database to see the dates/times on the snapshots
-lsnapshots(){
-echo; if [[ -z "$1" ]]; then read -p "Database Name: " DBNAME; else DBNAME="$1"; fi
-ls -lah /home/.snapshots/daily.*/localhost/mysql/$DBNAME.sql.gz; echo
+lsnapshots () {
+	echo; 
+	if [[ -z "$1" ]]; then 
+		read -p "Database Name: " DBNAME; 
+	else 
+		DBNAME="$1"; 
+	fi
+	ls -lah /home/.snapshots/daily.*/localhost/mysql/$DBNAME.sql.gz;
+	echo
 }
 
 ## Backup, and restore a database from a snapshot file
-restoredb(){
-echo; if [[ -z "$1" ]]; then read -p "Backup filename: " DBFILE; else DBFILE="$1"; fi;
+restoredb () {
+	echo; 
+	if [[ -z "$1" ]]; then 
+		read -p "Backup filename: " DBFILE; 
+	else 
+		DBFILE="$1"; 
+	fi;
 
-DBNAME=$(echo $DBFILE | cut -d. -f1);
-echo "Creating current $DBNAME backup ..."; mdz $DBNAME;
-echo "Dropping current $DBNAME ..."; m -e"drop database $DBNAME";
-echo "Creating empty $DBNAME ..."; m -e"create database $DBNAME";
-echo "Importing backup $DBFILE ...";
+	DBNAME=$(echo $DBFILE | cut -d. -f1);
+	echo "Creating current $DBNAME backup ..."; 
+	mdz $DBNAME;
+	
+	echo "Dropping current $DBNAME ..."; 
+	m -e"drop database $DBNAME";
+	
+	echo "Creating empty $DBNAME ..."; 
+	m -e"create database $DBNAME";
+	
+	echo "Importing backup $DBFILE ...";
 
-if [[ $DBFILE =~ \.gz$ ]]; then SIZE=$(gzip -l $DBFILE | awk 'END {print $2}');
-elif [[ $DBFILE =~ \.zip$ ]]; then SIZE=$(unzip -l $DBFILE | awk '{print $1}'); fi
+	if [[ $DBFILE =~ \.gz$ ]]; then 
+		SIZE=$(gzip -l $DBFILE | awk 'END {print $2}');
+	elif [[ $DBFILE =~ \.zip$ ]]; then 
+		SIZE=$(unzip -l $DBFILE | awk '{print $1}'); 
+	fi
 
-if [[ -f /usr/bin/pv ]]; then zcat -f $DBFILE | pv -s $SIZE | m $DBNAME;
-else zcat -f $DBFILE | m $DBNAME; fi;
+	if [[ -f /usr/bin/pv ]]; then 
+		zcat -f $DBFILE | pv -s $SIZE | m $DBNAME;
+	else 
+		zcat -f $DBFILE | m $DBNAME; 
+	fi;
 
-if [[ -d /home/mysql/$DBNAME/ ]]; then echo "Fixing Ownership on new DB ..."; chown -R mysql:$(echo $DBNAME | cut -d_ -f1) /home/mysql/$DBNAME/; fi
-echo
+	if [[ -d /home/mysql/$DBNAME/ ]]; then 
+		echo "Fixing Ownership on new DB ..."; 
+		chown -R mysql:$(echo $DBNAME | cut -d_ -f1) /home/mysql/$DBNAME/; 
+	fi
+	echo
 }
 
 ## Kill SELECT or Sleep queries on a server, potentialy for just one username
 killqueries(){
-_querieslog(){ filename="mytop-dump--$(date +%Y.%m.%d-%H.%M).dump";
-	mytop -b --nocolor > ~/"$filename"; echo -e "\n~/$filename created ...\nBegin killing queries ..."; }
-case $1 in
-sel|select) _querieslog; x=$(awk '/SELECT/ {print $1}' ~/"$filename");
-	for i in $x; do echo "Killing: $i"; m -e"kill $i"; done; echo -e "Operation completed.\n" ;;
-sle|sleep) _querieslog; x=$(awk '/Sleep/ {print $1}' ~/"$filename");
-	for i in $x; do echo "Killing $i"; m -e"kill $i"; done; echo -e "Operation completed.\n" ;;
--h|--help|*) echo -e "\n Usage: killqueries [sleep|select]\n" ;;
-esac
+	_querieslog () { 
+		filename="mytop-dump--$(date +%Y.%m.%d-%H.%M).dump";
+		mytop -b --nocolor > ~/"$filename"; 
+		echo -e "\n~/$filename created ...\nBegin killing queries ..."; 
+	}
+	case $1 in
+		sel|select) 
+			_querieslog; 
+			x=$(awk '/SELECT/ {print $1}' ~/"$filename");
+			for i in $x; do 
+				echo "Killing: $i"; 
+				m -e"kill $i"; 
+			done; 
+			echo -e "Operation completed.\n" ;;	
+		sle|sleep) 
+			_querieslog; 
+			x=$(awk '/Sleep/ {print $1}' ~/"$filename");
+			for i in $x; do 
+				echo "Killing $i"; 
+				m -e"kill $i"; 
+			done; 
+			echo -e "Operation completed.\n" ;;
+		-h|--help|*) 
+			echo -e "\n Usage: killqueries [sleep|select]\n" ;;
+	esac
 }
 
 ## Create user functions for memcached socket configured in local.xml
-memcachedalias(){
-if [[ -z $1 || $1 == '-h' || $1 == '--help' ]]; then
-    echo -e "\n Usage: memcachealias [sitepath] [name]\n"
-elif [[ -f $1/app/etc/local.xml ]]; then
-    if [[ -n $2 ]]; then NAME="_$2"; else NAME='_memcached'; fi
-    U=$(getusr);
-    CACHE_SOCKET=$(grep -Eo '\/var.*_cache\.sock' $1/app/etc/local.xml | head -1)
-    SESSIONS_SOCKET=$(grep -Eo '\/var.*_sessions\.sock' $1/app/etc/local.xml | head -1)
+memcachedalias () {
+	if [[ -z $1 || $1 == '-h' || $1 == '--help' ]]; then
+		echo -e "\n Usage: memcachealias [sitepath] [name]\n"
+	elif [[ -f $1/app/etc/local.xml ]]; then
+		if [[ -n $2 ]]; then 
+			NAME="_$2"; 
+		else 
+			NAME='_memcached'; 
+		fi
+		U=$(getusr);
+		CACHE_SOCKET=$(grep -Eo '\/var.*_cache\.sock' $1/app/etc/local.xml | head -1)
+		SESSIONS_SOCKET=$(grep -Eo '\/var.*_sessions\.sock' $1/app/etc/local.xml | head -1)
 
-    echo; for x in flush_all stats; do
-        if [[ -n $SESSIONS_SOCKET ]]; then
-            echo "Adding ${x}${NAME}_cache to /home/$U/.bashrc ... ";
-            sudo -u $U echo "${x}${NAME}_cache(){ echo $x \$@ | nc -U $CACHE_SOCKET; }" >> /home/$U/.bashrc;
-            echo "Adding ${x}${NAME}_sessions to /home/$U/.bashrc ... ";
-            sudo -u $U echo "${x}${NAME}_sessions(){ echo $x \$@ | nc -U $SESSIONS_SOCKET; }" >> /home/$U/.bashrc;
-        else
-            echo "Adding ${x}${NAME}_cache to /home/$U/.bashrc ... ";
-	    sudo -u $U echo "${x}${NAME}_cache(){ echo $x \$@ | nc -U $CACHE_SOCKET; }" >> /home/$U/.bashrc; fi;
-    done; echo;
+		echo; 
+		for x in flush_all stats; do
+			if [[ -n $SESSIONS_SOCKET ]]; then
+				echo "Adding ${x}${NAME}_cache to /home/$U/.bashrc ... ";
+				sudo -u $U echo "${x}${NAME}_cache(){ echo $x \$@ | nc -U $CACHE_SOCKET; }" >> /home/$U/.bashrc;
+				echo "Adding ${x}${NAME}_sessions to /home/$U/.bashrc ... ";
+				sudo -u $U echo "${x}${NAME}_sessions(){ echo $x \$@ | nc -U $SESSIONS_SOCKET; }" >> /home/$U/.bashrc;
+			else
+				echo "Adding ${x}${NAME}_cache to /home/$U/.bashrc ... ";
+			sudo -u $U echo "${x}${NAME}_cache(){ echo $x \$@ | nc -U $CACHE_SOCKET; }" >> /home/$U/.bashrc; fi;
+		done; 
+		echo;
 
-    echo "Adding bash completion for stats function"
-        sudo -u $U echo -e "\ncomplete -W 'items slabs detail sizes reset' stats${NAME}_cache" >> /home/$U/.bashrc
-        sudo -u $U echo -e "\ncomplete -W 'items slabs detail sizes reset' stats${NAME}_sessions" >> /home/$U/.bashrc
-    echo "Adding $U to the (nc) group"; usermod -a -G nc $U; echo;
-else echo "\n Could not find local.xml file in $1\n"; fi;
+		echo "Adding bash completion for stats function"
+				sudo -u $U echo -e "\ncomplete -W 'items slabs detail sizes reset' stats${NAME}_cache" >> /home/$U/.bashrc
+				sudo -u $U echo -e "\ncomplete -W 'items slabs detail sizes reset' stats${NAME}_sessions" >> /home/$U/.bashrc
+		echo "Adding $U to the (nc) group"; usermod -a -G nc $U; 
+		echo;
+	else 
+		echo "\n Could not find local.xml file in $1\n"; 
+	fi;
 }
 
 ## Add PHP-FPM fix for pointer method Magento Multistores
-fpmfix(){
-if [[ -z $1 || $1 == '.' ]]; then D=$(pwd | sed 's:^/chroot::' | cut -d/ -f4);
-else D=$(echo $1 | sed 's:/::g'); fi
-vhost="/etc/httpd/conf.d/vhost_${D}.conf"
+fpmfix () {
+	if [[ -z $1 || $1 == '.' ]]; then 
+		D=$(pwd | sed 's:^/chroot::' | cut -d/ -f4);
+	else 
+		D=$(echo $1 | sed 's:/::g'); 
+	fi
+	vhost="/etc/httpd/conf.d/vhost_${D}.conf"
 
-if [[ -f $vhost ]]; then
-  sed -i 's/\(RewriteCond.*\.fcgi\)/\1\n  # ----- PHP-FPM-Multistore-Fix -----\n  SetEnvIf REDIRECT_MAGE_RUN_CODE (\.\+) MAGE_RUN_CODE=\$1\n  SetEnvIf REDIRECT_MAGE_RUN_TYPE (\.\+) MAGE_RUN_TYPE=\$1\n  # ----- PHP-FPM-Multistore-Fix -----/g' $vhost
-  httpd -t && service httpd reload && echo -e "\nFPM fix has been applied to $(basename $vhost)\n"
-else echo -e "\n$(basename $vhost) not found!\n";
-fi
+	if [[ -f $vhost ]]; then
+		sed -i 's/\(RewriteCond.*\.fcgi\)/\1\n  # ----- PHP-FPM-Multistore-Fix -----\n  SetEnvIf REDIRECT_MAGE_RUN_CODE (\.\+) MAGE_RUN_CODE=\$1\n  SetEnvIf REDIRECT_MAGE_RUN_TYPE (\.\+) MAGE_RUN_TYPE=\$1\n  # ----- PHP-FPM-Multistore-Fix -----/g' $vhost
+		httpd -t && service httpd reload && echo -e "\nFPM fix has been applied to $(basename $vhost)\n"
+	else 
+		echo -e "\n$(basename $vhost) not found!\n";
+	fi
 }
 
 
 ## Set common and custom php-fpm configuration options
-fpmconfig(){
+fpmconfig () {
+	if [[ -f $(echo /opt/nexcess/php5*/root/etc/php-fpm.d/$(getusr).conf) ]]; then
+		config="/opt/nexcess/php5*/root/etc/php-fpm.d/$(getusr).conf";
+		srv="$(echo $config | cut -d/ -f4)-php-fpm";
+	elif [[ -f /etc/php-fpm.d/$(getusr).conf ]]; then
+		config="/etc/php-fpm.d/$(getusr).conf";
+		srv="php-fpm"; 
+	fi;
 
-if [[ -f $(echo /opt/nexcess/php5*/root/etc/php-fpm.d/$(getusr).conf) ]]; then
-  config="/opt/nexcess/php5*/root/etc/php-fpm.d/$(getusr).conf";
-  srv="$(echo $config | cut -d/ -f4)-php-fpm";
-elif [[ -f /etc/php-fpm.d/$(getusr).conf ]]; then
-  config="/etc/php-fpm.d/$(getusr).conf";
-  srv="php-fpm"; fi;
+	_fpmconfig () {
+		if [[ $(grep $1 $config 2> /dev/null) ]]; then
+			echo -e "\n$1 is already configured in the PHP-FPM pool $config\n";
+			awk "/$1/"'{print}' $config; 
+			echo
+		elif [[ -f $(echo $config) ]]; then
+			echo "php_admin_value[$1] = $2" >> $config && service $srv reload && echo -e "\n$1 has been set to $2 in the PHP-FPM pool for $config\n";
+		else
+			echo -e "\n Could not find $config !\n Try running this from the user's /home/dir/\n"; 
+		fi;
+	}
 
-_fpmconfig(){
-    if [[ $(grep $1 $config 2> /dev/null) ]]; then
-      echo -e "\n$1 is already configured in the PHP-FPM pool $config\n";
-      awk "/$1/"'{print}' $config; echo
-    elif [[ -f $(echo $config) ]]; then
-      echo "php_admin_value[$1] = $2" >> $config && service $srv reload && echo -e "\n$1 has been set to $2 in the PHP-FPM pool for $config\n";
-    else
-      echo -e "\n Could not find $config !\n Try running this from the user's /home/dir/\n"; fi;
-    }
+	case $1 in
+		-a) 
+			_fpmconfig apc.enabled Off ;;
+		-b) 
+			_fpmconfig open_basedir "$(php -i | awk '/open_basedir/ {print $NF}'):$2" ;;
+		-c) 
+			_fpmconfig $2 $3 ;;
+		-d) 
+			_fpmconfig display_errors On ;;
+		-e) 
+			_fpmconfig max_execution_time $2 ;;
+		-f) 
+			_fpmconfig allow_url_fopen On ;;
+		-g|-z) 
+			_fpmconfig zlib.output_compression On ;;
+		-m) 
+			_fpmconfig memory_limit $2 ;;
+		-s) 
+			_fpmconfig session.cookie_lifetime $2; 
+			_fpmconfig session.gc_maxlifetime $2 ;;
+		-u) 
+			_fpmconfig upload_max_filesize $2; 
+			_fpmconfig post_max_size $2 ;;
+		-h) 
+			echo -e "\n Usage: fpmconfig [option] [value]
+				Options:
+					-a ... Disable APC
+					-b ... Set open_basedir
+					-c ... Set a custom [parameter] to [value]
+					-d ... Enable display_errors
+					-e ... Set max_execution_time to [value]
+					-f ... Enable allow_url_fopen
+					-g ... Enable gzip (zlib.output_compression)
+					-m ... Set memory_limit to [value]
+					-s ... Set session timeouts (session.gc_maxlifetime, session.cookie_lifetime)
+					-u ... Set upload_max_filesize and post_max_size to [value]
+					-z ... Enable gzip (zlib.output_compression)
 
-case $1 in
--a) _fpmconfig apc.enabled Off ;;
--b) _fpmconfig open_basedir "$(php -i | awk '/open_basedir/ {print $NF}'):$2" ;;
--c) _fpmconfig $2 $3 ;;
--d) _fpmconfig display_errors On ;;
--e) _fpmconfig max_execution_time $2 ;;
--f) _fpmconfig allow_url_fopen On ;;
--g|-z) _fpmconfig zlib.output_compression On ;;
--m) _fpmconfig memory_limit $2 ;;
--s) _fpmconfig session.cookie_lifetime $2; _fpmconfig session.gc_maxlifetime $2 ;;
--u) _fpmconfig upload_max_filesize $2; _fpmconfig post_max_size $2 ;;
--h) echo -e "\n Usage: fpmconfig [option] [value]
-  Options:
-    -a ... Disable APC
-    -b ... Set open_basedir
-    -c ... Set a custom [parameter] to [value]
-    -d ... Enable display_errors
-    -e ... Set max_execution_time to [value]
-    -f ... Enable allow_url_fopen
-    -g ... Enable gzip (zlib.output_compression)
-    -m ... Set memory_limit to [value]
-    -s ... Set session timeouts (session.gc_maxlifetime, session.cookie_lifetime)
-    -u ... Set upload_max_filesize and post_max_size to [value]
-    -z ... Enable gzip (zlib.output_compression)
+					-h ... Print this help output and quit
+					Default behavior is to print the contents and location of config file.\n"
+					;;
+		 *) 
+			 echo; 
+			 ls $config; 
+			 echo; 
+			 cat $config; 
+			 echo;;
+	esac;
 
-    -h ... Print this help output and quit
-    Default behavior is to print the contents and location of config file.\n"
-    ;;
-
- *) echo; ls $config; echo; cat $config; echo;;
-esac;
-
-unset srv config;
+	unset srv config;
 }
 
 ## Enable zlib.output_compression for a user's PHP-FPM config pool
-fpmgzip(){ fpmconfig -g; }
+fpmgzip () { 
+	fpmconfig -g; 
+}
 
 ## Enable allow_url_fopen for a users PHP-FPM config pool
-fpmfopen(){ fpmconfig -f; }
+fpmfopen () { 
+	fpmconfig -f; 
+}
 
 ## Setup parallel downloads in vhost
-magparallel(){
-if [[ -z $@ || $1 == '-h' || $1 == '--help' ]]; then echo -e '\n Usage: parallel <domain> \n'; return 0;
-elif [[ -f /etc/httpd/conf.d/vhost_$1.conf ]]; then D=$1;
-elif [[ $1 == '.' && -f /etc/httpd/conf.d/vhost_$(pwd | sed 's:^/chroot::' | cut -d/ -f4).conf ]]; then D=$(pwd | sed 's:^/chroot::' | cut -d/ -f4)
-else echo -e '\nCould not find requested vhost file!\n'; return 1; fi
-domain=$(echo $D | sed 's:\.:\\\\\\.:g'); # Covert domain into Regex
-# Place comment followed by a blank line, logic for parallel downloads, then another comment preceded by a blank line
-sed -i "s:\(.*RewriteCond %{HTTP_HOST}...$domain.\[NC\]\):\1\n  \# ----- Magento-Parallel-Downloads -----\n:g" /etc/httpd/conf.d/vhost_$D.conf
-for x in skin media js; do sed -i "s:\(.*RewriteCond %{HTTP_HOST}...$domain.\[NC\]\):\1\n  RewriteCond %{HTTP_HOST} \!\^$x\\\.$domain [NC]:g" /etc/httpd/conf.d/vhost_$D.conf; done
-sed -i "s:\(.*RewriteCond %{HTTP_HOST}...$domain.\[NC\]\):\1\n\n  \# ----- Magento-Parallel-Downloads -----:g" /etc/httpd/conf.d/vhost_$D.conf
-httpd -t && service httpd reload && echo -e "\nParallel Downloads configure for $D\n" # Test and restart Apache, print success message
+magparallel () {
+	if [[ -z $@ || $1 == '-h' || $1 == '--help' ]]; then 
+		echo -e '\n Usage: parallel <domain> \n'; 
+		return 0;
+	elif [[ -f /etc/httpd/conf.d/vhost_$1.conf ]]; then 
+		D=$1;
+	elif [[ $1 == '.' && -f /etc/httpd/conf.d/vhost_$(pwd | sed 's:^/chroot::' | cut -d/ -f4).conf ]]; then 
+		D=$(pwd | sed 's:^/chroot::' | cut -d/ -f4)
+	else e
+		cho -e '\nCould not find requested vhost file!\n'; 
+		return 1; 
+	fi
+	domain=$(echo $D | sed 's:\.:\\\\\\.:g'); # Covert domain into Regex
+	
+	# Place comment followed by a blank line, logic for parallel downloads, then another comment preceded by a blank line
+	sed -i "s:\(.*RewriteCond %{HTTP_HOST}...$domain.\[NC\]\):\1\n  \# ----- Magento-Parallel-Downloads -----\n:g" /etc/httpd/conf.d/vhost_$D.conf
+	for x in skin media js; do 
+		sed -i "s:\(.*RewriteCond %{HTTP_HOST}...$domain.\[NC\]\):\1\n  RewriteCond %{HTTP_HOST} \!\^$x\\\.$domain [NC]:g" /etc/httpd/conf.d/vhost_$D.conf; 
+	done
+	sed -i "s:\(.*RewriteCond %{HTTP_HOST}...$domain.\[NC\]\):\1\n\n  \# ----- Magento-Parallel-Downloads -----:g" /etc/httpd/conf.d/vhost_$D.conf
+	httpd -t && service httpd reload && echo -e "\nParallel Downloads configure for $D\n" # Test and restart Apache, print success message
 }
 
 ## Download scheduler.php and then list out the Magento Cron jobs
-magcrons(){
-if [[ -z "$1" ]]; then SITEPATH="."; else SITEPATH="$1"; fi
-BASEURL=$(nkmagento info $SITEPATH | awk '/^Base/ {print $4}')
-sudo -u $(getusr) wget -q -O $SITEPATH/scheduler.php nanobots.robotzombies.net/scheduler
-curl -s "$BASEURL/scheduler.php" | less; echo
-read -p "Remove scheduler.php? [y/n]: " yn; if [[ $yn == "n" ]]; then echo "Link: $BASEURL/scheduler.php";
-else rm $SITEPATH/scheduler.php; echo "scheduler.php has been removed."; fi; echo
+magcrons () {
+	if [[ -z "$1" ]]; then 
+		SITEPATH="."; 
+	else 
+		SITEPATH="$1"; 
+	fi
+	BASEURL=$(nkmagento info $SITEPATH | awk '/^Base/ {print $4}')
+	sudo -u $(getusr) wget -q -O $SITEPATH/scheduler.php nanobots.robotzombies.net/scheduler
+	curl -s "$BASEURL/scheduler.php" | less; 
+	echo
+	read -p "Remove scheduler.php? [y/n]: " yn; 
+	if [[ $yn == "n" ]]; then 
+		echo "Link: $BASEURL/scheduler.php";
+	else 
+		rm $SITEPATH/scheduler.php; 
+		echo "scheduler.php has been removed."; 
+	fi; 
+	echo
 }
 
 ## Create Magento Multi-Store Symlinks
-magsymlinks(){
-echo; U=$(getusr); if [[ -z $1 ]]; then read -p "Domain Name: " D; else D=$1; fi
-for X in app includes js lib media skin var; do sudo -u $U ln -s /home/$U/$D/html/$X/ $X; done;
-echo; read -p "Copy .htaccess and index.php? [y/n]: " yn; if [[ $yn == "y" ]]; then
-for Y in index.php .htaccess; do sudo -u $U cp /home/$U/$D/html/$Y .; done; fi
+magsymlinks () {
+	echo; 
+	U=$(getusr); 
+	if [[ -z $1 ]]; then 
+		read -p "Domain Name: " D; 
+	else 
+		D=$1; 
+	fi
+	for X in app includes js lib media skin var; do 
+		sudo -u $U ln -s /home/$U/$D/html/$X/ $X; 
+	done;
+	echo; 
+	read -p "Copy .htaccess and index.php? [y/n]: " yn; 
+	if [[ $yn == "y" ]]; then
+		for Y in index.php .htaccess; do 
+			sudo -u $U cp /home/$U/$D/html/$Y .; 
+		done; 
+	fi
 }
 
 ## Look up large tables of a given database to see what's taking up space
-tablesize(){
-if [[ -z $1 || $1 == '-h' || $1 = '--help' ]]; then
-  echo -e "\n  Usage: tablesize [dbname] [option] [linecount]\n\n  Options:\n    -r ... Sort by most Rows\n    -d ... Sort by largest Data_Size\n    -i ... Sort by largest Index_Size\n"; return 0; fi
-if [[ $1 == '.' ]]; then dbname=$(finddb); shift;
-  elif [[ $1 =~ ^[a-z]{1,}_.*$ ]]; then dbname="$1"; shift;
-  else read -p "Database: " dbname; fi
-case $1 in
- -r ) col='4'; shift;;
- -d ) col='6'; shift;;
- -i ) col='8'; shift;;
-  * ) col='6';;
-esac
-if [[ $1 =~ [0-9]{1,} ]]; then top="$1"; else top="20" ; fi
-echo -e "\nDatabase: $dbname\n$(dash 93)"; printf "| %-50s | %8s | %11s | %11s |\n" "Name" "Rows" "Data_Size" "Index_Size"; echo "$(dash 93)";
-echo "show table status" | m $dbname | awk 'NR>1 {printf "| %-50s | %8s | %10.2fM | %10.2fM |\n",$1,$5,($7/1024000),($9/1024000)}' | sort -rnk$col | head -n$top
-echo -e "$(dash 93)\n"
+tablesize () {
+	if [[ -z $1 || $1 == '-h' || $1 = '--help' ]]; then
+		echo -e "\n  Usage: tablesize [dbname] [option] [linecount]\n\n  Options:\n    -r ... Sort by most Rows\n    -d ... Sort by largest Data_Size\n    -i ... Sort by largest Index_Size\n"; 
+		return 0; 
+	fi
+	if [[ $1 == '.' ]]; then 
+		dbname=$(finddb); 
+		shift;
+	elif [[ $1 =~ ^[a-z]{1,}_.*$ ]]; then 
+		dbname="$1"; 
+		shift;
+	else 
+		read -p "Database: " dbname; 
+	fi
+	case $1 in
+		-r ) 
+			col='4'; 
+			shift;;
+		-d ) 
+			col='6'; 
+			shift;;
+		-i ) 
+			col='8'; 
+			shift;;
+		* ) 
+			col='6';;
+	esac
+	if [[ $1 =~ [0-9]{1,} ]]; then 
+		top="$1"; 
+	else 
+		top="20" ; 
+	fi
+	echo -e "\nDatabase: $dbname\n$(dash 93)"; 
+	printf "| %-50s | %8s | %11s | %11s |\n" "Name" "Rows" "Data_Size" "Index_Size"; 
+	echo "$(dash 93)";
+	echo "show table status" | m $dbname | awk 'NR>1 {printf "| %-50s | %8s | %10.2fM | %10.2fM |\n",$1,$5,($7/1024000),($9/1024000)}' | sort -rnk$col | head -n$top
+	echo -e "$(dash 93)\n"
 }
 
 ## Find Magento database connection info, and run common queries
@@ -1819,51 +1996,51 @@ esac
 
 ## Print hits per hour for all domains on the server (using current transfer.log's)
 sum_traffic(){
-echo; FMT=" %5s"
+	echo; FMT=" %5s"
 
-## Header
-printf "${BRIGHT} %9s" "User/Hour"
-for hour in $(seq -w 0 23); do printf "$FMT" "$hour:00"; done
-printf "%8s %-s${NORMAL}\n" "Total" " Domain Name"
+	## Header
+	printf "${BRIGHT} %9s" "User/Hour"
+	for hour in $(seq -w 0 23); do printf "$FMT" "$hour:00"; done
+	printf "%8s %-s${NORMAL}\n" "Total" " Domain Name"
 
-## Initializations
-hourtotal=($(for ((i=0;i<23;i++)); do echo 0; done)); grandtotal=0
+	## Initializations
+	hourtotal=($(for ((i=0;i<23;i++)); do echo 0; done)); grandtotal=0
 
-# Caclulate filname suffix of previous logs
-if [[ $1 == '-d' ]]; then DECOMP='zgrep' DATE="-$(date --date="-$2 day" +%m%d%Y).zip"; shift; shift; else DECOMP='grep' DATE=''; fi
+	# Caclulate filname suffix of previous logs
+	if [[ $1 == '-d' ]]; then DECOMP='zgrep' DATE="-$(date --date="-$2 day" +%m%d%Y).zip"; shift; shift; else DECOMP='grep' DATE=''; fi
 
-## Data gathering and display
-for logfile in /home/*/var/*/logs/transfer.log${DATE}; do
-	total=0; i=0;
-	if [[ $1 != '-n' && $1 != '--nocolor' ]]; then color="${BLUE}"; else color=''; fi
-	printf "${color} %9s" "$(echo $logfile | cut -d/ -f3)"
-	for hour in $(seq -w 0 23); do
-		count=$($DECOMP -Ec "[0-9]{4}:$hour:" $logfile);
-		hourtotal[$i]=$((${hourtotal[$i]}+$count))
+	## Data gathering and display
+	for logfile in /home/*/var/*/logs/transfer.log${DATE}; do
+		total=0; i=0;
+		if [[ $1 != '-n' && $1 != '--nocolor' ]]; then color="${BLUE}"; else color=''; fi
+		printf "${color} %9s" "$(echo $logfile | cut -d/ -f3)"
+		for hour in $(seq -w 0 23); do
+			count=$($DECOMP -Ec "[0-9]{4}:$hour:" $logfile);
+			hourtotal[$i]=$((${hourtotal[$i]}+$count))
 
-		## COLOR VERSION (HEAT MAP)
-		if [[ $1 != '-n' && $1 != '--nocolor' ]]; then
-		    if [[ $count -gt 20000 ]]; then color="${BRIGHT}${RED}";
-		    elif [[ $count -gt 2000 ]]; then color="${RED}";
-		    elif [[ $count -gt 200 ]]; then color="${YELLOW}";
-		    else color="${GREEN}"; fi
-		else color=''; fi
-		printf "${color}$FMT${NORMAL}" "$count"
-		total=$((${total}+${count})); i=$(($i+1))
+			## COLOR VERSION (HEAT MAP)
+			if [[ $1 != '-n' && $1 != '--nocolor' ]]; then
+				if [[ $count -gt 20000 ]]; then color="${BRIGHT}${RED}";
+				elif [[ $count -gt 2000 ]]; then color="${RED}";
+				elif [[ $count -gt 200 ]]; then color="${YELLOW}";
+				else color="${GREEN}"; fi
+			else color=''; fi
+			printf "${color}$FMT${NORMAL}" "$count"
+			total=$((${total}+${count})); i=$(($i+1))
+		done
+		grandtotal=$(($grandtotal+$total))
+
+		if [[ $1 != '-n' && $1 != '--nocolor' ]]; then ## Color version
+			printf "${CYAN}%8s ${PURPLE}%-s${NORMAL}\n" "$total" "$(echo $logfile | cut -d/ -f5)"
+		else printf "%8s %-s\n" "$total" "$(echo $logfile | cut -d/ -f5)"; fi
+
 	done
-	grandtotal=$(($grandtotal+$total))
 
-if [[ $1 != '-n' && $1 != '--nocolor' ]]; then ## Color version
-    printf "${CYAN}%8s ${PURPLE}%-s${NORMAL}\n" "$total" "$(echo $logfile | cut -d/ -f5)"
-else printf "%8s %-s\n" "$total" "$(echo $logfile | cut -d/ -f5)"; fi
-
-done
-
-## Footer
-printf "${BRIGHT} %9s" "Total"
-for i in $(seq 0 23); do printf "$FMT" "${hourtotal[$i]}"; done
-printf "%8s %-s${NORMAL}\n" "$grandtotal" "<< Grand Total"
-echo
+	## Footer
+	printf "${BRIGHT} %9s" "Total"
+	for i in $(seq 0 23); do printf "$FMT" "${hourtotal[$i]}"; done
+	printf "%8s %-s${NORMAL}\n" "$grandtotal" "<< Grand Total"
+	echo
 }
 
 ## Check for sites getting more than 1000 POST requests from a single IP.
@@ -1999,19 +2176,34 @@ unset DOMAIN SEARCH DATE TOP TIME LOGFILE DECOMP VERBOSE # Variable Cleanup
 compctl -W 'sub rec send sdom radd rdom ladd ldom -h --help' qmq
 ## Series of qmqtool one-liners for checking the makeup of mail stuck in the queue
 qmq(){
-if [[ -n "$1" && -z "$2" ]]; then N=20; else N=$2; fi; echo;
-case "$1" in
-sub ) qmqtool -R | grep "Subject: " | sort | uniq -c | sort -rn | head -n$N ;;
-rec ) qmqtool -R | awk '/Recipient:/ { print $3 }' | sort | uniq -c | sort -n ;;
-send ) qmqtool -R | grep "From: " | sort | uniq -c | sort -rn | head -n$N ;;
-sdom ) qmqtool -R | grep "From: " | grep -Eo '\@[a-z0-9].*\>' | sort | uniq -c | sort -rn | head -n$N;;
-radd|raddress ) qmqtool -R | grep "To: " | sort | uniq -c | sort -rn | head -n$N ;;
-rdom|rdomain ) qmqtool -R | grep "To: " | cut -d @ -f2 | tr -d '>' | sort | uniq -c | sort -rn | head -n$N ;;
-ladd|laddress ) qmqtool -L | grep "To: " | sort | uniq -c | sort -rn | head -n$N ;;
-ldom|ldomain ) qmqtool -L | grep "To: " | cut -d @ -f2 | tr -d '>' | sort | uniq -c | sort -rn | head -n$N ;;
--h|--help) echo -e " Usage: qmq [sub|rec|send|sdom|radd|rdom|ladd|ldom] [top#]\n    sub ... Top Subject in Remote Queue\n    send .. Top Sender in Remote Queue\n    sdom .. Top Sending Domain in the Remote Queue\n    rec ... Top Recipient in Remote Queue\n    radd .. Top Receive Address in Remote Queue\n    rdom .. Top Receive Domains in Remote Queue\n    ladd .. Top Receive Address in Local Queue\n    ldom .. Top Receive Domains in Local Queue" ;;
-*) qmqtool -s ;;
-esac; echo
+	if [[ -n "$1" && -z "$2" ]]; then 
+		N=20; 
+	else 
+		N=$2; 
+	fi; 
+	echo;
+	case "$1" in
+		sub ) 
+			qmqtool -R | grep "Subject: " | sort | uniq -c | sort -rn | head -n$N ;;
+		rec ) 
+			qmqtool -R | awk '/Recipient:/ { print $3 }' | sort | uniq -c | sort -n ;;
+		send ) 
+			qmqtool -R | grep "From: " | sort | uniq -c | sort -rn | head -n$N ;;
+		sdom )
+			qmqtool -R | grep "From: " | grep -Eo '\@[a-z0-9].*\>' | sort | uniq -c | sort -rn | head -n$N;;
+		radd|raddress ) 
+			qmqtool -R | grep "To: " | sort | uniq -c | sort -rn | head -n$N ;;
+		rdom|rdomain ) 
+			qmqtool -R | grep "To: " | cut -d @ -f2 | tr -d '>' | sort | uniq -c | sort -rn | head -n$N ;;
+		ladd|laddress ) 
+			qmqtool -L | grep "To: " | sort | uniq -c | sort -rn | head -n$N ;;
+		ldom|ldomain ) 
+			qmqtool -L | grep "To: " | cut -d @ -f2 | tr -d '>' | sort | uniq -c | sort -rn | head -n$N ;;
+		-h|--help) 
+			echo -e " Usage: qmq [sub|rec|send|sdom|radd|rdom|ladd|ldom] [top#]\n    sub ... Top Subject in Remote Queue\n    send .. Top Sender in Remote Queue\n    sdom .. Top Sending Domain in the Remote Queue\n    rec ... Top Recipient in Remote Queue\n    radd .. Top Receive Address in Remote Queue\n    rdom .. Top Receive Domains in Remote Queue\n    ladd .. Top Receive Address in Local Queue\n    ldom .. Top Receive Domains in Local Queue" ;;
+		*) qmqtool -s ;;
+	esac; 
+	echo
 }
 
 # http://stackoverflow.com/questions/2552402/cat-file-vs-file
@@ -2036,16 +2228,16 @@ q(){
 
 ## Search send log(s) for a domain (look for error messages)
 sendlog(){
-if [[ -n $1 ]]; then D=$1; else read -p "Domain: " D; fi
-if [[ $2 == 'all' ]]; then cat /var/log/send/* | tai64nlocal | egrep -B2 -A8 "$D" | less;
-else cat /var/log/send/current | tai64nlocal | egrep -B2 -A8 "$D" | less; fi
+	if [[ -n $1 ]]; then D=$1; else read -p "Domain: " D; fi
+	if [[ $2 == 'all' ]]; then cat /var/log/send/* | tai64nlocal | egrep -B2 -A8 "$D" | less;
+	else cat /var/log/send/current | tai64nlocal | egrep -B2 -A8 "$D" | less; fi
 }
 
 ## Check/Enable/Disable Local Delivery for domain(s)
 localdelivery(){
-if [[ $2 == 'all' ]]; then domain='';
-elif [[ -n $2 ]]; then domain=$(echo $2 | sed 's:/::g');
-else domain=$(pwd | sed 's:^/chroot::' | cut -d/ -f4); fi
+	if [[ $2 == 'all' ]]; then domain='';
+	elif [[ -n $2 ]]; then domain=$(echo $2 | sed 's:/::g');
+	else domain=$(pwd | sed 's:^/chroot::' | cut -d/ -f4); fi
 
 if [[ -n $2 && ${#2} -gt 3 ]]; then
 vhost=$(grep -l " $(echo $domain | sed 's/\(.*\)/\L\1/g')" /etc/httpd/conf.d/vhost_*);
@@ -2075,36 +2267,36 @@ esac
 
 ## Setup Google MX records and turn off local delivery
 googlemx(){
-if [[ -z $1 || $1 == '-h' || $1 == '--help' ]]; then
-  echo -e "\n Usage: googlemx OPTION DOMAIN
-    EX: googlemx -a DOMAIN\n    Ex: googlemx -c DOMAIN\n    Ex: googlemx --list\n\n OPTIONS
-     -a ... Remove old MX records and add Google MX\n     -c ... Check existing MX records for domain\n --list ... List domains and ids for the account\n";
-fi
+	if [[ -z $1 || $1 == '-h' || $1 == '--help' ]]; then
+		echo -e "\n Usage: googlemx OPTION DOMAIN
+		EX: googlemx -a DOMAIN\n    Ex: googlemx -c DOMAIN\n    Ex: googlemx --list\n\n OPTIONS
+		-a ... Remove old MX records and add Google MX\n     -c ... Check existing MX records for domain\n --list ... List domains and ids for the account\n";
+	fi
 
-if [[ $1 == --list ]]; then
-  echo; (echo 'ID Domain'; sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk '($2 !~ /nextmp/) {print $1,$2}') | column -t; echo
-elif [[ $1 = '-c' && -n $2 ]]; then
-  zoneid=$(sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk "(\$2 ~ /$2/)"'{print $1}')
-  echo -e "\nID ... MX-Records-for: $2"
-  (sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' | sort -nk3 | column -t; echo
-fi
+	if [[ $1 == --list ]]; then
+		echo; (echo 'ID Domain'; sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk '($2 !~ /nextmp/) {print $1,$2}') | column -t; echo
+	elif [[ $1 = '-c' && -n $2 ]]; then
+		zoneid=$(sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk "(\$2 ~ /$2/)"'{print $1}')
+		echo -e "\nID ... MX-Records-for: $2"
+		(sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' | sort -nk3 | column -t; echo
+	fi
 
-if [[ $1 == '-a' && -n $2 ]]; then
-  zoneid=$(sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk "(\$2 ~ /$2/)"'{print $1}')
-  echo -e "\nID ... MX-Records-for: $1"
-  (sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' | sort -nk3 | column -t; echo
+	if [[ $1 == '-a' && -n $2 ]]; then
+		zoneid=$(sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk "(\$2 ~ /$2/)"'{print $1}')
+		echo -e "\nID ... MX-Records-for: $1"
+		(sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' | sort -nk3 | column -t; echo
 
-  echo "Removing old records"
-  mxrecord=$((sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1}')
-  for x in $mxrecord; do nodeworx -u -n -c DnsRecord -a delete --record_id $x; done
+		echo "Removing old records"
+		mxrecord=$((sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1}')
+		for x in $mxrecord; do nodeworx -u -n -c DnsRecord -a delete --record_id $x; done
 
-  echo
-  sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 1 --mail_server ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ASPMX.L.GOOGLE.COM'
-  sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 5 --mail_server ALT1.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT1.ASPMX.L.GOOGLE.COM'
-  sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 5 --mail_server ALT2.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT2.ASPMX.L.GOOGLE.COM'
-  sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 10 --mail_server ALT3.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT3.ASPMX.L.GOOGLE.COM'
-  sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 10 --mail_server ALT4.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT4.ASPMX.L.GOOGLE.COM'
+		echo;
+		sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 1 --mail_server ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ASPMX.L.GOOGLE.COM'
+		sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 5 --mail_server ALT1.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT1.ASPMX.L.GOOGLE.COM'
+		sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 5 --mail_server ALT2.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT2.ASPMX.L.GOOGLE.COM'
+		sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 10 --mail_server ALT3.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT3.ASPMX.L.GOOGLE.COM'
+		sudo -u $(getusr) -- siteworx -u -n -c Dns -a addMX --zone_id $zoneid --preference 10 --mail_server ALT4.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT4.ASPMX.L.GOOGLE.COM'
 
-  localdelivery -d $2
-fi
+		localdelivery -d $2
+	fi
 }
