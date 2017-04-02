@@ -1,8 +1,8 @@
 function resellers {
-( nodeworx -u -n -c Siteworx -a listAccounts | sed 's/ /_/g' | awk '{print $5,$2,$10,$9}';
-  nodeworx -u -n -c Reseller -a listResellers | sed 's/ /_/g' | awk '{print $1,"0Reseller",$3, $2}')\
-	  | sort -n | column -t | sed 's/\(.*0Re.*\)/\n\1/'  > /tmp/rslr ;
-		cat /tmp/rslr | while read line; do awk '{if ($2 == "0Reseller") print "Reseller: " $3, "( "$4" )"; else if ($3 == "master") print ($2,$4); else print ($2,$3);}'; done | sed 's/_/ /g';
+	( nodeworx -u -n -c Siteworx -a listAccounts | sed 's/ /_/g' | awk '{print $5,$2,$10,$9}';
+	nodeworx -u -n -c Reseller -a listResellers | sed 's/ /_/g' | awk '{print $1,"0Reseller",$3, $2}')\
+		| sort -n | column -t | sed 's/\(.*0Re.*\)/\n\1/'  > /tmp/rslr ;
+	cat /tmp/rslr | while read line; do awk '{if ($2 == "0Reseller") print "Reseller: " $3, "( "$4" )"; else if ($3 == "master") print ($2,$4); else print ($2,$3);}'; done | sed 's/_/ /g';
 }
 
 whichsoft () {
@@ -15,11 +15,11 @@ quotacheck () {
 
 updatequota () {
 	if (( $# < 2 )); then
-    	echo -e "Must provide two arguments\n\nUsage: nwupdatequota \$master_domain \$new_quota\n\n";
-    	return;
-    	elif (( $# > 2)); then
-    	echo -e "Too many arguments\n\nUsage: nwupdatequota \$master_domain \$new_quota\n\n";
-    	return;
+		echo -e "Must provide two arguments\n\nUsage: nwupdatequota \$master_domain \$new_quota\n\n";
+		return;
+	elif (( $# > 2)); then
+		echo -e "Too many arguments\n\nUsage: nwupdatequota \$master_domain \$new_quota\n\n";
+		return;
 	fi
 	local master_domain=$1;
 	local new_disk_quota=$2;
@@ -31,7 +31,7 @@ whodunit () {
 }
 
 ttfb () {
-				curl -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" -s $1;
+	curl -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" -s $1;
 }
 
 topips () {
@@ -48,7 +48,7 @@ ipsbymb () {
 
 function sshpass() {
 	mkpasswd -l 15 -d 3 -C 5 -s 0 $1;
- 	nksshd userControl --reset-failures $1;
+	nksshd userControl --reset-failures $1;
 }
 
 function hitsperhour () {
@@ -95,7 +95,7 @@ function modsecbyip () {
 	for i in $(grep $1 error.log | grep ModSecurity | sed 's/.*unique_id \"//' | sed 's/\"]//')
 	do
 		modsecrules $i 
-	done | sort | uniq
+	done | sort | uniq | sed 's/^/SecRuleRemoveById /'
 	grep $1 error.log | grep ModSecurity | sed 's/.*uri \"//' | sed 's/\"].*//' | uniq
 }
 
