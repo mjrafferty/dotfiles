@@ -23,3 +23,5 @@ alias omg='curl -s http://nanobots.robotzombies.net/aboutbashrc | less'
 alias wtf="grep -B1 '^[a-z].*(){' /home/nexmcunningham/.bashrc | sed 's/(){.*$//' | less"
 alias credits='curl -s http://nanobots.robotzombies.net/credits | less'
 alias quotas='checkquota'
+
+alias sshsync="rsync -p -v --progress -e ssh -a -u -z"
