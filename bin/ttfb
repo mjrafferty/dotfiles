@@ -1,0 +1,26 @@
+#! /bin/bash
+
+## Check Time To First Byte with curl
+if [[ -z "$1" || "$1" == "-h" || "$1" == "--help" ]]; then 
+	echo -e "\n Usage: ttfb [mag] <domain>\n"; 
+	return 0; 
+fi;
+
+_timetofirstbyte () { 
+	curl -so /dev/null -w "HTTP: %{http_code} Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} Redirect URL: %{redirect_url}\n" "$1"; 
+}
+if [[ "$1" == "m" || "$1" == "mag" ]]; then 
+	if [[ -z "$2" ]]; then 
+		read -p "Domain: " D; 
+	else 
+		D="$2"; 
+	fi;
+	for x in index.php robots.txt; do 
+		echo -e "\n$D/$x"; _timetofirstbyte "$D/$x"; 
+	done;
+else 
+	D="$1"; 
+	echo; 
+	_timetofirstbyte "$D"; 
+fi; 
+echo

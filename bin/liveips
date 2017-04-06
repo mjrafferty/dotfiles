@@ -1,0 +1,24 @@
+#! /bin/bash
+
+## Watch connections to server, and the IPs those connections are coming from
+if [[ -n $(grep ' 4\.' /etc/redhat-release) ]]; then # CentOS 4
+	if [[ $1 =~ -q ]]; then # Established Connections
+		watch -n0.1 "netstat -ant | awk -F: '/ffff.*:80.*EST/{print \$4,\"<--\",\$8}' | column -t | sort | uniq -c | sort -rn"
+	else # Verbose (EST and WAIT Connections)
+		watch -n0.1 "netstat -ant | awk -F: '/ffff.*:80/{print \$4,\"<--\",\$8}' | column -t | sort | uniq -c | sort -rn"
+	fi
+else # Not CentOS 4
+	if [[ -n "$(ss -ant | grep ffff.*:80)" ]]; then # Pseudo IPv6
+		if [[ $1 =~ -q ]]; then # Established Connections
+			watch -n0.1 "ss -ant | awk -F: '/EST.*ffff.*:80/{print \$4,\"<--\",\$8}' | column -t | sort | uniq -c | sort -rn"
+		else # Verbose (EST and WAIT Connections)
+			watch -n0.1 "ss -ant | awk -F: '/ffff.*:80/{print \$4,\"<--\",\$8}' | column -t | sort | uniq -c | sort -rn"
+		fi
+	else # IPv4
+		if [[ $1 =~ -q ]]; then # Established Connections
+			watch -n0.1 "ss -ant | awk '/EST/ && (\$4 ~ /:80/) && !/\*/ {print \$4,\"<--\",\$5}' | sed 's/:80//g; s/:.*$//g' | column -t | sort | uniq -c | sort -rn"
+		else # Verbose (EST and WAIT Connections)
+			watch -n0.1 "ss -ant | awk '(\$4 ~ /:80/) && !/\*/ {print \$4,\"<--\",\$5}' | sed 's/:80//g; s/:.*$//g' | column -t | sort | uniq -c | sort -rn"
+		fi
+	fi
+fi
