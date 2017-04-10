@@ -16,6 +16,7 @@ Plugin 'weynhamz/vim-plugin-minibufexpl'
 Plugin 'scrooloose/nerdtree'
 Plugin 'scrooloose/nerdcommenter'
 Plugin 'Valloric/YouCompleteMe'
+"Plugin 'Rip-Rip/clang_complete'
 Plugin 'Chiel92/vim-autoformat'
 Plugin 'nathanaelkane/vim-indent-guides'
 Plugin 'terryma/vim-multiple-cursors'
@@ -105,7 +106,7 @@ set background=dark
 set tags+=~/.vim/systags
 
 " Makes popup completion menu act more like an IDE
-set completeopt=menu,longest,menuone
+set completeopt=menu,longest,menuone,preview
 set complete=.,w,b,u,k,kspell,s,i,d,]
 
 "Changes the leader key to <Spacebar> for custom shortcuts
@@ -126,3 +127,20 @@ set showmode
 
 let g:UltiSnipsExpandTrigger = '<c-j>'
 let g:UltiSnipsJumpForwardTrigger='<tab>'
+
+let g:clang_library_path = '/Applications/Xcode.app/Contents/Frameworks/libclang.dylib'
+let g:clang_periodic_quickfix = 1
+let g:clang_complete_copen = 1
+let g:clang_snippets = 1
+let g:clang_close_preview = 1
+let g:clang_complete_macros = 1
+let g:clang_complete_patterns = 1 
+
+let g:ycm_always_populate_location_list = 1
+let g:ycm_complete_in_comments = 1
+let g:ycm_collect_identifiers_from_comments_and_strings = 1
+let g:ycm_collect_identifiers_from_tags_files = 1
+let g:ycm_seed_identifiers_with_syntax = 1
+let g:ycm_autoclose_preview_window_after_completion = 1
+let g:ycm_global_ycm_extra_conf = ''
+let g:ycm_confirm_extra_conf = 0
