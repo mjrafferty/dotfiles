@@ -35,7 +35,7 @@ go ()
             if [[ $(stat -c '%a' ~/dotfiles/) -ne 700 ]]; then
                 chmod 700 ~/dotfiles;
             fi;
-						rsync -q --chmod=o-rwx -rpt --exclude '.git' --exclude 'login_server' --exclude '.vimfiles/*/.*' ~/dotfiles/ -e "ssh -q -i ${HOME}/.ssh/nex$(whoami).id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" nex$(whoami)@$1:~/ && ssh -i ~/.ssh/nex$(whoami).id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no nex$(whoami)@$1;
+						rsync -q --chmod=o-rwx -rpt --exclude '.git' --exclude 'YouCompleteMe' --exclude 'login_server' --exclude '.vimfiles/*/.*' ~/dotfiles/ -e "ssh -q -i ${HOME}/.ssh/nex$(whoami).id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" nex$(whoami)@$1:~/ && ssh -i ~/.ssh/nex$(whoami).id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no nex$(whoami)@$1;
         echo -ne "\ek$(hostname)\e\\";
         fi;
     fi
