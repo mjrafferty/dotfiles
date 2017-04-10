@@ -8,26 +8,26 @@ if [[ -z $1 || $1 == '-h' || $1 == '--help' ]]; then
 fi
 
 if [[ $1 == --list ]]; then
-	echo; 
-	(echo 'ID Domain'; sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk '($2 !~ /nextmp/) {print $1,$2}') | column -t; 
+	echo;
+	(echo 'ID Domain'; sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk '($2 !~ /nextmp/) {print $1,$2}') | column -t;
 	echo
 elif [[ $1 = '-c' && -n $2 ]]; then
 	zoneid=$(sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk "(\$2 ~ /$2/)"'{print $1}')
 	echo -e "\nID ... MX-Records-for: $2"
-	(sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' | sort -nk3 | column -t; 
+	(sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' | sort -nk3 | column -t;
 	echo
 fi
 
 if [[ $1 == '-a' && -n $2 ]]; then
 	zoneid=$(sudo -u $(getusr) -- siteworx -u -n -c Dns -a listZones | awk "(\$2 ~ /$2/)"'{print $1}')
 	echo -e "\nID ... MX-Records-for: $1"
-	(sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' | sort -nk3 | column -t; 
+	(sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' | sort -nk3 | column -t;
 	echo
 
 	echo "Removing old records"
 	mxrecord=$((sudo -u $(getusr) -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id $zoneid) | awk '($4 ~ /MX/) {print $1}')
-	for x in $mxrecord; do 
-		nodeworx -u -n -c DnsRecord -a delete --record_id $x; 
+	for x in $mxrecord; do
+		nodeworx -u -n -c DnsRecord -a delete --record_id $x;
 	done
 
 	echo;

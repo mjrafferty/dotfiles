@@ -1,10 +1,10 @@
 #! /bin/bash
 
 ## Find basic Drupal information and display it in the nexkit-style
-if [[ -n $1 ]]; then 
-	sitepath="$1"; 
-else 
-	sitepath='.'; 
+if [[ -n $1 ]]; then
+	sitepath="$1";
+else
+	sitepath='.';
 fi
 config="${sitepath}/sites/default/settings.php"
 
@@ -61,6 +61,6 @@ if [[ -f ${config} ]]; then
 	echo
 	unset verfile version config base_url posts database dbname dbpass dbuser base_path installdate dbhost dbdriv prefix
 
-else 
-	echo -e "\nCould not find Drupal install at ${sitepath}\n"; 
+else
+	echo -e "\nCould not find Drupal install at ${sitepath}\n";
 fi

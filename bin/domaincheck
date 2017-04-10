@@ -4,26 +4,26 @@
 vhost="$(echo /etc/httpd/conf.d/vhost_[^000]*.conf)"; sub='';
 
 case $1 in
-	-a) 
-		if [[ -n $2 ]]; then 
-			sub=$2; 
-		else 
-			sub=''; 
+	-a)
+		if [[ -n $2 ]]; then
+			sub=$2;
+		else
+			sub='';
 		fi
 		vhost="$(grep -l $(getusr) /etc/httpd/conf.d/vhost_[^000]*.conf)" ;;
 
 	-r)
-		if [[ -z $2 ]]; then 
-			read -p "ResellerID: " r_id; 
-		else 
-			r_id=$2; 
+		if [[ -z $2 ]]; then
+			read -p "ResellerID: " r_id;
+		else
+			r_id=$2;
 		fi;
 		vhost=$(for r_user in $(nodeworx -unc Siteworx -a listAccounts | awk "(\$5 ~ /^$r_id$/)"'{print $2}'); do grep -l $r_user /etc/httpd/conf.d/vhost_[^000]*.conf; done | sort | uniq) ;;
 
-	-v) 
+	-v)
 		FMT=" %-15s  %-15s  %3s  %3s  %3s  %s\n"
 		HLT="${BRIGHT}${RED} %-15s  %-15s  %3s  %3s  %3s  %s${NORMAL}\n";;
-esac; 
+esac;
 echo
 
 FMT=" %-15s  %-15s  %3s  %3s  %s\n"
@@ -37,10 +37,10 @@ for x in $vhost; do
 	I=$(dig +short +time=1 +tries=1 ${sub}$D | grep -E '^[0-9]{1,3}\.' | head -1);
 	S=$(if grep :443 $x &> /dev/null; then echo SSL; fi);
 	F=$(if grep MAGE_RUN $x &> /dev/null; then echo FIX; fi);
-	if [[ "$I" != "$V" ]]; then 
+	if [[ "$I" != "$V" ]]; then
 		printf "$HLT" "$V" "$I" "${S:- - }" "${F:- - }" "${sub}$D";
-	else 
-		printf "$FMT" "$V" "$I" "${S:- - }" "${F:- - }" "${sub}$D"; 
+	else
+		printf "$FMT" "$V" "$I" "${S:- - }" "${F:- - }" "${sub}$D";
 	fi
-done; 
+done;
 echo

@@ -1,80 +1,80 @@
 #! /bin/bash
 
 ## Whitelist a hostname or ip address in the appropriate config
-if [[ "$2" == "in" ]]; then 
-	SRC="d="; 
+if [[ "$2" == "in" ]]; then
+	SRC="d=";
 	DST="s=";
-elif [[ "$2" == "out" ]]; then 
-	SRC="d="; 
+elif [[ "$2" == "out" ]]; then
+	SRC="d=";
 	DST="d=";
-else 
-	SRC=""; 
-	DST=""; 
+else
+	SRC="";
+	DST="";
 fi;
-HOST="$3"; 
-CMNT="$4"; 
+HOST="$3";
+CMNT="$4";
 TYPE=""
 
 _addrule(){
-	echo; 
-	if ! grep -q "^\#.*$(getusr)" $CONFIG; then 
-		echo -e "\n# $(getusr)" >> $CONFIG; 
+	echo;
+	if ! grep -q "^\#.*$(getusr)" $CONFIG; then
+		echo -e "\n# $(getusr)" >> $CONFIG;
 	fi
-	for x in $HOST; do 
+	for x in $HOST; do
 		echo "${SRC}${PORT}${DST}${x} .. added to $CONFIG";
 		sed -i "s|\(^\#.*$(getusr).*$\)|\1\n${SRC}${PORT}${DST}${x}|" $CONFIG
 	done;
 	sed -i "s|\(^\#.*$(getusr).*$\)|\1\n# ${TYPE} ${CMNT}|" $CONFIG;
 	echo -e "\nHello,\n\nI have white-listed the requested IP address(es) ( $(for x in $HOST; do printf "$x, "; done)) for $TYPE access on $(hostname).\nYou should be all set. Please let us know if you need any further assistance.\n\nSincerely,\n"
-	if [[ "$SRC" != "sshd" ]]; then 
-		echo; 
-		service apf restart; 
+	if [[ "$SRC" != "sshd" ]]; then
+		echo;
+		service apf restart;
 	fi;
 }
 
 case $1 in
-	f|ftp ) 
-		CONFIG='/etc/apf/allow_hosts.rules'; 
-		TYPE="(FTP $2)"; 
+	f|ftp )
+		CONFIG='/etc/apf/allow_hosts.rules';
+		TYPE="(FTP $2)";
 		PORT="21:"; _
 		addrule ;;
-	m|mysql ) 
-		CONFIG='/etc/apf/allow_hosts.rules'; 
-		TYPE="(MySQL $2)"; 
+	m|mysql )
+		CONFIG='/etc/apf/allow_hosts.rules';
+		TYPE="(MySQL $2)";
 		PORT="3306:"; _
 		addrule ;;
-	o|other ) 
-		CONFIG='/etc/apf/allow_hosts.rules'; 
-		TYPE="(port $4 $2)"; 
-		PORT="${4}:"; 
+	o|other )
+		CONFIG='/etc/apf/allow_hosts.rules';
+		TYPE="(port $4 $2)";
+		PORT="${4}:";
 		CMNT="$5" ; _
 		addrule ;;
 	s|ssh )
-		if [[ $(grep 'sshd: ALL' /etc/hosts.allow 2> /dev/null) ]]; then 
+		if [[ $(grep 'sshd: ALL' /etc/hosts.allow 2> /dev/null) ]]; then
 			CONFIG='/etc/apf/allow_hosts.rules';
-			if [[ "$2" != "in" && "$2" != "out" ]]; then 
-				HOST="$2"; 
-				CMNT="$3"; 
-			fi; 
-			TYPE="(SSH/SFTP)"; 
+			if [[ "$2" != "in" && "$2" != "out" ]]; then
+				HOST="$2";
+				CMNT="$3";
+			fi;
+			TYPE="(SSH/SFTP)";
 			SRC="d=";
-			DST="s="; 
+			DST="s=";
 			PORT="22:"; _
 			addrule
-		else 
+		else
 			CONFIG='/etc/hosts.allow';
-			if [[ "$2" != "in" && "$2" != "out" ]]; then 
-				HOST="$2"; 
-				CMNT="$3"; 
-			fi; 
-			TYPE="(SSH/SFTP)"; 
-			SRC="sshd"; 
-			DST=": "; 
+			if [[ "$2" != "in" && "$2" != "out" ]]; then
+				HOST="$2";
+				CMNT="$3";
+			fi;
+			TYPE="(SSH/SFTP)";
+			SRC="sshd";
+			DST=": ";
 			PORT=""; _
 			addrule
 		fi
 		;;
-	-h|--help|*) 
+	-h|--help|*)
 		echo -e "\n Usage: whitelist [ftp|mysql|ssh|other] [in|out] <ip/host> [port#] [comment]
 		Ex: whitelist ssh \"10.0.0.1 10.0.1.1 10.1.1.1\" ABCD-1234
 		Ex: whitelist mysql in 10.0.0.2 EFGH-5678

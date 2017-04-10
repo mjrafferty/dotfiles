@@ -112,6 +112,9 @@ function botsearch () {
 	done
 }
 
+function finddups () {
+	find $1 -type f -print0 | xargs -0 md5sum | sort | uniq -w32 --all-repeated=separate
+}
 
 # Iworx DB
 i () { 

@@ -1,39 +1,39 @@
 #! /bin/bash
 
 ## Print hits per hour for all domains on the server (using current transfer.log's)
-echo; 
+echo;
 FMT=" %5s"
 
 ## Header
 printf "${BRIGHT} %9s" "User/Hour"
-for hour in $(seq -w 0 23); do 
-	printf "$FMT" "$hour:00"; 
+for hour in $(seq -w 0 23); do
+	printf "$FMT" "$hour:00";
 done
 printf "%8s %-s${NORMAL}\n" "Total" " Domain Name"
 
 ## Initializations
-hourtotal=($(for ((i=0;i<23;i++)); do echo 0; done)); 
+hourtotal=($(for ((i=0;i<23;i++)); do echo 0; done));
 grandtotal=0
 
 # Caclulate filname suffix of previous logs
-if [[ $1 == '-d' ]]; then 
-	DECOMP='zgrep' 
-	DATE="-$(date --date="-$2 day" +%m%d%Y).zip"; 
-	shift; 
-	shift; 
-else 
-	DECOMP='grep' 
-	DATE=''; 
+if [[ $1 == '-d' ]]; then
+	DECOMP='zgrep'
+	DATE="-$(date --date="-$2 day" +%m%d%Y).zip";
+	shift;
+	shift;
+else
+	DECOMP='grep'
+	DATE='';
 fi
 
 ## Data gathering and display
 for logfile in /home/*/var/*/logs/transfer.log${DATE}; do
-	total=0; 
+	total=0;
 	i=0;
-	if [[ $1 != '-n' && $1 != '--nocolor' ]]; then 
-		color="${BLUE}"; 
-	else 
-		color=''; 
+	if [[ $1 != '-n' && $1 != '--nocolor' ]]; then
+		color="${BLUE}";
+	else
+		color='';
 	fi
 	printf "${color} %9s" "$(echo $logfile | cut -d/ -f3)"
 	for hour in $(seq -w 0 23); do
@@ -42,35 +42,35 @@ for logfile in /home/*/var/*/logs/transfer.log${DATE}; do
 
 		## COLOR VERSION (HEAT MAP)
 		if [[ $1 != '-n' && $1 != '--nocolor' ]]; then
-			if [[ $count -gt 20000 ]]; then 
+			if [[ $count -gt 20000 ]]; then
 				color="${BRIGHT}${RED}";
-			elif [[ $count -gt 2000 ]]; then 
+			elif [[ $count -gt 2000 ]]; then
 				color="${RED}";
-			elif [[ $count -gt 200 ]]; then 
+			elif [[ $count -gt 200 ]]; then
 				color="${YELLOW}";
-			else 
-				color="${GREEN}"; 
+			else
+				color="${GREEN}";
 			fi
-		else 
-			color=''; 
+		else
+			color='';
 		fi
 		printf "${color}$FMT${NORMAL}" "$count"
-		total=$((${total}+${count})); 
+		total=$((${total}+${count}));
 		i=$(($i+1))
 	done
 	grandtotal=$(($grandtotal+$total))
 
 	if [[ $1 != '-n' && $1 != '--nocolor' ]]; then ## Color version
 		printf "${CYAN}%8s ${PURPLE}%-s${NORMAL}\n" "$total" "$(echo $logfile | cut -d/ -f5)"
-	else printf "%8s %-s\n" "$total" "$(echo $logfile | cut -d/ -f5)"; 
+	else printf "%8s %-s\n" "$total" "$(echo $logfile | cut -d/ -f5)";
 	fi
 
 done
 
 ## Footer
 printf "${BRIGHT} %9s" "Total"
-for i in $(seq 0 23); do 
-	printf "$FMT" "${hourtotal[$i]}"; 
+for i in $(seq 0 23); do
+	printf "$FMT" "${hourtotal[$i]}";
 done
 printf "%8s %-s${NORMAL}\n" "$grandtotal" "<< Grand Total"
 echo

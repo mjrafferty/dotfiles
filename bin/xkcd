@@ -1,19 +1,19 @@
 #! /bin/bash
 
 ## Generate xkcd / iworx style passwords
-if [[ $@ =~ -h ]]; then 
-	echo -e "\n  Usage: xkcd [-l <length>] [-v]\n"; 
-	return 0; 
+if [[ $@ =~ -h ]]; then
+	echo -e "\n  Usage: xkcd [-l <length>] [-v]\n";
+	exit 0;
 fi
-if [[ $@ =~ -v ]]; then 
-	wordList='/usr/share/dict/words'; 
-else 
-	wordList='/usr/local/interworx/lib/dict/words'; 
+if [[ $@ =~ -v ]]; then
+	wordList='/usr/share/dict/words';
+else
+	wordList='/usr/local/interworx/lib/dict/words';
 fi
-if [[ $1 =~ -l ]]; then 
-	wordLength=$(( (${2} - 4) / 4 )); 
-else 
-	wordLength="4,8"; 
+if [[ $1 =~ -l ]]; then
+	wordLength=$(( (${2} - 4) / 4 ));
+else
+	wordLength="4,8";
 fi
 if [[ -x /usr/bin/shuf ]]; then
 	echo $(shuf -n1000 $wordList | grep -E ^[a-z]{$wordLength}$ | shuf -n4 )$(( ($RANDOM % 9000) + 1000 )) | sed 's/\b\([a-zA-Z]\)/\u\1/g' | sed 's/ //g'
@@ -22,8 +22,8 @@ else
 	while [[ $n -lt 4 ]]; do
 		rnd=$(( ( $(od -vAn -N4 -tu4 < /dev/urandom) )%($len)+1 ));
 		word[$n]=$(sed -n "${rnd}p" $wordList | egrep "^[a-z]{4,8}$" | sed 's:\b\(.\):\u\1:');
-		if [[ -n ${word[$n]} ]]; then 
-			n=$n+1; 
+		if [[ -n ${word[$n]} ]]; then
+			n=$n+1;
 		fi;
 	done;
 	echo "${word[0]}${word[1]}${word[2]}${word[3]}$(( $RANDOM % 9000 + 1000 ))";

@@ -1,29 +1,29 @@
 #! /bin/bash
 
 ## Archive a particular target, adding time and date information
-echo; 
-if [[ -z "$@" ]]; then 
-	echo -e " Usage: archive <target>\n"; 
-	return 0; 
+echo;
+if [[ -z "$@" ]]; then
+	echo -e " Usage: archive <target>\n";
+	exit 0;
 fi
 FILE=$(getusr).$(hostname | cut -d. -f1)--$(echo "$1" | sed s/"\/"/"-"/g)-$(date +%Y.%m.%d-%H.%M).tgz;
-SIZE=$(du -sb "$1" | cut -f1); 
-SIZEM=$(echo "scale=3;$SIZE/1024/1024" | bc); 
+SIZE=$(du -sb "$1" | cut -f1);
+SIZEM=$(echo "scale=3;$SIZE/1024/1024" | bc);
 echo "Compressing ${SIZEM}M ... please be patient."
 if [[ -f /usr/bin/pv && -f /usr/bin/pigz ]]; then
 	tar -cf - "$1" | pv -s ${SIZE} | pigz -c > $FILE;
 elif [[ -f /usr/bin/pv ]]; then
 	tar -cf - "$1" | pv -s ${SIZE} | gzip -c > $FILE;
 else
-	echo "Sorry, no idea how long this will take ..."; 
+	echo "Sorry, no idea how long this will take ...";
 	tar -zcf  $FILE "$1";
 fi && echo -e "\nArchive created successfully!\n\n$PWD/\n$FILE\n";
 if [[ -f $FILE ]]; then
 	read -p "Chown file to [r]oot or [u]ser? [r/u]: " yn;
 	if [[ $yn = "r" ]]; then
 		U='root';
-	else 
-		U=$(getusr); 
+	else
+		U=$(getusr);
 	fi;
-	chown $U. $FILE && echo -e "Archive owned to $U\n"; 
+	chown $U. $FILE && echo -e "Archive owned to $U\n";
 fi
