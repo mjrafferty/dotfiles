@@ -100,7 +100,7 @@ set background=dark
 :highlight PmenuSbar ctermbg=cyan ctermfg=green
 :highlight PmenuThumb ctermbg=white ctermfg=red
 
-set dictionary+=/usr/share/dict/words
+"set dictionary+=/usr/share/dict/words
 
 set tags+=~/.vim/systags
 
