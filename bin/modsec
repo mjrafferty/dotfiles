@@ -2,28 +2,28 @@
 
 ## Find ModSec error codes in an Apache error.log for a domain
 if [[ "$1" == '-h' || "$1" == '--help' ]]; then
-	echo -e "\n Usage: modsec <DOMAIN> [-i|--ip <IPADDR>]\n If <DOMAIN> is . attempt to get domain from path\n <IPADDR> can be a full IP address, regex, 'otr', or 'mel'\n"; 
-	return 0; 
+	echo -e "\n Usage: modsec <DOMAIN> [-i|--ip <IPADDR>]\n If <DOMAIN> is . attempt to get domain from path\n <IPADDR> can be a full IP address, regex, 'otr', or 'mel'\n";
+	exit 0;
 fi;
 
 echo;
-if [[ -z "$1" ]]; then 
-	read -p "Domain: " D; 
+if [[ -z "$1" ]]; then
+	read -p "Domain: " D;
 	echo;
-elif [[ $1 == '.' ]]; then 
-	D="$(pwd | sed 's:^/chroot::' | cut -d/ -f4)"; 
-else 
-	D="$(echo $1 | sed 's/\///g')"; 
+elif [[ $1 == '.' ]]; then
+	D="$(pwd | sed 's:^/chroot::' | cut -d/ -f4)";
+else
+	D="$(echo $1 | sed 's/\///g')";
 fi
-if [[ "$2" == '-i' && -z "$3" || "$2" == '--ip' && -z "$3" ]]; then 
-	read -p "IPaddress: " IP; 
+if [[ "$2" == '-i' && -z "$3" || "$2" == '--ip' && -z "$3" ]]; then
+	read -p "IPaddress: " IP;
 	echo;
-elif [[ "$3" == 'otr' ]]; then 
-	IP='208.69.120.120'; 
-elif [[ "$3" == 'mel' ]]; then 
-	IP="192.240.191.2"; 
-else 
-	IP="$3"; 
+elif [[ "$3" == 'otr' ]]; then
+	IP='208.69.120.120';
+elif [[ "$3" == 'mel' ]]; then
+	IP="192.240.191.2";
+else
+	IP="$3";
 fi
 
 FORMAT="%-8s %-9s %s\n";
@@ -35,5 +35,5 @@ if grep -qEi '\[id: [0-9]{6,}\]' /home/*/var/$D/logs/error.log; then
 else
 	grep -Eio "client.$IP.*id..[0-9]{6,}\"" /home/*/var/$D/logs/error.log | awk '{print $NF,$2}'\
 		| sort | uniq -c | tr -d \" | tr -d \] | awk '{printf "%7s   %-8s  %s\n",$1,$2,$3}';
-fi; 
+fi;
 echo

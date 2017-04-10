@@ -1,10 +1,10 @@
 #! /bin/bash
 
 ## Find configuration file, and echo configured DB name
-if [[ -z "$1" ]]; then 
-	SITEPATH="."; 
-else 
-	SITEPATH="$1"; 
+if [[ -z "$1" ]]; then
+	SITEPATH=".";
+else
+	SITEPATH="$1";
 fi;
 if [[ -f $SITEPATH/app/etc/local.xml ]]; then	# If site is Mage
 	echo $(grep dbname $SITEPATH/app/etc/local.xml | cut -d\[ -f3 | cut -d\] -f1)
@@ -19,13 +19,13 @@ elif [[ -f $SITEPATH/includes/config.php ]]; then	# If site is vBulletin 4.x
 elif [[ -f $SITEPATH/upload/core/includes/config.php ]]; then	# If site is vBulletin 5.x
 	echo $(grep dbname $SITEPATH/upload/core/includes/config.php | cut -d\' -f6)
 elif [[ "$1" == "EE" || "$1" == "ee" ]]; then	# If site is EE or another CodeIgniter app
-	if [[ -z "$2" ]]; then 
-		SITEPATH="/home/$(getusr)"; 
-	else 
-		SITEPATH="$2"; 
+	if [[ -z "$2" ]]; then
+		SITEPATH="/home/$(getusr)";
+	else
+		SITEPATH="$2";
 	fi
 	CONFIG=$(find $SITEPATH -type f -name database.php -print)
 	echo $(grep \'database\' $CONFIG | cut -d\' -f6)
 else # If there is no config to be found ...
-	echo "${RED}Could not find configuration file!${NORMAL}"; 
+	echo "${RED}Could not find configuration file!${NORMAL}";
 fi

@@ -1,23 +1,23 @@
 #! /bin/bash
 
 ## Setup parallel downloads in vhost
-if [[ -z $@ || $1 == '-h' || $1 == '--help' ]]; then 
-	echo -e '\n Usage: parallel <domain> \n'; 
-	return 0;
-elif [[ -f /etc/httpd/conf.d/vhost_$1.conf ]]; then 
+if [[ -z $@ || $1 == '-h' || $1 == '--help' ]]; then
+	echo -e '\n Usage: parallel <domain> \n';
+	exit 0;
+elif [[ -f /etc/httpd/conf.d/vhost_$1.conf ]]; then
 	D=$1;
-elif [[ $1 == '.' && -f /etc/httpd/conf.d/vhost_$(pwd | sed 's:^/chroot::' | cut -d/ -f4).conf ]]; then 
+elif [[ $1 == '.' && -f /etc/httpd/conf.d/vhost_$(pwd | sed 's:^/chroot::' | cut -d/ -f4).conf ]]; then
 	D=$(pwd | sed 's:^/chroot::' | cut -d/ -f4)
 else e
-	cho -e '\nCould not find requested vhost file!\n'; 
-	return 1; 
+	cho -e '\nCould not find requested vhost file!\n';
+	exit 1;
 fi
 domain=$(echo $D | sed 's:\.:\\\\\\.:g'); # Covert domain into Regex
 
 # Place comment followed by a blank line, logic for parallel downloads, then another comment preceded by a blank line
 sed -i "s:\(.*RewriteCond %{HTTP_HOST}...$domain.\[NC\]\):\1\n  \# ----- Magento-Parallel-Downloads -----\n:g" /etc/httpd/conf.d/vhost_$D.conf
-for x in skin media js; do 
-	sed -i "s:\(.*RewriteCond %{HTTP_HOST}...$domain.\[NC\]\):\1\n  RewriteCond %{HTTP_HOST} \!\^$x\\\.$domain [NC]:g" /etc/httpd/conf.d/vhost_$D.conf; 
+for x in skin media js; do
+	sed -i "s:\(.*RewriteCond %{HTTP_HOST}...$domain.\[NC\]\):\1\n  RewriteCond %{HTTP_HOST} \!\^$x\\\.$domain [NC]:g" /etc/httpd/conf.d/vhost_$D.conf;
 done
 sed -i "s:\(.*RewriteCond %{HTTP_HOST}...$domain.\[NC\]\):\1\n\n  \# ----- Magento-Parallel-Downloads -----:g" /etc/httpd/conf.d/vhost_$D.conf
 httpd -t && service httpd reload && echo -e "\nParallel Downloads configure for $D\n" # Test and restart Apache, print success message

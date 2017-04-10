@@ -4,35 +4,35 @@
 
 # Generate a password using the xkcd function
 genPass(){
-	if [[ $1 == '-m' ]]; then 
+	if [[ $1 == '-m' ]]; then
 		newPass=$(mkpasswd -l 15);
-	elif [[ $1 == '-x' ]]; then 
+	elif [[ $1 == '-x' ]]; then
 		newPass=$(xkcd);
-	elif [[ $1 == '-p' ]]; then 
+	elif [[ $1 == '-p' ]]; then
 		newPass="$2";
-	else 
-		newPass=$(xkcd); 
+	else
+		newPass=$(xkcd);
 	fi
 }
 
-if [[ $1 == '-d' ]]; then 
-	primaryDomain=$2; 
-	shift; 
+if [[ $1 == '-d' ]]; then
+	primaryDomain=$2;
 	shift;
-else 
-	primaryDomain=$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}'); 
+	shift;
+else
+	primaryDomain=$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}');
 fi
 
 case $1 in
 	-e ) # Listing/Updating Email Passwords
 		if [[ -z $2 || $2 == '--list' ]]; then
 			echo -e "\n----- EmailAddresses -----"
-			for x in /home/$(getusr)/var/*/mail/*/Maildir/; do 
-				echo $(echo $x | awk -F/ '{print $7"@"$5}'); 
-			done; 
+			for x in /home/$(getusr)/var/*/mail/*/Maildir/; do
+				echo $(echo $x | awk -F/ '{print $7"@"$5}');
+			done;
 			echo
 		else
-			emailAddress=$2; 
+			emailAddress=$2;
 			genPass $3 $4
 			~vpopmail/bin/vpasswd $emailAddress $newPass
 			echo -e "\nLoginURL: https://$(serverName):2443/webmail\nUsername: $emailAddress\nPassword: $newPass\n"
@@ -56,8 +56,8 @@ case $1 in
 
 	-s ) # Listing/Updating Siteworx Users
 		if [[ -z $2 || $2 = '--list' ]]; then
-			echo; 
-			(echo "EmailAddress Name Status"; sudo -u $(getusr) siteworx -unc Users -a listUsers | sed 's/ /_/g' | awk '{print $2,$3,$5}') | column -t; 
+			echo;
+			(echo "EmailAddress Name Status"; sudo -u $(getusr) siteworx -unc Users -a listUsers | sed 's/ /_/g' | awk '{print $2,$3,$5}') | column -t;
 			echo
 		elif [[ $2 == '.' ]]; then # Lookup primary domain and primary email address
 			primaryEmail=$(nodeworx -unc Siteworx -a querySiteworxAccounts --domain $primaryDomain --account_data email)
@@ -65,7 +65,7 @@ case $1 in
 			nodeworx -unc Siteworx -a edit --password "$newPass" --confirm_password "$newPass" --domain $primaryDomain
 			echo -e "\nLoginURL: https://$(serverName):2443/siteworx/?domain=$primaryDomain\nUsername: $primaryEmail\nPassword: $newPass\nDomain: $primaryDomain\n"
 		else # Update Password for specific user
-			emailAddress=$2; 
+			emailAddress=$2;
 			genPass $3 $4
 			sudo -u $(getusr) siteworx -unc Users -a edit --user $emailAddress --password $newPass --confirm_password $newPass
 			echo -e "\nFor Testing:\nsiteworx --login_email $emailAddress --login_password $newPass --login_domain $primaryDomain"
@@ -74,11 +74,11 @@ case $1 in
 
 	-r ) # Listing/Updating Reseller Users
 		if [[ -z $2 || $2 == '--list' ]]; then # List out Resellers nicely
-			echo; 
-			(echo "ID Reseller_Email Name"; nodeworx -unc Reseller -a listResellers | sed 's/ /_/g' | awk '{print $1,$2,$3}') | column -t; 
+			echo;
+			(echo "ID Reseller_Email Name"; nodeworx -unc Reseller -a listResellers | sed 's/ /_/g' | awk '{print $1,$2,$3}') | column -t;
 			echo
 		else # Update Password for specific Reseller
-			resellerID=$2; 
+			resellerID=$2;
 			genPass $3 $4
 			nodeworx -unc Reseller -a edit --reseller_id $resellerID --password $newPass --confirm_password $newPass
 			emailAddress=$(nodeworx -unc Reseller -a listResellers | grep ^$resellerID | awk '{print $2}')
@@ -88,9 +88,9 @@ case $1 in
 
 	-m ) # Listing/Updating MySQL Users
 		if [[ -z $2 || $2 == '--list' ]]; then
-			echo; 
+			echo;
 			( echo -e "Username   Databases"
-			sudo -u $(getusr) siteworx -unc Mysqluser -a listMysqlUsers | awk '{print $2,$3}' ) | column -t; 
+			sudo -u $(getusr) siteworx -unc Mysqluser -a listMysqlUsers | awk '{print $2,$3}' ) | column -t;
 			echo
 		else
 			genPass $3 $4
@@ -102,11 +102,11 @@ case $1 in
 
 	-n ) # Listing/Updating Nodeworx Users
 		if [[ -z $2 || $2 == '--list' ]]; then # List Nodeworx (non-Nexcess) users
-			echo; 
-			(echo "Email_Address Name"; nodeworx -unc Users -a list | grep -v nexcess.net | sed 's/ /_/g') | column -t; 
+			echo;
+			(echo "Email_Address Name"; nodeworx -unc Users -a list | grep -v nexcess.net | sed 's/ /_/g') | column -t;
 			echo
 		elif [[ ! $2 =~ nexcess\.net$ ]]; then # Update Password for specific Nodeworx user
-			emailAddress=$2; 
+			emailAddress=$2;
 			genPass $3 $4
 			nodeworx -unc Users -a edit --user $emailAddress --password $newPass --confirm_password $newPass
 			echo -e "\nFor Testing:\nnodeworx --login_email $emailAddress --login_password $newPass"
@@ -133,7 +133,7 @@ case $1 in
 		PASSWORD: (password generation or input)
 		-m ... Generate password using mkpasswd
 		-x ... Generate password using xkcd (default)
-		-p ... Specify new password directly (-p <password>)\n"; 
-		return 0;;
+		-p ... Specify new password directly (-p <password>)\n";
+		exit 0;;
 esac
 unset primaryDomain primaryEmail emailAddress resellerID newPass # Cleanup

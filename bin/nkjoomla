@@ -2,21 +2,21 @@
 
 ## Find Joomla information and perform some common tasks
 # Set path to Joomla install
-echo; 
+echo;
 runonce=0;
-if [[ $1 =~ ^-.*$ ]]; then 
-	SITEPATH='.'; 
-	opt="$1"; 
-	shift; 
+if [[ $1 =~ ^-.*$ ]]; then
+	SITEPATH='.';
+	opt="$1";
+	shift;
 	param="$@";
-elif [[ -z $@ ]]; then 
-	SITEPATH='.'; 
-else 
-	SITEPATH="$1"; 
-	opt="$2"; 
-	shift; 
-	shift; 
-	param="$@"; 
+elif [[ -z $@ ]]; then
+	SITEPATH='.';
+else
+	SITEPATH="$1";
+	opt="$2";
+	shift;
+	shift;
+	param="$@";
 fi;
 
 # Set path to configuration.php file
@@ -34,10 +34,10 @@ if [[ -f "$CONFIG" ]]; then
 	prefix=$(grep '$dbprefix ' $CONFIG | cut -d\' -f2)
 
 	# Check location of version file
-	if [[ -f "$SITEPATH/libraries/cms/version/version.php" ]]; then 
-		VERFILE="$SITEPATH/libraries/cms/version/version.php"; 
-	else 
-		VERFILE="$SITEPATH/libraries/joomla/version.php"; 
+	if [[ -f "$SITEPATH/libraries/cms/version/version.php" ]]; then
+		VERFILE="$SITEPATH/libraries/cms/version/version.php";
+	else
+		VERFILE="$SITEPATH/libraries/joomla/version.php";
 	fi
 
 	# Gather version information
@@ -62,8 +62,8 @@ if [[ -f "$CONFIG" ]]; then
 		-s | --swap ...... Temporarily swap out user password
 		-u | --users ..... Show users configured within the database
 		-h | --help ....... Display this help and quit
-		When run with no options, returns summary information"; 
-		return 0; 
+		When run with no options, returns summary information";
+		exit 0;
 	}
 
 	_joomlainfo(){
@@ -85,81 +85,81 @@ if [[ -f "$CONFIG" ]]; then
 
 		## Show installed: components, modules, plugins, and templates
 		# Component Module Plugin Template
-		for x in Plugin; do 
-			printf "%-18s: " "Active ${x}s"; 
+		for x in Plugin; do
+			printf "%-18s: " "Active ${x}s";
 			mysql -u"$dbuser" -p"$dbpass" -h $dbhost $dbname \
 				-e "select name,type from ${prefix}extensions where type like \"$x\" and enabled = 1;"\
 				| egrep -v 'name.*type|^plg' | sed 's/ /_/g' | sort | uniq | awk '{printf "%s, ",$1}' | sed 's/, $//';
-			echo; 
-		done; 
+			echo;
+		done;
 	}
 
-	_joomlasum(){ 
-		echo -e "${BRIGHT}Joomla! \"$CODENAME\": ${RED}$VERSION ${NORMAL}\n${BRIGHT}Connection: ${RED}$dbuser:$dbname$(if [[ -n $prefix ]]; then echo .$prefix; fi)${NORMAL}\n"; 
+	_joomlasum(){
+		echo -e "${BRIGHT}Joomla! \"$CODENAME\": ${RED}$VERSION ${NORMAL}\n${BRIGHT}Connection: ${RED}$dbuser:$dbname$(if [[ -n $prefix ]]; then echo .$prefix; fi)${NORMAL}\n";
 	}
 
 	_joomlaconnect(){
-		if [[ $runonce -eq 0 ]]; then 
-			_joomlasum; runonce=1; 
+		if [[ $runonce -eq 0 ]]; then
+			_joomlasum; runonce=1;
 		fi && mysql -u $dbuser -p$dbpass -h $dbhost $dbname -e "$@";
 	}
 
-	_joomlabackup(){ 
+	_joomlabackup(){
 		_joomlasum;
-		if [[ -x /usr/bin/pigz ]]; then 
-			COMPRESS="/usr/bin/pigz"; 
-			echo "Compressing with pigz"; 
-		else 
-			COMPRESS="/usr/bin/gzip"; 
-			echo "Compressing with gzip"; 
+		if [[ -x /usr/bin/pigz ]]; then
+			COMPRESS="/usr/bin/pigz";
+			echo "Compressing with pigz";
+		else
+			COMPRESS="/usr/bin/gzip";
+			echo "Compressing with gzip";
 		fi
 		echo "Using: mysqldump --opt --skip-lock-tables -u'$dbuser' -p'$dbpass' -h $dbhost $dbname";
-		if [[ -f /usr/bin/pv ]]; then 
+		if [[ -f /usr/bin/pv ]]; then
 			mysqldump --opt --skip-lock-tables -u"$dbuser" -p"dbpass" -h $dbhost $dbname \
 				| pv -N 'MySQL-Dump' | $COMPRESS --fast | pv -N 'Compression' > ${dbname}-$(date +%Y.%m.%d-%H.%M).sql.gz;
 		else
 			mysqldump --opt --skip-lock-tables -u"$dbuser" -p"$dbpass" -h $dbhost $dbname \
-				| $COMPRESS --fast > ${dbname}-$(date +%Y.%m.%d-%H.%M).sql.gz; 
+				| $COMPRESS --fast > ${dbname}-$(date +%Y.%m.%d-%H.%M).sql.gz;
 		fi;
 	}
 
 	case $opt in
-		-B|--backup) 
+		-B|--backup)
 			_joomlabackup ;;
-		-c|--clear) 
-			cd $SITEPATH/cache/ && 
-			for x in */; do 
-				echo "Clearing $x Cache" | sed 's:/::'; 
-				find $x -type f -exec rm {} \;; 
-			done; 
+		-c|--clear)
+			cd $SITEPATH/cache/ &&
+			for x in */; do
+				echo "Clearing $x Cache" | sed 's:/::';
+				find $x -type f -exec rm {} \;;
+			done;
 			cd - &> /dev/null ;;
 		-C|--cache)
-			if [[ $(grep "caching = '0'" $CONFIG 2> /dev/null) ]]; then 
-				sed -i "s/caching = '0'/caching = '1'/" $CONFIG; 
+			if [[ $(grep "caching = '0'" $CONFIG 2> /dev/null) ]]; then
+				sed -i "s/caching = '0'/caching = '1'/" $CONFIG;
 				echo "Caching is ${BRIGHT}${GREEN}Enabled${NORMAL}";
-			else 
-				sed -i "s/caching = '1'/caching = '0'/" $CONFIG; 
-				echo "Caching is ${BRIGHT}${GREEN}Disabled${NORMAL}"; 
+			else
+				sed -i "s/caching = '1'/caching = '0'/" $CONFIG;
+				echo "Caching is ${BRIGHT}${GREEN}Disabled${NORMAL}";
 			fi ;;
-		-e|--execute) 
+		-e|--execute)
 			_joomlaconnect "${param};";;
 		-g|--gzip)
-			if [[ $(grep "gzip = '0'" $CONFIG 2> /dev/null) ]]; then 
-				sed -i "s/gzip = '0'/gzip = '1'/" $CONFIG; 
+			if [[ $(grep "gzip = '0'" $CONFIG 2> /dev/null) ]]; then
+				sed -i "s/gzip = '0'/gzip = '1'/" $CONFIG;
 				echo "Gzip is ${BRIGHT}${GREEN}Enabled${NORMAL}";
-			else 
-				sed -i "s/gzip = '1'/gzip = '0'/g" $CONFIG; 
-				echo "Gzip is ${BRIGHT}${GREEN}Disabled${NORMAL}"; 
+			else
+				sed -i "s/gzip = '1'/gzip = '0'/g" $CONFIG;
+				echo "Gzip is ${BRIGHT}${GREEN}Disabled${NORMAL}";
 			fi ;;
-		-i|--info) 
+		-i|--info)
 			echo "Database Connection Info:";
 			echo -e "\nLoc.Conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $dbhost \nRem.Conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $(hostname)\n";
 			echo -e "Username: $dbuser \nPassword: $dbpass \nDatabase: $dbname $(if [[ -n $prefix ]]; then echo \\nPrefix..: $prefix; fi) \nLoc.Host: $dbhost \nRem.Host: $(hostname)" ;;
 		-l|--login) mysql -u $dbuser -p$dbpass -h $dbhost $dbname ;;
 		-P|--password)
 			if [[ -n $param ]]; then
-				username=$(echo $param | awk '{print $1}'); 
-				password=$(echo $param | awk '{print $2}'); 
+				username=$(echo $param | awk '{print $1}');
+				password=$(echo $param | awk '{print $2}');
 				salt=$(echo $param | awk '{print $3}');
 				_joomlaconnect "UPDATE ${prefix}users SET password = MD5(\"${password}\") WHERE ${prefix}users.username = \"$username\";"
 				echo -e "New Joomla Login Credentials:\nUsername: $username\nPassword: $password"
@@ -174,30 +174,30 @@ if [[ -f "$CONFIG" ]]; then
 			echo -e "You have 20 seconds to login using the following credentials\n"
 			echo -e "LoginURL: http://$(cd $SITEPATH; pwd -P | sed "s:^/chroot::" | cut -d/ -f4- | sed 's:html/::')/administrator"
 			echo -e "Username: $username\nPassword: nexpassword\n"
-			for x in {1..20}; do 
-				sleep 1; 
-				printf ". "; 
-			done; 
+			for x in {1..20}; do
+				sleep 1;
+				printf ". ";
+			done;
 			echo
 			_joomlaconnect "UPDATE ${prefix}users SET password=\"$password\" ORDER BY id LIMIT 1";
 			echo -e "\nPassword has been reverted."
 			;;
 		-u|--user)
-			if [[ -z $param ]]; then 
+			if [[ -z $param ]]; then
 				_joomlaconnect "select * from ${prefix}users\G";
-			elif [[ $param =~ -s ]]; then 
+			elif [[ $param =~ -s ]]; then
 				_joomlaconnect "select id,username,name,email,password from ${prefix}users ORDER BY id";
-			elif [[ $param == '-h' || $param == '--help' ]]; then 
-				echo -e " Usage: nkjoomla [path] <-u|--user> [-s|--short]"; 
+			elif [[ $param == '-h' || $param == '--help' ]]; then
+				echo -e " Usage: nkjoomla [path] <-u|--user> [-s|--short]";
 			fi
 			;;
-		-h|--help) 
+		-h|--help)
 			_joomlausage ;;
-		* ) 
+		* )
 			_joomlainfo ;;
 	esac;
 	echo
 
-else 
-	echo -e "Could not find Joomla install at $SITEPATH\n"; 
+else
+	echo -e "Could not find Joomla install at $SITEPATH\n";
 fi

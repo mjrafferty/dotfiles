@@ -2,19 +2,19 @@
 
 ## Load the desired mail log through the necessary timestamp converter
 case "$1" in
-	'send'      ) 
+	'send'      )
 		log='/var/log/send/current'      ;;
-	'smtp'      ) 
+	'smtp'      )
 		log='/var/log/smtp/current'      ;;
-	'smtp2'     ) 
+	'smtp2'     )
 		log='/var/log/smtp2/current'     ;;
-	'pop3'      ) 
+	'pop3'      )
 		log='/var/log/pop3/current'      ;;
-	'pop3-ssl'  ) 
+	'pop3-ssl'  )
 		log='/var/log/pop3-ssl/current'  ;;
-	'imap4'     ) 
+	'imap4'     )
 		log='/var/log/imap4/current'     ;;
-	'imap4-ssl' ) 
+	'imap4-ssl' )
 		log='/var/log/imap4-ssl/current' ;;
 	*[0-9]*     ) log="$(find /var/log/{send,smtp,smtp2,pop3,pop3-ssl,imap4,imap4-ssl}/ -name '*$1*' -type f | head -1)" ;;
 esac

@@ -14,15 +14,15 @@ if [[ $keyhash != $crthash ]]; then
 else
 	echo -e "\n[${BRIGHT}${GREEN}UPDATE${NORMAL}] .. SSL Certificate"
 	rm ${domain}.crt 2> /dev/null; mv ${domain}{.new.crt,.crt}
-	chmod 600 ${domain}.crt; 
+	chmod 600 ${domain}.crt;
 	chown iworx. ${domain}.crt
 
 	# Check if new chain cert exists and is non-zero; then remove and replace the old one
 	if [[ -f ${domain}.new.chain.crt && -n $(cat ${domain}.new.chain.crt 2> /dev/null) ]]; then
 		echo "[${BRIGHT}${GREEN}UPDATE${NORMAL}] .. Chain Certificate"
-		rm ${domain}.chain.crt 2> /dev/null; 
+		rm ${domain}.chain.crt 2> /dev/null;
 		mv ${domain}{.new.chain.crt,.chain.crt}
-		chmod 600 ${domain}.chain.crt; 
+		chmod 600 ${domain}.chain.crt;
 		chown iworx. ${domain}.chain.crt
 	fi
 
