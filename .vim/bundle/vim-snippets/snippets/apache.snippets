@@ -9,22 +9,22 @@ snippet dir
 # <FilesMatch>
 snippet filesmatch
 	<FilesMatch "${1:regex}">
-		${0:${VISUAL}}
+		${0}
 	</FilesMatch>
 # <IfModule>
 snippet ifmodule
 	<IfModule ${1:mod_example.c}>
-		${0:${VISUAL}}
+		${0}
 	</IfModule>
 # <LimitExcept>
 snippet limitexcept
 	<LimitExcept ${1:POST GET}>
-		${0:${VISUAL}}
+		${0}
 	</LimitExcept>
 # <Proxy>
 snippet proxy
 	<Proxy ${1:*}>
-		${0:${VISUAL}}
+		${0}
 	</Proxy>
 # <VirtualHost>
 snippet virtualhost
@@ -33,3 +33,22 @@ snippet virtualhost
 		DocumentRoot ${4:/www/example.com}
 		ServerName ${0:www.example.com}
 	</VirtualHost>
+# <VirtualHost>
+snippet loc
+	<Location>
+		${0}
+	</Location>
+# <VirtualHost>
+snippet modsec
+	<IfModule mod_security2.c>
+		${0}
+	</IfModule>
+# <VirtualHost>
+snippet locma
+	<LocationMatch ${1}>
+		# Ticket ID ${2}
+		SecRuleRemoveById ${0}
+	</LocationMatch>
+# <VirtualHost>
+snippet secru
+	SecRuleRemoveById ${1}
