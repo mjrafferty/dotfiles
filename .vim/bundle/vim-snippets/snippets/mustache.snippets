@@ -1,14 +1,14 @@
 snippet if # {{#value}} ... {{/value}}
 	{{#${1:value}}}
-	${0:${VISUAL}}
+	${0}
 	{{/$1}}
 snippet ifn # {{^value}} ... {{/value}}
 	{{^${1:value}}}
-	${0:${VISUAL}}
+	${0}
 	{{/$1}}
 snippet ife # {{#value}} ... {{/value}} {{^value}} ... {{/value}}
 	{{#${1:value}}}
-	${2:${VISUAL}}
+	${2}
 	{{/$1}}
 	{{^$1}}
 	${3}

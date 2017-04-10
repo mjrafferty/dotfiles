@@ -77,27 +77,23 @@ endsnippet
 # DATES #
 #########
 snippet date "YYYY-MM-DD" w
-`!v strftime("%F")`
+`date +%Y-%m-%d`
 endsnippet
 
 snippet ddate "Month DD, YYYY" w
-`!v strftime("%b %d, %Y")`
+`date +%B\ %d,\ %Y`
 endsnippet
 
 snippet diso "ISO format datetime" w
-`!v strftime("%F %H:%M:%S%z")`
+`date +%Y-%m-%dT%H:%M:%S%:z`
 endsnippet
 
 snippet time "hh:mm" w
-`!v strftime("%H:%M")`
+`date +%H:%M`
 endsnippet
 
 snippet datetime "YYYY-MM-DD hh:mm" w
-`!v strftime("%Y-%m-%d %H:%M")`
-endsnippet
-
-snippet todo "TODO comment" bw
-`!p snip.rv=get_comment_format()[0]` ${2:TODO}: $0${3: <${4:`!v strftime('%d-%m-%y')`}${5:, `!v g:snips_author`}>} `!p snip.rv=get_comment_format()[2]`
+`date +%Y-%m-%d\ %H:%M`
 endsnippet
 
 # vim:ft=snippets:

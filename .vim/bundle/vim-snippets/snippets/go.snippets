@@ -30,7 +30,7 @@ snippet ch
 # case
 snippet cs
 	case ${1:value}:
-		${0:${VISUAL}}
+		${0}
 # const
 snippet c
 	const ${1:NAME} = ${0:0}
@@ -50,7 +50,7 @@ snippet df
 snippet dfr
 	defer func() {
 		if err := recover(); err != nil {
-			${0:${VISUAL}}
+			${0}
 		}
 	}()
 # int
@@ -72,18 +72,18 @@ snippet inf
 # if condition
 snippet if
 	if ${1:/* condition */} {
-		${2:${VISUAL}}
+		${2}
 	}
 snippet ife
 	if ${1:/* condition */} {
-		${2:${VISUAL}}
+		${2}
 	} else {
 		${0}
 	}
 # else snippet
 snippet el
 	else {
-		${0:${VISUAL}}
+		${1}
 	}
 # error snippet
 snippet ir
@@ -106,20 +106,28 @@ snippet f3
 # float64
 snippet f6
 	float64
+# if else
+snippet ie
+	if ${1:/* condition */} {
+		${2}
+	} else {
+		${3}
+	}
+	${0}
 # for int loop
 snippet for
 	for ${1}{
-		${0:${VISUAL}}
+		${0}
 	}
 # for int loop
 snippet fori
 	for ${2:i} := 0; $2 < ${1:count}; $2${3:++} {
-		${0:${VISUAL}}
+		${0}
 	}
 # for range loop
 snippet forr
 	for ${1:e} := range ${2:collection} {
-		${0:${VISUAL}}
+		${0}
 	}
 # function simple
 snippet fun
@@ -217,8 +225,9 @@ snippet ga
 	}(${0})
 snippet test test function
 	func Test${1:name}(t *testing.T) {
-		${0:${VISUAL}}
+		${2}
 	}
+	${0}
 snippet bench benchmark function
 	func Benchmark${1:name}(b *testing.B) {
 		for i := 0; i < b.N; i++ {

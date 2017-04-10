@@ -1,6 +1,6 @@
 snippet bl "{% block xyz %} .. {% endblock xyz %}"
 	{% block ${1} %}
-	${2:${VISUAL}}
+	${2}
 	{% endblock $1 %}
 snippet js "{% javascripts 'xyz' %} .. {% endjavascripts %}"
 	{% javascripts '${1}' %}
@@ -12,17 +12,17 @@ snippet css "{% stylesheets 'xyz' %} .. {% endstylesheets %}"
 	{% endstylesheets %}
 snippet if "{% if %} .. {% endif %}"
 	{% if ${1} %}
-	${2:${VISUAL}}
+	${2}
 	{% endif %}
 snippet ife "{% if %} .. {% else %} .. {% endif %}"
 	{% if ${1} %}
-	${2:${VISUAL}}
+	${2}
 	{% else %}
 	${0}
 	{% endif %}
 snippet el "{% else %}"
 	{% else %}
-	${0:${VISUAL}}
+	${0}
 snippet eif "{% elseif %}"
 	{% elseif ${1} %}
 	${0}

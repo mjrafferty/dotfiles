@@ -131,14 +131,14 @@ Don't add useless placeholder default texts like:
 
 ```
 if (${1:condition}){
-  ${0:some code here}
+  ${2:some code here}
 }
 ```
 instead use:
 
 ```
 if (${1}){
-  ${0:${VISUAL}}
+  ${2}
 }
 ```
 
@@ -147,8 +147,6 @@ functions which case hints may be helpful to remember order. In the VimL case
 get vim-dev plugin which has function completion
 
 Thus for conditions (while, if ..) and block bodies just use ${N} - Thanks
-
-When the snippet can be used to wrap existing code leverage `${VISUAL}`
 
 Open questions:
 What about one line if ee then .. else .. vs if \n .. then \n ... \n else \n .. ?

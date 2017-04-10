@@ -2,31 +2,9 @@
 " This must be first, because it changes other options as a side effect.
 set nocompatible
 
-" set the runtime path to include Vundle and initialize
-filetype off                  " required
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
-Plugin 'VundleVim/Vundle.vim'
-Plugin 'SirVer/ultisnips'
-Plugin 'honza/vim-snippets'
-Plugin 'w0rp/ale'
-Plugin 'kien/ctrlp.vim'
-Plugin 'Raimondi/delimitMate'
-Plugin 'weynhamz/vim-plugin-minibufexpl'
-Plugin 'scrooloose/nerdtree'
-Plugin 'scrooloose/nerdcommenter'
-Plugin 'Valloric/YouCompleteMe'
-Plugin 'Chiel92/vim-autoformat'
-Plugin 'nathanaelkane/vim-indent-guides'
-Plugin 'terryma/vim-multiple-cursors'
-Plugin 'majutsushi/tagbar'
-Plugin 'tpope/vim-surround'
-Plugin 'easymotion/vim-easymotion'
-Plugin 'ervandew/supertab'
-Plugin 'itchyny/lightline.vim'
-call vundle#end()            " required
-
+" allow backspacing over everything in insert mode
 set backspace=indent,eol,start
+
 
 set history=50		" keep 50 lines of command line history
 set ruler		" show the cursor position all the time
@@ -49,6 +27,7 @@ set ignorecase		" Do case insensitive matching
 set smartcase		" Do smart case matching
 set nowrap		" Do not wrap code
 set autowrite		" Automatically save before commands like :next and :make
+" In many terminal emulators the mouse works just fine, thus enable it.
 if has('mouse')
  set mouse=a
 endif
@@ -67,8 +46,13 @@ if &t_Co > 2 || has("gui_running")
   set hlsearch
 endif
 
+" Only do this part when compiled with support for autocommands.
 if has("autocmd")
 
+  " Enable file type detection.
+  " Use the default filetype settings, so that mail gets 'tw' set to 72,
+  " 'cindent' is on in C files, etc.
+  " Also load indent files, to automatically do language-dependent indenting.
   filetype plugin indent on
   set omnifunc=syntaxcomplete#Complete
 
@@ -80,6 +64,10 @@ if has("autocmd")
   autocmd FileType text setlocal textwidth=78
 
   " When editing a file, always jump to the last known cursor position.
+  " Don't do it when the position is invalid or when inside an event handler
+  " (happens when dropping a file on gvim).
+  " Also don't do it when the mark is in the first line, that is the default
+  " position when opening a file.
   autocmd BufReadPost *
     \ if line("'\"") > 1 && line("'\"") <= line("$") |
     \   exe "normal! g`\"" |
@@ -89,10 +77,11 @@ if has("autocmd")
 
 else
 
-  set autoindent
+  set autoindent		" always set autoindenting on
 
-endif 
+endif " has("autocmd")
 
+" set color scheme
 colorscheme desert
 set background=dark
 :highlight Pmenu ctermbg=blue ctermfg=white
@@ -100,21 +89,46 @@ set background=dark
 :highlight PmenuSbar ctermbg=cyan ctermfg=green
 :highlight PmenuThumb ctermbg=white ctermfg=red
 
-set dictionary+=/usr/share/dict/words
+" Enables the system dictionary
+"set dictionary+=/usr/share/dict/words
 
-set tags+=~/.vim/systags
+"set tags+=~/.vim/systags
 
 " Makes popup completion menu act more like an IDE
 set completeopt=menu,longest,menuone
 set complete=.,w,b,u,k,kspell,s,i,d,]
 
+" Enable Pathogen for maintaining plugins
+call pathogen#infect()
+
 "Changes the leader key to <Spacebar> for custom shortcuts
 let mapleader=" "
+
+"Default file for YouCompleteMe to use for C++ completion
+let g:ycm_global_ycm_extra_conf = '.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py'
 
 " Closes Vim if NerdTree plugin is the only remaining buffer open
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 
+" Toggles the TagList plugin with F8
+nnoremap <silent> <F8> :TlistToggle<CR>
+
+" Sets TagList to open on right side instead of left
+let Tlist_Use_Right_Window=1
+
+" Open NerdTree plugin on startup and move cursor back to main buffer
+"autocmd VimEnter * NERDTree
+"autocmd VimEnter * wincmd p
+
 set formatoptions=coql	" Text formating options
+
+"YouCompleteMe plugin options
+"let g:ycm_min_num_of_chars_for_completion =5
+"let g:ycm_seed_identifiers_with_syntax =1 
+"let g:ycm_extra_conf_globlist = ['~/bin/*']
+
+" AutoComplPop options
+"let g:acp_behaviorSnipmateLength=1
 
 let delimitMate_expand_space = 1
 let delimitMate_expand_cr= 1
@@ -123,6 +137,3 @@ let delimitMate_expand_cr= 1
 nnoremap <F2> :set invpaste paste?<CR>
 set pastetoggle=<F2>
 set showmode
-
-let g:UltiSnipsExpandTrigger = '<c-j>'
-let g:UltiSnipsJumpForwardTrigger='<tab>'
