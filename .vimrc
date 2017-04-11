@@ -23,7 +23,6 @@ Plugin 'terryma/vim-multiple-cursors'
 Plugin 'majutsushi/tagbar'
 Plugin 'tpope/vim-surround'
 Plugin 'easymotion/vim-easymotion'
-Plugin 'ervandew/supertab'
 Plugin 'itchyny/lightline.vim'
 call vundle#end()            " required
 
