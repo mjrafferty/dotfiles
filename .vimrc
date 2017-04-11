@@ -24,6 +24,7 @@ Plugin 'majutsushi/tagbar'
 Plugin 'tpope/vim-surround'
 Plugin 'easymotion/vim-easymotion'
 Plugin 'itchyny/lightline.vim'
+Plugin 'junegunn/rainbow_parentheses.vim'
 call vundle#end()            " required
 
 set backspace=indent,eol,start
@@ -126,6 +127,10 @@ set showmode
 
 let g:ale_open_list = 1
 let g:ale_lint_delay = 1000
+
+au VimEnter * RainbowParentheses
+
+let g:indent_guides_enable_on_vim_startup = 1
 
 let g:ycm_always_populate_location_list = 1
 let g:ycm_complete_in_comments = 1
