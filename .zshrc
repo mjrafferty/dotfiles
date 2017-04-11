@@ -5,24 +5,24 @@ fi
 
 export LANG=en_US.UTF-8
 
-if [ -f ~/.zsh_functions ]; then
-	source ~/.zsh_functions
+if [ -f ~/.functions.sh ]; then
+	source ~/.functions.sh
 fi
 
-if [ -f ~/.zsh_aliases ]; then
-source ~/.zsh_aliases
+if [ -f ~/.aliases.sh ]; then
+	source ~/.aliases.sh
 fi
 
-if [ -f ~/.zsh_environment ]; then
-source ~/.zsh_environment
+if [ -f ~/.environment.sh ]; then
+	source ~/.environment.sh
 fi
 
 if [ -f .shell_functions ]; then
-source .shell_functions 
+	source .shell_functions 
 fi
 export ZSH=~/.oh-my-zsh
 
-ZSH_THEME="robbyrussell"
+ZSH_THEME="matts"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -58,9 +58,10 @@ plugins=(git colored-man-pages colorize command-not-found cp extract history his
 # User configuration
 
 export ZSH_TMUX_AUTOSTART=true
+
 source $ZSH/oh-my-zsh.sh
-mkdir -p .vimfiles/backup
-mkdir -p .vimfiles/swp
-mkdir -p .vimfiles/undo
+
+# Create directories for files used by vim if necessary
+mkdir -p .vimfiles/{backup,swp,undo}
 
 # REMEMBER namei command

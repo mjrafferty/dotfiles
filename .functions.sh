@@ -239,8 +239,6 @@ ftpreadonly () {
 		echo -e "\n.ftpaccess file has been updated.\n"
 }
 
-compctl -W '-h --help -u --user -p --pass -l' htpasswdauth
-
 ## Create or add http-auth section for given .htaccess file
 htaccessauth () {
 	sudo -u $(getusr) echo -e "\n# ----- Password Protection Section -----
@@ -302,8 +300,6 @@ bumpquota(){
 		echo -e "\nDisk Quota for $U has been set to $newQuota MB\n"; 
 	checkquota -u $U
 }
-
-compctl -W '-h --help -a --all -l --large -u --user' checkquota
 
 ## Lookup the DNS Nameservers on the host
 nameserver () { 
@@ -631,8 +627,6 @@ diskusage(){
 	cd $DIR
 }
 
-compctl -W '-d -e -f -h --list -m -n -p -r -s -x' iworxcredz
-
 ## Setup SSH for me, so I can transfer files from HOST
 givemessh(){
 	echo; 
@@ -663,7 +657,6 @@ _whitelist(){
 	COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
 	return 0;
 }
-compctl -F _whitelist whitelist;
 
 ## Shortcut for piping math equation(s) into bc
 calc(){
@@ -693,7 +686,6 @@ trimfile(){
 	echo
 }
 
-compctl -W 'ftp php mysql http ssh cron all -h --help' logs
 ## List the last 10 reboots
 findreboot(){ 
 	last | awk '/boot/ {$4=""; print}' | head -n10 | column -t; 
@@ -748,11 +740,6 @@ brutecheck(){
 		echo;
 	done
 }
-
-compctl -W 'sub rec send sdom radd rdom ladd ldom -h --help' qmq
-
-# http://stackoverflow.com/questions/2552402/cat-file-vs-file
-compctl -W 'send smtp smtp2 pop3 pop3-ssl imap4 imap4-ssl' q
 
 ## Search send log(s) for a domain (look for error messages)
 sendlog(){
