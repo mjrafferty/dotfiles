@@ -1,4 +1,0 @@
-_cache_info_nodes_3t1h=( ${(Q)"${(z)$(<<\EO:_cache_info_nodes_3t1h
-'e program '\''info'\'' is not installed. Install it by executing:' 'pt install texinfo'
-EO:_cache_info_nodes_3t1h
-)}"} )
