@@ -128,76 +128,76 @@ if [[ -f "$CONFIG" ]]; then
 			_joomlabackup ;;
 		-c|--clear)
 			cd $SITEPATH/cache/ &&
-			for x in */; do
-				echo "Clearing $x Cache" | sed 's:/::';
-				find $x -type f -exec rm {} \;;
-			done;
-			cd - &> /dev/null ;;
-		-C|--cache)
-			if [[ $(grep "caching = '0'" $CONFIG 2> /dev/null) ]]; then
-				sed -i "s/caching = '0'/caching = '1'/" $CONFIG;
-				echo "Caching is ${BRIGHT}${GREEN}Enabled${NORMAL}";
-			else
-				sed -i "s/caching = '1'/caching = '0'/" $CONFIG;
-				echo "Caching is ${BRIGHT}${GREEN}Disabled${NORMAL}";
-			fi ;;
-		-e|--execute)
-			_joomlaconnect "${param};";;
-		-g|--gzip)
-			if [[ $(grep "gzip = '0'" $CONFIG 2> /dev/null) ]]; then
-				sed -i "s/gzip = '0'/gzip = '1'/" $CONFIG;
-				echo "Gzip is ${BRIGHT}${GREEN}Enabled${NORMAL}";
-			else
-				sed -i "s/gzip = '1'/gzip = '0'/g" $CONFIG;
-				echo "Gzip is ${BRIGHT}${GREEN}Disabled${NORMAL}";
-			fi ;;
-		-i|--info)
-			echo "Database Connection Info:";
-			echo -e "\nLoc.Conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $dbhost \nRem.Conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $(hostname)\n";
-			echo -e "Username: $dbuser \nPassword: $dbpass \nDatabase: $dbname $(if [[ -n $prefix ]]; then echo \\nPrefix..: $prefix; fi) \nLoc.Host: $dbhost \nRem.Host: $(hostname)" ;;
-		-l|--login) mysql -u $dbuser -p$dbpass -h $dbhost $dbname ;;
-		-P|--password)
-			if [[ -n $param ]]; then
-				username=$(echo $param | awk '{print $1}');
-				password=$(echo $param | awk '{print $2}');
-				salt=$(echo $param | awk '{print $3}');
-				_joomlaconnect "UPDATE ${prefix}users SET password = MD5(\"${password}\") WHERE ${prefix}users.username = \"$username\";"
-				echo -e "New Joomla Login Credentials:\nUsername: $username\nPassword: $password"
-			elif [[ -z $param || $param == '-h' || $param == '--help' ]]; then
-				echo -e " Usage: nkjoomla [path] <-P|--password> <username> <password>"
-			fi
-			;;
-		-s|--swap)
-			username=$(_joomlaconnect "SELECT username FROM ${prefix}users ORDER BY id LIMIT 1;" | tail -1)
-			password=$(_joomlaconnect "SELECT password FROM ${prefix}users ORDER BY id LIMIT 1;" | tail -1 | sed 's/\$/\\\$/g')
-			_joomlaconnect "UPDATE ${prefix}users SET password=MD5('nexpassword') ORDER BY id LIMIT 1";
-			echo -e "You have 20 seconds to login using the following credentials\n"
-			echo -e "LoginURL: http://$(cd $SITEPATH; pwd -P | sed "s:^/chroot::" | cut -d/ -f4- | sed 's:html/::')/administrator"
-			echo -e "Username: $username\nPassword: nexpassword\n"
-			for x in {1..20}; do
-				sleep 1;
-				printf ". ";
-			done;
-			echo
-			_joomlaconnect "UPDATE ${prefix}users SET password=\"$password\" ORDER BY id LIMIT 1";
-			echo -e "\nPassword has been reverted."
-			;;
-		-u|--user)
-			if [[ -z $param ]]; then
-				_joomlaconnect "select * from ${prefix}users\G";
-			elif [[ $param =~ -s ]]; then
-				_joomlaconnect "select id,username,name,email,password from ${prefix}users ORDER BY id";
-			elif [[ $param == '-h' || $param == '--help' ]]; then
-				echo -e " Usage: nkjoomla [path] <-u|--user> [-s|--short]";
-			fi
-			;;
-		-h|--help)
-			_joomlausage ;;
-		* )
-			_joomlainfo ;;
-	esac;
-	echo
+				for x in */; do
+					echo "Clearing $x Cache" | sed 's:/::';
+					find $x -type f -exec rm {} \;;
+				done;
+				cd - &> /dev/null ;;
+			-C|--cache)
+				if [[ $(grep "caching = '0'" $CONFIG 2> /dev/null) ]]; then
+					sed -i "s/caching = '0'/caching = '1'/" $CONFIG;
+					echo "Caching is ${BRIGHT}${GREEN}Enabled${NORMAL}";
+				else
+					sed -i "s/caching = '1'/caching = '0'/" $CONFIG;
+					echo "Caching is ${BRIGHT}${GREEN}Disabled${NORMAL}";
+				fi ;;
+			-e|--execute)
+				_joomlaconnect "${param};";;
+			-g|--gzip)
+				if [[ $(grep "gzip = '0'" $CONFIG 2> /dev/null) ]]; then
+					sed -i "s/gzip = '0'/gzip = '1'/" $CONFIG;
+					echo "Gzip is ${BRIGHT}${GREEN}Enabled${NORMAL}";
+				else
+					sed -i "s/gzip = '1'/gzip = '0'/g" $CONFIG;
+					echo "Gzip is ${BRIGHT}${GREEN}Disabled${NORMAL}";
+				fi ;;
+			-i|--info)
+				echo "Database Connection Info:";
+				echo -e "\nLoc.Conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $dbhost \nRem.Conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $(hostname)\n";
+				echo -e "Username: $dbuser \nPassword: $dbpass \nDatabase: $dbname $(if [[ -n $prefix ]]; then echo \\nPrefix..: $prefix; fi) \nLoc.Host: $dbhost \nRem.Host: $(hostname)" ;;
+			-l|--login) mysql -u $dbuser -p$dbpass -h $dbhost $dbname ;;
+			-P|--password)
+				if [[ -n $param ]]; then
+					username=$(echo $param | awk '{print $1}');
+					password=$(echo $param | awk '{print $2}');
+					salt=$(echo $param | awk '{print $3}');
+					_joomlaconnect "UPDATE ${prefix}users SET password = MD5(\"${password}\") WHERE ${prefix}users.username = \"$username\";"
+					echo -e "New Joomla Login Credentials:\nUsername: $username\nPassword: $password"
+				elif [[ -z $param || $param == '-h' || $param == '--help' ]]; then
+					echo -e " Usage: nkjoomla [path] <-P|--password> <username> <password>"
+				fi
+				;;
+			-s|--swap)
+				username=$(_joomlaconnect "SELECT username FROM ${prefix}users ORDER BY id LIMIT 1;" | tail -1)
+				password=$(_joomlaconnect "SELECT password FROM ${prefix}users ORDER BY id LIMIT 1;" | tail -1 | sed 's/\$/\\\$/g')
+				_joomlaconnect "UPDATE ${prefix}users SET password=MD5('nexpassword') ORDER BY id LIMIT 1";
+				echo -e "You have 20 seconds to login using the following credentials\n"
+				echo -e "LoginURL: http://$(cd $SITEPATH; pwd -P | sed "s:^/chroot::" | cut -d/ -f4- | sed 's:html/::')/administrator"
+				echo -e "Username: $username\nPassword: nexpassword\n"
+				for x in {1..20}; do
+					sleep 1;
+					printf ". ";
+				done;
+				echo
+				_joomlaconnect "UPDATE ${prefix}users SET password=\"$password\" ORDER BY id LIMIT 1";
+				echo -e "\nPassword has been reverted."
+				;;
+			-u|--user)
+				if [[ -z $param ]]; then
+					_joomlaconnect "select * from ${prefix}users\G";
+				elif [[ $param =~ -s ]]; then
+					_joomlaconnect "select id,username,name,email,password from ${prefix}users ORDER BY id";
+				elif [[ $param == '-h' || $param == '--help' ]]; then
+					echo -e " Usage: nkjoomla [path] <-u|--user> [-s|--short]";
+				fi
+				;;
+			-h|--help)
+				_joomlausage ;;
+			* )
+				_joomlainfo ;;
+		esac;
+		echo
 
-else
-	echo -e "Could not find Joomla install at $SITEPATH\n";
-fi
+	else
+		echo -e "Could not find Joomla install at $SITEPATH\n";
+	fi

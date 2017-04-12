@@ -132,7 +132,7 @@ case $opt in
 	s|search	)
 		$DECOMP "$SEARCH" $LOGFILE ;;
 
-	hr|hour 	)
+	hr|hour		)
 		for x in $(seq -w 0 23); do
 			echo -n "${x}:00 "; $DECOMP "$SEARCH" $LOGFILE | egrep -c "/[0-9]{4}:$x:";
 		done ;;
