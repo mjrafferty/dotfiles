@@ -139,6 +139,8 @@ set colorcolumn=90
 let g:ale_open_list = 1
 let g:ale_lint_delay = 1000
 
+let g:easytags_suppress_ctags_warning = 1
+
 au VimEnter * RainbowParentheses
 
 let g:indent_guides_enable_on_vim_startup = 1
