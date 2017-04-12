@@ -57,7 +57,7 @@ set smartcase		" Do smart case matching
 set nowrap		" Do not wrap code
 set autowrite		" Automatically save before commands like :next and :make
 if has('mouse')
- set mouse=a
+	set mouse=a
 endif
 set tabstop=2
 set shiftwidth=2
@@ -73,33 +73,33 @@ autocmd BufWritePre * :%s/\s\+$//e
 " Switch syntax highlighting on, when the terminal has colors
 " Also switch on highlighting the last used search pattern.
 if &t_Co > 2 || has("gui_running")
-  syntax on
-  set hlsearch
+	syntax on
+	set hlsearch
 endif
 
 if has("autocmd")
 
-  filetype plugin indent on
-  set omnifunc=syntaxcomplete#Complete
+	filetype plugin indent on
+	set omnifunc=syntaxcomplete#Complete
 
-  " Put these in an autocmd group, so that we can delete them easily.
-  augroup vimrcEx
-  au!
+	" Put these in an autocmd group, so that we can delete them easily.
+	augroup vimrcEx
+		au!
 
-  " For all text files set 'textwidth' to 78 characters.
-  autocmd FileType text setlocal textwidth=78
+		" For all text files set 'textwidth' to 78 characters.
+		autocmd FileType text setlocal textwidth=78
 
-  " When editing a file, always jump to the last known cursor position.
-  autocmd BufReadPost *
-    \ if line("'\"") > 1 && line("'\"") <= line("$") |
-    \   exe "normal! g`\"" |
-    \ endif
+		" When editing a file, always jump to the last known cursor position.
+		autocmd BufReadPost *
+					\ if line("'\"") > 1 && line("'\"") <= line("$") |
+					\   exe "normal! g`\"" |
+					\ endif
 
-  augroup END
+	augroup END
 
 else
 
-  set autoindent
+	set autoindent
 
 endif
 
