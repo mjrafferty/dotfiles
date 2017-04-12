@@ -179,6 +179,8 @@ g:ale_set_highlights	ale.txt	/*g:ale_set_highlights*
 g:ale_set_loclist	ale.txt	/*g:ale_set_loclist*
 g:ale_set_quickfix	ale.txt	/*g:ale_set_quickfix*
 g:ale_set_signs	ale.txt	/*g:ale_set_signs*
+g:ale_sh_shellcheck_executable	ale-sh.txt	/*g:ale_sh_shellcheck_executable*
+g:ale_sh_shellcheck_options	ale-sh.txt	/*g:ale_sh_shellcheck_options*
 g:ale_sign_column_always	ale.txt	/*g:ale_sign_column_always*
 g:ale_sign_error	ale.txt	/*g:ale_sign_error*
 g:ale_sign_offset	ale.txt	/*g:ale_sign_offset*

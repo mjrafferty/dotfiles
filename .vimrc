@@ -16,19 +16,25 @@ Plugin 'weynhamz/vim-plugin-minibufexpl'
 Plugin 'scrooloose/nerdtree'
 Plugin 'scrooloose/nerdcommenter'
 Plugin 'Valloric/YouCompleteMe'
-"Plugin 'Rip-Rip/clang_complete'
 Plugin 'Chiel92/vim-autoformat'
 Plugin 'nathanaelkane/vim-indent-guides'
 Plugin 'terryma/vim-multiple-cursors'
 Plugin 'majutsushi/tagbar'
 Plugin 'tpope/vim-surround'
 Plugin 'easymotion/vim-easymotion'
+Plugin 'mbbill/undotree'
+Plugin 'xolox/vim-easytags'
+Plugin 'xolox/vim-misc'
+Plugin 'airblade/vim-gitgutter'
+Plugin 'tpope/vim-fugitive'
 Plugin 'itchyny/lightline.vim'
 Plugin 'junegunn/rainbow_parentheses.vim'
 call vundle#end()            " required
 
 set backspace=indent,eol,start
 
+set hidden
+set autowrite
 set history=50		" keep 50 lines of command line history
 set ruler		" show the cursor position all the time
 set showcmd		" display incomplete commands
@@ -39,8 +45,8 @@ set scrolloff=3		" keeps cursor away from top and bottom edges
 set wildmenu
 set wildmode=full
 set undofile
-set undodir=$HOME/.vimfiles/undo// " where to save undo histories 
-set undolevels=1000 " How many undos 
+set undodir=$HOME/.vimfiles/undo// " where to save undo histories
+set undolevels=1000 " How many undos
 set undoreload=10000 " number of lines to save for undo "
 set backupdir=$HOME/.vimfiles/backup//
 set directory=$HOME/.vimfiles/swp//
@@ -60,6 +66,9 @@ set noexpandtab
 au FileType sh let g:sh_fold_enabled=5
 set foldmethod=syntax
 set foldenable
+
+" Remove trailing whitespace on save
+autocmd BufWritePre * :%s/\s\+$//e
 
 " Switch syntax highlighting on, when the terminal has colors
 " Also switch on highlighting the last used search pattern.
@@ -92,7 +101,7 @@ else
 
   set autoindent
 
-endif 
+endif
 
 colorscheme desert
 set background=dark
@@ -124,6 +133,8 @@ let delimitMate_expand_cr= 1
 nnoremap <F2> :set invpaste paste?<CR>
 set pastetoggle=<F2>
 set showmode
+
+set colorcolumn=90
 
 let g:ale_open_list = 1
 let g:ale_lint_delay = 1000
