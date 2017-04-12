@@ -82,3 +82,6 @@
 [submodule "custom/plugins/zsh-history-substring-search"]
 	path = custom/plugins/zsh-history-substring-search
 	url = https://github.com/zsh-users/zsh-history-substring-search
+[submodule "no-rsync/bash-it"]
+	path = no-rsync/bash-it
+	url = https://github.com/Bash-it/bash-it
