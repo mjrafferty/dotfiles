@@ -1,5 +1,5 @@
 if [ "$(id -u)" != "0" ]; then
-	HM=HOME
+	HM=$HOME
 	/usr/bin/sudo HOME=$HM /bin/zsh
 	exit
 fi
