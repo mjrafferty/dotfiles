@@ -29,7 +29,7 @@ elif [[ -f /etc/php.d/ioncube-loader.ini ]]; then
 	file="/etc/php.d/ioncube-loader.ini";
 elif [[ -f /etc/php.d/ioncube.ini ]]; then
 	file="/etc/php.d/ioncube.ini"
-	zRif [[ -f /etc/php.d/ZendGuard.ini ]]; then
+elif [[ -f /etc/php.d/ZendGuard.ini ]]; then
 	echo "ZendGuard.ini file already exists!";
 	file="/dev/null";
 fi

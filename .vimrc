@@ -134,7 +134,7 @@ nnoremap <F2> :set invpaste paste?<CR>
 set pastetoggle=<F2>
 set showmode
 
-set colorcolumn=90
+set colorcolumn=120
 
 let g:ale_open_list = 1
 let g:ale_lint_delay = 1000
