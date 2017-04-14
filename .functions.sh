@@ -143,11 +143,6 @@ dash () {
 	done;
 }
 
-## Get the username from the PWD
-getusr () {
-	pwd | sed 's:^/chroot::' | cut -d/ -f3;
-}
-
 ## Print the hostname if it resolves, otherwise print the main IP
 serverName () {
 	if [[ -n $(dig +time=1 +tries=1 +short $(hostname)) ]]; then
