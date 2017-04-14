@@ -42,7 +42,7 @@
 	url = https://github.com/scrooloose/nerdcommenter
 [submodule ".vim/bundle/YouCompleteMe"]
 	path = .vim/bundle/YouCompleteMe
-	url = https://github.com/Valloric/YouCompleteMe
+	url = https://github.com/mjrafferty/dotfiles
 [submodule ".vim/bundle/vim-autoformat"]
 	path = .vim/bundle/vim-autoformat
 	url = https://github.com/Chiel92/vim-autoformat
