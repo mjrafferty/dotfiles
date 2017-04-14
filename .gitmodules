@@ -16,3 +16,72 @@
 [submodule "no-rsync/bash-it"]
 	path = no-rsync/bash-it
 	url = https://github.com/Bash-it/bash-it
+[submodule "Vundle.vim"]
+	path = Vundle.vim
+	url = https://github.com/VundleVim/Vundle.vim
+[submodule "ultisnips"]
+	path = ultisnips
+	url = https://github.com/SirVer/ultisnips
+[submodule "vim-snippets"]
+	path = vim-snippets
+	url = https://github.com/honza/vim-snippets
+[submodule "ale"]
+	path = ale
+	url = https://github.com/w0rp/ale
+[submodule "ctrlp.vim"]
+	path = ctrlp.vim
+	url = https://github.com/kien/ctrlp.vim
+[submodule "delimitMate"]
+	path = delimitMate
+	url = https://github.com/Raimondi/delimitMate
+[submodule "vim-plugin-minibufexpl"]
+	path = vim-plugin-minibufexpl
+	url = https://github.com/weynhamz/vim-plugin-minibufexpl
+[submodule "nerdtree"]
+	path = nerdtree
+	url = https://github.com/scrooloose/nerdtree
+[submodule "nerdcommenter"]
+	path = nerdcommenter
+	url = https://github.com/scrooloose/nerdcommenter
+[submodule "YouCompleteMe"]
+	path = YouCompleteMe
+	url = https://github.com/Valloric/YouCompleteMe
+[submodule "vim-autoformat"]
+	path = vim-autoformat
+	url = https://github.com/Chiel92/vim-autoformat
+[submodule "vim-indent-guides"]
+	path = vim-indent-guides
+	url = https://github.com/nathanaelkane/vim-indent-guides
+[submodule "vim-multiple-cursors"]
+	path = vim-multiple-cursors
+	url = https://github.com/terryma/vim-multiple-cursors
+[submodule "tagbar"]
+	path = tagbar
+	url = https://github.com/majutsushi/tagbar
+[submodule "vim-surround"]
+	path = vim-surround
+	url = https://github.com/tpope/vim-surround
+[submodule "vim-easymotion"]
+	path = vim-easymotion
+	url = https://github.com/easymotion/vim-easymotion
+[submodule "undotree"]
+	path = undotree
+	url = https://github.com/mbbill/undotree
+[submodule "vim-easytags"]
+	path = vim-easytags
+	url = https://github.com/oepn/vim-easytags
+[submodule "vim-misc"]
+	path = vim-misc
+	url = https://github.com/xolox/vim-misc
+[submodule "vim-gitgutter"]
+	path = vim-gitgutter
+	url = https://github.com/airblade/vim-gitgutter
+[submodule "vim-fugitive"]
+	path = vim-fugitive
+	url = https://github.com/tpope/vim-fugitive
+[submodule "lightline.vim"]
+	path = lightline.vim
+	url = https://github.com/itchyny/lightline.vim
+[submodule "rainbow_parentheses.vim"]
+	path = rainbow_parentheses.vim
+	url = https://github.com/junegunn/rainbow_parentheses.vim
