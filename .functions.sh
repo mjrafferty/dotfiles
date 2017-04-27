@@ -54,7 +54,7 @@ function sshpass() {
 function hitsperhour () {
 	for x in $(seq -w 0 23); do
 		echo -n "$x  ";
-		zcat $* | grep -c "$(date +%d/%b/%Y:)$x";
+		zless $* | grep -c "$(date +%d/%b/%Y:)$x";
 	done;
 }
 
