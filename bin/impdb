@@ -1,0 +1,20 @@
+#! /bin/bash
+
+DBNAME=$1
+FILELO=$2
+if [ "x${1}" == "x" ] || [ "x${2}" == "x" ]; then
+	printf "\e[1;31m --Please specify a valid DB name and filepath!-- \e[0m\n"
+else
+	CRE=$(iworx -s --add-both ${DBNAME})
+	CHK=$(printf "${CRE}" | grep -v "DB Name" | grep -v "DB User" | grep -v "DB Pass")
+	NAM=$(printf "${CRE}" | grep "DB Name" | awk '{print $4}')
+	UZR=$(printf "${CRE}" | grep "DB User" | awk '{print $4}')
+	PSS=$(printf "${CRE}" | grep "DB Pass" | awk '{print $4}')
+	CUZ=$(pwd -P | awk -F "/" '{print $4}')
+	if [ "x${CHK}" == "x" ]; then
+		zcat ${FILELO} | mysql -u ${UZR} -p${PSS} ${NAM}
+		printf "${CRE}\n"
+	else
+		printf "${CHK}\n"
+	fi
+fi
