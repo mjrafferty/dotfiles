@@ -51,10 +51,14 @@ function sshpass() {
 	nksshd userControl --reset-failures $1;
 }
 
-function hitsperhour () {
+hitsperhour () {
+	if [ -z $1 ]; then
+		cat > /tmp/hitsperhour.tmp;
+		1 = /tmp/hitsperhour.tmp;
+	fi
 	for x in $(seq -w 0 23); do
 		echo -n "$x  ";
-		zless $1 | grep -c "$(date +%d/%b/%Y:)$x";
+		zless "$1" | grep -c "$(date +%d/%b/%Y:)$x";
 	done;
 }
 
