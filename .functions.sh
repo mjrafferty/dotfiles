@@ -52,7 +52,7 @@ function sshpass() {
 }
 
 hitsperhour () {
-	for x in {0..23}; do
+	for x in $(seq -w 0 23); do
 		echo -n "$x:00 -  ";
 		zgrep -c "../.*/....:$x" "$1";
 	done;
