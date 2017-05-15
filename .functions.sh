@@ -52,13 +52,9 @@ function sshpass() {
 }
 
 hitsperhour () {
-	if [ -z $1 ]; then
-		/tmp/hitsperhour.tmp; < /dev/stdin
-		1 = /tmp/hitsperhour.tmp;
-	fi
 	for x in $(seq -w 0 23); do
-		echo -n "$x  ";
-		zless "$1" | grep -c "$(date +%d/%b/%Y:)$x";
+		echo -n "$x:00 -  ";
+		grep -c "$(../.*/....:)$x";
 	done;
 }
 
