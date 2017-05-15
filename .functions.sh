@@ -53,7 +53,7 @@ function sshpass() {
 
 hitsperhour () {
 	if [ -z $1 ]; then
-		cat > /tmp/hitsperhour.tmp;
+		/tmp/hitsperhour.tmp; < /dev/stdin
 		1 = /tmp/hitsperhour.tmp;
 	fi
 	for x in $(seq -w 0 23); do
