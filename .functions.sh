@@ -54,7 +54,7 @@ function sshpass() {
 hitsperhour () {
 	for x in $(seq -w 0 23); do
 		echo -n "$x:00 -  ";
-		grep -c "../.*/....:$x";
+		grep -c "../.*/....:$x" $1;
 	done;
 }
 
