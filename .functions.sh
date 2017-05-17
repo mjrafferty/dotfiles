@@ -51,7 +51,7 @@ uabymb () {
 }
 
 totalmb () {
-	zless $* | awk '{sum+=$10} END {print sum/1048576}'
+	zless $* | awk '{sum+=$10} END {print sum/1048576i "M"}'
 }
 
 function sshpass() {
