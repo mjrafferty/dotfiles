@@ -46,6 +46,10 @@ ipsbymb () {
 	zless  $* | awk '{tx[$1]+=$10} END {for (x in tx) {print x, "\t", tx[x]/1048576, "M"}}' | sort -k 2n | tail -n 20 | tac;
 }
 
+uabymb () {
+	zless transfer.log* | cut -d\  -f10- | grep -v ^- | sed 's|^\([0-9]*\).*" "\(.*\)"$|\1\t\2|' | awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' | sort -h | tail -n 20 | tac
+}
+
 function sshpass() {
 	mkpasswd -l 15 -d 3 -C 5 -s 0 $1;
 	nksshd userControl --reset-failures $1;
