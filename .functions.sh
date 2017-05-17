@@ -50,6 +50,10 @@ uabymb () {
 	zless transfer.log* | cut -d\  -f10- | grep -v ^- | sed 's|^\([0-9]*\).*" "\(.*\)"$|\1\t\2|' | awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' | sort -h | tail -n 20 | tac
 }
 
+totalmb () {
+	zless $* | awk '{sum+=$10} END {print sum/1048576}'
+}
+
 function sshpass() {
 	mkpasswd -l 15 -d 3 -C 5 -s 0 $1;
 	nksshd userControl --reset-failures $1;
