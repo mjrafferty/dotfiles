@@ -52,10 +52,7 @@ function sshpass() {
 }
 
 hitsperhour () {
-	for x in $(seq -w 0 23); do
-		echo -n "$x:00 -  ";
-		zgrep -c "../.*/....:$x" "$1";
-	done;
+	zless $* | sed 's_.*../.*/....:\(..\).*_\1_' | sort -h | uniq -c | sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_'
 }
 
 function modsecrules () {
