@@ -121,6 +121,10 @@ function finddups () {
 	find $1 -type f -print0 | xargs -0 md5sum | sort | uniq -w32 --all-repeated=separate
 }
 
+analyzetraffic () {
+	zless * | cut -d\  -f4,9 | sed 's_.*../.*/....:\(..\):..:.._\1_' | sort -h | uniq -c | less | awk '{print $2"\t"$3"\t"$1}'
+}
+
 # Iworx DB
 i () {
 	$(grep -B1 'dsn.orig=' ~iworx/iworx.ini | head -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
