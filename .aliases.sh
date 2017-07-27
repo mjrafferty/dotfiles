@@ -27,3 +27,5 @@ alias quotas='checkquota'
 alias sshsync="rsync -p -v --progress -e ssh -a -u -z"
 
 alias iworxdb="mysql -u"iworx" -p"$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)" -S $(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | awk -F'[()]' '{print $2}')"
+
+alias diff=colordiff
