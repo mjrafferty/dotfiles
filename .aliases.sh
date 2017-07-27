@@ -12,7 +12,7 @@ alias less='less -i -n -S -F'
 alias poweroff='systemctl poweroff'
 alias reboot='systemctl reboot'
 
-alias connections="lsof -n | grep -E 'httpd.*ESTABLISHED|httpd.*CLOSE_WAIT' | sed 's_.*:http.*->\(.*\) .*_\1_' | sort | uniq -c | sort -hr"
+alias connections="lsof -n | grep -E 'httpd.*ESTABLISHED|httpd.*CLOSE_WAIT' | sed 's_.*:http.*->\(.*\): .*_\1_' | sort | uniq -c | sort -hr"
 
 alias mountro="mount -o ro,remount /usr && mount -o ro,remount /boot && mount -o ro,remount /"
 alias mountrw="mount -o rw,remount /usr; mount -o rw,remount /boot; mount -o rw,remount /"
@@ -26,6 +26,6 @@ alias quotas='checkquota'
 
 alias sshsync="rsync -p -v --progress -e ssh -a -u -z"
 
-alias iworxdb="mysql -u"iworx" -p"$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)" -S $(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | awk -F'[()]' '{print $2}')"
+alias iworxdb="mysql -u"iworx" -p"$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)" -S $(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | awk -F'[()]' '{print $2}') -D iworx"
 
 alias diff=colordiff
