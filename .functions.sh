@@ -65,7 +65,7 @@ hitsperhour () {
 
 topuri () {
 	zless $* |
-	grep -hEiv ".txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png| 403 " |
+	grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png| 403 " |
 	cut -d\  -f7 |
 	sed 's/?.*//' |
 	sort |
