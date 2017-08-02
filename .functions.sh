@@ -63,6 +63,17 @@ hitsperhour () {
 	zless $* | sed 's_.*../.*/....:\(..\).*_\1_' | sort -h | uniq -c | sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_'
 }
 
+topuri () {
+	zless $* |
+	grep -hEiv ".txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png| 403 " |
+	cut -d\  -f7 |
+	sed 's/?.*//' |
+	sort |
+	uniq -c |
+	sort -hr |
+	head;
+}
+
 function modsecrules () {
 	modgrep -s $1 -f /var/log/httpd/modsec_audit.log | grep "id " | grep -aEho "9[5-8][0-9]{4}" | sort | uniq | grep -v 981176;
 }
