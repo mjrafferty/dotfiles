@@ -14,8 +14,8 @@ if [ -f ~/.environment.sh ]; then
 	source ~/.environment.sh
 fi
 
-if [ -f .shell_functions ]; then
-	source .shell_functions
+if [ -f ~/.shell_functions ]; then
+	source ~/.shell_functions
 fi
 export ZSH=~/.oh-my-zsh
 
