@@ -1,9 +1,0 @@
-#=#=#=# Syncrun started 2017-08-05T10:41:35
-#=#=#=# Syncrun finished 2017-08-05T10:41:35 (last step: 0 msec, total: 0 msec)
-# timestamp | duration | file | instruction | dir | modtime | etag | size | fileId | status | errorString | http result code | other size | other modtime | other etag | other fileId | other instruction
-#=#=#=# Syncrun started 2017-08-05T10:41:50
-#=#=#=#=# Propagation starts 2017-08-05T10:41:52 (last step: 1772 msec, total: 1772 msec)
-#=#=#=# Syncrun finished 2017-08-05T10:42:22 (last step: 30643 msec, total: 32415 msec)
-#=#=#=# Syncrun started 2017-08-05T10:42:31
-#=#=#=#=# Propagation starts 2017-08-05T10:42:32 (last step: 1231 msec, total: 1231 msec)
-#=#=#=# Syncrun finished 2017-08-05T10:42:32 (last step: 91 msec, total: 1323 msec)
