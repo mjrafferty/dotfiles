@@ -13,6 +13,10 @@ quotacheck () {
 	echo; for _user_ in $(grep -E ":/home/[^\:]+:" /etc/passwd | cut -d\: -f1); do echo -n $_user_; quota -g $_user_ 2>/dev/null| perl -pe 's,\*,,g' | tail -n+3 | awk '{print " "$2/$3*100,$2/1000/1024,$3/1024/1000}'; echo; done | grep '\.' | sort -grk2 | awk 'BEGIN{printf "%-15s %-10s %-10s %-10s\n","User","% Used","Used (G)","Total (G)"; for (x=1; x<50; x++) {printf "-"}; printf "\n"} {printf "%-15s %-10.2f %-10.2f %-10.2f\n",$1,$2,$3,$4}'; echo
 }
 
+iworxdb () {
+	mysql -u"iworx" -p"$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)" -S $(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | awk -F'[()]' '{print $2}') -D iworx
+}
+
 updatequota () {
 	if (( $# < 2 )); then
 		echo -e "Must provide two arguments\n\nUsage: nwupdatequota \$master_domain \$new_quota\n\n";
