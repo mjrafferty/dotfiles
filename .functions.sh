@@ -102,15 +102,14 @@ uabymb () {
 		| sed 's_^\([0-9]*\).*" "\(.*\)"$_\1\t\2_' \
 		| awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
 		| sort -h \
-		| tail -n 20 \
-		| tac
+		| head -n 20;
 }
 
 refbymb () {
 	zless $* \
 		| cut -d\  -f10,11 \
 		| grep -v ^- \
-		| awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
+		| awk '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
 		| sort -hr \
 		| head -n 20;
 }
@@ -120,7 +119,7 @@ uribymb () {
 		| cut -d\  -f7,10 \
 		| grep -v "\-$" \
 		| sed 's/?.* / /' \
-		| awk -F "\t" '{tx[$1]+=$2} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
+		| awk '{tx[$1]+=$2} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
 		| sort -hr \
 		| head -n 20;
 }
