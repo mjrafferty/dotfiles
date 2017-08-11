@@ -101,7 +101,7 @@ uabymb () {
 		| grep -v ^- \
 		| sed 's_^\([0-9]*\).*" "\(.*\)"$_\1\t\2_' \
 		| awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
-		| sort -h \
+		| sort -hr \
 		| head -n 20;
 }
 
