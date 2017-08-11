@@ -1,16 +1,43 @@
 function resellers {
-	( nodeworx -u -n -c Siteworx -a listAccounts | sed 's/ /_/g' | awk '{print $5,$2,$10,$9}';
-	nodeworx -u -n -c Reseller -a listResellers | sed 's/ /_/g' | awk '{print $1,"0Reseller",$3, $2}')\
-		| sort -n | column -t | sed 's/\(.*0Re.*\)/\n\1/'  > /tmp/rslr ;
-	cat /tmp/rslr | while read line; do awk '{if ($2 == "0Reseller") print "Reseller: " $3, "( "$4" )"; else if ($3 == "master") print ($2,$4); else print ($2,$3);}'; done | sed 's/_/ /g';
+	(nodeworx -u -n -c Siteworx -a listAccounts \
+		| sed 's/ /_/g' \
+		| awk '{print $5,$2,$10,$9}';
+
+	nodeworx -u -n -c Reseller -a listResellers \
+		| sed 's/ /_/g' \
+		| awk '{print $1,"0Reseller",$3, $2}') \
+		| sort -n \
+		| column -t \
+		| sed 's/\(.*0Re.*\)/\n\1/' > /tmp/rslr;
+
+	cat /tmp/rslr \
+		| while read line; do
+			awk '{if ($2 == "0Reseller") print "Reseller: " $3, "( "$4" )"; else if ($3 == "master") print ($2,$4); else print ($2,$3);}';
+		done | sed 's/_/ /g';
 }
 
 whichsoft () {
-	md5sum /usr/sbin/r1soft/conf/server.allow/* | grep $(md5sum /usr/sbin/r1soft/conf/server.allow/$(grep AUTH /usr/sbin/r1soft/log/cdp.log | grep allow | tail -n1 | grep -Po '(?<=\[)[\d\.]{7,15}(?=:\d+\])') | cut -f1 -d' ') | awk -F'/' '{print $NF}' | xargs -rn1 host -W5 | awk '/name pointer/{sub(/\.$/,"",$NF); printf "https://%s:8001/\n",$NF}'
+	md5sum /usr/sbin/r1soft/conf/server.allow/* \
+		| grep $(md5sum /usr/sbin/r1soft/conf/server.allow/$(grep AUTH /usr/sbin/r1soft/log/cdp.log | grep allow | tail -n1 | grep -Po '(?<=\[)[\d\.]{7,15}(?=:\d+\])') | cut -f1 -d' ') \
+		| awk -F'/' '{print $NF}' \
+		| xargs -rn1 host -W5 \
+		| awk '/name pointer/{sub(/\.$/,"",$NF); printf "https://%s:8001/\n",$NF}'
 }
 
 quotacheck () {
-	echo; for _user_ in $(grep -E ":/home/[^\:]+:" /etc/passwd | cut -d\: -f1); do echo -n $_user_; quota -g $_user_ 2>/dev/null| perl -pe 's,\*,,g' | tail -n+3 | awk '{print " "$2/$3*100,$2/1000/1024,$3/1024/1000}'; echo; done | grep '\.' | sort -grk2 | awk 'BEGIN{printf "%-15s %-10s %-10s %-10s\n","User","% Used","Used (G)","Total (G)"; for (x=1; x<50; x++) {printf "-"}; printf "\n"} {printf "%-15s %-10.2f %-10.2f %-10.2f\n",$1,$2,$3,$4}'; echo
+	echo;
+	for _user_ in $(grep -E ":/home/[^\:]+:" /etc/passwd | cut -d\: -f1); do
+		echo -n $_user_;
+		quota -g $_user_ 2>/dev/null \
+			| perl -pe 's,\*,,g' \
+			| tail -n+3 \
+			| awk '{print " "$2/$3*100,$2/1000/1024,$3/1024/1000}';
+		echo;
+	done \
+		| grep '\.' \
+		| sort -grk2 \
+		| awk 'BEGIN{printf "%-15s %-10s %-10s %-10s\n","User","% Used","Used (G)","Total (G)"; for (x=1; x<50; x++) {printf "-"}; printf "\n"} {printf "%-15s %-10.2f %-10.2f %-10.2f\n",$1,$2,$3,$4}';
+	echo
 }
 
 iworxdb () {
@@ -31,7 +58,13 @@ updatequota () {
 }
 
 whodunit () {
-	echo -e "\n\n"; find /home/*/var/*/logs/ -name transfer.log -exec awk -v date="$(date +%d/%b/%Y:%H)" -v SUM=0 '$0 ~ date {SUM+=1} END{print "{} " SUM}' {} \; | grep -v :0 |grep -ve "\b0\b" | sort -nr -k 2 |awk 'BEGIN{print "\t\t\tTransfer Log\t\t\t\t\tHits Last Hour"}{printf "%-75s %-s\n", $1, $2}'; echo -e "\n\n"
+	echo -e "\n\n";
+	find /home/*/var/*/logs/ -name transfer.log -exec awk -v date="$(date +%d/%b/%Y:%H)" -v SUM=0 '$0 ~ date {SUM+=1} END{print "{} " SUM}' {} \; \
+		| grep -v :0 \
+		| grep -ve "\b0\b" \
+		| sort -nr -k 2 \
+		|awk 'BEGIN{print "\t\t\tTransfer Log\t\t\t\t\tHits Last Hour"}{printf "%-75s %-s\n", $1, $2}';
+	echo -e "\n\n"
 }
 
 ttfb () {
@@ -39,23 +72,43 @@ ttfb () {
 }
 
 topips () {
-	zless  $* | awk '{freq[$1]++} END {for (x in freq) {print freq[x], x}}' | sort -rn | head -20;
+	zless  $* \
+		| awk '{freq[$1]++} END {for (x in freq) {print freq[x], x}}' \
+		| sort -rn \
+		| head -20;
 }
 
 topuseragents () {
-	zless  $* | cut -d\  -f12- | sort | uniq -c | sort -rn | head -20;
+	zless  $* \
+		| cut -d\  -f12- \
+		| sort \
+		| uniq -c \
+		| sort -rn \
+		| head -20;
 }
 
 ipsbymb () {
-	zless  $* | awk '{tx[$1]+=$10} END {for (x in tx) {print x, "\t", tx[x]/1048576, "M"}}' | sort -k 2n | tail -n 20 | tac;
+	zless  $* \
+		| awk '{tx[$1]+=$10} END {for (x in tx) {print x, "\t", tx[x]/1048576, "M"}}' \
+		| sort -k 2n \
+		| tail -n 20 \
+		| tac;
 }
 
 uabymb () {
-	zless $* | cut -d\  -f10- | grep -v ^- | sed 's|^\([0-9]*\).*" "\(.*\)"$|\1\t\2|' | awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' | sort -h | tail -n 20 | tac
+	zless $* \
+		| cut -d\  -f10- \
+		| grep -v ^- \
+		| sed 's_^\([0-9]*\).*" "\(.*\)"$_\1\t\2_' \
+		| awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
+		| sort -h \
+		| tail -n 20 \
+		| tac
 }
 
 totalmb () {
-	zless $* | awk '{sum+=$10} END {print sum/1048576 " M"}'
+	zless $* \
+		| awk '{sum+=$10} END {print sum/1048576 " M"}'
 }
 
 function sshpass() {
@@ -64,22 +117,31 @@ function sshpass() {
 }
 
 hitsperhour () {
-	zless $* | sed 's_.*../.*/....:\(..\).*_\1_' | sort -h | uniq -c | sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_'
+	zless $* \
+		| sed 's_.*../.*/....:\(..\).*_\1_' \
+		| sort -h \
+		| uniq -c \
+		| sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_'
 }
 
 topuri () {
-	zless $* |
-	grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png| 403 " |
-	cut -d\  -f7 |
-	sed 's/?.*//' |
-	sort |
-	uniq -c |
-	sort -hr |
-	head;
+	zless $* \
+		| grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png| 403 " \
+		| cut -d\  -f7 \
+		| sed 's/?.*//' \
+		| sort \
+		| uniq -c \
+		| sort -hr \
+		| head;
 }
 
 function modsecrules () {
-	modgrep -s $1 -f /var/log/httpd/modsec_audit.log | grep "id " | grep -aEho "9[5-8][0-9]{4}" | sort | uniq | grep -v 981176;
+	modgrep -s $1 -f /var/log/httpd/modsec_audit.log \
+		| grep "id " \
+		| grep -aEho "9[5-8][0-9]{4}" \
+		| sort \
+		| uniq \
+		| grep -v 981176;
 }
 
 function backup () {
@@ -91,7 +153,8 @@ function blacklistcheck () {
 		echo '++++++++++++++++++++++++++++';
 		echo $b;
 		echo 'PHONE: 866-639-2377';
-		nslookup $b | grep addr;
+		nslookup $b \
+			| grep addr;
 		echo 'http://multirbl.valli.org/lookup/'$b'.html';
 		echo 'http://www.senderbase.org/lookup/ip/?search_string='$b;
 		echo 'https://www.senderscore.org/lookup.php?lookup='$b;
@@ -100,23 +163,32 @@ function blacklistcheck () {
 			echo;
 			echo $x;
 			echo '--------------------';
-			swaks -q TO -t postmaster@$x -li $b| grep -iE 'block|rdns|550|521|554';
+			swaks -q TO -t postmaster@$x -li $b \
+				| grep -iE 'block|rdns|550|521|554';
 		done ;
 		echo;
 		echo 'gmail.com';
 		echo '-----------------------';
-		swaks -4 -t iflcars.com@gmail.com -li $b| grep -iE 'block|rdns|550|521|554';
+		swaks -4 -t iflcars.com@gmail.com -li $b \
+			| grep -iE 'block|rdns|550|521|554';
 		echo;
 		echo;
 	done;
 }
 
 function modsecbyip () {
-	for i in $(grep $1 error.log | grep ModSecurity | sed 's/.*unique_id \"//' | sed 's/\"]//')
-	do
-		modsecrules $i
-	done | sort | uniq | sed 's/^/SecRuleRemoveById /'
-	grep $1 error.log | grep ModSecurity | sed 's/.*uri \"//' | sed 's/\"].*//' | uniq
+	for i in $(grep $1 error.log | grep ModSecurity | sed 's/.*unique_id \"//' | sed 's/\"]//'); do
+		modsecrules $i;
+	done \
+		| sort \
+		| uniq \
+		| sed 's/^/SecRuleRemoveById /';
+
+	grep $1 error.log \
+		| grep ModSecurity \
+		| sed 's/.*uri \"//' \
+		| sed 's/\"].*//' \
+		| uniq;
 }
 
 function maldetstat () {
@@ -128,16 +200,31 @@ function maldetstat () {
 function botsearch () {
 	for x in $(ls /home/$1/var/*/logs/transfer.log) ; do
 		echo -e "\n####### $x" ;
-		grep -v ' 403 ' "$x"`` | grep -iE 'bot|megaindex|crawl|spider|slurp' | cut -d\  -f12- | sort | uniq -c | sort -rn | head ;
+		grep -v ' 403 ' "$x"`` \
+			| grep -iE 'bot|megaindex|crawl|spider|slurp' \
+			| cut -d\  -f12- \
+			| sort \
+			| uniq -c \
+			| sort -rn \
+			| head ;
 	done
 }
 
 function finddups () {
-	find $1 -type f -print0 | xargs -0 md5sum | sort | uniq -w32 --all-repeated=separate
+	find $1 -type f -print0 \
+		| xargs -0 md5sum \
+		| sort \
+		| uniq -w32 --all-repeated=separate
 }
 
 analyzetraffic () {
-	zless * | cut -d\  -f4,9 | sed 's_.*../.*/....:\(..\):..:.._\1_' | sort -h | uniq -c | less | awk '{print $2"\t"$3"\t"$1}'
+	zless * \
+		| cut -d\  -f4,9 \
+		| sed 's_.*../.*/....:\(..\):..:.._\1_' \
+		| sort -h \
+		| uniq -c \
+		| less \
+		| awk '{print $2"\t"$3"\t"$1}'
 }
 
 # Iworx DB
@@ -172,7 +259,11 @@ serverName () {
 	if [[ -n $(dig +time=1 +tries=1 +short $(hostname)) ]]; then
 		hostname;
 	else
-		ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.' | head -1;
+		ip addr show \
+			| awk '/inet / {print $2}' \
+			| cut -d/ -f1 \
+			| grep -Ev '^127\.' \
+			| head -1;
 	fi
 }
 
@@ -183,25 +274,12 @@ lworx () {
 		(for x in siteworx reseller dns/zone ip; do
 		echo "$x : https://$(serverName):2443/nodeworx/$x";
 	done;
-	echo "webmail : https://$(serverName):2443/webmail") | column -t
+	echo "webmail : https://$(serverName):2443/webmail") \
+		| column -t
 else
 	echo -e "Siteworx:\nLoginURL: https://$(serverName):2443/siteworx/?domain=$1";
 fi;
 echo
-}
-
-## Download and execute global-dns-checker script
-dnscheck () {
-	wget -q -O ~/dns-check.sh nanobots.robotzombies.net/dns-check.sh;
-	chmod +x ~/dns-check.sh;
-	~/./dns-check.sh "$@";
-}
-
-## Calculate the free slots on a server depending on the server type
-freeslots () {
-	wget -q -O ~/freeslots.sh nanobots.robotzombies.net/freeslots.sh;
-	chmod +x ~/freeslots.sh;
-	~/./freeslots.sh "$@";
 }
 
 ## Add date and time with username and open server_notes.txt for editing
@@ -213,7 +291,8 @@ srvnotes () {
 ## Find files in a directory that were modified a certain number of days ago
 recmod () {
 	if [[ -z "$@" || "$1" == "-h" || "$1" == "--help" ]]; then
-		echo -e "\n Usage: recmod [-p <path>] [days|{sequence}]\n  Note: Paths with * in them need to be quoted\n"; return 0;
+		echo -e "\n Usage: recmod [-p <path>] [days|{sequence}]\n  Note: Paths with * in them need to be quoted\n";
+		return 0;
 	elif [[ "$1" == "-p" ]]; then
 		DIR="$2";
 		shift;
@@ -223,7 +302,9 @@ recmod () {
 	fi;
 	for x in "$@"; do
 		echo "Files modified within $x day(s) or $((${x}*24)) hours ago";
-		find $DIR -type f -mtime $((${x}-1)) -exec ls -lath {} \; | grep -Ev '(var|log|cache|media|tmp|jpg|png|gif)' | column -t;
+		find $DIR -type f -mtime $((${x}-1)) -exec ls -lath {} \; \
+			| grep -Ev '(var|log|cache|media|tmp|jpg|png|gif)' \
+			| column -t;
 		echo;
 	done
 }
@@ -242,7 +323,8 @@ fixowner () {
 		-r|--root) owner="root:root" ;;
 		*|-h|--help) echo -e "\n Usage: fixowner [option] [path]\n    -u | --user ..... Change ownership to $U:$U\n    -a | --apache ... Change ownership to apache:$U\n    -r | --root ..... Change ownership to root:root\n    -h | --help ..... Show this help output\n"; return 0 ;;
 	esac
-	chown -R $owner $P && echo -e "\n Files owned to $owner\n"
+	chown -R $owner $P \
+		&& echo -e "\n Files owned to $owner\n"
 }
 
 ## Generate .ftpaccess file to create read only FTP user
@@ -254,8 +336,8 @@ ftpreadonly () {
 	else
 		U="$1";
 	fi
-	sudo -u $(getusr) echo -e "\n<Limit WRITE>\n  DenyUser $U\n</Limit>\n" >> .ftpaccess &&
-		echo -e "\n.ftpaccess file has been updated.\n"
+	sudo -u $(getusr) echo -e "\n<Limit WRITE>\n  DenyUser $U\n</Limit>\n" >> .ftpaccess \
+		&& echo -e "\n.ftpaccess file has been updated.\n";
 }
 
 ## Create or add http-auth section for given .htaccess file
@@ -281,14 +363,19 @@ sysusage () {
 	colsort="4";
 	printf "%-10s %10s %10s %10s %10s\n" "User" "Mem (MB)" "Process" "CPU(%)" "MEM(%)";
 	echo "$(dash 54)"
-	ps aux | grep -v ^USER | awk '{ mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' | sort -nrk$colsort | head;
-	echo
+	ps aux \
+		| grep -v ^USER \
+		| awk '{ mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' \
+		| sort -nrk$colsort \
+		| head;
+	echo;
 }
 
 # Lookup Siteworx account details
 acctdetail () {
 	nodeworx -u -n -c Siteworx -a querySiteworxAccountDetails --domain $(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')\
-		| sed 's:\([a-zA-Z]\) \([a-zA-Z]\):\1_\2:g;s:\b1\b:YES:g;s:\b0\b:NO:g' | column -t
+		| sed 's:\([a-zA-Z]\) \([a-zA-Z]\):\1_\2:g;s:\b1\b:YES:g;s:\b0\b:NO:g' \
+		| column -t
 }
 
 ## Add an IP to a Siteworx account
@@ -313,11 +400,13 @@ bumpquota(){
 		U=$(getusr);
 		shift;
 	fi
+
 	newQuota=$1;
 	primaryDomain=$(~iworx/bin/listaccounts.pex | grep $U | awk '{print $2}')
-	nodeworx -u -n -c Siteworx -a edit --domain $primaryDomain --OPT_STORAGE $newQuota &&
-		echo -e "\nDisk Quota for $U has been set to $newQuota MB\n";
-	checkquota -u $U
+
+	nodeworx -u -n -c Siteworx -a edit --domain $primaryDomain --OPT_STORAGE $newQuota \
+		&& echo -e "\nDisk Quota for $U has been set to $newQuota MB\n";
+	checkquota -u $U;
 }
 
 ## Lookup the DNS Nameservers on the host
@@ -341,7 +430,8 @@ ddns () {
 		for y in a aaaa ns mx txt soa; do
 			dig +time=2 +tries=2 +short $y $x +noshort;
 			if [[ $y == 'ns' ]]; then
-				dig +time=2 +tries=2 +short $(dig +short ns $x) +noshort | grep -v root;
+				dig +time=2 +tries=2 +short $(dig +short ns $x) +noshort \
+					| grep -v root;
 			fi;
 		done;
 		dig +short -x $(dig +time=2 +tries=2 +short $x) +noshort;
@@ -377,8 +467,11 @@ resellerips () {
 freeips () {
 	echo;
 	for x in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.|^10\.|^172\.'); do
-		printf "\n%-15s " "$x"; grep -l $x /etc/httpd/conf.d/vhost_[^000_]*.conf 2> /dev/null;
-	done | grep -v \.conf$ | column -t;
+		printf "\n%-15s " "$x";
+		grep -l $x /etc/httpd/conf.d/vhost_[^000_]*.conf 2> /dev/null;
+	done \
+		| grep -v \.conf$ \
+		| column -t;
 	echo
 }
 
@@ -416,7 +509,8 @@ ldomains () {
 	DIR=$PWD;
 	cd /home/$(getusr);
 	for x in */html; do
-		echo $x | sed 's/\/html//g';
+		echo $x \
+			| sed 's/\/html//g';
 	done;
 	cd $DIR
 }
@@ -426,19 +520,29 @@ tempfix(){
 	for x in $(echo "$@" | sed 's/\// /g'); do
 		vim /etc/httpd/conf.d/vhost_$x.conf;
 	done;
-	httpd -t && service httpd reload
+	httpd -t \
+		&& service httpd reload
 }
 
 ## List the usernames for all accounts on the server
 laccounts () {
-	~iworx/bin/listaccounts.pex | awk '{print $1}';
+	~iworx/bin/listaccounts.pex \
+		| awk '{print $1}';
 }
 
 ## List Sitworx accouts sorted by Reseller
 lreseller () {
-	( nodeworx -u -n -c Siteworx -a listAccounts | sed 's/ /_/g' | awk '{print $5,$2,$10}';
-	nodeworx -u -n -c Reseller -a listResellers | sed 's/ /_/g' | awk '{print $1,"0.Reseller",$3}' )\
-		| sort -n | column -t | sed 's/\(.*0\.Re.*\)/\n\1/' | grep -Ev '^1 '; echo
+	( nodeworx -u -n -c Siteworx -a listAccounts \
+		| sed 's/ /_/g' \
+		| awk '{print $5,$2,$10}';
+	nodeworx -u -n -c Reseller -a listResellers \
+		| sed 's/ /_/g' \
+		| awk '{print $1,"0.Reseller",$3}' )\
+		| sort -n \
+		| column -t \
+		| sed 's/\(.*0\.Re.*\)/\n\1/' \
+		| grep -Ev '^1 ';
+	echo;
 }
 
 ## List the daily snapshots for a database to see the dates/times on the snapshots
@@ -480,27 +584,6 @@ fpmfopen () {
 	fpmconfig -f;
 }
 
-## Download scheduler.php and then list out the Magento Cron jobs
-magcrons () {
-	if [[ -z "$1" ]]; then
-		SITEPATH=".";
-	else
-		SITEPATH="$1";
-	fi
-	BASEURL=$(nkmagento info $SITEPATH | awk '/^Base/ {print $4}')
-	sudo -u $(getusr) wget -q -O $SITEPATH/scheduler.php nanobots.robotzombies.net/scheduler
-	curl -s "$BASEURL/scheduler.php" | less;
-	echo
-	read -p "Remove scheduler.php? [y/n]: " yn;
-	if [[ $yn == "n" ]]; then
-		echo "Link: $BASEURL/scheduler.php";
-	else
-		rm $SITEPATH/scheduler.php;
-		echo "scheduler.php has been removed.";
-	fi;
-	echo
-}
-
 ## Create Magento Multi-Store Symlinks
 magsymlinks () {
 	echo;
@@ -529,14 +612,18 @@ sslrekey(){
 	else
 		domain="$(echo $1 | sed 's:/::g')";
 	fi
+
 	csrfile="/home/*/var/${domain}/ssl/${domain}.csr"
 	crtfile="/home/*/var/${domain}/ssl/${domain}.crt"
+
 	if [[ -f $(echo $csrfile) ]]; then
 		subject="$(openssl req -in $csrfile -subject -noout | sed 's/^subject=//' | sed -n l0 | sed 's/$$//')"
-		openssl req -nodes -sha256 -newkey rsa:2048 -keyout new.$domain.priv.key -out new.$domain.csr -subj "$subject" && cat new.${domain}.*
+		openssl req -nodes -sha256 -newkey rsa:2048 -keyout new.$domain.priv.key -out new.$domain.csr -subj "$subject" \
+			&& cat new.${domain}.*
 	elif [[ -f $(echo $crtfile) ]]; then
 		subject="$(openssl x509 -in $crtfile -subject -noout | sed 's/^subject= //' | sed -n l0 | sed 's/$$//')"
-		openssl req -nodes -sha256 -newkey rsa:2048 -keyout new.$domain.priv.key -out new.$domain.csr -subj "$subject" && cat new.${domain}.*
+		openssl req -nodes -sha256 -newkey rsa:2048 -keyout new.$domain.priv.key -out new.$domain.csr -subj "$subject" \
+			&& cat new.${domain}.*
 	else
 		echo -e "\nNo CSR/CRT to souce from!\n"
 	fi
@@ -549,16 +636,19 @@ sslrehash(){
 	else
 		domain="$(echo $1 | sed 's:/::g')";
 	fi
+
 	keyfile="/home/*/var/${domain}/ssl/${domain}.priv.key"
 	csrfile="/home/*/var/${domain}/ssl/${domain}.csr"
 	crtfile="/home/*/var/${domain}/ssl/${domain}.crt"
 
 	if [[ -f $(echo $csrfile) && -f $(echo $keyfile) ]]; then
 		subject="$(openssl req -in $csrfile -subject -noout | sed 's/^subject=//' | sed -n l0 | sed 's/$$//')"
-		openssl req -nodes -sha256 -new -key $keyfile -out $domain.sha256.csr -subj "${subject}" && cat $domain.sha256.csr
+		openssl req -nodes -sha256 -new -key $keyfile -out $domain.sha256.csr -subj "${subject}" \
+			&& cat $domain.sha256.csr
 	elif [[ -f $(echo $crtfile) && -f $(echo $keyfile) ]]; then
 		subject="$(openssl x509 -in $crtfile -subject -noout | sed 's/^subject= //' | sed -n l0 | sed 's/$$//')"
-		openssl req -nodes -sha256 -new -key $keyfile -out $domain.sha256.csr -subj "${subject}" && cat $domain.sha256.csr
+		openssl req -nodes -sha256 -new -key $keyfile -out $domain.sha256.csr -subj "${subject}" \
+			&& cat $domain.sha256.csr
 	else
 		echo -e "\nNo CSR/CRT or KEY to souce from!\n"
 	fi
@@ -625,7 +715,8 @@ diskhogs(){
 		find . -type f -size +100000k -group $(getusr) -exec ls -lah {} \;;
 	fi;
 	echo -e "\n---------- Large Databases $(dash 53)";
-	du -sh /var/lib/mysql/$(getusr)_* | grep -E '[0-9]G|[0-9]{3}M';
+	du -sh /var/lib/mysql/$(getusr)_* \
+		| grep -E '[0-9]G|[0-9]{3}M';
 	echo
 }
 
@@ -634,7 +725,8 @@ diskusage(){
 	DIR=$PWD;
 	cd /home/$(getusr)
 	echo -e "\n---------- File Usage ----------";
-	du -h --max-depth 2 | grep -v var;
+	du -h --max-depth 2 \
+		| grep -v var;
 	echo -e "\n---------- Mail Usage ----------";
 	du -sh var/*/mail/*/Maildir;
 	echo -e "\n---------- Log File Usage ----------";
@@ -685,7 +777,8 @@ calc(){
 		echo;
 		for x in "$@"; do
 			printf "$x = ";
-			echo "scale=5;$x" | bc;
+			echo "scale=5;$x" \
+				| bc;
 		done;
 		echo;
 	fi
@@ -707,7 +800,10 @@ trimfile(){
 
 ## List the last 10 reboots
 findreboot(){
-	last | awk '/boot/ {$4=""; print}' | head -n10 | column -t;
+	last \
+		| awk '/boot/ {$4=""; print}' \
+		| head -n10 \
+		| column -t;
 }
 
 ## Simple System Status to check if services that should be running are running
@@ -727,7 +823,9 @@ ipinfo(){
 	for x in "$@"; do
 		echo;
 		echo -e "GEO-IP INFO: ($x)\n$(dash 79)";
-		curl -s ipinfo.io/$x | sed 's/,\"/\n\"/g' | awk -F\" '/[a-z]/ {printf "%8s : %s\n",$2,$4}';
+		curl -s ipinfo.io/$x \
+			| sed 's/,\"/\n\"/g' \
+			| awk -F\" '/[a-z]/ {printf "%8s : %s\n",$2,$4}';
 	done;
 	echo
 }
@@ -740,7 +838,9 @@ hits_lasthour(){
 	printf "%-30s %-10s\n" "$(dash 30)" "$(dash 10)";
 	for x in /home/*/var/*/logs/transfer.log; do
 		printf "%-30s %-10s\n" " $(echo $x | cut -d/ -f5)" " $(grep -Ec "$(date +%d/%b/%Y:%H:)" $x)";
-	done | sort -rn -k2 | head -n$top
+	done \
+		| sort -rn -k2 \
+		| head -n$top
 	echo
 }
 
@@ -755,7 +855,9 @@ brutecheck(){
 	fi;
 	echo
 	for x in $(grep -Ec "POST.*${SEARCH}" /home/*/var/*/logs/transfer.log /var/log/interworx/*/*/logs/transfer.log /var/log/interworx/*/logs/transfer.log 2> /dev/null | grep -E [0-9]{4}$ | cut -d/ -f5); do
-		echo $x; traffic $x ip -s "POST.*${SEARCH}" | grep -E [0-9]{4};
+		echo $x;
+		traffic $x ip -s "POST.*${SEARCH}" \
+			| grep -E [0-9]{4};
 		echo;
 	done
 }
@@ -768,8 +870,14 @@ sendlog(){
 		read -p "Domain: " D;
 	fi
 	if [[ $2 == 'all' ]]; then
-		cat /var/log/send/* | tai64nlocal | egrep -B2 -A8 "$D" | less;
+		cat /var/log/send/* \
+			| tai64nlocal \
+			| egrep -B2 -A8 "$D" \
+			| less;
 	else
-		cat /var/log/send/current | tai64nlocal | egrep -B2 -A8 "$D" | less;
+		cat /var/log/send/current \
+			| tai64nlocal \
+			| egrep -B2 -A8 "$D" \
+			| less;
 	fi
 }
