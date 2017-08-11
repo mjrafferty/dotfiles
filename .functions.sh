@@ -106,6 +106,25 @@ uabymb () {
 		| tac
 }
 
+refbymb () {
+	zless $* \
+		| cut -d\  -f10,11 \
+		| grep -v ^- \
+		| awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
+		| sort -hr \
+		| head -n 20;
+}
+
+uribymb () {
+	zless $* \
+		| cut -d\  -f7,10 \
+		| grep -v "\-$" \
+		| sed 's/?.* / /' \
+		| awk -F "\t" '{tx[$1]+=$2} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
+		| sort -hr \
+		| head -n 20;
+}
+
 totalmb () {
 	zless $* \
 		| awk '{sum+=$10} END {print sum/1048576 " M"}'
@@ -124,11 +143,32 @@ hitsperhour () {
 		| sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_'
 }
 
-topuri () {
+topphp () {
 	zless $* \
 		| grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png| 403 " \
 		| cut -d\  -f7 \
 		| sed 's/?.*//' \
+		| sort \
+		| uniq -c \
+		| sort -hr \
+		| head;
+}
+
+topuri () {
+	zless $* \
+		| grep -hv " 403 " \
+		| cut -d\  -f7 \
+		| sed 's/?.*//' \
+		| sort \
+		| uniq -c \
+		| sort -hr \
+		| head;
+}
+
+topref () {
+	zless $* \
+		| grep -hv " 403 " \
+		| cut -d\  -f11 \
 		| sort \
 		| uniq -c \
 		| sort -hr \
