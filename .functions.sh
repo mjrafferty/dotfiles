@@ -1,4 +1,5 @@
-function resellers {
+# Show sites and their corresponding reseller
+resellers () {
 	(nodeworx -u -n -c Siteworx -a listAccounts \
 		| sed 's/ /_/g' \
 		| awk '{print $5,$2,$10,$9}';
@@ -10,10 +11,9 @@ function resellers {
 		| column -t \
 		| sed 's/\(.*0Re.*\)/\n\1/' > /tmp/rslr;
 
-	cat /tmp/rslr \
-		| while read line; do
+		while read -r; do
 			awk '{if ($2 == "0Reseller") print "Reseller: " $3, "( "$4" )"; else if ($3 == "master") print ($2,$4); else print ($2,$3);}';
-		done | sed 's/_/ /g';
+		done < tmp/rslr | sed 's/_/ /g';
 }
 
 whichsoft () {
@@ -26,18 +26,20 @@ whichsoft () {
 
 quotacheck () {
 	echo;
-	for _user_ in $(grep -E ":/home/[^\:]+:" /etc/passwd | cut -d\: -f1); do
-		echo -n $_user_;
-		quota -g $_user_ 2>/dev/null \
-			| perl -pe 's,\*,,g' \
-			| tail -n+3 \
-			| awk '{print " "$2/$3*100,$2/1000/1024,$3/1024/1000}';
-		echo;
-	done \
+	grep -E ":/home/[^\:]+:" /etc/passwd \
+		| cut -d : -f1 \
+		| while read	-r _user_; do
+			echo -n "$_user_";
+			quota -g "$_user_" 2>/dev/null \
+				| perl -pe 's,\*,,g' \
+				| tail -n+3 \
+				| awk '{print " "$2/$3*100,$2/1000/1024,$3/1024/1000}';
+			echo;
+		done \
 		| grep '\.' \
 		| sort -grk2 \
 		| awk 'BEGIN{printf "%-15s %-10s %-10s %-10s\n","User","% Used","Used (G)","Total (G)"; for (x=1; x<50; x++) {printf "-"}; printf "\n"} {printf "%-15s %-10.2f %-10.2f %-10.2f\n",$1,$2,$3,$4}';
-	echo
+	echo;
 }
 
 iworxdb () {
@@ -54,7 +56,7 @@ updatequota () {
 	fi
 	local master_domain=$1;
 	local new_disk_quota=$2;
-	nodeworx -u -n -c Siteworx -a edit --OPT_STORAGE $new_disk_quota --domain $master_domain;
+	nodeworx -u -n -c Siteworx -a edit --OPT_STORAGE "$new_disk_quota" --domain "$master_domain";
 }
 
 whodunit () {
@@ -68,11 +70,11 @@ whodunit () {
 }
 
 ttfb () {
-	curl -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" -s $1;
+	curl -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" -s ${1};
 }
 
 topips () {
-	zless  $* \
+	zless  "$@" \
 		| awk '{freq[$1]++} END {for (x in freq) {print freq[x], x}}' \
 		| sort -rn \
 		| head -20;
@@ -129,7 +131,7 @@ totalmb () {
 		| awk '{sum+=$10} END {print sum/1048576 " M"}'
 }
 
-function sshpass() {
+sshpass() {
 	mkpasswd -l 15 -d 3 -C 5 -s 0 $1;
 	nksshd userControl --reset-failures $1;
 }
@@ -174,7 +176,7 @@ topref () {
 		| head;
 }
 
-function modsecrules () {
+modsecrules () {
 	modgrep -s $1 -f /var/log/httpd/modsec_audit.log \
 		| grep "id " \
 		| grep -aEho "9[5-8][0-9]{4}" \
@@ -183,11 +185,11 @@ function modsecrules () {
 		| grep -v 981176;
 }
 
-function backup () {
+backup () {
 	tar -czvf $1.bak.tar.gz $1;
 }
 
-function blacklistcheck () {
+blacklistcheck () {
 	for b in $1; do
 		echo '++++++++++++++++++++++++++++';
 		echo $b;
@@ -215,7 +217,7 @@ function blacklistcheck () {
 	done;
 }
 
-function modsecbyip () {
+modsecbyip () {
 	for i in $(grep $1 error.log | grep ModSecurity | sed 's/.*unique_id \"//' | sed 's/\"]//'); do
 		modsecrules $i;
 	done \
@@ -230,13 +232,13 @@ function modsecbyip () {
 		| uniq;
 }
 
-function maldetstat () {
+maldetstat () {
 	for file in $(awk '{print $3}' /usr/local/maldetect/sess/session.hits.$1); do
 		stat $file;
 	done
 }
 
-function botsearch () {
+botsearch () {
 	for x in $(ls /home/$1/var/*/logs/transfer.log) ; do
 		echo -e "\n####### $x" ;
 		grep -v ' 403 ' "$x"`` \
@@ -249,7 +251,7 @@ function botsearch () {
 	done
 }
 
-function finddups () {
+finddups () {
 	find $1 -type f -print0 \
 		| xargs -0 md5sum \
 		| sort \
