@@ -19,7 +19,7 @@ resellers () {
 whichsoft () {
 	grep "AUTH.*allow" /usr/sbin/r1soft/log/cdp.log \
 		| sed 's_.*server.allow/\(.*\).$_\1_' \
-		| tail -n \
+		| tail -n1 \
 		| awk -F'/' '{print $NF}' \
 		| xargs -rn1 host -W5 \
 		| awk '/name pointer/{sub(/\.$/,"",$NF); printf "https://%s:8001/\n",$NF}'
