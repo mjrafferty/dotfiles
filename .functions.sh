@@ -13,12 +13,13 @@ resellers () {
 
 		while read -r; do
 			awk '{if ($2 == "0Reseller") print "Reseller: " $3, "( "$4" )"; else if ($3 == "master") print ($2,$4); else print ($2,$3);}';
-		done < tmp/rslr | sed 's/_/ /g';
+		done < /tmp/rslr | sed 's/_/ /g';
 }
 
 whichsoft () {
-	md5sum /usr/sbin/r1soft/conf/server.allow/* \
-		| grep $(md5sum /usr/sbin/r1soft/conf/server.allow/$(grep AUTH /usr/sbin/r1soft/log/cdp.log | grep allow | tail -n1 | grep -Po '(?<=\[)[\d\.]{7,15}(?=:\d+\])') | cut -f1 -d' ') \
+	grep "AUTH.*allow" /usr/sbin/r1soft/log/cdp.log \
+		| sed 's_.*server.allow/\(.*\).$_\1_' \
+		| tail -n \
 		| awk -F'/' '{print $NF}' \
 		| xargs -rn1 host -W5 \
 		| awk '/name pointer/{sub(/\.$/,"",$NF); printf "https://%s:8001/\n",$NF}'
