@@ -44,7 +44,14 @@ quotacheck () {
 }
 
 iworxdb () {
-	mysql -u"iworx" -p"$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)" -S $(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | awk -F'[()]' '{print $2}') -D iworx
+	local user pass database socket;
+
+	user="iworx";
+	pass="$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)";
+	database="iworx";
+	socket="$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | awk -F'[()]' '{print $2}')";
+
+	mysql -u"$user" -p"$pass" -S"$socket" -D"$database";
 }
 
 updatequota () {
@@ -55,8 +62,10 @@ updatequota () {
 		echo -e "Too many arguments\n\nUsage: nwupdatequota \$master_domain \$new_quota\n\n";
 		return;
 	fi
+
 	local master_domain=$1;
 	local new_disk_quota=$2;
+
 	nodeworx -u -n -c Siteworx -a edit --OPT_STORAGE "$new_disk_quota" --domain "$master_domain";
 }
 
@@ -71,7 +80,9 @@ whodunit () {
 }
 
 ttfb () {
-	curl -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" -s ${1};
+	local output="Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n";
+
+	curl -o /dev/null -w"$output"  -s "$1";
 }
 
 topips () {
@@ -82,7 +93,7 @@ topips () {
 }
 
 topuseragents () {
-	zless  $* \
+	zless  "$@" \
 		| cut -d\  -f12- \
 		| sort \
 		| uniq -c \
@@ -91,7 +102,7 @@ topuseragents () {
 }
 
 ipsbymb () {
-	zless  $* \
+	zless  "$@" \
 		| awk '{tx[$1]+=$10} END {for (x in tx) {print x, "\t", tx[x]/1048576, "M"}}' \
 		| sort -k 2n \
 		| tail -n 20 \
@@ -99,7 +110,7 @@ ipsbymb () {
 }
 
 uabymb () {
-	zless $* \
+	zless "$@" \
 		| cut -d\  -f10- \
 		| grep -v ^- \
 		| sed 's_^\([0-9]*\).*" "\(.*\)"$_\1\t\2_' \
@@ -109,7 +120,7 @@ uabymb () {
 }
 
 refbymb () {
-	zless $* \
+	zless "$@" \
 		| cut -d\  -f10,11 \
 		| grep -v ^- \
 		| awk '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
@@ -118,7 +129,7 @@ refbymb () {
 }
 
 uribymb () {
-	zless $* \
+	zless "$@" \
 		| cut -d\  -f7,10 \
 		| grep -v "\-$" \
 		| sed 's/?.* / /' \
@@ -128,17 +139,17 @@ uribymb () {
 }
 
 totalmb () {
-	zless $* \
+	zless "$@" \
 		| awk '{sum+=$10} END {print sum/1048576 " M"}'
 }
 
 sshpass() {
-	mkpasswd -l 15 -d 3 -C 5 -s 0 $1;
-	nksshd userControl --reset-failures $1;
+	mkpasswd -l 15 -d 3 -C 5 -s 0 "$1";
+	nksshd userControl --reset-failures "$1";
 }
 
 hitsperhour () {
-	zless $* \
+	zless "$@" \
 		| sed 's_.*../.*/....:\(..\).*_\1_' \
 		| sort -h \
 		| uniq -c \
@@ -146,7 +157,7 @@ hitsperhour () {
 }
 
 topphp () {
-	zless $* \
+	zless "$@" \
 		| grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png| 403 " \
 		| cut -d\  -f7 \
 		| sed 's/?.*//' \
@@ -157,7 +168,7 @@ topphp () {
 }
 
 topuri () {
-	zless $* \
+	zless "$@" \
 		| grep -hv " 403 " \
 		| cut -d\  -f7 \
 		| sed 's/?.*//' \
@@ -168,7 +179,7 @@ topuri () {
 }
 
 topref () {
-	zless $* \
+	zless "$@" \
 		| grep -hv " 403 " \
 		| cut -d\  -f11 \
 		| sort \
@@ -178,7 +189,7 @@ topref () {
 }
 
 modsecrules () {
-	modgrep -s $1 -f /var/log/httpd/modsec_audit.log \
+	modgrep -s "$1" -f /var/log/httpd/modsec_audit.log \
 		| grep "id " \
 		| grep -aEho "9[5-8][0-9]{4}" \
 		| sort \
@@ -187,31 +198,31 @@ modsecrules () {
 }
 
 backup () {
-	tar -czvf $1.bak.tar.gz $1;
+	tar -czvf "$1.tar.gz" "$1";
 }
 
 blacklistcheck () {
 	for b in $1; do
 		echo '++++++++++++++++++++++++++++';
-		echo $b;
+		echo "$b";
 		echo 'PHONE: 866-639-2377';
-		nslookup $b \
+		nslookup "$b" \
 			| grep addr;
-		echo 'http://multirbl.valli.org/lookup/'$b'.html';
-		echo 'http://www.senderbase.org/lookup/ip/?search_string='$b;
-		echo 'https://www.senderscore.org/lookup.php?lookup='$b;
+		echo 'http://multirbl.valli.org/lookup/'"$b"'.html';
+		echo 'http://www.senderbase.org/lookup/ip/?search_string='"$b";
+		echo 'https://www.senderscore.org/lookup.php?lookup='"$b";
 		echo '++++++++++++++++++++++++++++';
 		for x in hotmail.com yahoo.com aol.com earthlink.net verizon.net att.net sbcglobal.net comcast.net xmission.com cloudmark.com cox.net charter.net mac.me; do
 			echo;
 			echo $x;
 			echo '--------------------';
-			swaks -q TO -t postmaster@$x -li $b \
+			swaks -q TO -t postmaster@$x -li "$b" \
 				| grep -iE 'block|rdns|550|521|554';
 		done ;
 		echo;
 		echo 'gmail.com';
 		echo '-----------------------';
-		swaks -4 -t iflcars.com@gmail.com -li $b \
+		swaks -4 -t iflcars.com@gmail.com -li "$b"	\
 			| grep -iE 'block|rdns|550|521|554';
 		echo;
 		echo;
@@ -240,9 +251,9 @@ maldetstat () {
 }
 
 botsearch () {
-	for x in $(ls /home/$1/var/*/logs/transfer.log) ; do
+	for x in /home/$1/var/*/logs/transfer.log ; do
 		echo -e "\n####### $x" ;
-		grep -v ' 403 ' "$x"`` \
+		grep -v ' 403 ' "$x" \
 			| grep -iE 'bot|megaindex|crawl|spider|slurp' \
 			| cut -d\  -f12- \
 			| sort \
@@ -253,14 +264,14 @@ botsearch () {
 }
 
 finddups () {
-	find $1 -type f -print0 \
+	find "$1" -type f -print0 \
 		| xargs -0 md5sum \
 		| sort \
 		| uniq -w32 --all-repeated=separate
 }
 
 analyzetraffic () {
-	zless * \
+	zless "$@" \
 		| cut -d\  -f4,9 \
 		| sed 's_.*../.*/....:\(..\):..:.._\1_' \
 		| sort -h \
