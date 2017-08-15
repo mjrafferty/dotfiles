@@ -71,7 +71,7 @@ updatequota () {
 
 whodunit () {
 	echo -e "\n\n";
-	find /home/*/var/*/logs/ -name transfer.log -exec awk -v date="$(date +%d/%b/%Y:%H)" -v SUM=0 '$0 ~ date {SUM+=1} END{print "{} " SUM}' {} \; \
+	for i in /home/*/var/*/logs/transfer.log; do printf "$i%s" "\t"; grep -c "$(date +%Y:%H)"; done \
 		| grep -v :0 \
 		| grep -ve "\b0\b" \
 		| sort -nr -k 2 \
