@@ -86,14 +86,14 @@ ttfb () {
 }
 
 topips () {
-	zless  "$@" \
+	zless -f "$@" \
 		| awk '{freq[$1]++} END {for (x in freq) {print freq[x], x}}' \
 		| sort -rn \
 		| head -20;
 }
 
 topuseragents () {
-	zless  "$@" \
+	zless -f "$@" \
 		| cut -d\  -f12- \
 		| sort \
 		| uniq -c \
@@ -102,7 +102,7 @@ topuseragents () {
 }
 
 ipsbymb () {
-	zless  "$@" \
+	zless -f "$@" \
 		| awk '{tx[$1]+=$10} END {for (x in tx) {print x, "\t", tx[x]/1048576, "M"}}' \
 		| sort -k 2n \
 		| tail -n 20 \
@@ -110,7 +110,7 @@ ipsbymb () {
 }
 
 uabymb () {
-	zless "$@" \
+	zless -f "$@" \
 		| cut -d\  -f10- \
 		| grep -v ^- \
 		| sed 's_^\([0-9]*\).*" "\(.*\)"$_\1\t\2_' \
@@ -120,7 +120,7 @@ uabymb () {
 }
 
 refbymb () {
-	zless "$@" \
+	zless -f "$@" \
 		| cut -d\  -f10,11 \
 		| grep -v ^- \
 		| awk '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
@@ -129,7 +129,7 @@ refbymb () {
 }
 
 uribymb () {
-	zless "$@" \
+	zless -f "$@" \
 		| cut -d\  -f7,10 \
 		| grep -v "\-$" \
 		| sed 's/?.* / /' \
@@ -139,7 +139,7 @@ uribymb () {
 }
 
 totalmb () {
-	zless "$@" \
+	zless -f "$@" \
 		| awk '{sum+=$10} END {print sum/1048576 " M"}'
 }
 
@@ -149,7 +149,7 @@ sshpass() {
 }
 
 hitsperhour () {
-	zless "$@" \
+	zless -f "$@" \
 		| sed 's_.*../.*/....:\(..\).*_\1_' \
 		| sort -h \
 		| uniq -c \
@@ -157,7 +157,7 @@ hitsperhour () {
 }
 
 topphp () {
-	zless "$@" \
+	zless -f "$@" \
 		| grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png| 403 " \
 		| cut -d\  -f7 \
 		| sed 's/?.*//' \
@@ -168,7 +168,7 @@ topphp () {
 }
 
 topuri () {
-	zless "$@" \
+	zless -f "$@" \
 		| grep -hv " 403 " \
 		| cut -d\  -f7 \
 		| sed 's/?.*//' \
@@ -179,7 +179,7 @@ topuri () {
 }
 
 topref () {
-	zless "$@" \
+	zless -f "$@" \
 		| grep -hv " 403 " \
 		| cut -d\  -f11 \
 		| sort \
@@ -271,7 +271,7 @@ finddups () {
 }
 
 analyzetraffic () {
-	zless "$@" \
+	zless -f "$@" \
 		| cut -d\  -f4,9 \
 		| sed 's_.*../.*/....:\(..\):..:.._\1_' \
 		| sort -h \
