@@ -21,4 +21,4 @@ alias sshsync="rsync -p -v --progress -e ssh -a -u -z"
 
 alias diff=colordiff
 
-alias dotpush="git add .; git commit -a -m updates; git push;"
+alias dotpush="cd ~/dotfiles; git add .; git commit -a -m updates; git push; cd -;"
