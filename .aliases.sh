@@ -17,14 +17,8 @@ alias connections="lsof -n | grep -E 'httpd.*ESTABLISHED|httpd.*CLOSE_WAIT' | se
 alias mountro="mount -o ro,remount /usr && mount -o ro,remount /boot && mount -o ro,remount /"
 alias mountrw="mount -o rw,remount /usr; mount -o rw,remount /boot; mount -o rw,remount /"
 
-alias os='echo; cat /etc/redhat-release; echo'
-alias getrsync='wget updates.nexcess.net/scripts/rsync.sh; chmod +x rsync.sh'
-alias omg='curl -s http://nanobots.robotzombies.net/aboutbashrc | less'
-alias wtf="grep -B1 '^[a-z].*(){' /home/nexmcunningham/.bashrc | sed 's/(){.*$//' | less"
-alias credits='curl -s http://nanobots.robotzombies.net/credits | less'
-alias quotas='checkquota'
-
 alias sshsync="rsync -p -v --progress -e ssh -a -u -z"
 
-
 alias diff=colordiff
+
+alias dotpush="git add .; git commit -a -m updates; git push;"

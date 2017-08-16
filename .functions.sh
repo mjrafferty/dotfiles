@@ -71,9 +71,9 @@ updatequota () {
 
 whodunit () {
 	echo -e "\n\n";
-	for i in /home/*/var/*/logs/transfer.log; do printf "$i%s" "\t"; grep -c "$(date +%Y:%H)"; done \
-		| grep -v :0 \
-		| grep -ve "\b0\b" \
+	grep -c "$(date +%Y:%H)" /home/*/var/*/logs/transfer.log \
+		| grep -v ":0$" \
+		| sed 's_log:_log\t_' \
 		| sort -nr -k 2 \
 		|awk 'BEGIN{print "\t\t\tTransfer Log\t\t\t\t\tHits Last Hour"}{printf "%-75s %-s\n", $1, $2}';
 	echo -e "\n\n"
