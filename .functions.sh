@@ -16,6 +16,12 @@ resellers () {
 		done < /tmp/rslr | sed 's/_/ /g';
 }
 
+cdd () {
+	docroot=sed -rn 's/DocumentRoot (.*$1.*)/\1/p' /etc/httpd/conf.d/vhost_* | sort -u;
+
+	cd docroot;
+}
+
 whichsoft () {
 	grep "AUTH.*allow" /usr/sbin/r1soft/log/cdp.log \
 		| sed 's_.*server.allow/\(.*\).$_\1_' \
