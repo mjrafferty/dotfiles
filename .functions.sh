@@ -20,7 +20,7 @@ cdd () {
 	site=$1;
 	docroot=$(grep -h "DocumentRoot.*$site" /etc/httpd/conf.d/vhost_* | cut -d ' ' -f4 | head -n1);
 
-	cd "$docroot" || echo "Could not locate docroot"; exit;
+	cd "$docroot" || echo "Could not locate docroot";
 }
 
 whichsoft () {
