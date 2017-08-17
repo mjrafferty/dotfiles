@@ -46,8 +46,14 @@ source $BASH_IT/bash_it.sh
 if [ -f /etc/bashrc ]; then
         . /etc/bashrc
 fi
-if [ -f /etc/bashrc.nexcess ]; then
+if [ -f ~/.environment.sh ]; then
         . /etc/bashrc.nexcess
+fi
+if [ -f ~/.aliases.sh ]; then
+        source ~/.aliases.sh
+fi
+if [ -f ~/.functions.sh ]; then
+        source ~/.functions.sh
 fi
 # User specific aliases and functions
 function me
@@ -62,3 +68,4 @@ function me
         fi
 }
 
+export PATH=$PATH:~/bin
