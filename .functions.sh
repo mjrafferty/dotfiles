@@ -156,17 +156,6 @@ hitsperhour () {
 		| sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_'
 }
 
-topphp () {
-	zless -f "$@" \
-		| grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png| 403 " \
-		| cut -d\  -f7 \
-		| sed 's/?.*//' \
-		| sort \
-		| uniq -c \
-		| sort -hr \
-		| head;
-}
-
 topuri () {
 	zless -f "$@" \
 		| grep -hv " 403 " \
