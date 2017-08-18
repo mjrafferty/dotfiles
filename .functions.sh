@@ -26,7 +26,7 @@ cdd () {
 		return;
 	fi
 
-	docroot=$(grep -h "DocumentRoot.*$site" /etc/httpd/conf.d/vhost_* | cut -d ' ' -f4 | head -n1);
+	docroot="$(sed -nr 's/.*DocumentRoot (.*)/\1/p' $vhost | head -n1)";
 
 	cd "$docroot" || echo "Could not locate docroot";
 }
