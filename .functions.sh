@@ -24,12 +24,12 @@ cdd () {
 	if [ -z ${vhost[1]} ]; then
 		echo "Domain not found";
 		return;
-	elif [ ${vhost[2]} ]; then
+	elif [ "${vhost[2]}" ]; then
 		echo "Domain ambiguous";
 		return;
-	fi
+	fi;
 
-	docroot="$(sed -nr 's/.*DocumentRoot (.*)/\1/p' $vhost | head -n1)";
+	docroot="$(sed -nr 's/.*DocumentRoot (.*)/\1/p' "$vhost" | head -n1)";
 	echo $docroot;
 	cd "$docroot" || echo "Could not locate docroot";
 }
