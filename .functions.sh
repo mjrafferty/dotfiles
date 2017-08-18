@@ -19,7 +19,7 @@ resellers () {
 cdd () {
 	local site vhost docroot;
 	site=$1;
-	vhost=($(grep -l " $site" /etc/httpd/conf.d/vhost_*));
+	vhost=($(grep -l "ServerAlias.* $site" /etc/httpd/conf.d/vhost_*));
 
 	if [ ${vhost[2]} ]; then
 		echo "Domain ambiguous";
@@ -27,7 +27,7 @@ cdd () {
 	fi
 
 	docroot="$(sed -nr 's/.*DocumentRoot (.*)/\1/p' $vhost | head -n1)";
-
+	echo $docroot;
 	cd "$docroot" || echo "Could not locate docroot";
 }
 
