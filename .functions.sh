@@ -18,7 +18,7 @@ resellers () {
 
 cdd () {
 	site=$1;
-	vhost="($(grep dope.mage2.mjrafferty.org /etc/httpd/conf.d/vhost_*)");
+	vhost="($(grep dope.mage2.mjrafferty.org /etc/httpd/conf.d/vhost_*))";
 
 	if [ -z ${vhost[2]} ]; then
 		echo "Domain ambiguous";
