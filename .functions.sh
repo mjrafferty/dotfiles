@@ -18,6 +18,13 @@ resellers () {
 
 cdd () {
 	site=$1;
+	vhost="($(grep dope.mage2.mjrafferty.org /etc/httpd/conf.d/vhost_*)");
+
+	if [ -z ${vhost[2]} ]; then
+		echo "Domain ambiguous";
+		return;
+	fi
+
 	docroot=$(grep -h "DocumentRoot.*$site" /etc/httpd/conf.d/vhost_* | cut -d ' ' -f4 | head -n1);
 
 	cd "$docroot" || echo "Could not locate docroot";
