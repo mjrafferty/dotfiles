@@ -19,7 +19,7 @@ resellers () {
 cdd () {
 	local site vhost docroot;
 	site=$1;
-	vhost=($(grep -l $site /etc/httpd/conf.d/vhost_*));
+	vhost=($(grep -l " $site" /etc/httpd/conf.d/vhost_*));
 
 	if [ ${vhost[2]} ]; then
 		echo "Domain ambiguous";
