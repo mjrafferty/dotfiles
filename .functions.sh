@@ -17,15 +17,15 @@ resellers () {
 }
 
 cdd () {
-	site=$1;
-	vhost=($(grep -l $site /etc/httpd/conf.d/vhost_*));
+	local site=$1;
+	local vhost=($(grep -l $site /etc/httpd/conf.d/vhost_*));
 
 	if [ ${vhost[2]} ]; then
 		echo "Domain ambiguous";
 		return;
 	fi
 
-	docroot=$(grep -h "DocumentRoot.*$site" /etc/httpd/conf.d/vhost_* | cut -d ' ' -f4 | head -n1);
+	local docroot=$(grep -h "DocumentRoot.*$site" /etc/httpd/conf.d/vhost_* | cut -d ' ' -f4 | head -n1);
 
 	cd "$docroot" || echo "Could not locate docroot";
 }
