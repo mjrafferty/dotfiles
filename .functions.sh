@@ -19,9 +19,12 @@ resellers () {
 cdd () {
 	local site vhost docroot;
 	site=$1;
-	vhost=($(grep -l "ServerAlias.* $site" /etc/httpd/conf.d/vhost_*));
+	vhost=($(grep -l "Server.* $site" /etc/httpd/conf.d/vhost_*));
 
-	if [ ${vhost[2]} ]; then
+	if [ -z ${vhost[1]} ]; then
+		echo "Domain not found";
+		return;
+	elif [ ${vhost[2]} ]; then
 		echo "Domain ambiguous";
 		return;
 	fi
