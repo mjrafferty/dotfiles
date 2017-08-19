@@ -18,30 +18,36 @@ resellers () {
 
 cdd () {
 	local query domains domain alias docroot;
+
+	# Obtain input string
 	query=$1;
 
+	# Gather relevant domain information
 	domains=$(grep -H "Server.* $query" /etc/httpd/conf.d/vhost_* | sed -r 's/.*vhost_(.*).conf.* ('"$query"'[^ ]*).*/\1\t\2/' | sort -u);
-
 	domain=($(echo "$domains" | cut -f1));
-
 	alias=($(echo "$domains" | cut -f2));
-
 	for (( i=1; i<=${#domain[@]}; i++ )); do
 		docroot[$i]=$(sed -nr 's/.*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"$domain[$i]".conf | head -n1);
 	done;
 
+	# Print domain information for debugging
 	for (( i=1; i<=${#domain[@]}; i++ )); do
-		echo "$alias[$i]\t$domain[$i]\t$docroot[$i]";
+		echo "${alias[$i]} ${domain[$i]} ${docroot[$i]}";
 	done;
 
-	if [ -z ${alias[1]} ]; then
+	# TODO evaluate subdomains
+
+
+
+	if [ -z ${docroot[1]} ]; then
 		echo "Domain not found";
 		return;
-	elif [ "${alias[2]}" ]; then
+	elif [ "${docroot[2]}" ]; then
 		echo "Domain ambiguous";
 		return;
 	fi;
 
+	# Change working directory to docroot
 	cd "$docroot" || echo "Could not locate docroot";
 }
 
