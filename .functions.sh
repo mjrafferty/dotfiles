@@ -17,7 +17,7 @@ resellers () {
 }
 
 cdd () {
-	local query domains domain alias;
+	local query domains domain alias docroot;
 	declare -a docroot;
 
 	# Obtain input string
@@ -33,14 +33,16 @@ cdd () {
 	alias=($(echo "$domains" \
 		| cut -f2));
 
-	for (( i=1; i<=${#domain[@]}; i++ )); do
+	for (( i=1; i<=${#alias[@]}; i++ )); do
 		docroot[$i]=($(sed -nr 's/.*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"$domain[$i]".conf \
 			| head -n1));
 	done;
 
 	# Print domain information for debugging
-	for (( i=1; i<=${#domain[@]}; i++ )); do
-		echo "${alias[$i]} ${domain[$i]} ${docroot[$i]}";
+	for (( i=1; i<=${#alias[@]}; i++ )); do
+		if [[ ${alias[$i]} =~ ${domain[$i]} ]]; then
+			echo "$alias[$i] is a subdomain of ${domain[$i]}";
+		fi
 	done \
 		| column -t;
 
