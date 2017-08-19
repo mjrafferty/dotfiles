@@ -17,14 +17,14 @@ resellers () {
 }
 
 cdd () {
-	local query domains domain alias docroot;
+	local query domains domain alias docroot subdir;
 	declare -a docroot;
 
 	# Obtain input string
 	query=$1;
 
 	# Gather relevant domain information
-	domains=$(grep -H "Server.* $query" /etc/httpd/conf.d/vhost_* \
+	domains=$(grep -H "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_* \
 		| sed -r 's/.*vhost_(.*).conf.* ('"$query"'[^ ]*).*/\1\t\2/' \
 		| sort -u);
 
@@ -38,16 +38,18 @@ cdd () {
 			| head -n1));
 	done;
 
-	# Print domain information for debugging
+	# Evaluate subdomains
 	for (( i=1; i<=${#alias[@]}; i++ )); do
-		if [[ ${alias[$i]} =~ ${domain[$i]} ]]; then
-			echo "$alias[$i] is a subdomain of ${domain[$i]}";
-		fi
-	done \
-		| column -t;
-
-	# TODO evaluate subdomains
-
+		if [[ ${alias[$i]} =~ .${domain[$i]} ]]; then
+			subdir="echo ${alias[$i]} | sed -nr 's/(.*).'"${domain[$i]}"'/\1/p'";
+			echo "$subdir";
+			if [ -d ${docroot[$i]}/$subdir ]; then
+				echo "$alias[$i] is a subdomain of ${domain[$i]}";
+				"${docroot[$i]}"="${docroot[$i]}/${subdir}";
+				echo "${docroot[$i]}";
+			fi;
+		fi;
+	done;
 
 	# Evaluate too few or too many docroots
 	if [ -z "${docroot[1]}" ]; then
