@@ -24,7 +24,7 @@ cdd () {
 	query=$1;
 
 	# Gather relevant domain information
-	domains=$(grep -H "Server.* $query" /etc/httpd/conf.d/vhost_* \
+	domains=$(grep -H "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_* \
 		| sed -r 's/.*vhost_(.*).conf.* ('"$query"'[^ ]*).*/\1\t\2/' \
 		| sort -u);
 
@@ -40,7 +40,7 @@ cdd () {
 
 	# Print domain information for debugging
 	for (( i=1; i<=${#alias[@]}; i++ )); do
-		if [[ ${alias[$i]} =~ ${domain[$i]} ]]; then
+		if [[ ${alias[$i]} =~ .${domain[$i]} ]]; then
 			echo "$alias[$i] is a subdomain of ${domain[$i]}";
 		fi
 	done \
