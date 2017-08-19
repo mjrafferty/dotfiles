@@ -21,7 +21,7 @@ cdd () {
 	query=$1;
 	echo $query;
 
-	domains=$(grep -H "Server.* $query" /etc/httpd/conf.d/vhost_* | sed -r "s/.*vhost_(.*).conf.* ($query[^ ]*).*/\1\t\2/");
+	domains=$(grep -H "Server.* $query" /etc/httpd/conf.d/vhost_* | sed -r 's/.*vhost_(.*).conf.* ('"$query"'[^ ]*).*/\1\t\2/');
 	echo $domains;
 
 	if [ -z ${domain[1]} ]; then
