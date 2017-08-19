@@ -22,15 +22,15 @@ cdd () {
 
 	domains=$(grep -H "Server.* $query" /etc/httpd/conf.d/vhost_* | sed -r 's/.*vhost_(.*).conf.* ('"$query"'[^ ]*).*/\1\t\2/' | sort -u);
 
-	domain=($(echo domains | cut -f1));
+	domain=($(echo "$domains" | cut -f1));
 
-	alias=($(echo domains | cut -f2));
+	alias=($(echo "$domains" | cut -f2));
 
-	for (( i=1; i<=${domain[@]}; i++ )); do
+	for (( i=1; i<=${#domain[@]}; i++ )); do
 		docroot[$i]=$(sed -nr 's/.*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"$domain[$i]".conf | head -n1);
 	done;
 
-	for (( i=1; i<=${domain[@]}; i++ )); do
+	for (( i=1; i<=${#domain[@]}; i++ )); do
 		echo "$alias[$i]\t$domain[$i]\t$docroot[$i]";
 	done;
 
@@ -42,8 +42,6 @@ cdd () {
 		return;
 	fi;
 
-	docroot="$(sed -nr 's/.*DocumentRoot (.*)/\1/p' "$domain" | head -n1)";
-	echo $docroot;
 	cd "$docroot" || echo "Could not locate docroot";
 }
 
