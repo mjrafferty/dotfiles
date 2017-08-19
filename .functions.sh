@@ -17,19 +17,22 @@ resellers () {
 }
 
 cdd () {
-	local site vhost docroot;
-	site=$1;
-	vhost=($(grep -l "Server.* $site" /etc/httpd/conf.d/vhost_*));
+	local query domain docroot;
+	query=$1;
+	echo $query;
 
-	if [ -z ${vhost[1]} ]; then
+	domains=$(grep -H "Server.* dope" /etc/httpd/conf.d/vhost_* | sed -r 's/.*vhost_(.*).conf.* (dope[^ ]*).*/\1\t\2/');
+	echo $domains;
+
+	if [ -z ${domain[1]} ]; then
 		echo "Domain not found";
 		return;
-	elif [ "${vhost[2]}" ]; then
+	elif [ "${domain[2]}" ]; then
 		echo "Domain ambiguous";
 		return;
 	fi;
 
-	docroot="$(sed -nr 's/.*DocumentRoot (.*)/\1/p' "$vhost" | head -n1)";
+	docroot="$(sed -nr 's/.*DocumentRoot (.*)/\1/p' "$domain" | head -n1)";
 	echo $docroot;
 	cd "$docroot" || echo "Could not locate docroot";
 }
