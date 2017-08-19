@@ -17,7 +17,7 @@ resellers () {
 }
 
 cdd () {
-	local query domain docroot;
+	local query domains domain docroot;
 	query=$1;
 	echo $query;
 
