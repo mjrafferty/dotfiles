@@ -17,17 +17,27 @@ resellers () {
 }
 
 cdd () {
-	local query domains domain docroot;
+	local query domains domain alias docroot;
 	query=$1;
-	echo $query;
 
-	domains=$(grep -H "Server.* $query" /etc/httpd/conf.d/vhost_* | sed -r 's/.*vhost_(.*).conf.* ('"$query"'[^ ]*).*/\1\t\2/');
-	echo $domains;
+	domains=$(grep -H "Server.* $query" /etc/httpd/conf.d/vhost_* | sed -r 's/.*vhost_(.*).conf.* ('"$query"'[^ ]*).*/\1\t\2/' | sort -u);
 
-	if [ -z ${domain[1]} ]; then
+	domain=($(echo domains | cut -f1));
+
+	alias=($(echo domains | cut -f2));
+
+	for (( i=1; i<=${domain[@]}; i++ )); do
+		docroot[$i]=$(sed -nr 's/.*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"$domain[$i]".conf | head -n1);
+	done;
+
+	for (( i=1; i<=${domain[@]}; i++ )); do
+		echo "$alias[$i]\t$domain[$i]\t$docroot[$i]";
+	done;
+
+	if [ -z ${alias[1]} ]; then
 		echo "Domain not found";
 		return;
-	elif [ "${domain[2]}" ]; then
+	elif [ "${alias[2]}" ]; then
 		echo "Domain ambiguous";
 		return;
 	fi;
