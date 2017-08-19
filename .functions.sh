@@ -17,29 +17,38 @@ resellers () {
 }
 
 cdd () {
-	local query domains domain alias docroot;
+	local query domains domain alias;
+	declare -a docroot;
 
 	# Obtain input string
 	query=$1;
 
 	# Gather relevant domain information
-	domains=$(grep -H "Server.* $query" /etc/httpd/conf.d/vhost_* | sed -r 's/.*vhost_(.*).conf.* ('"$query"'[^ ]*).*/\1\t\2/' | sort -u);
-	domain=($(echo "$domains" | cut -f1));
-	alias=($(echo "$domains" | cut -f2));
+	domains=$(grep -H "Server.* $query" /etc/httpd/conf.d/vhost_* \
+		| sed -r 's/.*vhost_(.*).conf.* ('"$query"'[^ ]*).*/\1\t\2/' \
+		| sort -u);
+
+	domain=($(echo "$domains" \
+		| cut -f1));
+	alias=($(echo "$domains" \
+		| cut -f2));
+
 	for (( i=1; i<=${#domain[@]}; i++ )); do
-		docroot[$i]=($(sed -nr 's/.*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"$domain[$i]".conf | head -n1));
+		docroot[$i]=($(sed -nr 's/.*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"$domain[$i]".conf \
+			| head -n1));
 	done;
 
 	# Print domain information for debugging
 	for (( i=1; i<=${#domain[@]}; i++ )); do
 		echo "${alias[$i]} ${domain[$i]} ${docroot[$i]}";
-	done;
+	done \
+		| column -t;
 
 	# TODO evaluate subdomains
 
 
-
-	if [ -z ${docroot[1]} ]; then
+	# Evaluate too few or too many docroots
+	if [ -z "${docroot[1]}" ]; then
 		echo "Domain not found";
 		return;
 	elif [ "${docroot[2]}" ]; then
