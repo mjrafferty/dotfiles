@@ -17,7 +17,7 @@ resellers () {
 }
 
 cdd () {
-	local query domains domain alias docroot subdir;
+	local query domains domain alias docroot;
 	declare -a docroot;
 
 	# Obtain input string
@@ -41,15 +41,10 @@ cdd () {
 	# Evaluate subdomains
 	for (( i=1; i<=${#alias[@]}; i++ )); do
 		if [[ ${alias[$i]} =~ .${domain[$i]} ]]; then
-			subdir="echo ${alias[$i]} | sed -nr 's/(.*).'"${domain[$i]}"'/\1/p'";
-			echo "$subdir";
-			if [ -d ${docroot[$i]}/$subdir ]; then
-				echo "$alias[$i] is a subdomain of ${domain[$i]}";
-				"${docroot[$i]}"="${docroot[$i]}/${subdir}";
-				echo "${docroot[$i]}";
-			fi;
-		fi;
-	done;
+			echo "$alias[$i] is a subdomain of ${domain[$i]}";
+		fi
+	done \
+		| column -t;
 
 	# Evaluate too few or too many docroots
 	if [ -z "${docroot[1]}" ]; then
