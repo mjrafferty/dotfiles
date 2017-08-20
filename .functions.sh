@@ -17,7 +17,7 @@ resellers () {
 }
 
 cdd () {
-	local query domains domain alias docroot subdir;
+	local query domains domain alias docroot subdir selection;
 	declare -a docroot;
 
 	# Obtain input string
@@ -49,6 +49,7 @@ cdd () {
 		fi;
 	done;
 
+	# Get rid of duplicate docroots
 	docroot=($(printf "%s\n" "${docroot[@]}" | sort -u));
 
 	# Evaluate too few or too many docroots
@@ -56,8 +57,15 @@ cdd () {
 		echo "Domain not found";
 		return;
 	elif [ "${docroot[2]}" ]; then
-		echo "Domain ambiguous";
-		return;
+		echo "Domain ambiguous. Select docroot:";
+		for (( i=1; i<=${#docroot[@]}; i++ )); do
+			echo "$i  ${docroot[$i]}";
+		done | column -t;
+		echo;
+		read -p "Choose docroot number:" selection;
+
+		docroot[1]=${docroot[$selection]};
+
 	fi;
 
 	# Change working directory to docroot
