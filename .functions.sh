@@ -46,7 +46,7 @@ cdd () {
 			subdir="$(echo "${alias[$i]}" | sed -nr 's/(.*).'"${domain[$i]}"'/\1/p')";
 			if [ -d ${docroot[$i]}/$subdir ]; then
 				echo "$alias[$i] is a subdomain of ${domain[$i]}";
-				"${docroot[$i]}"="${docroot[$i]}/${subdir}";
+				docroot[$i]="${docroot[$i]}/${subdir}";
 			fi;
 		fi;
 	done;
