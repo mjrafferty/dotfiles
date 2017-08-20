@@ -34,7 +34,6 @@ cdd () {
 	alias=($(echo "$domains" \
 		| cut -f2));
 
-	echo $alias;
 	for (( i=1; i<=${#alias[@]}; i++ )); do
 		docroot[$i]=($(sed -nr 's/.*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"$domain[$i]".conf \
 			| head -n1));
