@@ -17,34 +17,40 @@ resellers () {
 }
 
 cdd () {
-	local query domains domain alias docroot;
-	declare -a docroot;
+	#local query domains domain alias docroot subdir;
+	#declare -a docroot;
 
 	# Obtain input string
 	query=$1;
 
 	# Gather relevant domain information
-	domains=$(grep -H "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_* \
+	domains=$(grep -EH "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_* \
 		| sed -r 's/.*vhost_(.*).conf.* ('"$query"'[^ ]*).*/\1\t\2/' \
 		| sort -u);
 
 	domain=($(echo "$domains" \
 		| cut -f1));
+
 	alias=($(echo "$domains" \
 		| cut -f2));
 
+	echo $alias;
 	for (( i=1; i<=${#alias[@]}; i++ )); do
 		docroot[$i]=($(sed -nr 's/.*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"$domain[$i]".conf \
 			| head -n1));
+		echo "${alias[$i]} ${domain[$i]} ${docroot[$i]}"
 	done;
 
 	# Evaluate subdomains
 	for (( i=1; i<=${#alias[@]}; i++ )); do
 		if [[ ${alias[$i]} =~ .${domain[$i]} ]]; then
-			echo "$alias[$i] is a subdomain of ${domain[$i]}";
-		fi
-	done \
-		| column -t;
+			subdir="echo ${alias[$i]} | sed -nr 's/(.*).'"${domain[$i]}"'/\1/p'";
+			if [ -d ${docroot[$i]}/$subdir ]; then
+				echo "$alias[$i] is a subdomain of ${domain[$i]}";
+				"${docroot[$i]}"="${docroot[$i]}/${subdir}";
+			fi;
+		fi;
+	done;
 
 	# Evaluate too few or too many docroots
 	if [ -z "${docroot[1]}" ]; then
@@ -56,7 +62,7 @@ cdd () {
 	fi;
 
 	# Change working directory to docroot
-	cd "$docroot" || echo "Could not locate docroot";
+	cd "${docroot[1]}" || echo "Could not locate docroot";
 }
 
 whichsoft () {
