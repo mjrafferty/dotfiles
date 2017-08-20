@@ -43,7 +43,7 @@ cdd () {
 	# Evaluate subdomains
 	for (( i=1; i<=${#alias[@]}; i++ )); do
 		if [[ ${alias[$i]} =~ .${domain[$i]} ]]; then
-			subdir="echo ${alias[$i]} | sed -nr 's/(.*).'"${domain[$i]}"'/\1/p'";
+			subdir="$(echo "${alias[$i]}" | sed -nr 's/(.*).'"${domain[$i]}"'/\1/p')";
 			if [ -d ${docroot[$i]}/$subdir ]; then
 				echo "$alias[$i] is a subdomain of ${domain[$i]}";
 				"${docroot[$i]}"="${docroot[$i]}/${subdir}";
