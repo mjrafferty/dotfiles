@@ -37,7 +37,6 @@ cdd () {
 	for (( i=1; i<=${#alias[@]}; i++ )); do
 		docroot[$i]=($(sed -nr 's/.*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"$domain[$i]".conf \
 			| head -n1));
-		echo "${alias[$i]} ${domain[$i]} ${docroot[$i]}"
 	done;
 
 	# Evaluate subdomains
@@ -45,12 +44,12 @@ cdd () {
 		if [[ ${alias[$i]} == *.${domain[$i]} ]]; then
 			subdir="$(echo "${alias[$i]}" | sed -nr 's/(.*).'"${domain[$i]}"'/\1/p')";
 			if [ -d ${docroot[$i]}/$subdir ]; then
-				echo "$alias[$i] is a subdomain of ${domain[$i]}";
 				docroot[$i]="${docroot[$i]}/${subdir}";
 			fi;
 		fi;
 	done;
 
+	echo "${domain[@]}";
 	# Evaluate too few or too many docroots
 	if [ -z "${docroot[1]}" ]; then
 		echo "Domain not found";
