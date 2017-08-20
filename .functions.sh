@@ -49,7 +49,8 @@ cdd () {
 		fi;
 	done;
 
-	echo "${domain[@]}";
+	docroot=($(printf "%s\n" "${docroot[@]}" | sort -u));
+
 	# Evaluate too few or too many docroots
 	if [ -z "${docroot[1]}" ]; then
 		echo "Domain not found";
