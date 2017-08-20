@@ -17,8 +17,8 @@ resellers () {
 }
 
 cdd () {
-	#local query domains domain alias docroot subdir;
-	#declare -a docroot;
+	local query domains domain alias docroot subdir;
+	declare -a docroot;
 
 	# Obtain input string
 	query=$1;
