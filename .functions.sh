@@ -62,7 +62,7 @@ cdd () {
 			echo "$i  ${docroot[$i]}";
 		done | column -t;
 		echo;
-		read -p "Choose docroot number:" selection;
+		vared -p "Choose docroot number:" -c selection;
 
 		docroot[1]=${docroot[$selection]};
 
