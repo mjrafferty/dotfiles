@@ -70,6 +70,7 @@ cdd () {
 
 	# Change working directory to docroot
 	cd "${docroot[1]}" || echo "Could not locate docroot";
+	pwd;
 }
 
 whichsoft () {
