@@ -103,5 +103,5 @@ else
 	find_ips=($(echo "${findsitelist}" | awk '{print $2}'));
 
 	echo "${find_servers}";
-	echo "${find_servers}";
+	echo "${find_ips}";
 fi
