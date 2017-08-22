@@ -112,12 +112,10 @@ else
 			echo "$i  ${find_servers[$i]}";
 		done | column -t;
 		echo;
-		readline -p "Choose docroot number:" selection;
+		read -ep "Choose server:" selection;
 
 		ip_addr=${find_ips[$selection]};
-
+	else
 		_login "${ip_addr}";
-
 	fi;
-
 fi
