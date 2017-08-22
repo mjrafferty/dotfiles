@@ -76,7 +76,7 @@ if [ "$nexcess" ]; then
 else
 
 	# If site not pointed at nexcess
-	findsitelist=$(findsite "$domain");
+	findsitelist=$(_findsite "$domain");
 
 	declare -a find_servers find_ips;
 
