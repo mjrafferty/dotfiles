@@ -44,10 +44,7 @@ _login () {
 			--exclude 'no-rsync' \
 			--exclude '.vimfiles/*/.*' \
 			~/dotfiles/ \
-			-e "ssh -q -i ${ident_file} \
-			-o UserKnownHostsFile=/dev/null \
-			-o StrictHostKeyChecking=no \
-			-o PasswordAuthentication=no" \
+			-e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
 			"nex$(whoami)@$dest":~/ &&
 			ssh -i "${ident_file}" \
 			-o UserKnownHostsFile=/dev/null \
@@ -60,7 +57,7 @@ _login () {
 
 if [ "$nexcess" ]; then
 	echo "${ip_addr}";
-	_login $ip_addr;
+	_login "{$ip_addr}";
 else
 
 	# If site not pointed at nexcess
