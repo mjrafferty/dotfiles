@@ -20,8 +20,42 @@ whoisinfo="$(whois "$ip_addr")";
 # If site pointed at nexcess
 nexcess=$(echo "$whoisinfo"  | grep -m1 -io nexcess);
 
+_login () {
+	local ident_file
+
+	ident_file=${HOME}/.ssh/nex$(whoami).id_rsa;
+
+	if [[ -d ~/dotfiles/ ]]; then
+		if [[ $(stat -c '%a' ~/dotfiles/) -ne 700 ]]; then
+			chmod 700 ~/dotfiles;
+		fi;
+		rsync -q --chmod=o-rwx -rpt \
+			--exclude '*history' \
+			--exclude '.ssh' \
+			--exclude 'clients' \
+			--exclude '.zcompdump*' \
+			--exclude '.mytop' \
+			--exclude '.git' \
+			--exclude 'YouCompleteMe' \
+			--exclude 'no-rsync' \
+			--exclude '.vimfiles/*/.*' \
+			~/dotfiles/ \
+			-e "ssh -q -i ${ident_file} \
+			-o UserKnownHostsFile=/dev/null \
+			-o StrictHostKeyChecking=no \
+			-o PasswordAuthentication=no" \
+			"nex$(whoami)@$1":~/ &&
+			ssh -i "${ident_file}" \
+			-o UserKnownHostsFile=/dev/null \
+			-o StrictHostKeyChecking=no \
+			-o PasswordAuthentication=no \
+			"nex$(whoami)@$1";
+		echo -ne "\ek$(hostname)\e\\";
+	fi;
+}
+
 if [ "$nexcess" ]; then
-	ssh;
+	_login $ip_addr;
 else
 
 	# If site not pointed at nexcess
