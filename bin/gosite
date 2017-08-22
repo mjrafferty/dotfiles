@@ -21,9 +21,13 @@ whoisinfo="$(whois "$ip_addr")";
 nexcess=$(echo "$whoisinfo"  | grep -m1 -io nexcess);
 
 _login () {
-	local ident_file
 
+	local ident_file dest;
+
+	dest="$1";
 	ident_file=${HOME}/.ssh/nex$(whoami).id_rsa;
+
+	echo "${dest}";
 
 	if [[ -d ~/dotfiles/ ]]; then
 		if [[ $(stat -c '%a' ~/dotfiles/) -ne 700 ]]; then
@@ -44,12 +48,12 @@ _login () {
 			-o UserKnownHostsFile=/dev/null \
 			-o StrictHostKeyChecking=no \
 			-o PasswordAuthentication=no" \
-			"nex$(whoami)@$1":~/ &&
+			"nex$(whoami)@$dest":~/ &&
 			ssh -i "${ident_file}" \
 			-o UserKnownHostsFile=/dev/null \
 			-o StrictHostKeyChecking=no \
 			-o PasswordAuthentication=no \
-			"nex$(whoami)@$1";
+			"nex$(whoami)@$dest";
 		echo -ne "\ek$(hostname)\e\\";
 	fi;
 }
