@@ -108,13 +108,15 @@ else
 		exit;
 	elif [ "${find_servers[1]}" ]; then
 		echo "Domain ambiguous. Select server:";
-		for (( i=0; i<=${#find_servers[@]}; i++ )); do
+		for (( i=0; i<${#find_servers[@]}; i++ )); do
 			echo "$i  ${find_servers[$i]}";
 		done | column -t;
 		echo;
 		read -ep "Choose server:" selection;
 
 		ip_addr=${find_ips[$selection]};
+
+		_login "${ip_addr}";
 	else
 		_login "${ip_addr}";
 	fi;
