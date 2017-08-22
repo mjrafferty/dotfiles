@@ -53,12 +53,31 @@ _login () {
 	fi;
 }
 
+_uuid2fqdn () {
+	curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
+		--data "query=$(urlencode '["=", "name", "fqdn"]')" \
+		| grep -oP '(?<=value":")[^"]*'
+}
+
+_uuid2ip () {
+	curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
+		--data "query=$(urlencode '["=", "name", "ipaddress"]')" \
+		| grep -oP '(?<=value":")[^"]*'
+}
+
+_urlencode () {
+	echo -ne "$1" \
+		| xxd -plain \
+		| tr -d '\n' \
+		| sed 's/\(..\)/%\1/g'
+}
+
 _findsite () {
 
 	query="[\"and\", [\"=\", \"name\", \"domains\" ], [\"=\", \"value\", \"$1\"]]"
 
 	servers=$(curl -sG 'http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/fact-contents' \
-		--data "query=$(urlencode "$query")" \
+		--data "query=$(_urlencode "$query")" \
 		| grep -oP '(?<=certname":")[^"]*');
 
 	if [[ -z "$servers" ]]; then
@@ -66,8 +85,8 @@ _findsite () {
 		return 1;
 	fi
 	for uuid in $servers; do
-		uuid2fqdn "$uuid" | tr '\n' '\t';
-		uuid2ip "$uuid";
+		_uuid2fqdn "$uuid" | tr '\n' '\t';
+		_uuid2ip "$uuid";
 	done
 }
 
