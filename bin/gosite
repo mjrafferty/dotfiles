@@ -117,7 +117,7 @@ else
 		ip_addr=${find_ips[$selection]};
 
 	else
-		ip_addr=${find_ips[$0]};
+		ip_addr=${find_ips[0]};
 	fi;
 		_login "${ip_addr}";
 fi
