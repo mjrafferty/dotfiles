@@ -53,23 +53,23 @@ _login () {
 	fi;
 }
 
-_uuid2fqdn () {
-	curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
-		--data "query=$(urlencode '["=", "name", "fqdn"]')" \
-		| grep -oP '(?<=value":")[^"]*'
-}
-
-_uuid2ip () {
-	curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
-		--data "query=$(urlencode '["=", "name", "ipaddress"]')" \
-		| grep -oP '(?<=value":")[^"]*'
-}
-
 _urlencode () {
 	echo -ne "$1" \
 		| xxd -plain \
 		| tr -d '\n' \
 		| sed 's/\(..\)/%\1/g'
+}
+
+_uuid2fqdn () {
+	curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
+		--data "query=$_(urlencode '["=", "name", "fqdn"]')" \
+		| grep -oP '(?<=value":")[^"]*'
+}
+
+_uuid2ip () {
+	curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
+		--data "query=$(_urlencode '["=", "name", "ipaddress"]')" \
+		| grep -oP '(?<=value":")[^"]*'
 }
 
 _findsite () {
