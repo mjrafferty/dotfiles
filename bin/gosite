@@ -53,6 +53,24 @@ _login () {
 	fi;
 }
 
+_findsite () {
+
+	query="[\"and\", [\"=\", \"name\", \"domains\" ], [\"=\", \"value\", \"$1\"]]"
+
+	servers=$(curl -sG 'http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/fact-contents' \
+		--data "query=$(urlencode "$query")" \
+		| grep -oP '(?<=certname":")[^"]*');
+
+	if [[ -z "$servers" ]]; then
+		printf "Site not found: %s\n" "$domain";
+		return 1;
+	fi
+	for uuid in $servers; do
+		uuid2fqdn "$uuid" | tr '\n' '\t';
+		uuid2ip "$uuid";
+	done
+}
+
 if [ "$nexcess" ]; then
 	_login "${ip_addr}";
 else
