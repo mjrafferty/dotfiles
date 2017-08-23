@@ -94,10 +94,10 @@ if [ "$host" == "nexcess" ]; then
 	_login "${ip_addr}";
 	exit 0;
 elif  [ "$host" == "cloudflare" ]; then
-	printf "Domain pointed to %s" "$host";
+	printf "Domain pointed to %s\n" "$host";
 	read -rep "Press enter to continue";
 elif  [ "$host" == "sucuri" ]; then
-	printf "Domain pointed to %s" "$host";
+	printf "Domain pointed to %s\n" "$host";
 	read -rep "Press enter to continue";
 else
 	echo "Domain pointed to an unknown host/proxy";
