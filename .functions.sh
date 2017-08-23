@@ -81,7 +81,7 @@ cdlogs () {
 	query=$1;
 
 	# Gather relevant domain information
-	vhosts=$(grep -El "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*);
+	vhosts=($(grep -El "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*));
 
 	for (( i=1; i<=${#vhosts[@]}; i++ )); do
 		logsdir[$i]=($(sed -nr 's_.*ErrorLog (.*)/error.log_\1_p' "$vhosts[$i]" \
@@ -89,7 +89,7 @@ cdlogs () {
 	done;
 
 	# Evaluate too few or too many directories
-	if [ -z "${logsidr[1]}" ]; then
+	if [ -z "${logsdir[1]}" ]; then
 		echo "Log directory not found";
 		return;
 	elif [ "${logsdir[2]}" ]; then
