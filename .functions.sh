@@ -104,7 +104,7 @@ cdlogs () {
 
 	fi;
 
-	# Change working directory to docroot
+	# Change working directory to log directory
 	cd "${logsdir[1]}" || echo "Could not locate log directory";
 	pwd;
 }
