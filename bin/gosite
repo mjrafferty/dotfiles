@@ -108,7 +108,7 @@ if [[ "$2" ]]; then
 	esac
 fi
 
-ip_addr="$(dig +short "$domain" | head -n1)";
+ip_addr="$(dig +short "$domain" | sort | head -n1)";
 whoisinfo="$(whois "$ip_addr")";
 
 host=$(echo "$whoisinfo"  | grep -m1 -ioE "nexcess|sucuri|cloudflare" | tr '[:upper:]' '[:lower:]');
