@@ -18,7 +18,7 @@ ip_addr="$(dig +short "$domain" | head -n1)";
 whoisinfo="$(whois "$ip_addr")";
 
 # If site pointed at nexcess
-nexcess=$(echo "$whoisinfo"  | grep -m1 -io nexcess);
+host=$(echo "$whoisinfo"  | grep -m1 -ioE "nexcess|sucuri|cloudflare");
 
 _login () {
 
@@ -90,34 +90,54 @@ _findsite () {
 	done
 }
 
-if [ "$nexcess" ]; then
+if [ "$host" == "nexcess" ]; then
 	_login "${ip_addr}";
+	exit 0;
+elif  [ "$host" == "cloudflare" ]; then
+	printf "Domain pointed to %s" "$host";
+	read -rep "Press enter to continue";
+elif  [ "$host" == "sucuri" ]; then
+	printf "Domain pointed to %s" "$host";
+	read -rep "Press enter to continue";
 else
-
-	# If site not pointed at nexcess
-	findsitelist=$(_findsite "$domain");
-
-	declare -a find_servers find_ips;
-
-	find_servers=($(echo "${findsitelist}" | awk '{print $1}'));
-	find_ips=($(echo "${findsitelist}" | awk '{print $2}'));
-
-	# Evaluate too few or too many domains
-	if [ -z "${find_servers[0]}" ]; then
-		echo "Domain not found";
-		exit;
-	elif [ "${find_servers[1]}" ]; then
-		echo "Domain ambiguous. Select server:";
-		for (( i=0; i<${#find_servers[@]}; i++ )); do
-			echo "$i  ${find_servers[$i]}";
-		done | column -t;
-		echo;
-		read -ep "Choose server:" selection;
-
-		ip_addr=${find_ips[$selection]};
-
-	else
-		ip_addr=${find_ips[0]};
-	fi;
-		_login "${ip_addr}";
+	echo "Domain pointed to an unknown host/proxy";
+	echo;
+	read -rep "View WHOIS? N/y : " viewwhois;
+	if [ "$viewwhois" == "y" ]; then
+		echo "$whoisinfo";
+	fi
+	echo;
+	read -rep "Continue? Y/n : " keepgoing;
+	if [ "$keepgoing" == "n" ]; then
+		exit 0;
+	fi
 fi
+# If site not pointed at nexcess
+findsitelist=$(_findsite "$domain");
+
+declare -a find_servers find_ips;
+
+find_servers=($(echo "${findsitelist}" | awk '{print $1}'));
+find_ips=($(echo "${findsitelist}" | awk '{print $2}'));
+
+# Evaluate too few or too many domains
+if [ -z "${find_servers[0]}" ]; then
+	echo "Domain not found";
+	exit;
+elif [ "${find_servers[1]}" ]; then
+	echo "Domain ambiguous. Select server:";
+	for (( i=0; i<${#find_servers[@]}; i++ )); do
+		echo "$i  ${find_servers[$i]}";
+	done | column -t;
+	echo;
+	read -rep "Choose server:" selection;
+
+	ip_addr=${find_ips[$selection]};
+
+else
+	ip_addr=${find_ips[0]};
+fi;
+
+_login "${ip_addr}";
+
+exit 0;
