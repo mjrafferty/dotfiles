@@ -1,7 +1,7 @@
 #! /bin/bash
 
 # Check parameters
-if [[ ! $1 ]]; then
+if [[ ! "$1" ]]; then
 
 	printf "No domain given. This command requires a domain as an argument.\n";
 
@@ -18,6 +18,17 @@ fi
 
 # Trim any fat off the domain name
 domain=$(echo "$1" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
+
+if [[ "$2" ]]; then
+	case "$2" in
+		"cdd")
+			echo "cdd ${domain}" > ~/action.sh;
+			;;
+		"htacc")
+			echo "cdd ${domain} && vim .htaccess" > ~/action.sh;
+			;;
+	esac
+fi
 
 ip_addr="$(dig +short "$domain" | head -n1)";
 whoisinfo="$(whois "$ip_addr")";
@@ -103,6 +114,7 @@ _findsite () {
 if [ "$host" == "nexcess" ]; then
 
 	_login "${ip_addr}";
+	> ~/action.sh;
 	exit 0;
 
 elif  [ "$host" == "cloudflare" ]; then
@@ -131,6 +143,7 @@ else
 
 	if [ "$keepgoing" == "n" ]; then
 
+		> ~/action.sh;
 		exit 0;
 
 	fi
@@ -149,6 +162,7 @@ find_ips=($(echo "${findsitelist}" | awk '{print $2}'));
 if [ -z "${find_servers[0]}" ]; then
 
 	echo "Domain not found";
+	> ~/action.sh;
 	exit;
 
 elif [ "${find_servers[1]}" ]; then
@@ -174,4 +188,5 @@ fi;
 
 _login "${ip_addr}";
 
+> ~/action.sh
 exit 0;

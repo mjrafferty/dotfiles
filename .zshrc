@@ -12,3 +12,8 @@ source $ZSH/oh-my-zsh.sh
 
 # Create directories for files used by vim if necessary
 mkdir -p ~/.vimfiles/{backup,swp,undo}
+
+if [ -f ~/action.sh ]; then
+	source ~/action.sh;
+	rm ~/action.sh;
+fi
