@@ -2,22 +2,26 @@
 
 # Check parameters
 if [[ ! $1 ]]; then
+
 	printf "No domain given. This command requires a domain as an argument.\n";
+
 	exit 1;
+
 elif [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]] || [[ "$1" == "help" ]]; then
-	printf "Usage: findsite [DOMAIN]\n\n";
+
+	printf "Usage: gosite [DOMAIN]\n\n";
 	printf "[DOMAIN] must be the target domain you wish to locate.\n";
-	exit 1;
+
+	exit 0;
+
 fi
 
 # Trim any fat off the domain name
 domain=$(echo "$1" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
 
-# Get ip and registration info
 ip_addr="$(dig +short "$domain" | head -n1)";
 whoisinfo="$(whois "$ip_addr")";
 
-# If site pointed at nexcess
 host=$(echo "$whoisinfo"  | grep -m1 -ioE "nexcess|sucuri|cloudflare" | tr '[:upper:]' '[:lower:]');
 
 _login () {
@@ -53,6 +57,7 @@ _login () {
 	fi;
 }
 
+################################ BEGIN CHRIS ORLANDO'S WORK ##############################################
 _urlencode () {
 	echo -ne "$1" \
 		| xxd -plain \
@@ -81,36 +86,57 @@ _findsite () {
 		| grep -oP '(?<=certname":")[^"]*');
 
 	if [[ -z "$servers" ]]; then
+
 		return 1;
+
 	fi
+
 	for uuid in $servers; do
+
 		_uuid2fqdn "$uuid" | tr '\n' '\t';
 		_uuid2ip "$uuid";
+
 	done
 }
+################################ END CHRIS ORLANDO'S WORK ##############################################
 
 if [ "$host" == "nexcess" ]; then
+
 	_login "${ip_addr}";
 	exit 0;
+
 elif  [ "$host" == "cloudflare" ]; then
+
 	printf "Domain pointed to %s\n" "$host";
 	read -rep "Press enter to continue";
+
 elif  [ "$host" == "sucuri" ]; then
+
 	printf "Domain pointed to %s\n" "$host";
 	read -rep "Press enter to continue";
+
 else
-	echo "Domain pointed to an unknown host/proxy";
-	echo;
+
+	printf "Domain pointed to an unknown host/proxy\n";
 	read -rep "View WHOIS? N/y : " viewwhois;
+
 	if [ "$viewwhois" == "y" ]; then
+
 		echo "$whoisinfo";
+
 	fi
+
 	echo;
 	read -rep "Continue? Y/n : " keepgoing;
+
 	if [ "$keepgoing" == "n" ]; then
+
 		exit 0;
+
 	fi
+
 fi
+
 # If site not pointed at nexcess
 findsitelist=$(_findsite "$domain");
 
@@ -121,20 +147,29 @@ find_ips=($(echo "${findsitelist}" | awk '{print $2}'));
 
 # Evaluate too few or too many domains
 if [ -z "${find_servers[0]}" ]; then
+
 	echo "Domain not found";
 	exit;
+
 elif [ "${find_servers[1]}" ]; then
+
 	echo "Domain ambiguous. Select server:";
+
 	for (( i=0; i<${#find_servers[@]}; i++ )); do
+
 		echo "$i  ${find_servers[$i]}";
+
 	done | column -t;
+
 	echo;
 	read -rep "Choose server:" selection;
 
 	ip_addr=${find_ips[$selection]};
 
 else
+
 	ip_addr=${find_ips[0]};
+
 fi;
 
 _login "${ip_addr}";
