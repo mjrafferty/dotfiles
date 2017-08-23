@@ -59,7 +59,7 @@ _login () {
 			~/dotfiles/ \
 			-e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
 			"nex$(whoami)@$dest":~/ &&
-			truncate -s 0 ~/dotfiles/action.sh &&
+			> ~/dotfiles/action.sh &&
 			ssh -i "${ident_file}" \
 			-o UserKnownHostsFile=/dev/null \
 			-o StrictHostKeyChecking=no \
