@@ -73,6 +73,42 @@ cdd () {
 	pwd;
 }
 
+cdlogs () {
+	local query vhosts docroot selection;
+	declare -a logsdir;
+
+	# Obtain input string
+	query=$1;
+
+	# Gather relevant domain information
+	vhosts=$(grep -El "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*);
+
+	for (( i=1; i<=${#vhosts[@]}; i++ )); do
+		logsdir[$i]=($(sed -nr 's/.*ErrorLog (.*)/error.log/\1/p' "$vhosts[$i]" \
+			| head -n1));
+	done;
+
+	# Evaluate too few or too many directories
+	if [ -z "${logsidr[1]}" ]; then
+		echo "Log directory not found";
+		return;
+	elif [ "${logsdir[2]}" ]; then
+		echo "Domain ambiguous. Select log directory:";
+		for (( i=1; i<=${#logsdir[@]}; i++ )); do
+			echo "$i  ${logsdir[$i]}";
+		done | column -t;
+		echo;
+		vared -p "Choose log directory number:" -c selection;
+
+		logsdir[1]=${logsdir[$selection]};
+
+	fi;
+
+	# Change working directory to docroot
+	cd "${logsdir[1]}" || echo "Could not locate log directory";
+	pwd;
+}
+
 whichsoft () {
 	grep "AUTH.*allow" /usr/sbin/r1soft/log/cdp.log \
 		| sed 's_.*server.allow/\(.*\).$_\1_' \
