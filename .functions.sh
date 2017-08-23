@@ -84,7 +84,7 @@ cdlogs () {
 	vhosts=$(grep -El "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*);
 
 	for (( i=1; i<=${#vhosts[@]}; i++ )); do
-		logsdir[$i]=($(sed -nr 's/.*ErrorLog (.*)/error.log/\1/p' "$vhosts[$i]" \
+		logsdir[$i]=($(sed -nr 's_.*ErrorLog (.*)/error.log_\1_p' "$vhosts[$i]" \
 			| head -n1));
 	done;
 
