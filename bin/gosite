@@ -105,6 +105,9 @@ if [[ "$2" ]]; then
 		"htacc")
 			echo "cdd ${domain} && vim .htaccess" > ~/dotfiles/action.sh;
 			;;
+		"cdlogs")
+			echo "cdlogs ${domain}" > ~/dotfiles/action.sh;
+			;;
 	esac
 fi
 
