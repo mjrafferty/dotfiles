@@ -81,7 +81,6 @@ _findsite () {
 		| grep -oP '(?<=certname":")[^"]*');
 
 	if [[ -z "$servers" ]]; then
-		printf "Site not found: %s\n" "$domain";
 		return 1;
 	fi
 	for uuid in $servers; do
