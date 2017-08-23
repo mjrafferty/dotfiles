@@ -90,13 +90,13 @@ _findsite () {
 	done
 }
 
-if [ "$host" == "nexcess" ]; then
+if [ "${host,,}" == "nexcess" ]; then
 	_login "${ip_addr}";
 	exit 0;
-elif  [ "$host" == "cloudflare" ]; then
+elif  [ "${host,,}" == "cloudflare" ]; then
 	printf "Domain pointed to %s" "$host";
 	read -rep "Press enter to continue";
-elif  [ "$host" == "sucuri" ]; then
+elif  [ "${host,,}" == "sucuri" ]; then
 	printf "Domain pointed to %s" "$host";
 	read -rep "Press enter to continue";
 else
