@@ -19,6 +19,7 @@ fi
 # Trim any fat off the domain name
 domain=$(echo "$1" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
 
+# Action to perform upon login
 if [[ "$2" ]]; then
 	case "$2" in
 		"cdd")
@@ -59,7 +60,7 @@ _login () {
 			~/dotfiles/ \
 			-e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
 			"nex$(whoami)@$dest":~/ &&
-			> ~/dotfiles/action.sh &&
+			rm -f ~/dotfiles/action.sh &&
 			ssh -i "${ident_file}" \
 			-o UserKnownHostsFile=/dev/null \
 			-o StrictHostKeyChecking=no \
