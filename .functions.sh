@@ -16,6 +16,20 @@ resellers () {
 		done < /tmp/rslr | sed 's/_/ /g';
 }
 
+vhost () {
+
+	local query domain;
+
+	if [  $1 ]; then
+		query=$1;
+	else
+		echo hi;
+		query=$(pwd);
+	fi
+# Trim any fddat off the domain name
+domain=$(echo "$query" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
+}
+
 cdd () {
 	local query domains domain alias docroot subdir selection;
 	declare -a docroot;
