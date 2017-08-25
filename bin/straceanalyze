@@ -1,3 +1,9 @@
 #! /bin/bash
 
-sed -n 's_.*<\(.*\)>.*_\1_p' strace | paste - strace | awk '{print sum += ($3 - $1)}' | paste - strace | grep 'open("'
+file=$1
+
+sed -n 's_.*<\(.*\)>.*_\1_p' "$file" \
+	| paste - "$file" \
+	| awk '{print sum += ($3 - $1)}' \
+	| paste - "$file" \
+	| grep 'open("'
