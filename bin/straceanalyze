@@ -2,8 +2,4 @@
 
 file=$1
 
-sed -n 's_.*<\(.*\)>.*_\1_p' "$file" \
-	| paste - "$file" \
-	| awk '{print sum += ($3 - $1)}' \
-	| paste - "$file" \
-	| grep 'open("'
+awk '{ gsub(/<|>/,"",$(NF)); print (sum += ($2 - $(NF))) }' "$file" | paste - "$file"
