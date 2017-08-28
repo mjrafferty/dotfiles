@@ -1,3 +1,5 @@
 #! /bin/bash
 
-for i in $(grep query /service/dnscache/log/main/current | cut -d\  -f6 | sort -u); do dig $i; done
+while read -r i; do
+  dig "$i";
+done < "$(grep query /service/dnscache/log/main/current | cut -d\  -f6 | sort -u)"
