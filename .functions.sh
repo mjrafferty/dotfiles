@@ -326,8 +326,8 @@ blacklistcheck () {
 }
 
 modsecbyip () {
-  for i in $(grep $1 error.log | grep ModSecurity | sed 's/.*unique_id \"//' | sed 's/\"]//'); do
-    modsecrules $i;
+  for x in $(grep "$1" error.log | grep ModSecurity | sed 's/.*unique_id \"//' | sed 's/\"]//'); do
+    modsecrules "$x";
   done \
     | sort \
     | uniq \
