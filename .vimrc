@@ -60,7 +60,7 @@ if has('mouse')
 endif
 set tabstop=2
 set shiftwidth=2
-set noexpandtab
+set expandtab
 
 au FileType sh let g:sh_fold_enabled=5
 set foldmethod=syntax

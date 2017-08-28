@@ -2,22 +2,22 @@
 
 ## Setup or reset SSH account
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-	echo -e "\n Usage: sshcredz [-p <password>] [-i \"<IP1> <IP2> <IP3> ...\"] [comment]\n";
-	exit 0;
+  echo -e "\n Usage: sshcredz [-p <password>] [-i \"<IP1> <IP2> <IP3> ...\"] [comment]\n";
+  exit 0;
 fi
 
 # if password specified
 if [[ $1 == '-p' ]]; then
-	newPass="$2";
-	shift;
-	shift;
+  newPass="$2";
+  shift;
+  shift;
 else
-	newPass=$(mkpasswd -l 15);
+  newPass=$(mkpasswd -l 15);
 fi
 
 # if whitelist specified
 if [[ $1 == '-i' ]]; then
-	whitelist ssh "$2" "$3";
+  whitelist ssh "$2" "$3";
 fi
 
 # Set shell, and add to ssh user's group; then reset failed logins, and reset password.

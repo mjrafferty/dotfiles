@@ -1,5 +1,8 @@
 #! /bin/bash
 
+logs=$(mktemp);
+tai64nlocal < /var/log/send/* | nl > "$logs"
+
 email=$1;
 
 declare -a delivery msg;
@@ -10,8 +13,28 @@ delivery=($(echo "$output" | awk '{print $1}'));
 msg=($(echo "$output" | awk '{print $2}'));
 
 for ((i=0;i < ${#msg[@]}; i++)); do
-	grep -h -C40 "$email" /var/log/send/* \
-		| tai64nlocal \
-		| grep -E " $(echo "${msg[$i]}" | awk '{print $1}') | $(echo "${msg[$i]}" | awk '{print $2}') ";
-	echo;
+  grep -h -C40 "$email" /var/log/send/* \
+    | tai64nlocal \
+    | grep -E " $(echo "${msg[$i]}" | awk '{print $1}') | $(echo "${msg[$i]}" | awk '{print $2}') ";
+  echo;
 done
+
+
+mail msg  <<< EOF
+
+line number
+msg id
+delivery id/s
+sender
+
+EOF
+
+delivery <<< EOF
+
+line number
+msg id
+delivery id
+recipient
+
+EOF
+

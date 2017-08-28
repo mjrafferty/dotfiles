@@ -3,7 +3,7 @@
 false
 
 while [[ $? -ne 0 ]]; do
-	sleep 0.25s;
-	printf "\r$(date)";
-	strace -fTrvs200000 -o ~/strace -p$(lsof -tf -- /tmp/flag);
+  sleep 0.25s;
+  printf "\r$(date)";
+  strace -fTrvs200000 -o ~/strace -p$(lsof -tf -- /tmp/flag);
 done 2>/dev/null

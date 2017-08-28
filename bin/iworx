@@ -8,406 +8,406 @@ UZR=$(pwd -P | awk -F "/" '{print $4}')
 DOM=$(pwd -P | awk -F "/" '{print $5}')
 PRI=$(~iworx/bin/listaccounts.pex | grep ${UZR} | awk '{print $2}' 2> /dev/null)
 function _help () {
-	printf "\e[1;35m         ---\e[1;36m Nexcess iWorx Utility \e[1;35m--- \e[0m\n\n"
-	printf "\e[1;35m    A front end for siteworx and nodeworx CLI\e[0m\n"
-	printf "\e[1;35m      because it's\e[1;31m NEEDED! (╯°□°）╯︵ ┻━┻ \e[0m\n\n"
-	printf "   -a       Sets the A record for a domain. Usage:\n"
-	printf "            iworx -a domain.com         -lists A record\n"
-	printf "            iworx -a domain.com 0.0.0.0 -sets A record\n"
-	printf "            Domain can be substituted for "-c" when in\n"
-	printf "            domain directory.\n\n"
-	printf "   -d       List, add, and remove secondary domains.\n"
-	printf "            iworx -d    -lists secondary domains \n"
-	printf "            iworx -d -a domain.com  -adds domain.com\n"
-	printf "            iworx -d -r domain.com  -removes domain.com\n"
-	printf "                 -- must be in user dir -- \n\n"
-	printf "   -e       Self explanitory email functions. Must be in domain directory.\n"
-	printf "            iworx -e --list-box            -lists all inboxes for domain\n"
-	printf "            iworx -e --rm-box EMAIL        -removes inbox \n"
-	printf "            iworx -e --add-box EMAIL (passwd) -if blank, xkcd pass used\n"
-	printf "            iworx -e --passwd EMAIL (passwd)  -resets pass, if blank, xkcd\n\n"
-	printf "   -f       Self explanatory FTP functions. Must be in domain directory.\n"
-	printf "            iworx -f --list-ftp           -lists all accounts for domain\n"
-	printf "            iworx -f --rm-ftp NAME        -removes an account\n"
-	printf "            iworx -f --add-ftp NAME (password) -if blank, xkcd pass used\n"
-	printf "            iworx -f --passwd NAME (password)  -resets pass, if blank, xkcd\n\n"
-	printf "   -i       Displays information about a siteworx account\n"
-	printf "            including name, email, billing day, primary\n"
-	printf "            domain, unix name, bandwidth quota and usage,\n"
-	printf "            as well as storage quota and usage. \n\n"
-	printf "   -n       Reset Nodeworx password for user.\n"
-	printf "            iworx -n user@domain.com Password123! -or-\n"
-	printf "            iworx -n -r user@domain.com\n\n"
-	printf "   -p       Set a user's primary domain from within user\n"
-	printf "            directory. Domain must be a secondary domain.\n"
-	printf "            iworx -p secondary.com\n\n"
-	printf "   -q       Set a user's quota in MB.\n\n"
-	printf "   -s       Self explanitory MySQL Functions. \n"
-	printf "            iworx -s --add-db DBNAME\n"
-	printf "            iworx -s --add-user USER (passwd) -if no password, xkcd pw used\n"
-	printf "            iworx -s --add-both NAME (passwd) -adds db and user of same name\n"
-	printf "            iworx -s --rm-db DBNAME \n"
-	printf "            iworx -s --rm-user USERNAME \n"
-	printf "            iworx -s --list-db \n"
-	printf "            iworx -s --list-user \n"
-	printf "            iworx -s --perms DB USER  -gives USER full perms on DB\n"
-	printf "            iworx -s --passwd USER (password)  -reset db user's password\n\n"
-	printf "   -u       Lists siteworx users for an acount and resets\n"
-	printf "            their passwords. Examples:\n"
-	printf "            iworx -u                 -lists all siteworx users\n"
-	printf "            iworx -u exmp@doma.in    -sets random xkcd password\n"
-	printf "            iworx -u ex@dma.in pswd  -sets password to pswd\n\n"
-	printf " --fively   Runs the fively cron.\n\n"
-	printf " --storage  Runs the storage cron.\n\n"
-	printf " --restart  Restarts iworx service.\n\n"
-	printf " --general  Displays general iworx info, including version,\n"
-	printf "	    hostname, nameservers, and php and letsencrypt\n"
-	printf "            plugin information.\n\n"
+  printf "\e[1;35m         ---\e[1;36m Nexcess iWorx Utility \e[1;35m--- \e[0m\n\n"
+  printf "\e[1;35m    A front end for siteworx and nodeworx CLI\e[0m\n"
+  printf "\e[1;35m      because it's\e[1;31m NEEDED! (╯°□°）╯︵ ┻━┻ \e[0m\n\n"
+  printf "   -a       Sets the A record for a domain. Usage:\n"
+  printf "            iworx -a domain.com         -lists A record\n"
+  printf "            iworx -a domain.com 0.0.0.0 -sets A record\n"
+  printf "            Domain can be substituted for "-c" when in\n"
+  printf "            domain directory.\n\n"
+  printf "   -d       List, add, and remove secondary domains.\n"
+  printf "            iworx -d    -lists secondary domains \n"
+  printf "            iworx -d -a domain.com  -adds domain.com\n"
+  printf "            iworx -d -r domain.com  -removes domain.com\n"
+  printf "                 -- must be in user dir -- \n\n"
+  printf "   -e       Self explanitory email functions. Must be in domain directory.\n"
+  printf "            iworx -e --list-box            -lists all inboxes for domain\n"
+  printf "            iworx -e --rm-box EMAIL        -removes inbox \n"
+  printf "            iworx -e --add-box EMAIL (passwd) -if blank, xkcd pass used\n"
+  printf "            iworx -e --passwd EMAIL (passwd)  -resets pass, if blank, xkcd\n\n"
+  printf "   -f       Self explanatory FTP functions. Must be in domain directory.\n"
+  printf "            iworx -f --list-ftp           -lists all accounts for domain\n"
+  printf "            iworx -f --rm-ftp NAME        -removes an account\n"
+  printf "            iworx -f --add-ftp NAME (password) -if blank, xkcd pass used\n"
+  printf "            iworx -f --passwd NAME (password)  -resets pass, if blank, xkcd\n\n"
+  printf "   -i       Displays information about a siteworx account\n"
+  printf "            including name, email, billing day, primary\n"
+  printf "            domain, unix name, bandwidth quota and usage,\n"
+  printf "            as well as storage quota and usage. \n\n"
+  printf "   -n       Reset Nodeworx password for user.\n"
+  printf "            iworx -n user@domain.com Password123! -or-\n"
+  printf "            iworx -n -r user@domain.com\n\n"
+  printf "   -p       Set a user's primary domain from within user\n"
+  printf "            directory. Domain must be a secondary domain.\n"
+  printf "            iworx -p secondary.com\n\n"
+  printf "   -q       Set a user's quota in MB.\n\n"
+  printf "   -s       Self explanitory MySQL Functions. \n"
+  printf "            iworx -s --add-db DBNAME\n"
+  printf "            iworx -s --add-user USER (passwd) -if no password, xkcd pw used\n"
+  printf "            iworx -s --add-both NAME (passwd) -adds db and user of same name\n"
+  printf "            iworx -s --rm-db DBNAME \n"
+  printf "            iworx -s --rm-user USERNAME \n"
+  printf "            iworx -s --list-db \n"
+  printf "            iworx -s --list-user \n"
+  printf "            iworx -s --perms DB USER  -gives USER full perms on DB\n"
+  printf "            iworx -s --passwd USER (password)  -reset db user's password\n\n"
+  printf "   -u       Lists siteworx users for an acount and resets\n"
+  printf "            their passwords. Examples:\n"
+  printf "            iworx -u                 -lists all siteworx users\n"
+  printf "            iworx -u exmp@doma.in    -sets random xkcd password\n"
+  printf "            iworx -u ex@dma.in pswd  -sets password to pswd\n\n"
+  printf " --fively   Runs the fively cron.\n\n"
+  printf " --storage  Runs the storage cron.\n\n"
+  printf " --restart  Restarts iworx service.\n\n"
+  printf " --general  Displays general iworx info, including version,\n"
+  printf "      hostname, nameservers, and php and letsencrypt\n"
+  printf "            plugin information.\n\n"
 }
 if [ "x${FLAG}" == "x" ]; then
-	_help
+  _help
 elif [ "${FLAG}" == "--fively" ]; then
-	~iworx/cron/iworx.pex --fively
+  ~iworx/cron/iworx.pex --fively
 elif [ "${FLAG}" == "--storage" ]; then
-	~iworx/cron/storage.pex
+  ~iworx/cron/storage.pex
 elif [ "${FLAG}" == "--restart" ]; then
-	service iworx restart
+  service iworx restart
 elif [ "${FLAG}" == "--general" ]; then
-	iworxinfo
+  iworxinfo
 elif [ "${FLAG}" == "-n" ]; then
-	if [ "${ARGU}" == "-r" ]; then
-		NWU=${MAYB}
-		NWP=$(xkcd)
-	else
-		NWU=${ARGU}
-		NWP=${MAYB}
-	fi
-	nodeworx -u -n -c Users -a edit --user ${NWU} \
-		--password ${NWP} --confirm_password ${NWP}
-	printf "Password for ${NWU} has been set to ${NWP}.\n"
+  if [ "${ARGU}" == "-r" ]; then
+    NWU=${MAYB}
+    NWP=$(xkcd)
+  else
+    NWU=${ARGU}
+    NWP=${MAYB}
+  fi
+  nodeworx -u -n -c Users -a edit --user ${NWU} \
+    --password ${NWP} --confirm_password ${NWP}
+  printf "Password for ${NWU} has been set to ${NWP}.\n"
 elif [ "${FLAG}" == "-a" ]; then
-	ERR=0
-	if [ "x${ARGU}" == "x" ]; then
-		printf "\e[1;31m -- No domain specified! -- \e[0m\n"
-	elif [ "${ARGU}" == "-c" ]; then
-		if [ "x${DOM}" == "x" ]; then
-			printf "\e[1;31m -- Not in domain directory! --\e[0m\n"
-			ERR=1
-		else
-			NDOM=${DOM}
-		fi
-	else
-		NDOM=${ARGU}
-	fi
-	if [ $ERR == 0 ]; then
-		RIP=$(printf "${MAYB}" | grep  -v "^[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\$")
-		if [ "x${MAYB}" == "x" ]; then
-			nodeworx -n -u -c DnsRecord -a listRecordIds | \
-				grep "${NDOM}" | grep -v "[a-zA-Z0-9]\.${NDOM}" \
-				| grep "| A |"
-		elif [ "x${RIP}" == "x" ]; then
-			DID=$(nodeworx -u -n -c DnsRecord -a listRecordIds | grep "${NDOM}" | sort -hu  | grep -v "[a-zA-Z0-9]\.${NDOM}" | grep "| A |" | awk '{print $1}')
-			nodeworx -u -n -c DnsRecord -a editA --record_id=${DID} \
-				--ipaddress=${MAYB}
-			printf "A record for ${NDOM} has been set to ${MAYB}.\n"
-		else
-			printf "\e[1;31m -- Please enter a valid IP. --\e[0m\n"
-		fi
-	else
-		printf "\e[1;31m -- Please enter valid domain. --\e[0m\n"
-	fi
+  ERR=0
+  if [ "x${ARGU}" == "x" ]; then
+    printf "\e[1;31m -- No domain specified! -- \e[0m\n"
+  elif [ "${ARGU}" == "-c" ]; then
+    if [ "x${DOM}" == "x" ]; then
+      printf "\e[1;31m -- Not in domain directory! --\e[0m\n"
+      ERR=1
+    else
+      NDOM=${DOM}
+    fi
+  else
+    NDOM=${ARGU}
+  fi
+  if [ $ERR == 0 ]; then
+    RIP=$(printf "${MAYB}" | grep  -v "^[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\$")
+    if [ "x${MAYB}" == "x" ]; then
+      nodeworx -n -u -c DnsRecord -a listRecordIds | \
+        grep "${NDOM}" | grep -v "[a-zA-Z0-9]\.${NDOM}" \
+        | grep "| A |"
+    elif [ "x${RIP}" == "x" ]; then
+      DID=$(nodeworx -u -n -c DnsRecord -a listRecordIds | grep "${NDOM}" | sort -hu  | grep -v "[a-zA-Z0-9]\.${NDOM}" | grep "| A |" | awk '{print $1}')
+      nodeworx -u -n -c DnsRecord -a editA --record_id=${DID} \
+        --ipaddress=${MAYB}
+      printf "A record for ${NDOM} has been set to ${MAYB}.\n"
+    else
+      printf "\e[1;31m -- Please enter a valid IP. --\e[0m\n"
+    fi
+  else
+    printf "\e[1;31m -- Please enter valid domain. --\e[0m\n"
+  fi
 elif [ "x${UZR}" == "x" ]; then
-	printf "\e[0;31m      --- Not in user directory! --- \e[0m\n"
+  printf "\e[0;31m      --- Not in user directory! --- \e[0m\n"
 elif [ "${FLAG}" == "-d" ]; then
-	if [ "${ARGU}" == "-a" ]; then
-		if [ "x${MAYB}" == "x" ]; then
-			printf "\e[1;31m -- No domain specified! -- \e[0m\n"
-		else
-			sudo -u ${UZR} siteworx -u -n -c DomainsSlave -a \
-				add --domain=${MAYB} &> .iwu.chk
-			CZECH=$(grep -Eho "exists" .iwu.chk)
-			if [ "x${CZECH}" == "x" ]; then
-				printf "${MAYB} added successfully!\n"
-			else
-				cat .iwu.chk
-			fi
-			rm .iwu.chk &> /dev/null
-		fi
-	elif [ "${ARGU}" == "-r" ]; then
-		if [ "x${MAYB}" == "x" ]; then
-			printf "\e[1;31m -- No domain specified! -- \e[0m\n"
-		else
-			sudo -u ${UZR} siteworx -u -n -c DomainsSlave -a \
-				delete --domain=${MAYB} &> .iwu.chk
-			CZECH=$(grep -Eho "is not" .iwu.chk)
-			if [ "x${CZECH}" == "x" ]; then
-				printf "${MAYB} removed successfully!\n"
-			else
-				cat .iwu.chk
-			fi
-			rm .iwu.chk &> /dev/null
-		fi
-	else
-		printf "\e[1;35m -- Primary Domain: ${PRI} -- \e[0m\n\n"
-		sudo -u $(printf "${UZR}") siteworx -u -n -c DomainsSlave -a list
-	fi
+  if [ "${ARGU}" == "-a" ]; then
+    if [ "x${MAYB}" == "x" ]; then
+      printf "\e[1;31m -- No domain specified! -- \e[0m\n"
+    else
+      sudo -u ${UZR} siteworx -u -n -c DomainsSlave -a \
+        add --domain=${MAYB} &> .iwu.chk
+      CZECH=$(grep -Eho "exists" .iwu.chk)
+      if [ "x${CZECH}" == "x" ]; then
+        printf "${MAYB} added successfully!\n"
+      else
+        cat .iwu.chk
+      fi
+      rm .iwu.chk &> /dev/null
+    fi
+  elif [ "${ARGU}" == "-r" ]; then
+    if [ "x${MAYB}" == "x" ]; then
+      printf "\e[1;31m -- No domain specified! -- \e[0m\n"
+    else
+      sudo -u ${UZR} siteworx -u -n -c DomainsSlave -a \
+        delete --domain=${MAYB} &> .iwu.chk
+      CZECH=$(grep -Eho "is not" .iwu.chk)
+      if [ "x${CZECH}" == "x" ]; then
+        printf "${MAYB} removed successfully!\n"
+      else
+        cat .iwu.chk
+      fi
+      rm .iwu.chk &> /dev/null
+    fi
+  else
+    printf "\e[1;35m -- Primary Domain: ${PRI} -- \e[0m\n\n"
+    sudo -u $(printf "${UZR}") siteworx -u -n -c DomainsSlave -a list
+  fi
 elif [ "${FLAG}" == "-p" ]; then
-	TST=$(printf "${ARGU}" | grep -v "^[a-z0-9]*[a-z0-9]\.[a-z]*[a-z]\$")
-	TSW=$(sudo -u ${UZR} siteworx -u -n -c DomainsSlave -a listSecondaryDomains | awk '{print $1}' | grep "^${ARGU}\$")
-	if [ "x${ARGU}" == "x" ]; then
-		printf "\e[1;35m -- Current Primary Domain: ${PRI} --\e[0m\n"
-	elif [ "x${TST}" == "x" ]; then
-		if [ "${TSW}" == "${ARGU}" ]; then
-			~iworx/bin/domain-promoter.pex --secondary-to-primary \
-				--primary-domain=${PRI} --secondary-domain=${ARGU}
-		else
-			printf "\e[1;31m -- Please enter a valid secondary \\
-			domain! -- \e[0m\n"
-		fi
-	else
-		printf "\e[1;31m -- Please enter a valid secondary domain! \\
-		\e[0m\n"
-	fi
+  TST=$(printf "${ARGU}" | grep -v "^[a-z0-9]*[a-z0-9]\.[a-z]*[a-z]\$")
+  TSW=$(sudo -u ${UZR} siteworx -u -n -c DomainsSlave -a listSecondaryDomains | awk '{print $1}' | grep "^${ARGU}\$")
+  if [ "x${ARGU}" == "x" ]; then
+    printf "\e[1;35m -- Current Primary Domain: ${PRI} --\e[0m\n"
+  elif [ "x${TST}" == "x" ]; then
+    if [ "${TSW}" == "${ARGU}" ]; then
+      ~iworx/bin/domain-promoter.pex --secondary-to-primary \
+        --primary-domain=${PRI} --secondary-domain=${ARGU}
+    else
+      printf "\e[1;31m -- Please enter a valid secondary \\
+      domain! -- \e[0m\n"
+    fi
+  else
+    printf "\e[1;31m -- Please enter a valid secondary domain! \\
+    \e[0m\n"
+  fi
 elif [ "${FLAG}" == "-u" ]; then
-	DOIT="0"
-	CUND=$(printf "${ARGU}" | grep -v "^[a-zA-Z0-9]*[a-zA-Z0-9]\@[a-zA-Z0-9]*[a-zA-Z0-9]\.[a-z]*[a-z]")
-	if [ "x${ARGU}" == "x" ]; then
-		sudo -u ${UZR} siteworx -u -n -c Users -a listUsers
-	elif [ "x${CUND}" == "x" ]; then
-		if [ "x${MAYB}" == "x" ]; then
-			DOIT="1"
-			ASSWORD=$(xkcd)
-		else
-			DOIT="1"
-			ASSWORD=${MAYB}
-		fi
-	else
-		printf "\e[1;31m-- Please provie a valid email address! --\e[0m\n"
-	fi
-	if [ "${DOIT}" == "1" ]; then
-		sudo -u ${UZR} siteworx -u -n -c Users -a edit --user=${ARGU} \
-			--password=${ASSWORD} --confirm_password=${ASSWORD}
-		printf "URL : http://${HOSTNAME}/siteworx/?domain=${PRI}\n\n"
-		printf "Email : ${ARGU}\n"
-		printf "Password : ${ASSWORD}\n"
-		printf "Domain : ${PRI}\n"
-	fi
+  DOIT="0"
+  CUND=$(printf "${ARGU}" | grep -v "^[a-zA-Z0-9]*[a-zA-Z0-9]\@[a-zA-Z0-9]*[a-zA-Z0-9]\.[a-z]*[a-z]")
+  if [ "x${ARGU}" == "x" ]; then
+    sudo -u ${UZR} siteworx -u -n -c Users -a listUsers
+  elif [ "x${CUND}" == "x" ]; then
+    if [ "x${MAYB}" == "x" ]; then
+      DOIT="1"
+      ASSWORD=$(xkcd)
+    else
+      DOIT="1"
+      ASSWORD=${MAYB}
+    fi
+  else
+    printf "\e[1;31m-- Please provie a valid email address! --\e[0m\n"
+  fi
+  if [ "${DOIT}" == "1" ]; then
+    sudo -u ${UZR} siteworx -u -n -c Users -a edit --user=${ARGU} \
+      --password=${ASSWORD} --confirm_password=${ASSWORD}
+    printf "URL : http://${HOSTNAME}/siteworx/?domain=${PRI}\n\n"
+    printf "Email : ${ARGU}\n"
+    printf "Password : ${ASSWORD}\n"
+    printf "Domain : ${PRI}\n"
+  fi
 elif [ "${FLAG}" == "-e" ]; then
-	if [ "x${DOM}" == "x" ]; then
-		printf "\e[1;31m --Not in domain directory!-- \e[0m\n"
-	else
-		if [ "x${ARGU}" == "x" ]; then
-			_help
-		elif [ "${ARGU}" == "--list-box" ]; then
-			sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c EmailBox -a list | awk '{print $2}'
-		elif [ "${ARGU}" == "--add-box" ] || [ "${ARGU}" == "--rm-box" ] || [ "${ARGU}" == "--passwd" ]; then
-			if [ "x${MAYB}" == "x" ]; then
-				printf "\e[1;31m --Please provide a valid email address!--\e[0m\n"
-			else
-				ADDR=$(printf "${MAYB}" | awk -F "@" '{print $1}')
-				if [ "x${OSHT}" == "x" ]; then
-					PAWWORD=$(xkcd)
-				else
-					PAWWORD=${OSHT}
-				fi
-				if [ "${ARGU}" == "--passwd" ]; then
-					CHK=$(sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c EmailBox -a edit --username ${ADDR} --password ${PAWWORD} --confirm_password ${PAWWORD} --confirm_action 1 1>&2)
-					if [ "x${CHK}" == "x" ]; then
-						printf "Email : ${ADDR}@${DOM}\n"
-						printf "Pass  : ${PAWWORD}\n"
-					else
-						echo "${CHK}"
-					fi
-				elif [ "${ARGU}" == "--add-box" ]; then
-					CHK=$(sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c EmailBox -a add --username ${ADDR} --password ${PAWWORD} --confirm_password ${PAWWORD} --confirm_action 1)
-					if [ "x${CHK}" == "x" ]; then
-						printf "Email : ${ADDR}@${DOM}\n"
-						printf "Pass  : ${PAWWORD}\n"
-					else
-						echo "${CHK}"
-					fi
-				elif [ "${ARGU}" == "--rm-box" ]; then
-					CHK=$(sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c EmailBox -a delete --username ${ADDR} --confirm_action 1)
-					if [ "x${CHK}" == "x" ]; then
-						printf "${ADDR}@${DOM} deleted successfully!\n"
-					else
-						echo "${CHK}"
-					fi
-				else
-					_help
-				fi
-			fi
-		else
-			_help
-		fi
-	fi
+  if [ "x${DOM}" == "x" ]; then
+    printf "\e[1;31m --Not in domain directory!-- \e[0m\n"
+  else
+    if [ "x${ARGU}" == "x" ]; then
+      _help
+    elif [ "${ARGU}" == "--list-box" ]; then
+      sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c EmailBox -a list | awk '{print $2}'
+    elif [ "${ARGU}" == "--add-box" ] || [ "${ARGU}" == "--rm-box" ] || [ "${ARGU}" == "--passwd" ]; then
+      if [ "x${MAYB}" == "x" ]; then
+        printf "\e[1;31m --Please provide a valid email address!--\e[0m\n"
+      else
+        ADDR=$(printf "${MAYB}" | awk -F "@" '{print $1}')
+        if [ "x${OSHT}" == "x" ]; then
+          PAWWORD=$(xkcd)
+        else
+          PAWWORD=${OSHT}
+        fi
+        if [ "${ARGU}" == "--passwd" ]; then
+          CHK=$(sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c EmailBox -a edit --username ${ADDR} --password ${PAWWORD} --confirm_password ${PAWWORD} --confirm_action 1 1>&2)
+          if [ "x${CHK}" == "x" ]; then
+            printf "Email : ${ADDR}@${DOM}\n"
+            printf "Pass  : ${PAWWORD}\n"
+          else
+            echo "${CHK}"
+          fi
+        elif [ "${ARGU}" == "--add-box" ]; then
+          CHK=$(sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c EmailBox -a add --username ${ADDR} --password ${PAWWORD} --confirm_password ${PAWWORD} --confirm_action 1)
+          if [ "x${CHK}" == "x" ]; then
+            printf "Email : ${ADDR}@${DOM}\n"
+            printf "Pass  : ${PAWWORD}\n"
+          else
+            echo "${CHK}"
+          fi
+        elif [ "${ARGU}" == "--rm-box" ]; then
+          CHK=$(sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c EmailBox -a delete --username ${ADDR} --confirm_action 1)
+          if [ "x${CHK}" == "x" ]; then
+            printf "${ADDR}@${DOM} deleted successfully!\n"
+          else
+            echo "${CHK}"
+          fi
+        else
+          _help
+        fi
+      fi
+    else
+      _help
+    fi
+  fi
 elif [ "${FLAG}" == "-f" ]; then
-	if [ "x${DOM}" == "x" ]; then
-		printf "\e[1;31m --Not in domain directory!-- \e[0m\n"
-	else
-		if [ "x${ARGU}" == "x" ]; then
-			_help
-		elif [ "${ARGU}" == "--list-ftp" ]; then
-			sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c Ftp -a listFtpAccounts | awk '{print $4 "  :  " $2}'
-		elif [ "${ARGU}" == "--add-ftp" ] || [ "${ARGU}" == "--rm-ftp" ] || [ "${ARGU}" == "--passwd" ]; then
-			if [ "x${MAYB}" == "x" ]; then
-				printf "\e[1;31m --Please provide a valid FTP account!--\e[0m\n"
-			else
-				FTP=$(printf "${MAYB}" | awk -F "@" '{print $1}')
-				if [ "x${OSHT}" == "x" ]; then
-					PAWWORD=$(xkcd)
-				else
-					PAWWORD=${OSHT}
-				fi
-				if [ "${ARGU}" == "--passwd" ]; then
-					CHK=$(sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c Ftp -a edit --user ${FTP} --password ${PAWWORD} --confirm_password ${PAWWORD} --confirm_action 1)
-					if [ "x${CHK}" == "x" ]; then
-						printf "Host : ${HOSTNAME}\n"
-						printf "User : ${FTP}@${DOM}\n"
-						printf "Pass : ${PAWWORD}\n"
-					else
-						echo "${CHK}"
-					fi
-				elif [ "${ARGU}" == "--add-ftp" ]; then
-					CHK=$(sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c Ftp -a add --user ${FTP} --password ${PAWWORD} --confirm_password ${PAWWORD} --confirm_action 1)
-					if [ "x${CHK}" == "x" ]; then
-						peintf "Host : ${HOSTNAME}\n"
-						printf "User : ${FTP}@${DOM}\n"
-						printf "Pass : ${PAWWORD}\n"
-					else
-						echo "${CHK}"
-					fi
-				elif [ "${ARGU}" == "--rm-ftp" ]; then
-					CHK=$(sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c Ftp -a delete --user ${FTP} --confirm_action 1)
-					if [ "x${CHK}" == "x" ]; then
-						printf "${FTP}@${DOM} removed successfully!\n"
-					else
-						echo "${CHK}"
-					fi
-				else
-					_help
-				fi
-			fi
-		else
-			_help
-		fi
-	fi
+  if [ "x${DOM}" == "x" ]; then
+    printf "\e[1;31m --Not in domain directory!-- \e[0m\n"
+  else
+    if [ "x${ARGU}" == "x" ]; then
+      _help
+    elif [ "${ARGU}" == "--list-ftp" ]; then
+      sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c Ftp -a listFtpAccounts | awk '{print $4 "  :  " $2}'
+    elif [ "${ARGU}" == "--add-ftp" ] || [ "${ARGU}" == "--rm-ftp" ] || [ "${ARGU}" == "--passwd" ]; then
+      if [ "x${MAYB}" == "x" ]; then
+        printf "\e[1;31m --Please provide a valid FTP account!--\e[0m\n"
+      else
+        FTP=$(printf "${MAYB}" | awk -F "@" '{print $1}')
+        if [ "x${OSHT}" == "x" ]; then
+          PAWWORD=$(xkcd)
+        else
+          PAWWORD=${OSHT}
+        fi
+        if [ "${ARGU}" == "--passwd" ]; then
+          CHK=$(sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c Ftp -a edit --user ${FTP} --password ${PAWWORD} --confirm_password ${PAWWORD} --confirm_action 1)
+          if [ "x${CHK}" == "x" ]; then
+            printf "Host : ${HOSTNAME}\n"
+            printf "User : ${FTP}@${DOM}\n"
+            printf "Pass : ${PAWWORD}\n"
+          else
+            echo "${CHK}"
+          fi
+        elif [ "${ARGU}" == "--add-ftp" ]; then
+          CHK=$(sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c Ftp -a add --user ${FTP} --password ${PAWWORD} --confirm_password ${PAWWORD} --confirm_action 1)
+          if [ "x${CHK}" == "x" ]; then
+            peintf "Host : ${HOSTNAME}\n"
+            printf "User : ${FTP}@${DOM}\n"
+            printf "Pass : ${PAWWORD}\n"
+          else
+            echo "${CHK}"
+          fi
+        elif [ "${ARGU}" == "--rm-ftp" ]; then
+          CHK=$(sudo -u ${UZR} siteworx -u -n --login_domain=${DOM} -c Ftp -a delete --user ${FTP} --confirm_action 1)
+          if [ "x${CHK}" == "x" ]; then
+            printf "${FTP}@${DOM} removed successfully!\n"
+          else
+            echo "${CHK}"
+          fi
+        else
+          _help
+        fi
+      fi
+    else
+      _help
+    fi
+  fi
 elif [ "${FLAG}" == "-s" ]; then
-	if [ "${ARGU}" == "--list-db" ]; then
-		sudo -u ${UZR} siteworx -u -n -c MysqlDb -a list | awk '{print $2}'
-	elif [ "${ARGU}" == "--list-user" ]; then
-		sudo -u ${UZR} siteworx -u -n -c MysqlUser -a list | awk '{print $2}'
-	elif [ "${ARGU}" == "--add-db" ]; then
-		if [ "x${MAYB}" == "x" ]; then
-			printf "\e[1;31m --No db name specified!--\e[0m\n"
-		else
-			sudo -u ${UZR} siteworx -u -n -c MysqlDb -a add --name ${MAYB} --confirm_action 1
-		fi
-	elif [ "${ARGU}" == "--add-user" ]; then
-		if [ "x${MAYB}" == "x" ]; then
-			printf "\e[1;31m --No user name specified!--\e[0m\n"
-		else
-			if [ "x${OSHT}" == "x" ]; then
-				MSUPW=$(xkcd)
-			else
-				MSUPW=$OSHT
-			fi
-			OHP=$(sudo -u ${UZR} siteworx -u -n -c MysqlUser -a add --name ${MAYB} --password ${MSUPW} --confirm_password ${MSUPW} --confirm_action 1)
-			if [ "x${OHP}" == "x" ]; then
-				printf "User : ${MAYB}\n"
-				printf "Pass : ${MSUPW}\n"
-			fi
-		fi
-	elif [ "${ARGU}" == "--perms" ]; then
-		PZERMS='SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,INDEX,ALTER,CREATE TEMPORARY TABLES,LOCK TABLES,CREATE VIEW,SHOW VIEW,CREATE ROUTINE,ALTER ROUTINE,EXECUTE,EVENT,TRIGGER'
-		if [ "x${MAYB}" == "x" ] || [ "x${OSHT}" == "x" ]; then
-			printf "\e[1;31m --Please provide a valid db and user!-- \e[0m\n"
-		else
-			sudo -u ${UZR} siteworx -u -n -c MysqlPerms -a add --name ${MAYB} --perms "${PZERMS}" --user ${OSHT}
-		fi
-	elif [ "${ARGU}" == "--add-both" ]; then
-		PZERMS='SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,INDEX,ALTER,CREATE TEMPORARY TABLES,LOCK TABLES,CREATE VIEW,SHOW VIEW,CREATE ROUTINE,ALTER ROUTINE,EXECUTE,EVENT,TRIGGER'
-		if [ "x${MAYB}" == "x" ]; then
-			printf "\e[1;31m --Please provide a name!-- \e[0m\n"
-		else
-			if [ "x${OSHT}" == "x" ]; then
-				PSPW=$(xkcd)
-			else
-				PSPW=${OSHT}
-			fi
-			CHKO=$(sudo -u ${UZR} siteworx -u -n -c MysqlDb -a add --name ${MAYB} --confirm_action 1)
-			if [ "x${CHKO}" == "x" ]; then
-				CHKT=$(sudo -u ${UZR} siteworx -u -n -c MysqlUser -a add --name ${MAYB} --password ${PSPW} --confirm_password ${PSPW} --confirm_action 1)
-				if [ "x${CHKT}" == "x" ]; then
-					sudo -u ${UZR} siteworx -u -n -c MysqlPerms -a add --name ${MAYB} --perms "${PZERMS}" --user ${MAYB}
-					printf "DB Name : ${UZR}_${MAYB}\n"
-					printf "DB User : ${UZR}_${MAYB}\n"
-					printf "DB Pass : ${PSPW}\n"
-				else
-					echo "${CHKT}"
-				fi
-			else
-				echo "${CHKO}"
-			fi
-		fi
-	elif [ "${ARGU}" == "--rm-db" ]; then
-		if [ "x${MAYB}" == "x" ]; then
-			printf "\e[1;31m --No DB name provided!--\e[0m\n"
-		else
-			sudo -u ${UZR} siteworx -u -n -c MysqlDb -a delete --name ${MAYB} --confirm_action 1
-		fi
-	elif [ "${ARGU}" == "--rm-user" ]; then
-		if [ "x${MAYB}" == "x" ]; then
-			printf "\e[1;31m --No user specified!--\e[0m\n"
-		else
-			sudo -u ${UZR} siteworx -u -n -c MysqlUser -a delete --name ${MAYB} --confirm_action 1
-		fi
-	elif [ "${ARGU}" == "--passwd" ]; then
-		if [ "x${MAYB}" == "x" ]; then
-			printf "\e[1;31m --No DB user specified!--\e[0m\n"
-		else
-			if [ "x${OSHT}" == "x" ]; then
-				PAWOFF=$(xkcd)
-			else
-				PAWOFF=${OSHT}
-			fi
-			PCHK=$(sudo -u ${UZR} siteworx -u -n -c MysqlUser -a edit --name ${MAYB} --password ${PAWOFF} --confirm_password ${PAWOFF} --confirm_action 1)
-			if [ "x${PCHK}" == "x" ]; then
-				printf "User : ${MAYB}\n"
-				printf "Pass : ${PAWOFF}\n"
-			else
-				echo "${PCHK}"
-			fi
-		fi
-	else
-		iworx
-	fi
+  if [ "${ARGU}" == "--list-db" ]; then
+    sudo -u ${UZR} siteworx -u -n -c MysqlDb -a list | awk '{print $2}'
+  elif [ "${ARGU}" == "--list-user" ]; then
+    sudo -u ${UZR} siteworx -u -n -c MysqlUser -a list | awk '{print $2}'
+  elif [ "${ARGU}" == "--add-db" ]; then
+    if [ "x${MAYB}" == "x" ]; then
+      printf "\e[1;31m --No db name specified!--\e[0m\n"
+    else
+      sudo -u ${UZR} siteworx -u -n -c MysqlDb -a add --name ${MAYB} --confirm_action 1
+    fi
+  elif [ "${ARGU}" == "--add-user" ]; then
+    if [ "x${MAYB}" == "x" ]; then
+      printf "\e[1;31m --No user name specified!--\e[0m\n"
+    else
+      if [ "x${OSHT}" == "x" ]; then
+        MSUPW=$(xkcd)
+      else
+        MSUPW=$OSHT
+      fi
+      OHP=$(sudo -u ${UZR} siteworx -u -n -c MysqlUser -a add --name ${MAYB} --password ${MSUPW} --confirm_password ${MSUPW} --confirm_action 1)
+      if [ "x${OHP}" == "x" ]; then
+        printf "User : ${MAYB}\n"
+        printf "Pass : ${MSUPW}\n"
+      fi
+    fi
+  elif [ "${ARGU}" == "--perms" ]; then
+    PZERMS='SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,INDEX,ALTER,CREATE TEMPORARY TABLES,LOCK TABLES,CREATE VIEW,SHOW VIEW,CREATE ROUTINE,ALTER ROUTINE,EXECUTE,EVENT,TRIGGER'
+    if [ "x${MAYB}" == "x" ] || [ "x${OSHT}" == "x" ]; then
+      printf "\e[1;31m --Please provide a valid db and user!-- \e[0m\n"
+    else
+      sudo -u ${UZR} siteworx -u -n -c MysqlPerms -a add --name ${MAYB} --perms "${PZERMS}" --user ${OSHT}
+    fi
+  elif [ "${ARGU}" == "--add-both" ]; then
+    PZERMS='SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,REFERENCES,INDEX,ALTER,CREATE TEMPORARY TABLES,LOCK TABLES,CREATE VIEW,SHOW VIEW,CREATE ROUTINE,ALTER ROUTINE,EXECUTE,EVENT,TRIGGER'
+    if [ "x${MAYB}" == "x" ]; then
+      printf "\e[1;31m --Please provide a name!-- \e[0m\n"
+    else
+      if [ "x${OSHT}" == "x" ]; then
+        PSPW=$(xkcd)
+      else
+        PSPW=${OSHT}
+      fi
+      CHKO=$(sudo -u ${UZR} siteworx -u -n -c MysqlDb -a add --name ${MAYB} --confirm_action 1)
+      if [ "x${CHKO}" == "x" ]; then
+        CHKT=$(sudo -u ${UZR} siteworx -u -n -c MysqlUser -a add --name ${MAYB} --password ${PSPW} --confirm_password ${PSPW} --confirm_action 1)
+        if [ "x${CHKT}" == "x" ]; then
+          sudo -u ${UZR} siteworx -u -n -c MysqlPerms -a add --name ${MAYB} --perms "${PZERMS}" --user ${MAYB}
+          printf "DB Name : ${UZR}_${MAYB}\n"
+          printf "DB User : ${UZR}_${MAYB}\n"
+          printf "DB Pass : ${PSPW}\n"
+        else
+          echo "${CHKT}"
+        fi
+      else
+        echo "${CHKO}"
+      fi
+    fi
+  elif [ "${ARGU}" == "--rm-db" ]; then
+    if [ "x${MAYB}" == "x" ]; then
+      printf "\e[1;31m --No DB name provided!--\e[0m\n"
+    else
+      sudo -u ${UZR} siteworx -u -n -c MysqlDb -a delete --name ${MAYB} --confirm_action 1
+    fi
+  elif [ "${ARGU}" == "--rm-user" ]; then
+    if [ "x${MAYB}" == "x" ]; then
+      printf "\e[1;31m --No user specified!--\e[0m\n"
+    else
+      sudo -u ${UZR} siteworx -u -n -c MysqlUser -a delete --name ${MAYB} --confirm_action 1
+    fi
+  elif [ "${ARGU}" == "--passwd" ]; then
+    if [ "x${MAYB}" == "x" ]; then
+      printf "\e[1;31m --No DB user specified!--\e[0m\n"
+    else
+      if [ "x${OSHT}" == "x" ]; then
+        PAWOFF=$(xkcd)
+      else
+        PAWOFF=${OSHT}
+      fi
+      PCHK=$(sudo -u ${UZR} siteworx -u -n -c MysqlUser -a edit --name ${MAYB} --password ${PAWOFF} --confirm_password ${PAWOFF} --confirm_action 1)
+      if [ "x${PCHK}" == "x" ]; then
+        printf "User : ${MAYB}\n"
+        printf "Pass : ${PAWOFF}\n"
+      else
+        echo "${PCHK}"
+      fi
+    fi
+  else
+    iworx
+  fi
 elif [ "${FLAG}" == "-i" ]; then
-	QUERY=$(nodeworx -u -n -c Siteworx -a querySiteworxAccountDetails --domain=${PRI})
-	SQOTA=$(printf "${QUERY}" | grep "storage:" | awk '{print $2}')
-	STORA=$(printf "${QUERY}" | grep "storage_used:" | awk '{print $2}')
-	BQOTA=$(printf "${QUERY}" | grep "bandwidth:" | awk '{print $2}')
-	BANDW=$(printf "${QUERY}" | grep "bandwidth_used:" | awk '{print $2}')
-	BILLD=$(printf "${QUERY}" | grep "billingday:" | awk '{print $2}')
-	NNAME=$(printf "${QUERY}" | grep "nickname:" | cut -d\  -f2-)
-	UUSER=$(printf "${QUERY}" | grep "unixuser:" | awk '{print $2}')
-	EMAIL=$(printf "${QUERY}" | grep "email:" | awk '{print $2}')
-	FORMAT="%-16s:%2s\n"
-	printf "${FORMAT}" "Name" "  ${NNAME}"
-	printf "${FORMAT}" "Email" "  ${EMAIL}"
-	printf "${FORMAT}" "Billing Day" "  ${BILLD}"
-	printf "\n"
-	printf "${FORMAT}" "Primary Domain" "  ${PRI}"
-	printf "${FORMAT}" "UNIX Name" "  ${UUSER}"
-	printf "\n"
-	printf "${FORMAT}" "Bandwidth Quota" "  ${BQOTA} GB"
-	printf "${FORMAT}" "Bandwidth Usage" "  ${BANDW} MB"
-	printf "\n"
-	printf "${FORMAT}" "Storage Quota" "  ${SQOTA} MB"
-	printf "${FORMAT}" "Storage Usage" "  ${STORA} MB"
+  QUERY=$(nodeworx -u -n -c Siteworx -a querySiteworxAccountDetails --domain=${PRI})
+  SQOTA=$(printf "${QUERY}" | grep "storage:" | awk '{print $2}')
+  STORA=$(printf "${QUERY}" | grep "storage_used:" | awk '{print $2}')
+  BQOTA=$(printf "${QUERY}" | grep "bandwidth:" | awk '{print $2}')
+  BANDW=$(printf "${QUERY}" | grep "bandwidth_used:" | awk '{print $2}')
+  BILLD=$(printf "${QUERY}" | grep "billingday:" | awk '{print $2}')
+  NNAME=$(printf "${QUERY}" | grep "nickname:" | cut -d\  -f2-)
+  UUSER=$(printf "${QUERY}" | grep "unixuser:" | awk '{print $2}')
+  EMAIL=$(printf "${QUERY}" | grep "email:" | awk '{print $2}')
+  FORMAT="%-16s:%2s\n"
+  printf "${FORMAT}" "Name" "  ${NNAME}"
+  printf "${FORMAT}" "Email" "  ${EMAIL}"
+  printf "${FORMAT}" "Billing Day" "  ${BILLD}"
+  printf "\n"
+  printf "${FORMAT}" "Primary Domain" "  ${PRI}"
+  printf "${FORMAT}" "UNIX Name" "  ${UUSER}"
+  printf "\n"
+  printf "${FORMAT}" "Bandwidth Quota" "  ${BQOTA} GB"
+  printf "${FORMAT}" "Bandwidth Usage" "  ${BANDW} MB"
+  printf "\n"
+  printf "${FORMAT}" "Storage Quota" "  ${SQOTA} MB"
+  printf "${FORMAT}" "Storage Usage" "  ${STORA} MB"
 elif [ "${FLAG}" == "-q" ]; then
-	nodeworx -u -n -c Siteworx -a edit --domain=${PRI} --OPT_STORAGE ${ARGU}
-	printf "Quota for ${UZR} set to ${ARGU}.\n"
+  nodeworx -u -n -c Siteworx -a edit --domain=${PRI} --OPT_STORAGE ${ARGU}
+  printf "Quota for ${UZR} set to ${ARGU}.\n"
 else
-	_help
+  _help
 fi

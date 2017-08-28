@@ -2,94 +2,94 @@
 
 _login () {
 
-	local ident_file dest;
+  local ident_file dest;
 
-	dest="$1";
-	ident_file=${HOME}/.ssh/nex$(whoami).id_rsa;
+  dest="$1";
+  ident_file=${HOME}/.ssh/nex$(whoami).id_rsa;
 
-	if [[ -d ~/dotfiles/ ]]; then
-		if [[ $(stat -c '%a' ~/dotfiles/) -ne 700 ]]; then
-			chmod 700 ~/dotfiles;
-		fi;
-		rsync -q --chmod=o-rwx -rpt \
-			--exclude '*history' \
-			--exclude '.ssh' \
-			--exclude 'clients' \
-			--exclude '.zcompdump*' \
-			--exclude '.mytop' \
-			--exclude '.git' \
-			--exclude 'YouCompleteMe' \
-			--exclude 'no-rsync' \
-			--exclude '.vimfiles/*/.*' \
-			~/dotfiles/ \
-			-e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-			"nex$(whoami)@$dest":~/ &&
-			rm -f ~/dotfiles/action.sh &&
-			ssh -i "${ident_file}" \
-			-o UserKnownHostsFile=/dev/null \
-			-o StrictHostKeyChecking=no \
-			-o PasswordAuthentication=no \
-			"nex$(whoami)@$dest";
-		echo -ne "\ek$(hostname)\e\\";
-	fi;
+  if [[ -d ~/dotfiles/ ]]; then
+    if [[ $(stat -c '%a' ~/dotfiles/) -ne 700 ]]; then
+      chmod 700 ~/dotfiles;
+    fi;
+    rsync -q --chmod=o-rwx -rpt \
+      --exclude '*history' \
+      --exclude '.ssh' \
+      --exclude 'clients' \
+      --exclude '.zcompdump*' \
+      --exclude '.mytop' \
+      --exclude '.git' \
+      --exclude 'YouCompleteMe' \
+      --exclude 'no-rsync' \
+      --exclude '.vimfiles/*/.*' \
+      ~/dotfiles/ \
+      -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
+      "nex$(whoami)@$dest":~/ &&
+      rm -f ~/dotfiles/action.sh &&
+      ssh -i "${ident_file}" \
+      -o UserKnownHostsFile=/dev/null \
+      -o StrictHostKeyChecking=no \
+      -o PasswordAuthentication=no \
+      "nex$(whoami)@$dest";
+    echo -ne "\ek$(hostname)\e\\";
+  fi;
 }
 
 ################################ BEGIN CHRIS ORLANDO'S WORK ##############################################
 _urlencode () {
-	echo -ne "$1" \
-		| xxd -plain \
-		| tr -d '\n' \
-		| sed 's/\(..\)/%\1/g'
+  echo -ne "$1" \
+    | xxd -plain \
+    | tr -d '\n' \
+    | sed 's/\(..\)/%\1/g'
 }
 
 _uuid2fqdn () {
-	curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
-		--data "query=$(_urlencode '["=", "name", "fqdn"]')" \
-		| grep -oP '(?<=value":")[^"]*'
+  curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
+    --data "query=$(_urlencode '["=", "name", "fqdn"]')" \
+    | grep -oP '(?<=value":")[^"]*'
 }
 
 _uuid2ip () {
-	curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
-		--data "query=$(_urlencode '["=", "name", "ipaddress"]')" \
-		| grep -oP '(?<=value":")[^"]*'
+  curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
+    --data "query=$(_urlencode '["=", "name", "ipaddress"]')" \
+    | grep -oP '(?<=value":")[^"]*'
 }
 
 _findsite () {
 
-	query="[\"and\", [\"=\", \"name\", \"domains\" ], [\"=\", \"value\", \"$1\"]]"
+  query="[\"and\", [\"=\", \"name\", \"domains\" ], [\"=\", \"value\", \"$1\"]]"
 
-	servers=$(curl -sG 'http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/fact-contents' \
-		--data "query=$(_urlencode "$query")" \
-		| grep -oP '(?<=certname":")[^"]*');
+  servers=$(curl -sG 'http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/fact-contents' \
+    --data "query=$(_urlencode "$query")" \
+    | grep -oP '(?<=certname":")[^"]*');
 
-	if [[ -z "$servers" ]]; then
+  if [[ -z "$servers" ]]; then
 
-		return 1;
+    return 1;
 
-	fi
+  fi
 
-	for uuid in $servers; do
+  for uuid in $servers; do
 
-		_uuid2fqdn "$uuid" | tr '\n' '\t';
-		_uuid2ip "$uuid";
+    _uuid2fqdn "$uuid" | tr '\n' '\t';
+    _uuid2ip "$uuid";
 
-	done
+  done
 }
 ################################ END CHRIS ORLANDO'S WORK ##############################################
 
 # Check parameters
 if [[ ! "$1" ]]; then
 
-	printf "No domain given. This command requires a domain as an argument.\n";
+  printf "No domain given. This command requires a domain as an argument.\n";
 
-	exit 1;
+  exit 1;
 
 elif [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]] || [[ "$1" == "help" ]]; then
 
-	printf "Usage: gosite [DOMAIN]\n\n";
-	printf "[DOMAIN] must be the target domain you wish to locate.\n";
+  printf "Usage: gosite [DOMAIN]\n\n";
+  printf "[DOMAIN] must be the target domain you wish to locate.\n";
 
-	exit 0;
+  exit 0;
 
 fi
 
@@ -98,17 +98,17 @@ domain=$(echo "$1" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:l
 
 # Action to perform upon login
 if [[ "$2" ]]; then
-	case "$2" in
-		"cdd")
-			echo "cdd ${domain}" > ~/dotfiles/action.sh;
-			;;
-		"htacc")
-			echo "cdd ${domain} && vim .htaccess" > ~/dotfiles/action.sh;
-			;;
-		"cdlogs")
-			echo "cdlogs ${domain}" > ~/dotfiles/action.sh;
-			;;
-	esac
+  case "$2" in
+    "cdd")
+      echo "cdd ${domain}" > ~/dotfiles/action.sh;
+      ;;
+    "htacc")
+      echo "cdd ${domain} && vim .htaccess" > ~/dotfiles/action.sh;
+      ;;
+    "cdlogs")
+      echo "cdlogs ${domain}" > ~/dotfiles/action.sh;
+      ;;
+  esac
 fi
 
 ip_addr="$(dig +short "$domain" | sort | head -n1)";
@@ -117,38 +117,38 @@ whoisinfo="$(whois "$ip_addr")";
 host=$(echo "$whoisinfo"  | grep -m1 -ioE "nexcess|sucuri|cloudflare" | tr '[:upper:]' '[:lower:]');
 if [ "$host" == "nexcess" ]; then
 
-	_login "${ip_addr}";
-	exit 0;
+  _login "${ip_addr}";
+  exit 0;
 
 elif  [ "$host" == "cloudflare" ]; then
 
-	printf "Domain pointed to %s\n" "$host";
-	read -rep "Press enter to continue";
+  printf "Domain pointed to %s\n" "$host";
+  read -rep "Press enter to continue";
 
 elif  [ "$host" == "sucuri" ]; then
 
-	printf "Domain pointed to %s\n" "$host";
-	read -rep "Press enter to continue";
+  printf "Domain pointed to %s\n" "$host";
+  read -rep "Press enter to continue";
 
 else
 
-	printf "Domain pointed to an unknown host/proxy\n";
-	read -rep "View WHOIS? N/y : " viewwhois;
+  printf "Domain pointed to an unknown host/proxy\n";
+  read -rep "View WHOIS? N/y : " viewwhois;
 
-	if [ "$viewwhois" == "y" ]; then
+  if [ "$viewwhois" == "y" ]; then
 
-		echo "$whoisinfo";
+    echo "$whoisinfo";
 
-	fi
+  fi
 
-	echo;
-	read -rep "Continue? Y/n : " keepgoing;
+  echo;
+  read -rep "Continue? Y/n : " keepgoing;
 
-	if [ "$keepgoing" == "n" ]; then
+  if [ "$keepgoing" == "n" ]; then
 
-		exit 0;
+    exit 0;
 
-	fi
+  fi
 
 fi
 
@@ -163,27 +163,27 @@ find_ips=($(echo "${findsitelist}" | awk '{print $2}'));
 # Evaluate too few or too many domains
 if [ -z "${find_servers[0]}" ]; then
 
-	echo "Domain not found";
-	exit;
+  echo "Domain not found";
+  exit;
 
 elif [ "${find_servers[1]}" ]; then
 
-	echo "Domain ambiguous. Select server:";
+  echo "Domain ambiguous. Select server:";
 
-	for (( i=0; i<${#find_servers[@]}; i++ )); do
+  for (( i=0; i<${#find_servers[@]}; i++ )); do
 
-		echo "$i  ${find_servers[$i]}";
+    echo "$i  ${find_servers[$i]}";
 
-	done | column -t;
+  done | column -t;
 
-	echo;
-	read -rep "Choose server:" selection;
+  echo;
+  read -rep "Choose server:" selection;
 
-	ip_addr=${find_ips[$selection]};
+  ip_addr=${find_ips[$selection]};
 
 else
 
-	ip_addr=${find_ips[0]};
+  ip_addr=${find_ips[0]};
 
 fi;
 

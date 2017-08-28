@@ -3,19 +3,19 @@
 export LANG=en_US.UTF-8
 
 if [ -f ~/.functions.sh ]; then
-	source ~/.functions.sh
+  source ~/.functions.sh
 fi
 
 if [ -f ~/.aliases.sh ]; then
-	source ~/.aliases.sh
+  source ~/.aliases.sh
 fi
 
 if [ -f ~/.environment.sh ]; then
-	source ~/.environment.sh
+  source ~/.environment.sh
 fi
 
 if [ -f ~/.shell_functions ]; then
-	source ~/.shell_functions
+  source ~/.shell_functions
 fi
 export ZSH=~/.oh-my-zsh
 

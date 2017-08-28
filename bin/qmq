@@ -2,30 +2,30 @@
 
 ## Series of qmqtool one-liners for checking the makeup of mail stuck in the queue
 if [[ -n "$1" && -z "$2" ]]; then
-	N=20;
+  N=20;
 else
-	N=$2;
+  N=$2;
 fi;
 echo;
 case "$1" in
-	sub )
-		qmqtool -R | grep "Subject: " | sort | uniq -c | sort -rn | head -n$N ;;
-	rec )
-		qmqtool -R | awk '/Recipient:/ { print $3 }' | sort | uniq -c | sort -n ;;
-	send )
-		qmqtool -R | grep "From: " | sort | uniq -c | sort -rn | head -n$N ;;
-	sdom )
-		qmqtool -R | grep "From: " | grep -Eo '\@[a-z0-9].*\>' | sort | uniq -c | sort -rn | head -n$N;;
-	radd|raddress )
-		qmqtool -R | grep "To: " | sort | uniq -c | sort -rn | head -n$N ;;
-	rdom|rdomain )
-		qmqtool -R | grep "To: " | cut -d @ -f2 | tr -d '>' | sort | uniq -c | sort -rn | head -n$N ;;
-	ladd|laddress )
-		qmqtool -L | grep "To: " | sort | uniq -c | sort -rn | head -n$N ;;
-	ldom|ldomain )
-		qmqtool -L | grep "To: " | cut -d @ -f2 | tr -d '>' | sort | uniq -c | sort -rn | head -n$N ;;
-	-h|--help)
-		echo -e " Usage: qmq [sub|rec|send|sdom|radd|rdom|ladd|ldom] [top#]\n    sub ... Top Subject in Remote Queue\n    send .. Top Sender in Remote Queue\n    sdom .. Top Sending Domain in the Remote Queue\n    rec ... Top Recipient in Remote Queue\n    radd .. Top Receive Address in Remote Queue\n    rdom .. Top Receive Domains in Remote Queue\n    ladd .. Top Receive Address in Local Queue\n    ldom .. Top Receive Domains in Local Queue" ;;
-	*) qmqtool -s ;;
+  sub )
+    qmqtool -R | grep "Subject: " | sort | uniq -c | sort -rn | head -n$N ;;
+  rec )
+    qmqtool -R | awk '/Recipient:/ { print $3 }' | sort | uniq -c | sort -n ;;
+  send )
+    qmqtool -R | grep "From: " | sort | uniq -c | sort -rn | head -n$N ;;
+  sdom )
+    qmqtool -R | grep "From: " | grep -Eo '\@[a-z0-9].*\>' | sort | uniq -c | sort -rn | head -n$N;;
+  radd|raddress )
+    qmqtool -R | grep "To: " | sort | uniq -c | sort -rn | head -n$N ;;
+  rdom|rdomain )
+    qmqtool -R | grep "To: " | cut -d @ -f2 | tr -d '>' | sort | uniq -c | sort -rn | head -n$N ;;
+  ladd|laddress )
+    qmqtool -L | grep "To: " | sort | uniq -c | sort -rn | head -n$N ;;
+  ldom|ldomain )
+    qmqtool -L | grep "To: " | cut -d @ -f2 | tr -d '>' | sort | uniq -c | sort -rn | head -n$N ;;
+  -h|--help)
+    echo -e " Usage: qmq [sub|rec|send|sdom|radd|rdom|ladd|ldom] [top#]\n    sub ... Top Subject in Remote Queue\n    send .. Top Sender in Remote Queue\n    sdom .. Top Sending Domain in the Remote Queue\n    rec ... Top Recipient in Remote Queue\n    radd .. Top Receive Address in Remote Queue\n    rdom .. Top Receive Domains in Remote Queue\n    ladd .. Top Receive Address in Local Queue\n    ldom .. Top Receive Domains in Local Queue" ;;
+  *) qmqtool -s ;;
 esac;
 echo

@@ -8,31 +8,31 @@ keyhash=$(openssl rsa -noout -modulus -in ${domain}.priv.key | openssl md5 | awk
 crthash=$(openssl x509 -noout -modulus -in ${domain}.new.crt | openssl md5 | awk '{print $2}')
 
 if [[ $keyhash != $crthash ]]; then
-	rm ${domain}.new.crt ${domain}.new.chain.crt
-	echo -e "\n[${BRIGHT}${RED}FAILED${NORMAL}] .. SSL does not match Priv.Key!\n\nPriv.Key .. [${YELLOW}${keyhash}${NORMAL}]\nSSL.Cert .. [${YELLOW}${crthash}${NORMAL}]\n";
+  rm ${domain}.new.crt ${domain}.new.chain.crt
+  echo -e "\n[${BRIGHT}${RED}FAILED${NORMAL}] .. SSL does not match Priv.Key!\n\nPriv.Key .. [${YELLOW}${keyhash}${NORMAL}]\nSSL.Cert .. [${YELLOW}${crthash}${NORMAL}]\n";
 
 else
-	echo -e "\n[${BRIGHT}${GREEN}UPDATE${NORMAL}] .. SSL Certificate"
-	rm ${domain}.crt 2> /dev/null; mv ${domain}{.new.crt,.crt}
-	chmod 600 ${domain}.crt;
-	chown iworx. ${domain}.crt
+  echo -e "\n[${BRIGHT}${GREEN}UPDATE${NORMAL}] .. SSL Certificate"
+  rm ${domain}.crt 2> /dev/null; mv ${domain}{.new.crt,.crt}
+  chmod 600 ${domain}.crt;
+  chown iworx. ${domain}.crt
 
-	# Check if new chain cert exists and is non-zero; then remove and replace the old one
-	if [[ -f ${domain}.new.chain.crt && -n $(cat ${domain}.new.chain.crt 2> /dev/null) ]]; then
-		echo "[${BRIGHT}${GREEN}UPDATE${NORMAL}] .. Chain Certificate"
-		rm ${domain}.chain.crt 2> /dev/null;
-		mv ${domain}{.new.chain.crt,.chain.crt}
-		chmod 600 ${domain}.chain.crt;
-		chown iworx. ${domain}.chain.crt
-	fi
+  # Check if new chain cert exists and is non-zero; then remove and replace the old one
+  if [[ -f ${domain}.new.chain.crt && -n $(cat ${domain}.new.chain.crt 2> /dev/null) ]]; then
+    echo "[${BRIGHT}${GREEN}UPDATE${NORMAL}] .. Chain Certificate"
+    rm ${domain}.chain.crt 2> /dev/null;
+    mv ${domain}{.new.chain.crt,.chain.crt}
+    chmod 600 ${domain}.chain.crt;
+    chown iworx. ${domain}.chain.crt
+  fi
 
-	# Check if new chain cert exists and is non-zero; then install new SSL with Chain, else exclude chain
-	if [[ -f ${domain}.chain.crt && -n $(cat ${domain}.chain.crt 2> /dev/null) ]]; then
-		sudo -u $(getusr) siteworx -unc Ssl -a install --domain $domain --chain 1
-	else
-		sudo -u $(getusr) siteworx -unc Ssl -a install --domain $domain --chain 0
-	fi
+  # Check if new chain cert exists and is non-zero; then install new SSL with Chain, else exclude chain
+  if [[ -f ${domain}.chain.crt && -n $(cat ${domain}.chain.crt 2> /dev/null) ]]; then
+    sudo -u $(getusr) siteworx -unc Ssl -a install --domain $domain --chain 1
+  else
+    sudo -u $(getusr) siteworx -unc Ssl -a install --domain $domain --chain 0
+  fi
 
-	echo -e "[${BRIGHT}${GREEN}RELOAD${NORMAL}] .. SSL update successful\n"
-	echo -e "\nhttps://www.sslshopper.com/ssl-checker.html#hostname=${domain}\nhttps://certlogik.com/ssl-checker/${domain}:443/\n"
+  echo -e "[${BRIGHT}${GREEN}RELOAD${NORMAL}] .. SSL update successful\n"
+  echo -e "\nhttps://www.sslshopper.com/ssl-checker.html#hostname=${domain}\nhttps://certlogik.com/ssl-checker/${domain}:443/\n"
 fi

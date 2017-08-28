@@ -2,35 +2,35 @@
 
 ## Look up large tables of a given database to see what's taking up space
 if [[ -z $1 || $1 == '-h' || $1 = '--help' ]]; then
-	echo -e "\n  Usage: tablesize [dbname] [option] [linecount]\n\n  Options:\n    -r ... Sort by most Rows\n    -d ... Sort by largest Data_Size\n    -i ... Sort by largest Index_Size\n";
-	exit 0;
+  echo -e "\n  Usage: tablesize [dbname] [option] [linecount]\n\n  Options:\n    -r ... Sort by most Rows\n    -d ... Sort by largest Data_Size\n    -i ... Sort by largest Index_Size\n";
+  exit 0;
 fi
 if [[ $1 == '.' ]]; then
-	dbname=$(finddb);
-	shift;
+  dbname=$(finddb);
+  shift;
 elif [[ $1 =~ ^[a-z]{1,}_.*$ ]]; then
-	dbname="$1";
-	shift;
+  dbname="$1";
+  shift;
 else
-	read -p "Database: " dbname;
+  read -p "Database: " dbname;
 fi
 case $1 in
-	-r )
-		col='4';
-		shift;;
-	-d )
-		col='6';
-		shift;;
-	-i )
-		col='8';
-		shift;;
-	* )
-		col='6';;
+  -r )
+    col='4';
+    shift;;
+  -d )
+    col='6';
+    shift;;
+  -i )
+    col='8';
+    shift;;
+  * )
+    col='6';;
 esac
 if [[ $1 =~ [0-9]{1,} ]]; then
-	top="$1";
+  top="$1";
 else
-	top="20" ;
+  top="20" ;
 fi
 echo -e "\nDatabase: $dbname\n$(dash 93)";
 printf "| %-50s | %8s | %11s | %11s |\n" "Name" "Rows" "Data_Size" "Index_Size";
