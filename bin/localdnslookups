@@ -3,5 +3,7 @@ grep query /service/dnscache/log/main/current \
   | cut -d\  -f6 \
   | sort -u \
   | while read -r i; do
+      echo -n "$i  ";
       dig +short "$i";
-    done
+    done \
+      | column -t
