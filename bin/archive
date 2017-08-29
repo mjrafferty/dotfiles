@@ -11,7 +11,7 @@ if [[ -z "$*" ]]; then
 
 fi
 
-FILE=$(getusr).$(hostname | cut -d. -f1)--$(sed 's_/_-_g' "$1")-$(date +%Y.%m.%d-%H.%M).tgz;
+FILE=$(getusr).$(hostname | cut -d. -f1)--"${1/\//-}"-$(date +%Y.%m.%d-%H.%M).tgz;
 SIZE=$(du -sb "$1" | cut -f1);
 SIZEM=$(echo "scale=3;$SIZE/1024/1024" | bc);
 
