@@ -1,9 +1,10 @@
 #! /bin/bash
-grep query /service/dnscache/log/main/current \
-  | cut -d\  -f6 \
-  | sort -u \
-  | while read -r i; do
-      echo -n "$i  ";
-      dig +short "$i";
-    done \
-      | column -t
+list="($(grep query /service/dnscache/log/main/current | cut -d\  -f6 | sort -u))";
+
+for ((i=0;i<${#list[@]};i++)); do
+  dug="($(dig +short "${list[$i]}"))";
+  for ((x=0;x<${#dug[@]};x++)); do
+    printf "%s\t%s\n" "${list[$i]}" "${dug[$x]}";
+  done
+  echo;
+done | column -t;
