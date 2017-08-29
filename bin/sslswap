@@ -2,7 +2,7 @@
 
 ## Swap new SSL into place of old SSL and reload Apache
 domain=$(pwd -P | sed 's:/chroot::' | cut -d/ -f5)
-nano ${domain}.new.crt ${domain}.new.chain.crt;
+vim ${domain}.new.crt ${domain}.new.chain.crt;
 
 keyhash=$(openssl rsa -noout -modulus -in ${domain}.priv.key | openssl md5 | awk '{print $2}')
 crthash=$(openssl x509 -noout -modulus -in ${domain}.new.crt | openssl md5 | awk '{print $2}')
