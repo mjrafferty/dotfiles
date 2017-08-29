@@ -199,7 +199,7 @@ _magdbconnect () {
             done;
           fi ;;
         -h|--help)
-          echo -e " Usage: magdb $SITEPATH $opt [<option>]\n    <option> can be a table_name, 'list of tables', or 'all'\n\n  Individual Table Names\n $(dash 78)";
+          echo -e " Usage: magdb $SITEPATH $opt [<option>]\n    <option> can be a table_name, 'list of tables', or 'all'\n\n  Individual Table Names\n $(dashes 78)";
           for x in $tables; do
             echo "  $x";
           done | column -x;;

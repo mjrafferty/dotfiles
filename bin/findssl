@@ -15,7 +15,7 @@ fi
 D=$(echo $1 | sed 's/\///g')
 echo;
 echo "$D:$P";
-dash 80;
+dashes 80;
 echo;
 
 if [[ $(cat /etc/redhat-release) =~ 6\.[0-9] ]]; then
@@ -29,7 +29,7 @@ for x in $type; do
 done
 
 echo "SSL Return Code";
-dash 80;
+dashes 80;
 echo
 rcode=$(echo | openssl s_client -nbio -connect $D:$P $SNI 2>/dev/null | grep Verify.*)
 echo $rcode

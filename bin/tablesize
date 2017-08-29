@@ -32,8 +32,8 @@ if [[ $1 =~ [0-9]{1,} ]]; then
 else
   top="20" ;
 fi
-echo -e "\nDatabase: $dbname\n$(dash 93)";
+echo -e "\nDatabase: $dbname\n$(dashes 93)";
 printf "| %-50s | %8s | %11s | %11s |\n" "Name" "Rows" "Data_Size" "Index_Size";
-echo "$(dash 93)";
+echo "$(dashes 93)";
 echo "show table status" | m $dbname | awk 'NR>1 {printf "| %-50s | %8s | %10.2fM | %10.2fM |\n",$1,$5,($7/1024000),($9/1024000)}' | sort -rnk$col | head -n$top
-echo -e "$(dash 93)\n"
+echo -e "$(dashes 93)\n"

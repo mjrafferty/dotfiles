@@ -28,7 +28,7 @@ fi
 
 FORMAT="%-8s %-9s %s\n";
 printf "$FORMAT" " Count#" " Error#" " IP-Address";
-printf "$FORMAT" "--------" "---------" "$(dash 17)";
+printf "$FORMAT" "--------" "---------" "$(dashes 17)";
 if grep -qEi '\[id: [0-9]{6,}\]' /home/*/var/$D/logs/error.log; then
   grep -Eio "client.$IP.*\] |id.*[0-9]{6,}\]" /home/*/var/$D/logs/error.log | awk 'BEGIN {RS="]\nc"} {print $4,$2}'\
     | tr -d \] | sort | uniq -c | awk '{printf "%7s   %-8s  %s\n",$1,$2,$3}'

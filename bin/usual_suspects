@@ -21,7 +21,7 @@ fi
 echo
 FORMAT="%-10s %-26s %s\n";
 printf "$FORMAT" " Service" " Started" " Status";
-printf "$FORMAT" "--Core----" "$(dash 26)" "$(dash 42)";
+printf "$FORMAT" "--Core----" "$(dashes 26)" "$(dashes 42)";
 
 # Need to make sure lsws exist and it's configured to run
 # if [[ -x /etc/init.d/lsws && $(chkconfig --list | grep lsws.*3:on) ]]; then
@@ -44,19 +44,19 @@ printf "$FORMAT" " Memcache" " $(pid_start memcached)" " $(service memcached-mul
 printf "$FORMAT" " DJBDNS" " $(pid_start tinydns)" " TinyDNS is$(service djbdns status | head -n1 | awk -F: '{print $2}')";
 printf "$FORMAT" " ProFTP" " $(pid_start proftpd)" " $(service proftpd status)";
 
-printf "$FORMAT" "--Mail----" "$(dash 26)" "$(dash 42)";
+printf "$FORMAT" "--Mail----" "$(dashes 26)" "$(dashes 42)";
 printf "$FORMAT" " ClamAV" " $(pid_start clamd)" " $(service clamd status)";
 printf "$FORMAT" " SMTP" " $(pid_start send)" " SMTP is$(service smtp status | head -n1 | awk -F: '{print $2}')";
 printf "$FORMAT" " POP3" " $(ps -o lstart --pid=$(service pop3-ssl status | grep -Eo '[0-9]{2,}\)' | tr -d \) ) | tail -1)" " pop3-ssl$(service pop3-ssl status | awk -F: '{print $2}')";
 printf "$FORMAT" " IMAP4" " $(ps -o lstart --pid=$(service imap4-ssl status | grep -Eo '[0-9]{2,}\)' | tr -d \) ) | tail -1)" " imap4-ssl$(service imap4-ssl status | awk -F: '{print $2}')";
 
-printf "$FORMAT" "--Other---" "$(dash 26)" "$(dash 42)";
+printf "$FORMAT" "--Other---" "$(dashes 26)" "$(dashes 42)";
 printf "$FORMAT" " SNMP" " $(pid_start snmpd)" " $(service snmpd status)";
 printf "$FORMAT" " Iworx" " $(pid_start iworx)" " $(service iworx status)";
 
 ## Check if /var /tmp /chroot are full
 echo -e "\nDisk Space and Inode Usage:";
-dash 80;
+dashes 80;
 echo;
 for ((i=1 ; i<=$(df | wc -l) ; i++)); do
   DF="$(df -h | head -n$i | tail -n1 | awk '{printf "%-12s %-6s %-6s %-6s %-5s",$1,$2,$3,$4,$5}')";
@@ -74,11 +74,11 @@ done
 # Look for Apache MaxClients errors
 if grep -qi maxclients /var/log/httpd/error_log 2> /dev/null; then
   echo -e "\nLast $linecount times httpd hit MaxClients";
-  dash 80;
+  dashes 80;
   echo;
   grep -i maxclients /var/log/httpd/error_log | tail -n$linecount;
   echo -e "\nCount per day httpd hit MaxClients";
-  dash 80;
+  dashes 80;
   echo;
   grep -i maxclients /var/log/httpd/error_log | cut -d' ' -f1,2,3,5- | sort | uniq -c;
 fi
@@ -86,10 +86,10 @@ fi
 # Look for PHP-FPM max_children errors
 if [[ -f /var/log/php-fpm/error.log ]]; then
   if grep -qi max_children /var/log/php-fpm/error.log 2> /dev/null; then
-    echo -e "\nMax_Kids: Last ($linecount) Errors"; dash 80; echo;
+    echo -e "\nMax_Kids: Last ($linecount) Errors"; dashes 80; echo;
     grep -i max_children /var/log/php-fpm/error.log | tail -n$linecount;
     echo -e "\nMax_Kids: Count/User/Day";
-    dash 80;
+    dashes 80;
     echo;
     grep -i max_children /var/log/php-fpm/error.log | cut -d' ' -f1,5- | sort | uniq -c;
   fi;
@@ -98,18 +98,18 @@ fi
 if [[ ! $@ =~ -q ]]; then
   ## Check sar for high ram or cpu usage
   echo -e "\nRecent processor load";
-  dash 80;
+  dashes 80;
   echo;
   sar -p | pee "head -n3 | tail -n1" "tail -n$linecount";
   echo -e "\nRecent ram usage";
-  dash 80;
+  dashes 80;
   echo;
   sar -r | pee "head -n3 | tail -n1" "tail -n$linecount";
 
   ## If you're in a html directory then check the Magento logs
   if [[ -f app/etc/local.xml ]]; then
     echo -e "\nRunning crons from this user:";
-    dash 80;
+    dashes 80;
     echo;
     ps aux | head -1;
     ps aux | awk "(\$1 ~ /$(pwd | sed 's:^/chroot::' | cut -d/ -f3)/) && /cron/"'{print}';
@@ -117,14 +117,14 @@ if [[ ! $@ =~ -q ]]; then
   fi;
   if [[ -f var/log/system.log ]]; then
     echo -e "\nMagento System.log";
-    dash 80;
+    dashes 80;
     echo;
     tail -n$linecount var/log/system.log 2> /dev/null;
     echo;
   fi;
   if [[ -f var/log/exception.log ]]; then
     echo -e "\nMagento Exception.log";
-    dash 80;
+    dashes 80;
     echo;
     tail -n$linecount var/log/exception.log 2> /dev/null;
     echo;

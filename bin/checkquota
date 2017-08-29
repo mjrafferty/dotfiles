@@ -4,7 +4,7 @@
 _quotaheader () {
   echo;
   printf "%8s %12s %14s %14s\n" "Username" "Used(%)" "Used(G)" "Total(G)";
-  dash 51;
+  dashes 51;
 }
 _quotausage () {
   printf "\n%-10s" "$1";

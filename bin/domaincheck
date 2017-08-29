@@ -29,7 +29,7 @@ echo
 FMT=" %-15s  %-15s  %3s  %3s  %s\n"
 HLT="${BRIGHT}${RED} %-15s  %-15s  %3s  %3s  %s${NORMAL}\n"
 printf "$FMT" " Server IP" " Live IP" "SSL" "FPM" " Domain"
-printf "$FMT" "$(dash 15)" "$(dash 15)" "---" "---" "$(dash 44)"
+printf "$FMT" "$(dashes 15)" "$(dashes 15)" "---" "---" "$(dashes 44)"
 
 for x in $vhost; do
   D=$(basename $x .conf | cut -d_ -f2);

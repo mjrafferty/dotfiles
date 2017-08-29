@@ -25,12 +25,12 @@ _printbackupsvr () {
 }
 
 FIRSTSEEN=$(grep $(echo $NEW_IPADDR | cut -d. -f2-) /usr/sbin/r1soft/log/cdp.log | head -1 | awk '{print $1}');
-echo "----- Current R1Soft Server ----- $FIRSTSEEN] $(dash 32)";
+echo "----- Current R1Soft Server ----- $FIRSTSEEN] $(dashes 32)";
 _printbackupsvr $NEW_IPADDR
 
 for IPADDR in $ALL_IPADDR; do
   if [[ $IPADDR != $NEW_IPADDR ]]; then
     LASTSEEN=$(grep $(echo $IPADDR | cut -d. -f2-) /usr/sbin/r1soft/log/cdp.log | tail -1 | awk '{print $1}');
-    echo "----- Previous R1Soft Server ----- $LASTSEEN] $(dash 31)"; _printbackupsvr $IPADDR
+    echo "----- Previous R1Soft Server ----- $LASTSEEN] $(dashes 31)"; _printbackupsvr $IPADDR
   fi;
 done
