@@ -18,15 +18,11 @@ D=$(echo "$1" | sed 's/\///g');
 
 echo;
 
+# Print domain and port
 echo "$D:$P";
-
 dashes 80;
 
 echo;
-
-if [[ $(cat /etc/redhat-release) =~ 6\.[0-9] ]]; then
-  SNI="-servername $D";
-fi;
 
 for x in $type; do
 
@@ -47,7 +43,7 @@ dashes 80;
 
 echo;
 
-rcode=$(echo | openssl s_client -nbio -connect "$D:$P" "$SNI" 2>/dev/null | grep "Verify.*");
+rcode=$(echo | openssl s_client -nbio -connect "$D:$P" -servername "$D" 2>/dev/null | grep "Verify.*");
 
 echo "$rcode";
 
