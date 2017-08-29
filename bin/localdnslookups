@@ -1,5 +1,5 @@
 #! /bin/bash
-list=($(grep query /service/dnscache/log/main/current | cut -d\  -f6 | sort -u));
+list=($(parallel grep query -- /service/dnscache/log/main/* | cut -d\  -f6 | sort -u));
 
 for ((i=0;i<${#list[@]};i++)); do
 
