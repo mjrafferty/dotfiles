@@ -1,6 +1,8 @@
 #! /bin/bash
 
 ## Find Joomla information and perform some common tasks
+
+
 # Set path to Joomla install
 echo;
 runonce=0;
