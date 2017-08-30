@@ -2,14 +2,14 @@
 
 ## Look up what domain is covered by the SSL loading at the requested domain
 
-D=$(echo "$1" | sed 's/\///g');
-rcode=$(echo | openssl s_client -nbio -connect "$D:$P" -servername "$D" 2>/dev/null | grep "Verify.*");
-
 if [[ $2 == '-p' ]]; then
   P=$3;
 else
   P=443;
 fi
+
+D=$(echo "$1" | sed 's/\///g');
+rcode=$(echo | openssl s_client -nbio -connect "$D:$P" -servername "$D" 2>/dev/null | grep "Verify.*");
 
 if [[ "$*" =~ -v ]]; then
   stype="subject issuer";
@@ -17,19 +17,22 @@ else
   stype="subject";
 fi
 
-echo;
+
 
 # Print domain and port
+echo;
 echo "$D:$P";
 dashes 80;
 echo;
+
 
 
 for x in $stype; do
 
   echo \
     | openssl s_client -nbio -connect "$D:$P" -servername "$D" 2> /dev/null\
-    | grep $x | sed 's/ /_/g;s/\/\([A-Ze]\)/\n\1/g;s/=/: /g' \
+    | grep $x \
+    | sed 's/ /_/g;s/\/\([A-Ze]\)/\n\1/g;s/=/: /g' \
     | grep "^[A-Ze]" \
     | column -t \
     | sed 's/_/ /g';
@@ -38,12 +41,10 @@ for x in $stype; do
 
 done
 
+
 echo "SSL Return Code";
-
 dashes 80;
-
 echo;
-
 
 echo "$rcode";
 
