@@ -1,6 +1,7 @@
 #! /bin/bash
 
 ## Manage .htaccess black-lists, white-lists, and bot-lists.
+
 # Parse through options/parameters
 if [[ $1 =~ -p ]]; then
   SITEPATH=$2;
@@ -15,46 +16,56 @@ opt=$1
 case $opt in
   -b | --black)
     if ! grep -Eq '.rder .llow,.eny' $SITEPATH/.htaccess &> /dev/null; then
-      sudo -u $(getusr) echo -e "Order Allow,Deny\nAllow From All" >> $SITEPATH/.htaccess &&
-        echo "$SITEPATH/.htaccess rules updated";
+      sudo -u "$(getusr)" echo -e "Order Allow,Deny\nAllow From All" \
+        | sudo -u "$(getusr)" tee -a $SITEPATH/.htaccess \
+        && echo "$SITEPATH/.htaccess rules updated";
     fi
+
     shift;
+
     echo;
     for x in "$@"; do
-      sed -i "s/\b\(.rder .llow,.eny\)/\1\nDeny From $x/" $SITEPATH/.htaccess &&
-        echo "Deny From $x ... Added to $SITEPATH/.htaccess"
+      sed -i "s/\b\(.rder .llow,.eny\)/\1\nDeny From $x/" $SITEPATH/.htaccess \
+        && echo "Deny From $x ... Added to $SITEPATH/.htaccess"
     done;
-    echo
+    echo;
     ;;
 
   -w | --white)
     if ! grep -Eq '.rder .eny,.llow' $SITEPATH/.htaccess &> /dev/null; then
-      sudo -u $(getusr) echo -e "Order Deny,Allow\nDeny From All" >> $SITEPATH/.htaccess &&
-        echo "$SITEPATH/.htaccess rules updated";
+      sudo -u "$(getusr)" echo -e "Order Deny,Allow\nDeny From All" \
+        | sudo -u "$(getusr)" tee -a $SITEPATH/.htaccess \
+        && echo "$SITEPATH/.htaccess rules updated";
     fi
+
     shift;
+
     echo;
     for x in "$@"; do
-      sed -i "s/\b\(.rder .eny,.llow\)/\1\nAllow From $x/" $SITEPATH/.htaccess &&
-        echo "Allow From $x ... Added to $SITEPATH/.htaccess"
+      sed -i "s/\b\(.rder .eny,.llow\)/\1\nAllow From $x/" $SITEPATH/.htaccess \
+        && echo "Allow From $x ... Added to $SITEPATH/.htaccess"
     done;
-    echo
+    echo;
     ;;
 
   -r | --robot)
     if grep -Eq '.rder .llow,.eny' $SITEPATH/.htaccess &> /dev/null; then
       sed -i 's/\b\(.rder .llow,.eny\)/\1\nDeny from env=bad_bot/' $SITEPATH/.htaccess
     else
-      sudo -u $(getusr) echo -e "\nOrder Allow,Deny\nDeny from env=bad_bot\nAllow from All" >> $SITEPATH/.htaccess && echo "$SITEPATH/.htaccess rules updated.";
-    fi
+      sudo -u "$(getusr)" echo -e "\nOrder Allow,Deny\nDeny from env=bad_bot\nAllow from All" \
+        | sudo -u "$(getusr)" tee -a $SITEPATH/.htaccess \
+        && echo "$SITEPATH/.htaccess rules updated.";
+    fi;
+
     shift;
-    echo
+
+    echo;
     echo -e "\n# ----- Block Bad Bots Section -----\n" >> $SITEPATH/.htaccess
     for x in "$@"; do
       echo "BrowserMatchNoCase $x bad_bot" | tee -a $SITEPATH/.htaccess;
-    done
+    done;
     echo -e "\n# ----- Block Bad Bots Section -----\n" >> $SITEPATH/.htaccess;
-    echo
+    echo;
     ;;
 
   -h|--help|*)
