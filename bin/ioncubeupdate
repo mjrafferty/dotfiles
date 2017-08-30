@@ -4,7 +4,7 @@
 if [[ $1 =~ [0-9]\.[0-9] ]]; then
   ver="$1";
 else
-  read -p "What is the running PHP version: " ver;
+  read -rp "What is the running PHP version: " ver;
 fi
 
 # Create Download Directory
@@ -16,7 +16,7 @@ else
 fi
 
 # Download archive into directory and unpack
-cd ~/downloads/
+cd ~/downloads/ || exit
 wget -O ioncube_loaders_lin_x86-64.tar.gz http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
 tar -zxf ioncube_loaders_lin_x86-64.tar.gz;
 echo
@@ -32,11 +32,11 @@ fi
 # Copy the correct .so driver file to the target directory
 if [[ -f ${phpdir}ioncube.so ]]; then
   echo -e "\n${phpdir}ioncube.so driver file exist, backing up before continuing\n"
-  cp ~/downloads/ioncube/ioncube_loader_lin_${ver}* ${phpdir}
-  gzip ${phpdir}ioncube.so && mv ${phpdir}ioncube_loader_lin_${ver}.so ${phpdir}ioncube.so
+  cp ~/downloads/ioncube/ioncube_loader_lin_"${ver}"* ${phpdir}
+  gzip ${phpdir}ioncube.so && mv ${phpdir}ioncube_loader_lin_"${ver}".so ${phpdir}ioncube.so
 elif [[ -f ${phpdir}ioncube_loader_lin_${ver}.so ]]; then
   echo -e "\n${phpdir}ioncube_loader_lin_${ver}.so driver file exists, backing up before updating.\n"
-  gzip ${phpdir}ioncube_loader_lin_${ver}* && cp ~/downloads/ioncube/ioncube_loader_lin_${ver}* ${phpdir}
+  gzip ${phpdir}ioncube_loader_lin_"${ver}"* && cp ~/downloads/ioncube/ioncube_loader_lin_"${ver}"* ${phpdir}
 fi
 
 # Create correct config file for the service if necessary
