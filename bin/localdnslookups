@@ -1,8 +1,13 @@
 #! /bin/bash
+
+# Gets list of recent DNS lookups from local requests
+
+# list of domains queried
 list=($(grep query /service/dnscache/log/main/* | cut -d\  -f6 | sort -u));
 
 for ((i=0;i<${#list[@]};i++)); do
 
+  # list of records  received for a domain
   dug=($(dig +short "${list[$i]}"));
 
   for ((x=0;x<${#dug[@]};x++)); do

@@ -1,39 +1,58 @@
 #! /bin/bash
 
 ## Check/Enable/Disable Local Delivery for domain(s)
+
+# Check status of local delivery
+_localDeliveryCheck(){
+
+  echo;
+  echo "----- Local Delivery Status -----"
+  sudo -u "$unixuser" -- siteworx -u -n -c EmailRemotesetup -a listLocalDeliveryStatus | awk '{print $1,$NF}' \
+    | grep -E "^${domain}"\
+    | sed "s/0$/${BRIGHT}${RED}Disabled${NORMAL}/g;s/1$/${BRIGHT}${GREEN}Enabled${NORMAL}/g" | column -t;
+  echo
+
+}
+
+# Get domain name
 if [[ $2 == 'all' ]]; then
   domain='';
 elif [[ -n $2 ]]; then
-  domain=$(echo $2 | sed 's:/::g');
+  domain="${$2/\//}";
 else
   domain=$(pwd | sed 's:^/chroot::' | cut -d/ -f4);
 fi
 
+
+# Sets user variable
 if [[ -n $2 && ${#2} -gt 3 ]]; then
-  vhost=$(grep -l " $(echo $domain | sed 's/\(.*\)/\L\1/g')" /etc/httpd/conf.d/vhost_*);
-  unixuser=$(awk '/SuexecUserGroup/ {print $2}' $vhost | head -1);
-else unixuser=$(getusr); fi
 
-_localDeliveryCheck(){
-  echo;
-  echo "----- Local Delivery Status -----"
-  sudo -u $unixuser -- siteworx -u -n -c EmailRemotesetup -a listLocalDeliveryStatus | awk '{print $1,$NF}' | grep -E "^${domain}"\
-    | sed "s/0$/${BRIGHT}${RED}Disabled${NORMAL}/g;s/1$/${BRIGHT}${GREEN}Enabled${NORMAL}/g" | column -t;
-  echo
-}
+  vhostfile=$(grep -l " $(echo "$domain" | sed 's/\(.*\)/\L\1/g')" /etc/httpd/conf.d/vhost_*);
+  unixuser=$(awk '/SuexecUserGroup/ {print $2}' "$vhostfile" | head -1);
 
+else
+
+  unixuser=$(getusr);
+
+fi
+
+# Executes selected option
 case $1 in
   -c | --check) # Check
-    _localDeliveryCheck ;;
+    _localDeliveryCheck;
+    ;;
   -d | --disable) # Disable
-    sudo -u $unixuser -- siteworx -u -n -c EmailRemotesetup -a disableLocalDelivery --domain ${domain};
-    _localDeliveryCheck ;;
+    sudo -u "$unixuser" -- siteworx -u -n -c EmailRemotesetup -a disableLocalDelivery --domain "${domain}";
+    _localDeliveryCheck;
+    ;;
   -e | --enable) # Enable
-    sudo -u $unixuser -- siteworx -u -n -c EmailRemotesetup -a enableLocalDelivery --domain ${domain};
-    _localDeliveryCheck ;;
+    sudo -u "$unixuser" -- siteworx -u -n -c EmailRemotesetup -a enableLocalDelivery --domain "${domain}";
+    _localDeliveryCheck;
+    ;;
   -h | --help | *) # Help
     echo -e "\n  Usage: localDelivery [option] [domain]
     -c | --check [domain|all] . Check Local Delivery status for domain(s)
     -d | --disable [domain] ... Disable Local Delivery for the domain
-    -e | --enable [domain] .... Enable Local Delivery for the domain\n" ;;
+    -e | --enable [domain] .... Enable Local Delivery for the domain\n"
+    ;;
 esac

@@ -1,51 +1,60 @@
 #! /bin/bash
 
 ## Quick log check of the major logs to see what might be the matter
+
+# Number of lines to print for each log
 if [[ -z "$2" ]]; then
   N=20;
 else
   N="$2";
 fi
+
+# Display selected log data
 case "$1" in
-  ftp  )
+  "ftp")
     echo;
     tail -n"$N" /var/log/proftpd/auth.log /var/log/proftpd/xfer.log;
-    echo ;;
-  php  )
     echo;
-    tail -n"$N" /var/log/php-fpm/error.log;
-    echo ;;
-  mysql)
+    ;;
+  "php")
+    echo;
+    tail -n"$N" /var/log/php-fpm/error.log /opt/nexcess/php*/root/var/log/php-fpm/error.log;
+    echo;
+    ;;
+  "mysql")
     echo;
     tail -n"$N" /var/log/mysqld.log;
-    echo ;;
-  http )
+    echo;
+    ;;
+  "http")
     echo;
     tail -n"$N" /var/log/httpd/error_log;
-    echo ;;
-  ssh  )
     echo;
-    grep -v 'Did not receive' /var/log/secure | tail -n$N;
-    echo ;;
-  cron )
+    ;;
+  "ssh")
+    echo;
+    grep -v 'Did not receive' /var/log/secure | tail -n"$N;"
+    echo;
+    ;;
+  "cron")
     echo;
     tail -n"$N" /var/log/cron;
-    echo ;;
-  all  )
-    echo -e "\n---------- APACHE LOG ----------\n$(tail -n$N /var/log/httpd/error_log)\n"
-    if [[ -f /var/log/php-fpm/error.log ]]; then
-      echo -e "\n---------- PHP LOG ----------\n$(tail -n$N /var/log/php-fpm/error.log)\n";
-    fi
-    echo -e "\n---------- MYSQL LOG ----------\n$(tail -n$N /var/log/mysqld.log)\n"
-    echo -e "\n---------- SSH LOG ----------\n$(grep -v 'Did not receive' /var/log/secure | tail -n$N)\n"
-    echo -e "\n---------- CRON LOG ----------\n$(tail -n$N /var/log/cron)\n"
-    echo -e "\n---------- FTP LOGS ----------\n$(tail -n$N /var/log/proftpd/auth.log /var/log/proftpd/xfer.log)" ;;
-  -h|--help)
-    echo -e "\n Usage: logs [ftp|php|sql|http|ssh|cron|all] [linecount]\n" ;;
-  * )
-    echo -e "\n---------- APACHE LOG ----------\n$(tail -n$N /var/log/httpd/error_log)\n"
-    if [[ -f /var/log/php-fpm/error.log ]]; then
-      echo -e "\n---------- PHP LOG ----------\n$(tail -n$N /var/log/php-fpm/error.log)\n";
-    fi
-    echo -e "\n---------- MYSQL LOG ----------\n$(tail -n$N /var/log/mysqld.log)\n" ;;
+    echo;
+    ;;
+  "all")
+    echo -e "\n---------- APACHE LOG ----------\n$(tail -n"$N" /var/log/httpd/error_log)\n"
+    echo -e "\n---------- PHP LOG ----------\n$(tail -n"$N" /var/log/php-fpm/error.log /opt/nexcess/php*/root/var/log/php-fpm/error.log)\n";
+    echo -e "\n---------- MYSQL LOG ----------\n$(tail -n"$N" /var/log/mysqld.log)\n"
+    echo -e "\n---------- SSH LOG ----------\n$(grep -v 'Did not receive' /var/log/secure | tail -n"$N")\n"
+    echo -e "\n---------- CRON LOG ----------\n$(tail -n"$N" /var/log/cron)\n"
+    echo -e "\n---------- FTP LOGS ----------\n$(tail -n"$N" /var/log/proftpd/auth.log /var/log/proftpd/xfer.log)";
+    ;;
+  "-h"|"--help")
+    echo -e "\n Usage: logs [ftp|php|sql|http|ssh|cron|all] [linecount]\n";
+    ;;
+  "*")
+    echo -e "\n---------- APACHE LOG ----------\n$(tail -n"$N" /var/log/httpd/error_log)\n"
+    echo -e "\n---------- PHP LOG ----------\n$(tail -n"$N" /var/log/php-fpm/error.log /opt/nexcess/php*/root/var/log/php-fpm/error.log)\n";
+    echo -e "\n---------- MYSQL LOG ----------\n$(tail -n"$N" /var/log/mysqld.log)\n";
+    ;;
 esac

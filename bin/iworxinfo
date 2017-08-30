@@ -6,9 +6,7 @@ NPHPSCL=$(grep nexcess-php-scl ~iworx/iworx.ini | awk -F"\"" '{print $2}' | sed 
 NAMSRV1=$(grep ns1= ~iworx/iworx.ini | awk -F "\"" '{printf $2}')
 NAMSRV2=$(grep ns2= ~iworx/iworx.ini | awk -F "\"" '{printf $2}')
 HSTNAME=$(grep hostname ~iworx/iworx.ini | sed 's/"/\n/g' | grep ".nexcess.net")
-FORMAT="%-20s:%2s\n"
-RST='\e[0m'
-WHT='\e[0;37m'
+
 printf "%-20s:\e[0;37m %2s \e[0m \n" "InterWorx Version" " ${VERSION}"
 printf "%-20s:\e[0;37m %2s \e[0m \n" "Host Name" " ${HSTNAME}"
 printf "\n"
