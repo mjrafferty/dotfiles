@@ -1,3 +1,5 @@
 #! /bin/bash
 
-pwd | sed 's:^/chroot::' | cut -d/ -f3;
+pwd \
+  | sed 's:^/chroot::' \
+  | cut -d/ -f3;
