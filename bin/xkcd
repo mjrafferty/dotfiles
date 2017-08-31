@@ -34,7 +34,7 @@ fi
 
 if [[ -x /usr/bin/shuf ]]; then
 
-  echo $(shuf -n1000 $wordList | grep -E x"^[a-z]{$wordLength}$" | shuf -n4 )$(( (RANDOM % 9000) + 1000 )) \
+  echo $(shuf -n1000 $wordList | grep -E "^[a-z]{$wordLength}$" | shuf -n4 )$(( (RANDOM % 9000) + 1000 )) \
     | sed 's/\b\([a-zA-Z]\)/\u\1/g' \
     | sed 's/ //g'
 
