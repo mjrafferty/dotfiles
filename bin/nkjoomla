@@ -50,12 +50,12 @@ if [[ -f "$CONFIG" ]]; then
   fi
 
   # Gather version information
-  RELEASE="$(grep '$RELEASE' "$VERFILE" | cut -d\' -f2)";
-  DEV_LEVEL="$(grep '$DEV_LEVEL' "$VERFILE" | cut -d\' -f2)";
-  DEV_STATUS="$(grep '$DEV_STATUS' "$VERFILE" | cut -d\' -f2)";
-  BUILD="$(grep '$BUILD' "$VERFILE" | cut -d\' -f2)";
-  RELDATE="$(grep '$RELDATE' "$VERFILE" | cut -d\' -f2)";
-  CODENAME="$(grep '$CODENAME' "$VERFILE" | cut -d\' -f2)";
+  RELEASE="$(grep 'const RELEASE' "$VERFILE" | cut -d\' -f2)";
+  DEV_LEVEL="$(grep 'const DEV_LEVEL' "$VERFILE" | cut -d\' -f2)";
+  DEV_STATUS="$(grep 'const DEV_STATUS' "$VERFILE" | cut -d\' -f2)";
+  BUILD="$(grep 'const BUILD' "$VERFILE" | cut -d\' -f2)";
+  RELDATE="$(grep 'const RELDATE' "$VERFILE" | cut -d\' -f2)";
+  CODENAME="$(grep 'const CODENAME' "$VERFILE" | cut -d\' -f2)";
   VERSION="$RELEASE.$DEV_LEVEL $DEV_STATUS ($RELDATE) $BUILD";
 
   _joomlausage(){
@@ -78,7 +78,7 @@ if [[ -f "$CONFIG" ]]; then
   _joomlainfo(){
     # Output collected information
     printf "%-18s: %s\n" "Base Path" "$(cd "$SITEPATH" || exit; pwd -P)"
-    printf "%-18s: %s\n" "Product Name" "$(grep '$PRODUCT' "$VERFILE" | cut -d\' -f2) \"$CODENAME\""
+    printf "%-18s: %s\n" "Product Name" "$(grep 'const PRODUCT' "$VERFILE" | cut -d\' -f2) \"$CODENAME\""
     printf "%-18s: %s\n" "Site Title" "$(grep '$sitename ' "$CONFIG" | cut -d\' -f2)"
     printf "%-18s: %s\n" "Install Date" "$(stat "$VERFILE" | awk '/Change/ {print $2,$3}' | cut -d. -f1)"
     printf "%-18s: %s\n" "Encryption Key" "$(grep '$secret' "$CONFIG" | cut -d\' -f2)"
