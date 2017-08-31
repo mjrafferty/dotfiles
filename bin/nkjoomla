@@ -89,7 +89,7 @@ if [[ -f "$CONFIG" ]]; then
     printf "%-18s: %s\n" "Gzip Compression" "$(grep '$gzip' "$CONFIG" | cut -d\' -f2 | sed 's/0/Disabled/;s/1/Enabled/')"
     printf "%-18s: %s\n" "DB Connection" "$dbtype://$dbuser:$dbpass@$dbhost/$dbname$(if [[ -n $prefix ]]; then echo ."$prefix*"; fi)"
     printf "%-18s: %s\n" "Session Method" "$(grep '$session' "$CONFIG" | cut -d\' -f2)"
-    printf "%-18s: %s\n" "Cache Method" "$(grep '$cache_' "$CONFIG" | cut -d\' -f2) / $(grep '$caching' "$CONFIG" | cut -d\' -f2 | sed 's/0/Disabled/;s/1/Enabled/')"
+    printf "%-18s: %s\n" "Cache Method" "$(grep '$cache_' "$CONFIG" | cut -d\' -f2) / $(grep '$caching' "$CONFIG" | cut -d\' -f2 | sed 's/.*0.*/Disabled/;s/.*1.*/Enabled/')"
 		echo;
 
     ## Show installed: components, modules, plugins, and templates
