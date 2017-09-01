@@ -288,7 +288,7 @@ modsecrules () {
   modgrep -s "$1" -f /var/log/httpd/modsec_audit.log \
     | sed -n 's/.*\[id "\([^"]*\).*/\1/p' \
     | sort -u \
-    | grep -Ev "981176|4049002|4049003";
+    | grep -Ev "981176|^4049";
 }
 
 backup () {
@@ -334,7 +334,7 @@ modsecbyip () {
     | grep ModSecurity \
     | sed 's/.*uri \"//' \
     | sed 's/\"].*//' \
-    | uniq;
+    | sort -u;
 }
 
 maldetstat () {
