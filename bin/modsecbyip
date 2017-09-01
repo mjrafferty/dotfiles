@@ -6,17 +6,15 @@ if [ -z "$IP" ]; then
   echo "No IP address provided";
 else
 
-  uniqueid=$(sed -n 's/.*'"$IP"'.*\[uri \"\([^"]\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
+  logentries=$(sed -n 's/.*'"$IP"'.*\[uri \"\([^"]\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
+  uniqueid=($(echo "$logentries" | cut -f1));
+  rawuris=($(echo "$logentries" | cut -f2 | sort -u ));
 
-  for ((i=0;i<${#uniqueid[@]};i++)); do
-    modsecrules "${uniqueid[$i]}";
-  done \
-    | sort -u \
-    | sed 's/^/SecRuleRemoveById /';
-
-  grep "$1" error.log \
-    | grep ModSecurity \
-    | sed 's/.*uri \"//' \
-    | sed 's/\"].*//' \
-    | sort -u;
+  for ((i=0;i<${#rawuris[@]};i++)); do
+    for ((x=0;x<${#uniqueid[@]};x++)); do
+      modsecrules "${uniqueid[$i]}";
+    done \
+      | sort -u \
+      | sed 's/^/SecRuleRemoveById /';
+  done;
 fi
