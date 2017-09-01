@@ -284,13 +284,6 @@ topref () {
     | head;
 }
 
-modsecrules () {
-  modgrep -s "$1" -f /var/log/httpd/modsec_audit.log \
-    | sed -n 's/.*\[id "\([^"]*\).*/\1/p' \
-    | sort -u \
-    | grep -Ev "981176|^4049";
-}
-
 backup () {
   tar -czvf "$1.tar.gz" "$1";
 }
@@ -321,20 +314,6 @@ blacklistcheck () {
     echo;
     echo;
   done;
-}
-
-modsecbyip () {
-  for x in $(grep "$1" error.log | grep ModSecurity | sed 's/.*unique_id \"//' | sed 's/\"]//'); do
-    modsecrules "$x";
-  done \
-    | sort -u \
-    | sed 's/^/SecRuleRemoveById /';
-
-  grep $1 error.log \
-    | grep ModSecurity \
-    | sed 's/.*uri \"//' \
-    | sed 's/\"].*//' \
-    | sort -u;
 }
 
 maldetstat () {

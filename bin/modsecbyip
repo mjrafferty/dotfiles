@@ -1,0 +1,24 @@
+#! /bin/bash
+
+declare -a uniqueid;
+
+IP=$1;
+
+if [ -z "$IP" ]; then
+
+  uniqueid=($(sed -n 's/.*'"$IP"'.*unique_id \"\([^"]*\).*/\1/p' error.log));
+
+  for ((i=0;i<${#uniqueid[@]};i++)); do
+    modsecrules "${uniqueid[$i]}";
+  done \
+    | sort -u \
+    | sed 's/^/SecRuleRemoveById /';
+
+  grep "$1" error.log \
+    | grep ModSecurity \
+    | sed 's/.*uri \"//' \
+    | sed 's/\"].*//' \
+    | sort -u;
+else
+  echo "No IP address provided";
+fi
