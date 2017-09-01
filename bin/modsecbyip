@@ -1,12 +1,12 @@
 #! /bin/bash
 
-declare -a uniqueid;
-
-IP=$1;
+IP="$1";
 
 if [ -z "$IP" ]; then
+  echo "No IP address provided";
+else
 
-  uniqueid=($(sed -n 's/.*'"$IP"'.*unique_id \"\([^"]*\).*/\1/p' error.log));
+  uniqueid=$(sed -n 's/.*'"$IP"'.*\[uri \"\([^"]\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
 
   for ((i=0;i<${#uniqueid[@]};i++)); do
     modsecrules "${uniqueid[$i]}";
@@ -19,6 +19,4 @@ if [ -z "$IP" ]; then
     | sed 's/.*uri \"//' \
     | sed 's/\"].*//' \
     | sort -u;
-else
-  echo "No IP address provided";
 fi
