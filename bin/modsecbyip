@@ -10,7 +10,13 @@ else
   uniqueid=($(echo "$logentries" | cut -f1));
   rawuris=($(echo "$logentries" | cut -f2 | sort -u ));
 
-  for ((i=0;i<${#rawuris[@]};i++)); do
+  uris=(${rawuris[0]});
+
+  for ((i=1;i<${#rawuris[@]};i++)); do
+    break;
+  done
+
+  for ((i=0;i<${#uris[@]};i++)); do
     for ((x=0;x<${#uniqueid[@]};x++)); do
       modsecrules "${uniqueid[$i]}";
     done \
