@@ -286,11 +286,9 @@ topref () {
 
 modsecrules () {
   modgrep -s "$1" -f /var/log/httpd/modsec_audit.log \
-    | grep "id " \
-    | grep -aEho "9[5-8][0-9]{4}" \
-    | sort \
-    | uniq \
-    | grep -v 981176;
+    | sed -n 's/.*\[id "\([^"]*\).*/\1/p' \
+    | sort -u \
+    | grep -Ev "981176|4049002|4049003";
 }
 
 backup () {
@@ -329,8 +327,7 @@ modsecbyip () {
   for x in $(grep "$1" error.log | grep ModSecurity | sed 's/.*unique_id \"//' | sed 's/\"]//'); do
     modsecrules "$x";
   done \
-    | sort \
-    | uniq \
+    | sort -u \
     | sed 's/^/SecRuleRemoveById /';
 
   grep $1 error.log \
