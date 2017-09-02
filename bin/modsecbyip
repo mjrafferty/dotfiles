@@ -14,16 +14,17 @@ else
 
     uniqueid=($(echo "$logentries" | grep "${uris[$i]}"| cut -f1));
 
-    echo "<LocationMatch ${uris[$i]} >";
+    echo "  <LocationMatch ${uris[$i]} >";
+    echo "  # Ticket ID: "
     for ((x=0;x<${#uniqueid[@]};x++)); do
 
       modsecrules "${uniqueid[$x]}";
 
     done \
       | sort -u \
-      | sed 's/^/  SecRuleRemoveById /';
+      | sed 's/^/    SecRuleRemoveById /';
 
-    echo "</LocationMatch>";
+    echo "  </LocationMatch>";
     unset uniqueid;
 
   done;
