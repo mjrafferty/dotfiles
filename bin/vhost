@@ -10,7 +10,7 @@ fi
 
 vhost=($(grep -l "$domain" /etc/httpd/conf.d/*));
 
-if [ -n "${vhost[0]}" ]; then
+if [ -z "${vhost[0]}" ]; then
   echo "No vhost found";
   exit;
 elif [  -n "${vhost[1]}" ]; then
