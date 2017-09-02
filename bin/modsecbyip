@@ -6,7 +6,7 @@ if [ -z "$IP" ]; then
   echo "No IP address provided";
 else
 
-  logentries=$(sed -n 's/.*'"$IP"'.*\[uri \"\([^"]\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
+  logentries=$(sed -n 's/.*'"$IP"'.*\[uri \"\([^"]*\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
   uris=($(echo "$logentries" | cut -f2 | cut -d/ -f1-3 | sort -u ));
 
 
