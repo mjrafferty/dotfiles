@@ -7,7 +7,7 @@ if [ -z "$IP" ]; then
 else
 
   logentries=$(sed -n 's/.*'"$IP"'.*\[uri \"\([^"]*\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
-  uris=($(echo "$logentries" | cut -f2 | cut -d/ -f1-3 | sort -u ));
+  uris=($(echo "$logentries" | cut -f2 | cut -d/ -f1-4 | sort -u ));
 
 
   for ((i=0;i<${#uris[@]};i++)); do
