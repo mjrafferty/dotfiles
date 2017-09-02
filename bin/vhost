@@ -8,7 +8,7 @@ else
   domain="$(pwd | sed -e 's_\(.*home/[^/]*/[^/]*\)/html.*_\1_' -e 's_\(.*home/[^/]*/var/[^/]*\)/.*_\1_')";
 fi
 
-vhost=($(grep -l "$domain" /etc/httpd/conf.d/*));
+vhost=($(grep -l "$domain" /etc/httpd/conf.d/vhost*));
 
 if [ -z "${vhost[0]}" ]; then
   echo "No vhost found";
