@@ -1,0 +1,29 @@
+#! /bin/bash
+
+query=$1;
+
+if [  -n "$query" ]; then
+  domain=$(echo "$query" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
+else
+  domain="$(pwd | sed -e 's_\(.*home/[^/]*/[^/]*\)/html.*_\1_' -e 's_\(.*home/[^/]*/var/[^/]*\)/.*_\1_')";
+fi
+
+vhost=($(grep -l "$domain" /etc/httpd/conf.d/*));
+
+if [ -n "${vhost[0]}" ]; then
+  echo "No vhost found";
+  exit;
+elif [  -n "${vhost[1]}" ]; then
+
+  echo "Domain ambiguous. Select vhost:";
+  for (( i=0; i<${#vhost[@]}; i++ )); do
+    echo "$i  ${vhost[$i]}";
+  done | column -t;
+  echo;
+  read -rp "Choose vhost number:" selection;
+
+  vhost[0]=${vhost[$selection]};
+
+fi;
+
+vim "${vhost[0]}";
