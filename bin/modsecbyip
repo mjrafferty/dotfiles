@@ -7,20 +7,24 @@ if [ -z "$IP" ]; then
 else
 
   logentries=$(sed -n 's/.*'"$IP"'.*\[uri \"\([^"]\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
-  uniqueid=($(echo "$logentries" | cut -f1));
-  rawuris=($(echo "$logentries" | cut -f2 | sort -u ));
+  uris=($(echo "$logentries" | cut -f2 | cut -d/ -f1-3 | sort -u ));
 
-  uris=(${rawuris[0]});
-
-  for ((i=1;i<${#rawuris[@]};i++)); do
-    break;
-  done
 
   for ((i=0;i<${#uris[@]};i++)); do
+
+    uniqueid=($(echo "$logentries" | grep "${uris[$i]}"| cut -f1));
+
+    echo "<LocationMatch ${uris[$i]} >";
     for ((x=0;x<${#uniqueid[@]};x++)); do
+
       modsecrules "${uniqueid[$i]}";
+
     done \
       | sort -u \
       | sed 's/^/SecRuleRemoveById /';
+
+    echo "</LocationMatch>";
+    unset uniqueid;
+
   done;
 fi
