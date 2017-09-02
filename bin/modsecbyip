@@ -17,11 +17,11 @@ else
     echo "<LocationMatch ${uris[$i]} >";
     for ((x=0;x<${#uniqueid[@]};x++)); do
 
-      modsecrules "${uniqueid[$i]}";
+      modsecrules "${uniqueid[$x]}";
 
     done \
       | sort -u \
-      | sed 's/^/SecRuleRemoveById /';
+      | sed 's/^/  SecRuleRemoveById /';
 
     echo "</LocationMatch>";
     unset uniqueid;
