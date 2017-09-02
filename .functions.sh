@@ -342,16 +342,6 @@ finddups () {
     | uniq -w32 --all-repeated=separate
 }
 
-analyzetraffic () {
-  zless -f "$@" \
-    | cut -d\  -f4,9 \
-    | sed 's_.*../.*/....:\(..\):..:.._\1_' \
-    | sort -h \
-    | uniq -c \
-    | less \
-    | awk '{print $2"\t"$3"\t"$1}'
-}
-
 # Iworx DB
 i () {
   $(grep -B1 'dsn.orig=' ~iworx/iworx.ini | head -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
@@ -370,13 +360,6 @@ f () {
 ## Lookup mail account password (http://www.qmailwiki.org/Vpopmail#vuserinfo)
 emailpass () {
   echo -e "\nUsername: $1\nPassword: $(~vpopmail/bin/vuserinfo -C $1)\n";
-}
-
-## Function to print a number of dashes to the screen
-dash () {
-  for ((i=1;i<=$1;i++)); do
-    printf "-";
-  done;
 }
 
 ## Print the hostname if it resolves, otherwise print the main IP
@@ -614,21 +597,6 @@ chkgzip () {
   echo
 }
 
-## CD to document root in vhost containing the given domain
-cdomain () {
-  if [[ -z "$@" ]]; then
-    echo -e "\n  Usage: cdomain <domain.tld>\n";
-    return 0;
-  fi
-  vhost=$(grep -l " $(echo $1 | sed 's/\(.*\)/\L\1/g')" /etc/httpd/conf.d/vhost_[^000]*.conf)
-  if [[ -n $vhost ]]; then
-    cd $(awk '/DocumentRoot/ {print $2}' $vhost | head -1);
-    pwd;
-  else
-    echo -e "\nCould not find $1 in the vhost files!\n";
-  fi
-}
-
 ## Attempt to list Secondary Domains on an account
 ldomains () {
   DIR=$PWD;
@@ -638,15 +606,6 @@ ldomains () {
       | sed 's/\/html//g';
   done;
   cd $DIR
-}
-
-## Edit a list of vhosts in a loop for adding temp fixes
-tempfix(){
-  for x in $(echo "$@" | sed 's/\// /g'); do
-    vim /etc/httpd/conf.d/vhost_$x.conf;
-  done;
-  httpd -t \
-    && service httpd reload
 }
 
 ## List the usernames for all accounts on the server
@@ -680,33 +639,6 @@ lsnapshots () {
   fi
   ls -lah /home/.snapshots/daily.*/localhost/mysql/$DBNAME.sql.gz;
   echo
-}
-
-## Add PHP-FPM fix for pointer method Magento Multistores
-fpmfix () {
-  if [[ -z $1 || $1 == '.' ]]; then
-    D=$(pwd | sed 's:^/chroot::' | cut -d/ -f4);
-  else
-    D=$(echo $1 | sed 's:/::g');
-  fi
-  vhost="/etc/httpd/conf.d/vhost_${D}.conf"
-
-  if [[ -f $vhost ]]; then
-    sed -i 's/\(RewriteCond.*\.fcgi\)/\1\n  # ----- PHP-FPM-Multistore-Fix -----\n  SetEnvIf REDIRECT_MAGE_RUN_CODE (\.\+) MAGE_RUN_CODE=\$1\n  SetEnvIf REDIRECT_MAGE_RUN_TYPE (\.\+) MAGE_RUN_TYPE=\$1\n  # ----- PHP-FPM-Multistore-Fix -----/g' $vhost
-    httpd -t && service httpd reload && echo -e "\nFPM fix has been applied to $(basename $vhost)\n"
-  else
-    echo -e "\n$(basename $vhost) not found!\n";
-  fi
-}
-
-## Enable zlib.output_compression for a user's PHP-FPM config pool
-fpmgzip () {
-  fpmconfig -g;
-}
-
-## Enable allow_url_fopen for a users PHP-FPM config pool
-fpmfopen () {
-  fpmconfig -f;
 }
 
 ## Create Magento Multi-Store Symlinks
@@ -799,22 +731,6 @@ dcvfile(){
   fi
 }
 
-## Create symlinks to log directories for user
-linklogs(){
-  DIR=$PWD;
-  U=$(getusr);
-  cd /home/$U/;
-  sudo -u $U mkdir logs
-  for x in var/*/logs/; do
-    sudo -u $U ln -s ../$x logs/$(echo $x | awk -F/ '{print $2}');
-  done;
-  if [[ -f var/php-fpm/error.log ]]; then
-    sudo -u $U ln -s ../var/php-fpm/ logs/php-fpm;
-  fi
-  echo -e "\nLinks to log directories created in:\n$PWD/logs/\n";
-  cd $DIR
-}
-
 ## Find files group owned by username in employee folders or temp directories
 savethequota(){
   find /home/tmp -type f -size +100000k -group $(getusr) -exec ls -lah {} \;
@@ -863,74 +779,6 @@ diskusage(){
   cd $DIR
 }
 
-## Setup SSH for me, so I can transfer files from HOST
-givemessh(){
-  echo;
-  PASS=$(xkcd) && nksshd userControl -Csr $SUDO_USER -p $PASS
-  if [[ -z "$1" ]]; then
-    echo;
-    read -p "Hostname: " HOST;
-  else HOST="$1";
-  fi
-  whitelist ssh $(dig +short $HOST) "# $HOST for file transfer"
-}
-
-## Bash completion for Whitelist
-_whitelist(){
-  local cur prev opts base
-  COMPREPLY=()
-  cur="${COMP_WORDS[COMP_CWORD]}"
-  prev="${COMP_WORDS[COMP_CWORD-1]}"
-  opts="ftp mysql other ssh -h --help"
-
-  case ${prev} in
-    f|ftp|m|mysql|o|other )
-      COMPREPLY=( $(compgen -W "in out" -- ${cur}) )
-      return 0 ;;
-    *) ;;
-  esac
-
-  COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-  return 0;
-}
-
-## Shortcut for piping math equation(s) into bc
-calc(){
-  if [[ -z "$@" ]]; then
-    echo -e "\nThis function requires a parameter.\n";
-  else
-    echo;
-    for x in "$@"; do
-      printf "$x = ";
-      echo "scale=5;$x" \
-        | bc;
-    done;
-    echo;
-  fi
-}
-
-## Truncate large log files, chown and move the original for later review
-trimfile(){
-  U=$(getusr);
-  if [[ -z "$1" ]]; then
-    echo;
-    read -p "File Name (without path): " FILE;
-  else
-    FILE="$1";
-  fi
-  chown root:root $FILE && tail -n10000 $FILE > temp.txt && mv $FILE ~/"$(pwd | sed 's:^/::;s:/:-:g')--$(date +%Y.%m.%d)--$FILE" && mv temp.txt $FILE && chown $U. $FILE
-  echo "Operation completed.";
-  echo
-}
-
-## List the last 10 reboots
-findreboot(){
-  last \
-    | awk '/boot/ {$4=""; print}' \
-    | head -n10 \
-    | column -t;
-}
-
 ## Simple System Status to check if services that should be running are running
 srvstatus(){
   echo;
@@ -943,66 +791,5 @@ srvstatus(){
   echo
 }
 
-## Show geographical and network information about a given IP address
-ipinfo(){
-  for x in "$@"; do
-    echo;
-    echo -e "GEO-IP INFO: ($x)\n$(dash 79)";
-    curl -s ipinfo.io/$x \
-      | sed 's/,\"/\n\"/g' \
-      | awk -F\" '/[a-z]/ {printf "%8s : %s\n",$2,$4}';
-  done;
-  echo
-}
 
-## Show requests to all sites on server for the last hour in the transfer logs
-hits_lasthour(){
-  if [[ -z $1 ]]; then top=10; else top=$1; fi
-  echo;
-  printf "%-30s %-10s\n" " Domain Name" " Hits";
-  printf "%-30s %-10s\n" "$(dash 30)" "$(dash 10)";
-  for x in /home/*/var/*/logs/transfer.log; do
-    printf "%-30s %-10s\n" " $(echo $x | cut -d/ -f5)" " $(grep -Ec "$(date +%d/%b/%Y:%H:)" $x)";
-  done \
-    | sort -rn -k2 \
-    | head -n$top
-  echo
-}
 
-## Check for sites getting more than 1000 POST requests from a single IP.
-brutecheck(){
-  echo;
-  if [[ -n $1 ]]; then
-    SEARCH="$1";
-    echo "Search: $SEARCH";
-  else
-    read -p 'Search: ' SEARCH;
-  fi;
-  echo
-  for x in $(grep -Ec "POST.*${SEARCH}" /home/*/var/*/logs/transfer.log /var/log/interworx/*/*/logs/transfer.log /var/log/interworx/*/logs/transfer.log 2> /dev/null | grep -E [0-9]{4}$ | cut -d/ -f5); do
-    echo $x;
-    traffic $x ip -s "POST.*${SEARCH}" \
-      | grep -E [0-9]{4};
-    echo;
-  done
-}
-
-## Search send log(s) for a domain (look for error messages)
-sendlog(){
-  if [[ -n $1 ]]; then
-    D=$1;
-  else
-    read -p "Domain: " D;
-  fi
-  if [[ $2 == 'all' ]]; then
-    cat /var/log/send/* \
-      | tai64nlocal \
-      | egrep -B2 -A8 "$D" \
-      | less;
-  else
-    cat /var/log/send/current \
-      | tai64nlocal \
-      | egrep -B2 -A8 "$D" \
-      | less;
-  fi
-}
