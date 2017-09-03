@@ -1,3 +1,5 @@
+#! /bin/bash
+
 # Show sites and their corresponding reseller
 resellers () {
   (nodeworx -u -n -c Siteworx -a listAccounts \
@@ -16,6 +18,7 @@ resellers () {
   done < /tmp/rslr | sed 's/_/ /g';
 }
 
+# Change directory to a website's docroot
 cdd () {
   local query domains domain alias docroot subdir selection;
   declare -a docroot;
@@ -35,7 +38,7 @@ cdd () {
     | cut -f2));
 
   for (( i=1; i<=${#alias[@]}; i++ )); do
-    docroot[$i]=($(sed -nr 's/.*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"$domain[$i]".conf \
+    docroot[$i]=($(sed -nr 's/.*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"${domain[$i]}".conf \
       | head -n1));
   done;
 
@@ -43,7 +46,7 @@ cdd () {
   for (( i=1; i<=${#alias[@]}; i++ )); do
     if [[ ${alias[$i]} == *.${domain[$i]} ]]; then
       subdir="$(echo "${alias[$i]}" | sed -nr 's/(.*).'"${domain[$i]}"'/\1/p')";
-      if [ -d ${docroot[$i]}/$subdir ]; then
+      if [ -d "${docroot[$i]}"/"$subdir" ]; then
         docroot[$i]="${docroot[$i]}/${subdir}";
       fi;
     fi;
@@ -73,6 +76,7 @@ cdd () {
   pwd;
 }
 
+# Change directory to a website's log dir
 cdlogs () {
   local query vhosts docroot selection;
   declare -a logsdir;
@@ -84,7 +88,7 @@ cdlogs () {
   vhosts=($(grep -El "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*));
 
   for (( i=1; i<=${#vhosts[@]}; i++ )); do
-    logsdir[$i]=($(sed -nr 's_.*ErrorLog (.*)/error.log_\1_p' "$vhosts[$i]" \
+    logsdir[$i]=($(sed -nr 's_.*ErrorLog (.*)/error.log_\1_p' "${vhosts[$i]}" \
       | head -n1));
   done;
 
@@ -109,6 +113,7 @@ cdlogs () {
   pwd;
 }
 
+# Identify the backup server that the current server uses
 whichsoft () {
   grep "AUTH.*allow" /usr/sbin/r1soft/log/cdp.log \
     | sed 's_.*server.allow/\(.*\).$_\1_' \
@@ -118,6 +123,7 @@ whichsoft () {
     | awk '/name pointer/{sub(/\.$/,"",$NF); printf "https://%s:8001/\n",$NF}'
 }
 
+# Check disk quotas
 quotacheck () {
   echo;
   grep -E ":/home/[^\:]+:" /etc/passwd \
@@ -136,6 +142,7 @@ done \
 echo;
 }
 
+# Connect to the iworx database
 iworxdb () {
   local user pass database socket;
 
@@ -147,6 +154,7 @@ iworxdb () {
   mysql -u"$user" -p"$pass" -S"$socket" -D"$database";
 }
 
+# Tool to raise or lower disk quota
 updatequota () {
   if (( $# < 2 )); then
     echo -e "Must provide two arguments\n\nUsage: nwupdatequota \$master_domain \$new_quota\n\n";
@@ -162,7 +170,8 @@ updatequota () {
   nodeworx -u -n -c Siteworx -a edit --OPT_STORAGE "$new_disk_quota" --domain "$master_domain";
 }
 
-whodunit () {
+# Show number of hits received on every site since the beginning of the current hour
+hitslasthour () {
   echo -e "\n\n";
   grep -c "$(date +%Y:%H)" /home/*/var/*/logs/transfer.log \
     | grep -v ":0$" \
@@ -172,12 +181,14 @@ whodunit () {
   echo -e "\n\n"
 }
 
+# Measure time to first byte of the given url
 ttfb () {
   local output="Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n";
 
   curl -o /dev/null -w"$output"  -s "$1";
 }
 
+# Show top IP addresses by number of hits
 topips () {
   zless -f "$@" \
     | awk '{freq[$1]++} END {for (x in freq) {print freq[x], x}}' \
@@ -185,6 +196,7 @@ topips () {
     | head -20;
 }
 
+# Show top user agents by number of hits
 topuseragents () {
   zless -f "$@" \
     | cut -d\  -f12- \
@@ -194,6 +206,7 @@ topuseragents () {
     | head -20;
 }
 
+# Show top IP addresses by bandwidth usage
 ipsbymb () {
   zless -f "$@" \
     | awk '{tx[$1]+=$10} END {for (x in tx) {print x, "\t", tx[x]/1048576, "M"}}' \
@@ -202,6 +215,7 @@ ipsbymb () {
     | tac;
 }
 
+# Show top user agents by bandwidth usage
 uabymb () {
   zless -f "$@" \
     | cut -d\  -f10- \
@@ -212,6 +226,7 @@ uabymb () {
     | head -n 20;
 }
 
+# Show top referers by bandwidth usage
 refbymb () {
   zless -f "$@" \
     | cut -d\  -f10,11 \
@@ -221,6 +236,7 @@ refbymb () {
     | head -n 20;
 }
 
+# Show top uris by bandwidth usage
 uribymb () {
   zless -f "$@" \
     | cut -d\  -f7,10 \
@@ -231,16 +247,13 @@ uribymb () {
     | head -n 20;
 }
 
+# Show total bandwidth usage
 totalmb () {
   zless -f "$@" \
     | awk '{sum+=$10} END {print sum/1048576 " M"}'
 }
 
-sshpass() {
-  mkpasswd -l 15 -d 3 -C 5 -s 0 "$1";
-  nksshd userControl --reset-failures "$1";
-}
-
+# Show number of hits per hour
 hitsperhour () {
   zless -f "$@" \
     | sed 's_.*../.*/....:\(..\).*_\1_' \
@@ -249,6 +262,7 @@ hitsperhour () {
     | sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_'
 }
 
+# Show top uris by number of hits
 topuri () {
   zless -f "$@" \
     | grep -hv " 403 " \
@@ -260,6 +274,7 @@ topuri () {
     | head;
 }
 
+# Show top referers by number of hits
 topref () {
   zless -f "$@" \
     | grep -hv " 403 " \
@@ -270,10 +285,12 @@ topref () {
     | head;
 }
 
+# Make a compressed backup of the given file/folder
 backup () {
   tar -czvf "$1.tar.gz" "$1";
 }
 
+# Check several email blacklists for the given IP
 blacklistcheck () {
   for b in $1; do
     echo '++++++++++++++++++++++++++++';
@@ -302,12 +319,14 @@ blacklistcheck () {
   done;
 }
 
+# Stat the files listed in the given maldet report
 maldetstat () {
-  for file in $(awk '{print $3}' /usr/local/maldetect/sess/session.hits.$1); do
-    stat $file;
+  for file in $(awk '{print $3}' /usr/local/maldetect/sess/session.hits."$1"); do
+    stat "$file";
   done
 }
 
+# Show number of hits by known bot user agents for the given user
 botsearch () {
   for x in /home/$1/var/*/logs/transfer.log ; do
     echo -e "\n####### $x" ;
@@ -321,6 +340,7 @@ botsearch () {
   done
 }
 
+# Check for duplicate files
 finddups () {
   find "$1" -type f -print0 \
     | xargs -0 md5sum \
@@ -328,29 +348,24 @@ finddups () {
     | uniq -w32 --all-repeated=separate
 }
 
-# Iworx DB
-i () {
-  $(grep -B1 'dsn.orig=' ~iworx/iworx.ini | head -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
-}
-
 # Vpopmail
-v () {
+vpopdb () {
   $(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
 }
 
 # ProFTPd
-f () {
+ftpdb () {
   $(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
 }
 
 ## Lookup mail account password (http://www.qmailwiki.org/Vpopmail#vuserinfo)
 emailpass () {
-  echo -e "\nUsername: $1\nPassword: $(~vpopmail/bin/vuserinfo -C $1)\n";
+  echo -e "\nUsername: $1\nPassword: $(~vpopmail/bin/vuserinfo -C "$1")\n";
 }
 
 ## Print the hostname if it resolves, otherwise print the main IP
 serverName () {
-  if [[ -n $(dig +time=1 +tries=1 +short $(hostname)) ]]; then
+  if [[ -n $(dig +time=1 +tries=1 +short "$(hostname)") ]]; then
     hostname;
   else
     ip addr show \
@@ -378,13 +393,13 @@ echo
 
 ## Add date and time with username and open server_notes.txt for editing
 srvnotes () {
-  echo -e "\n#$(date) - $(echo $SUDO_USER | sed 's/nex//g')" >> /etc/nexcess/server_notes.txt;
+  echo -e "\n#$(date) - $(echo "$SUDO_USER" | sed 's/nex//g')" >> /etc/nexcess/server_notes.txt;
   nano /etc/nexcess/server_notes.txt;
 }
 
 ## Find files in a directory that were modified a certain number of days ago
 recmod () {
-  if [[ -z "$@" || "$1" == "-h" || "$1" == "--help" ]]; then
+  if [[ -z "$*" || "$1" == "-h" || "$1" == "--help" ]]; then
     echo -e "\n Usage: recmod [-p <path>] [days|{sequence}]\n  Note: Paths with * in them need to be quoted\n";
     return 0;
   elif [[ "$1" == "-p" ]]; then
@@ -395,8 +410,8 @@ recmod () {
     DIR=".";
   fi;
   for x in "$@"; do
-    echo "Files modified within $x day(s) or $((${x}*24)) hours ago";
-    find $DIR -type f -mtime $((${x}-1)) -exec ls -lath {} \; \
+    echo "Files modified within $x day(s) or $((x*24)) hours ago";
+    find $DIR -type f -mtime $((x-1)) -exec ls -lath {} \; \
       | grep -Ev '(var|log|cache|media|tmp|jpg|png|gif)' \
       | column -t;
     echo;
@@ -417,7 +432,7 @@ fixowner () {
     -r|--root) owner="root:root" ;;
     *|-h|--help) echo -e "\n Usage: fixowner [option] [path]\n    -u | --user ..... Change ownership to $U:$U\n    -a | --apache ... Change ownership to apache:$U\n    -r | --root ..... Change ownership to root:root\n    -h | --help ..... Show this help output\n"; return 0 ;;
   esac
-  chown -R $owner $P \
+  chown -R $owner "$P" \
     && echo -e "\n Files owned to $owner\n"
 }
 
@@ -426,17 +441,17 @@ fixowner () {
 ftpreadonly () {
   echo;
   if [[ -z "$1" ]]; then
-    read -p "FTP Username: " U;
+    read -rp "FTP Username: " U;
   else
     U="$1";
   fi
-  sudo -u $(getusr) echo -e "\n<Limit WRITE>\n  DenyUser $U\n</Limit>\n" >> .ftpaccess \
+  sudo -u "$(getusr)" echo -e "\n<Limit WRITE>\n  DenyUser $U\n</Limit>\n" >> .ftpaccess \
     && echo -e "\n.ftpaccess file has been updated.\n";
 }
 
 ## Create or add http-auth section for given .htaccess file
 htaccessauth () {
-  sudo -u $(getusr) echo -e "\n# ----- Password Protection Section -----
+  sudo -u "$(getusr)" echo -e "\n# ----- Password Protection Section -----
   \nAuthUserFile $(pwd)/.htpasswd
   AuthGroupFile /dev/null
   AuthName \"Authorized Access Only\"
@@ -456,7 +471,7 @@ sysusage () {
   echo;
   colsort="4";
   printf "%-10s %10s %10s %10s %10s\n" "User" "Mem (MB)" "Process" "CPU(%)" "MEM(%)";
-  echo "$(dashes 54)"
+  dashes 54;
   ps aux \
     | grep -v ^USER \
     | awk '{ mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' \
@@ -467,24 +482,24 @@ sysusage () {
 
 # Lookup Siteworx account details
 acctdetail () {
-  nodeworx -u -n -c Siteworx -a querySiteworxAccountDetails --domain $(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')\
+  nodeworx -u -n -c Siteworx -a querySiteworxAccountDetails --domain "$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')"\
     | sed 's:\([a-zA-Z]\) \([a-zA-Z]\):\1_\2:g;s:\b1\b:YES:g;s:\b0\b:NO:g' \
     | column -t
 }
 
 ## Add an IP to a Siteworx account
 addip () {
-  nodeworx -u -n -c Siteworx -a addIp --domain $(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}') --ipv4 $1;
+  nodeworx -u -n -c Siteworx -a addIp --domain "$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')" --ipv4 "$1";
 }
 
 ## Enable Siteworx backups for an account
 addbackups () {
-  nodeworx -u -n -c Siteworx -a edit --domain $(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}') --OPT_BACKUP 1;
+  nodeworx -u -n -c Siteworx -a edit --domain "$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')" --OPT_BACKUP 1;
 }
 
 ## Adjust user quota on the fly using Nodeworx CLI
 bumpquota(){
-  if [[ -z $@ || $1 =~ -h ]]; then
+  if [[ -z "$*" || $1 =~ -h ]]; then
     echo -e "\n Usage: bumpquota <username> <newquota>\n  Note: <username> can be '.' to get user from PWD\n";
     return 0;
   elif [[ $1 =~ ^[a-z].*$ ]]; then
@@ -496,39 +511,39 @@ bumpquota(){
   fi
 
   newQuota=$1;
-  primaryDomain=$(~iworx/bin/listaccounts.pex | grep $U | awk '{print $2}')
+  primaryDomain=$(~iworx/bin/listaccounts.pex | grep "$U" | awk '{print $2}')
 
-  nodeworx -u -n -c Siteworx -a edit --domain $primaryDomain --OPT_STORAGE $newQuota \
+  nodeworx -u -n -c Siteworx -a edit --domain "$primaryDomain" --OPT_STORAGE "$newQuota" \
     && echo -e "\nDisk Quota for $U has been set to $newQuota MB\n";
-  checkquota -u $U;
+  checkquota -u "$U";
 }
 
 ## Lookup the DNS Nameservers on the host
 nameserver () {
   echo;
-  for x in $(grep ns[1-2] ~iworx/iworx.ini | cut -d\" -f2;); do
-    echo "$x ($(dig +short $x))";
+  for x in $(grep "ns[1-2]" ~iworx/iworx.ini | cut -d\" -f2;); do
+    echo "$x ($(dig +short "$x"))";
   done;
   echo;
 }
 
 ## Quick summary of domain DNS info
 ddns () {
-  if [[ -z "$@" ]]; then
-    read -p "Domain Name: " D;
+  if [[ -z "$*" ]]; then
+    read -rp "Domain Name: " D;
   else
-    D="$@";
+    D="$*";
   fi
-  for x in $(echo $D | sed 's/\// /g'); do
+  for x in $(echo "$D" | sed 's/\// /g'); do
     echo -e "\nDNS Summary: $x\n$(dashes 79)";
     for y in a aaaa ns mx txt soa; do
-      dig +time=2 +tries=2 +short $y $x +noshort;
+      dig +time=2 +tries=2 +short $y "$x" +noshort;
       if [[ $y == 'ns' ]]; then
-        dig +time=2 +tries=2 +short $(dig +short ns $x) +noshort \
+        dig +time=2 +tries=2 +short "$(dig +short ns "$x")" +noshort \
           | grep -v root;
       fi;
     done;
-    dig +short -x $(dig +time=2 +tries=2 +short $x) +noshort;
+    dig +short -x "$(dig +time=2 +tries=2 +short "$x")" +noshort;
     echo;
   done
 }
@@ -538,9 +553,9 @@ domainips () {
   echo;
   for I in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.'); do
     printf "  ${BRIGHT}${YELLOW}%-15s${NORMAL}  " "$I";
-    D=$(grep -l $I /etc/httpd/conf.d/vhost_[^000_]*.conf | cut -d_ -f2 | sed 's/.conf$//');
+    D=$(grep -l "$I" /etc/httpd/conf.d/vhost_[^0]*.conf | cut -d_ -f2 | sed 's/.conf$//');
     for x in $D; do
-      printf "$x ";
+      printf "%s " "$x";
     done;
     echo;
   done;
@@ -549,12 +564,12 @@ domainips () {
 
 ## Find IPs in use by a Siteowrx account
 accountips () {
-  domaincheck -a $1;
+  domaincheck -a "$1";
 }
 
 ## Find IPs in use by a Reseller account
 resellerips () {
-  domaincheck -r $1;
+  domaincheck -r "$1";
 }
 
 ## Find IPs that are not configured in any vhost files
@@ -562,7 +577,7 @@ freeips () {
   echo;
   for x in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.|^10\.|^172\.'); do
     printf "\n%-15s " "$x";
-    grep -l $x /etc/httpd/conf.d/vhost_[^000_]*.conf 2> /dev/null;
+    grep -l "$x" /etc/httpd/conf.d/vhost_[^0]*.conf 2> /dev/null;
   done \
     | grep -v \.conf$ \
     | column -t;
@@ -572,13 +587,13 @@ freeips () {
 ## Check if gzip is working for domain(s)
 chkgzip () {
   echo;
-  if [[ -z "$@" ]]; then
-    read -p "Domain name(s): " DNAME;
+  if [[ -z "$*" ]]; then
+    read -rp "Domain name(s): " DNAME;
   else
-    DNAME="$@";
+    DNAME="$*";
   fi
-  for x in "$DNAME"; do
-    curl -I -H 'Accept-Encoding: gzip,deflate' $x;
+  for x in $DNAME; do
+    curl -I -H 'Accept-Encoding: gzip,deflate' "$x";
   done;
   echo
 }
@@ -586,12 +601,12 @@ chkgzip () {
 ## Attempt to list Secondary Domains on an account
 ldomains () {
   DIR=$PWD;
-  cd /home/$(getusr);
+  cd /home/"$(getusr)" || return;
   for x in */html; do
-    echo $x \
+    echo "$x" \
       | sed 's/\/html//g';
   done;
-  cd $DIR
+  cd "$DIR" || return;
 }
 
 ## List the usernames for all accounts on the server
@@ -619,11 +634,11 @@ lreseller () {
 lsnapshots () {
   echo;
   if [[ -z "$1" ]]; then
-    read -p "Database Name: " DBNAME;
+    read -rp "Database Name: " DBNAME;
   else
     DBNAME="$1";
   fi
-  ls -lah /home/.snapshots/daily.*/localhost/mysql/$DBNAME.sql.gz;
+  ls -lah /home/.snapshots/daily.*/localhost/mysql/"$DBNAME".sql.gz;
   echo
 }
 
@@ -632,18 +647,18 @@ magsymlinks () {
   echo;
   U=$(getusr);
   if [[ -z $1 ]]; then
-    read -p "Domain Name: " D;
+    read -rp "Domain Name: " D;
   else
     D=$1;
   fi
   for X in app includes js lib media skin var; do
-    sudo -u $U ln -s /home/$U/$D/html/$X/ $X;
+    sudo -u "$U" ln -s /home/"$U"/"$D"/html/$X/ $X;
   done;
   echo;
-  read -p "Copy .htaccess and index.php? [y/n]: " yn;
+  read -rp "Copy .htaccess and index.php? [y/n]: " yn;
   if [[ $yn == "y" ]]; then
     for Y in index.php .htaccess; do
-      sudo -u $U cp /home/$U/$D/html/$Y .;
+      sudo -u "$U" cp /home/"$U"/"$D"/html/$Y .;
     done;
   fi
 }
@@ -651,9 +666,9 @@ magsymlinks () {
 ## Use CSR or CRT, generate a new key and CSR (SHA-256).
 sslrekey(){
   if [[ -z $1 ]]; then
-    read -p "Domain Name: " domain;
+    read -rp "Domain Name: " domain;
   else
-    domain="$(echo $1 | sed 's:/::g')";
+    domain="$(echo "$1" | sed 's:/::g')";
   fi
 
   csrfile="/home/*/var/${domain}/ssl/${domain}.csr"
@@ -720,7 +735,6 @@ dcvfile(){
 ## Find files group owned by username in employee folders or temp directories
 savethequota(){
   find /home/tmp -type f -size +100000k -group $(getusr) -exec ls -lah {} \;
-  find /tmp -type f -size +100000k -group $(getusr) -exec ls -lah {} \;
   find /home/nex* -type f -group $(getusr) -exec ls -lah {} \;
 }
 
@@ -776,6 +790,3 @@ srvstatus(){
   done;
   echo
 }
-
-
-
