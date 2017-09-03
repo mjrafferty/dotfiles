@@ -456,7 +456,7 @@ sysusage () {
   echo;
   colsort="4";
   printf "%-10s %10s %10s %10s %10s\n" "User" "Mem (MB)" "Process" "CPU(%)" "MEM(%)";
-  echo "$(dash 54)"
+  echo "$(dashes 54)"
   ps aux \
     | grep -v ^USER \
     | awk '{ mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' \
@@ -520,7 +520,7 @@ ddns () {
     D="$@";
   fi
   for x in $(echo $D | sed 's/\// /g'); do
-    echo -e "\nDNS Summary: $x\n$(dash 79)";
+    echo -e "\nDNS Summary: $x\n$(dashes 79)";
     for y in a aaaa ns mx txt soa; do
       dig +time=2 +tries=2 +short $y $x +noshort;
       if [[ $y == 'ns' ]]; then
@@ -735,13 +735,13 @@ diskhogs(){
   else
     DEPTH=3;
   fi;
-  echo -e "\n---------- Large Directories $(dash 51)";
+  echo -e "\n---------- Large Directories $(dashes 51)";
   du -h --max-depth $DEPTH | grep -E '[0-9]G|[0-9]{3}M';
   if [[ ! $@ =~ '-d' ]]; then
-    echo -e "\n---------- Large Files $(dash 57)";
+    echo -e "\n---------- Large Files $(dashes 57)";
     find . -type f -size +100000k -group $(getusr) -exec ls -lah {} \;;
   fi;
-  echo -e "\n---------- Large Databases $(dash 53)";
+  echo -e "\n---------- Large Databases $(dashes 53)";
   du -sh /var/lib/mysql/$(getusr)_* \
     | grep -E '[0-9]G|[0-9]{3}M';
   echo
@@ -770,7 +770,7 @@ srvstatus(){
   echo;
   FORMAT="%-18s %s\n";
   printf "$FORMAT" " Service" " Status";
-  printf "$FORMAT" "$(dash 18)" "$(dash 55)";
+  printf "$FORMAT" "$(dashes 18)" "$(dash 55)";
   for x in $(chkconfig --list | awk '/3:on/ {print $1}' | sort); do
     printf "$FORMAT" " $x" " $(service $x status 2> /dev/null | head -1)";
   done;
