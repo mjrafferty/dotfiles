@@ -19,7 +19,7 @@ mkdir -p ~/.vimfiles/{backup,swp,undo}
 
 # The following lines were added by compinstall
 
-zstyle ':completion:*' completer _list _oldlist _expand _complete _ignored _match _correct _approximate _prefix
+zstyle ':completion:*' completer _expand _complete _ignored _match _correct _approximate _prefix
 zstyle ':completion:*' max-errors 2 numeric
 zstyle :compinstall filename '/home/nexmrafferty/.zshrc'
 
