@@ -10,7 +10,7 @@ export ZSH_TMUX_AUTOSTART=true
 
 source $ZSH/oh-my-zsh.sh
 
-ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets pattern cursor)
+ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets line)
 
 ZSH_HIGHLIGHT_STYLES[line]='bold'
 
