@@ -31,8 +31,6 @@ if [ -f /opt/nexcess/php56u/enable ]; then
   source /opt/nexcess/php56u/enable;
 fi
 
-bindkey -v
-
 if [ -f ~/action.sh ]; then
 	source ~/action.sh;
 	rm ~/action.sh;
