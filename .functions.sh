@@ -324,7 +324,7 @@ blacklistcheck () {
 maldetstat () {
   local files;
   files=($(awk '{print $3}' /usr/local/maldetect/sess/session.hits."$1"));
-  for ((x=1;x<="${#files[@]}";x++)); do
+  for (( x=1; x<=${#files[@]}; x++ )); do
 		stat "${files[$x]}";
 	done
 }
@@ -444,6 +444,7 @@ fixowner () {
 ## Generate .ftpaccess file to create read only FTP user
 # http://www.proftpd.org/docs/howto/Limit.html
 ftpreadonly () {
+  local U;
 	echo;
 	if [[ -z "$1" ]]; then
 		vared -r "FTP Username: " -c U;
@@ -535,7 +536,7 @@ nameserver () {
   local nameservers;
 	echo;
 	nameservers=($(grep "ns[1-2]" ~iworx/iworx.ini | cut -d\" -f2;))
-  for ((x=1;x<="${#nameservers[@]}";x++)) do
+  for (( x=1; x<=${#nameservers[@]}; x++ )) do
 		echo "$x ($(dig +short "$x"))";
   done
 	echo;
@@ -663,7 +664,7 @@ lsnapshots () {
 
 ## Create Magento Multi-Store Symlinks
 magsymlinks () {
-  local U yn;
+  local U D yn;
 	echo;
 	U=$(getusr);
 	if [[ -z $1 ]]; then
