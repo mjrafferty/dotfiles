@@ -512,10 +512,10 @@ addbackups () {
 bumpquota(){
 
   local newQuota primaryDomain;
-	if [[ -z "$*" || $1 =~ -h ]]; then
+	if [[ -z "$*" || $1 == "*-h" ]]; then
 		echo -e "\n Usage: bumpquota <username> <newquota>\n  Note: <username> can be '.' to get user from PWD\n";
 		return 0;
-	elif [[ $1 =~ ^[a-z].*$ ]]; then
+	elif [[ $1 == "^[a-z].*$" ]]; then
 		U=$1;
 		shift;
 	elif [[ $1 == '.' ]]; then
