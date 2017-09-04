@@ -447,7 +447,7 @@ ftpreadonly () {
   local U;
 	echo;
 	if [[ -z "$1" ]]; then
-		vared -r "FTP Username: " -c U;
+		vared -p "FTP Username: " -c U;
 	else
 		U="$1";
 	fi
@@ -546,7 +546,7 @@ nameserver () {
 ddns () {
   local D;
 	if [[ -z "$*" ]]; then
-		vared -r "Domain Name: " -c D;
+		vared -p "Domain Name: " -c D;
 	else
 		D="$*";
 	fi
@@ -606,7 +606,7 @@ chkgzip () {
   local DNAME;
 	echo;
 	if [[ -z "$*" ]]; then
-		vared -r "Domain name(s): " -c DNAME;
+		vared -p "Domain name(s): " -c DNAME;
 	else
 		DNAME="$*";
 	fi
@@ -654,7 +654,7 @@ lsnapshots () {
   local DBNAME;
 	echo;
 	if [[ -z "$1" ]]; then
-		vared -r "Database Name: " -c DBNAME;
+		vared -p "Database Name: " -c DBNAME;
 	else
 		DBNAME="$1";
 	fi
@@ -668,7 +668,7 @@ magsymlinks () {
 	echo;
 	U=$(getusr);
 	if [[ -z $1 ]]; then
-		vared -r "Domain Name: " -c D;
+		vared -p "Domain Name: " -c D;
 	else
 		D=$1;
 	fi
@@ -676,7 +676,7 @@ magsymlinks () {
 		sudo -u "$U" ln -s /home/"$U"/"$D"/html/$X/ $X;
 	done;
 	echo;
-	vared -r "Copy .htaccess and index.php? [y/n]: " -c yn;
+	vared -p "Copy .htaccess and index.php? [y/n]: " -c yn;
 	if [[ $yn == "y" ]]; then
 		for Y in index.php .htaccess; do
 			sudo -u "$U" cp /home/"$U"/"$D"/html/$Y .;
@@ -688,7 +688,7 @@ magsymlinks () {
 sslrekey(){
   local domain csrfile subject;
 	if [[ -z $1 ]]; then
-		vared -rp "Domain Name: " -c domain;
+		vared -p "Domain Name: " -c domain;
 	else
 		domain="${1/\//}";
 	fi
@@ -713,7 +713,7 @@ sslrekey(){
 sslrehash(){
   local domain keyfile csrfile subject;
 	if [[ -z $1 ]]; then
-		vared -r "Domain Name: " -c domain;
+		vared -p "Domain Name: " -c domain;
 	else
 		domain="${1/\//}";
 	fi
@@ -739,7 +739,7 @@ sslrehash(){
 dcvfile(){
   local domain csrfile md5 sha1;
 	if [[ -z $1 ]]; then
-		vared -r "Domain: " -c domain;
+		vared -p "Domain: " -c domain;
 	elif [[ $1 == '.' ]]; then
 		domain=$(pwd -P | sed 's:/chroot::' | cut -d/ -f4);
 	else
