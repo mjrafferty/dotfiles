@@ -1,0 +1,645 @@
+#! /bin/bash
+_nkcraft() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="info install"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      info)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      install)
+        COMPREPLY=( $(compgen -W "--admin-password --admin-username -e --admin-email -y --assume-yes -a --auto-create-database -s --site-url -L --site-label -p --package --database-host -N --database-name --database-pass -U --database-user" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkcraft nkcraft
+
+_nkdell() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="pushHardwareProfile setText"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      pushHardwareProfile)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      setText)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkdell nkdell
+
+_nkdrac() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="setUser setNetwork reset update"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      setUser)
+        COMPREPLY=( $(compgen -W "-u --username -p --password -i --id" -- ${cur}) )
+        ;;
+
+      setNetwork)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      reset)
+        COMPREPLY=( $(compgen -W "-y --assume-yes" -- ${cur}) )
+        ;;
+
+      update)
+        COMPREPLY=( $(compgen -W "-u --firmware-url -y --assume-yes" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkdrac nkdrac
+
+_nkee() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="info install"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      info)
+        COMPREPLY=( $(compgen -W "-S -I" -- ${cur}) )
+        ;;
+
+      install)
+        COMPREPLY=( $(compgen -W "--admin-password --admin-username -e --admin-email -y --assume-yes -a --auto-create-database -b --base-url -c --system-url -l --license-key -L --site-label -p --package --system-path -P --database-host -N --database-name --database-pass -U --database-user" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkee nkee
+
+_nkfirewall() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="rule"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      rule)
+        COMPREPLY=( $(compgen -W "-p --port -P --protocol -d --direction -c --comment -y --assume-yes" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+      -P|--protocol)
+        COMPREPLY=( $(compgen -W "tcp  udp" -- ${cur}) )
+        ;;
+
+      -d|--direction)
+        COMPREPLY=( $(compgen -W "in  out" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkfirewall nkfirewall
+
+_nkhttpd() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="addRule addRepo phpini cgiRun"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      addRule)
+        COMPREPLY=( $(compgen -W "-t --ticket-id" -- ${cur}) )
+        ;;
+
+      addRepo)
+        COMPREPLY=( $(compgen -W "-u --user-name -p --user-pass" -- ${cur}) )
+        ;;
+
+      phpini)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      cgiRun)
+        COMPREPLY=( $(compgen -W "-c --cookie -d --domain -H --header -P --post-data -Q --query-data -U --user -s --strace" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkhttpd nkhttpd
+
+_nkmagento() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="info install repair copy link dbrepair backup crondump"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      info)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      install)
+        COMPREPLY=( $(compgen -W "-E --enterprise -l --admin-location --admin-pass --admin-user --admin-email -a --auto-create-database -D --only-database -p --package -b --base-url -s --secure-base-url -d --install-sample-data --database-host -N --database-name -P --database-pass -U --database-user --database-port -m --use-memcache -y --assume-yes" -- ${cur}) )
+        ;;
+
+      repair)
+        COMPREPLY=( $(compgen -W "-p --set-permissions -o --set-ownership -c --clear-cache --clear-sessions -C --set-cache-method -S --set-session-storage -e --install-extension -b --set-base-url -B --set-secure-base-url -r --reset-admin-pass -i --reindex --cdn-base-url --secure-cdn-base-url -L --toggle-logging -l --log-rotation --toggle-log-rotation -R --set-return-path --reset-db-pass" -- ${cur}) )
+        ;;
+
+      copy)
+        COMPREPLY=( $(compgen -W "-x --exclude-dirs -a --auto-create-database -N --new-database-name -U --new-database-user -P --new-database-pass -b --new-base-url -y --assume-yes" -- ${cur}) )
+        ;;
+
+      link)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      dbrepair)
+        COMPREPLY=( $(compgen -W "--setup-only -b --backup -r --restore-on-error -y --assume-yes -c --change-log" -- ${cur}) )
+        ;;
+
+      backup)
+        COMPREPLY=( $(compgen -W "-o --output -d --database-only -f --files-only -F --force" -- ${cur}) )
+        ;;
+
+      crondump)
+        COMPREPLY=( $(compgen -W "-s --start-time -e --end-time -f --format -d --delimiter -H --hide-header -R --repeat-header" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+      -C|--set-cache-method)
+        COMPREPLY=( $(compgen -W "file  files  apc  memcached  memcache  redis" -- ${cur}) )
+        ;;
+
+      -S|--set-session-storage)
+        COMPREPLY=( $(compgen -W "files  file  db  memcache  memcached  redis" -- ${cur}) )
+        ;;
+
+      -f|--format)
+        COMPREPLY=( $(compgen -W "csv  table" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkmagento nkmagento
+
+_nkmagento2() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="info install repair"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      info)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      install)
+        COMPREPLY=( $(compgen -W "-E --enterprise -l --admin-location --admin-pass --admin-user --admin-email -a --auto-create-database -D --only-database -p --package -b --base-url -s --secure-base-url --database-host -N --database-name --database-pass -U --database-user --database-port -y --assume-yes" -- ${cur}) )
+        ;;
+
+      repair)
+        COMPREPLY=( $(compgen -W "-p --set-permissions -o --set-ownership -b --base-url -B --secure-base-url -f --fix-file -c --clear-cache --clear-sessions -C --set-cache-method -S --set-session-storage" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+      -C|--set-cache-method)
+        COMPREPLY=( $(compgen -W "file  files  redis" -- ${cur}) )
+        ;;
+
+      -S|--set-session-storage)
+        COMPREPLY=( $(compgen -W "files  file  memcache  memcached" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkmagento2 nkmagento2
+
+_nkmemcached() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="create modify remove list info"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      create)
+        COMPREPLY=( $(compgen -W "-i --ip-address -p --port -s --socket -u --username -I --instance-id" -- ${cur}) )
+        ;;
+
+      modify)
+        COMPREPLY=( $(compgen -W "-i --ip-address -p --port -s --socket -m --mem-limit -M --max-connections -S --no-restart" -- ${cur}) )
+        ;;
+
+      remove)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      list)
+        COMPREPLY=( $(compgen -W "-p --parsable" -- ${cur}) )
+        ;;
+
+      info)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkmemcached nkmemcached
+
+_nkmysql() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="import export copy"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      import)
+        COMPREPLY=( $(compgen -W "-z --compressed -d --drop -y --assume-yes" -- ${cur}) )
+        ;;
+
+      export)
+        COMPREPLY=( $(compgen -W "-z --compressed -d --drop -y --assume-yes" -- ${cur}) )
+        ;;
+
+      copy)
+        COMPREPLY=( $(compgen -W "-d --drop -y --assume-yes" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkmysql nkmysql
+
+_nkorocrm() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="info install"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      info)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      install)
+        COMPREPLY=( $(compgen -W "--admin-email" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkorocrm nkorocrm
+
+_nkredis() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="create modify remove list info"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      create)
+        COMPREPLY=( $(compgen -W "-i --ip-address -p --port -s --socket -u --username -I --instance-id" -- ${cur}) )
+        ;;
+
+      modify)
+        COMPREPLY=( $(compgen -W "-i --ip-address -p --port -s --socket -m --mem-limit -S --no-restart" -- ${cur}) )
+        ;;
+
+      remove)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      list)
+        COMPREPLY=( $(compgen -W "-p --parsable" -- ${cur}) )
+        ;;
+
+      info)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkredis nkredis
+
+_nkscl() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="info update"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      info)
+        COMPREPLY=( $(compgen -W "-u --user" -- ${cur}) )
+        ;;
+
+      update)
+        COMPREPLY=( $(compgen -W "-u --user -v --version" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkscl nkscl
+
+_nksshd() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="userControl userInfo"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      userControl)
+        COMPREPLY=( $(compgen -W "--create -r --reset-failures -s --enable-ssh -p --password -a --auto -S --shell -R --root -e --expiration -i --allowed-ips" -- ${cur}) )
+        ;;
+
+      userInfo)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nksshd nksshd
+
+_nkvbulletin() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="install"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      install)
+        COMPREPLY=( $(compgen -W "--admin-pass --admin-user -T --title -a --auto-create-database -D --only-database -b --base-url --database-host -N --database-name --database-pass -U --database-user --database-port -y --assume-yes" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkvbulletin nkvbulletin
+
+_nkwordpress() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="info install copy repair"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      info)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      install)
+        COMPREPLY=( $(compgen -W "--admin-password --admin-username -y --assume-yes -a --auto-create-database -b --base-url -t --blog-title --database-host -N --database-name -p --package -P --database-pass -U --database-user -s --secure-admin -M --memcached -W --install-woocommerce" -- ${cur}) )
+        ;;
+
+      copy)
+        COMPREPLY=( $(compgen -W "-N --new-database-name -U --new-database-user -P --new-database-pass -b --new-base-url -a --auto-create-database -y --assume-yes" -- ${cur}) )
+        ;;
+
+      repair)
+        COMPREPLY=( $(compgen -W "-r --reset-password -o --set-ownership -p --set-permissions -b --set-base-url --set-home-url --set-site-url" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compctl -o default -F _nkwordpress nkwordpress
+
