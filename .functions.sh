@@ -765,18 +765,18 @@ savethequota(){
 ## Give a breakdown of user's large disk objects
 diskhogs(){
   local DEPTH;
-	if [[ "$*" =~ "-h" ]]; then
+	if [[ "$*" == "*-h*" ]]; then
 		echo -e "\n Usage: diskhogs [maxdepth] [-d]\n";
 		return 0;
 	fi;
-	if [[ "$*" =~ [0-9]{1,} ]]; then
+	if [[ "$*" == "*[0-9]{1,}*" ]]; then
 		DEPTH=$(echo "$*" | grep -Eo '[0-9]{1,}');
 	else
 		DEPTH=3;
 	fi;
 	echo -e "\n---------- Large Directories $(dashes 51)";
 	du -h --max-depth $DEPTH | grep -E '[0-9]G|[0-9]{3}M';
-	if [[ ! "$*" =~ '-d' ]]; then
+	if [[ ! "$*" == '*-d*' ]]; then
 		echo -e "\n---------- Large Files $(dashes 57)";
 		find . -type f -size +100000k -group "$(getusr)" -exec ls -lah {} \;;
 	fi;
