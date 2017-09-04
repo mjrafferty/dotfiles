@@ -601,21 +601,6 @@ freeips () {
 	echo
 }
 
-## Check if gzip is working for domain(s)
-chkgzip () {
-  local DNAME;
-	echo;
-	if [[ -z "$*" ]]; then
-		vared -p "Domain name(s): " -c DNAME;
-	else
-		DNAME="$*";
-	fi
-	for x in $DNAME; do
-		curl -I -H 'Accept-Encoding: gzip,deflate' "$x";
-	done;
-	echo
-}
-
 ## Attempt to list Secondary Domains on an account
 ldomains () {
   local DIR;
