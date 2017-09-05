@@ -18,6 +18,7 @@ else
 
     uniqueid=($(echo "$logentries" | grep "${uris[$i]}"| cut -f1));
 
+    echo "<IfModule mod_security2.c>";
     echo "  <LocationMatch ${uris[$i]} >";
     echo "    # Ticket ID: "
     for ((x=0;x<${#uniqueid[@]};x++)); do
@@ -29,6 +30,7 @@ else
       | sed 's/^/    SecRuleRemoveById /';
 
     echo "  </LocationMatch>";
+    echo "</IfModule>";
     unset uniqueid;
 
   done;
