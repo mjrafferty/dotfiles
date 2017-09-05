@@ -1,4 +1,3 @@
-export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/opt/puppelabs/bin:/usr/local/sbin:/sbin:/usr/sbin:/var/qmail/bin:/usr/nexkit/bin:~/bin
 export PAGER=/usr/bin/less
 
 # formatted at 2000-03-14 03:14:15

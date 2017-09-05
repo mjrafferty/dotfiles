@@ -1,10 +1,12 @@
 if [ "$(id -u)" != "0" ]; then
-	HM=$HOME
-	/usr/bin/sudo HOME=$HM /bin/zsh
-	exit
+  HM=$HOME
+  /usr/bin/sudo HOME=$HM /bin/zsh
+  exit
 fi
 
-source ~/.commonrc
+if [ -f ~/.commonrc ]; then
+  source ~/.commonrc
+fi
 
 export ZSH_TMUX_AUTOSTART=true
 
@@ -25,6 +27,6 @@ if [ -f /opt/nexcess/php56u/enable ]; then
 fi
 
 if [ -f ~/action.sh ]; then
-	source ~/action.sh;
-	rm ~/action.sh;
+  source ~/action.sh;
+  rm ~/action.sh;
 fi
