@@ -1,0 +1,104 @@
+#compdef nkmagento
+
+local curcontext=$curcontext state line
+declare -A opt_args
+
+_composer_get_command_list () {
+  composer --no-ansi | sed "1,/Available commands/d" | awk '/ [a-z]+/ { print $1 }'
+}
+
+_composer_get_required_list () {
+  composer show -s --no-ansi | sed '1,/requires/d' | awk 'NF > 0 && !/^requires \(dev\)/{ print $1 }'
+}
+
+
+_composer () {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  _arguments \
+    '1: :->command'\
+    '*: :->args'
+  if [ -f composer.json ]; then
+    case $state in
+      command)
+        compadd `_composer_get_command_list`
+        ;;
+      *)
+        compadd `_composer_get_required_list`
+        ;;
+    esac
+  else
+    compadd create-project init search selfupdate show
+  fi
+}
+
+_nkmagento() {
+  local cur prev subcommands opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  subcommands="info install repair copy link dbrepair backup crondump"
+
+  if echo "$cur" | grep -qE '^-'; then
+    case "${COMP_WORDS[1]}" in
+      info)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      install)
+        COMPREPLY=( $(compgen -W "-E --enterprise -l --admin-location --admin-pass --admin-user --admin-email -a --auto-create-database -D --only-database -p --package -b --base-url -s --secure-base-url -d --install-sample-data --database-host -N --database-name -P --database-pass -U --database-user --database-port -m --use-memcache -y --assume-yes" -- ${cur}) )
+        ;;
+
+      repair)
+        COMPREPLY=( $(compgen -W "-p --set-permissions -o --set-ownership -c --clear-cache --clear-sessions -C --set-cache-method -S --set-session-storage -e --install-extension -b --set-base-url -B --set-secure-base-url -r --reset-admin-pass -i --reindex --cdn-base-url --secure-cdn-base-url -L --toggle-logging -l --log-rotation --toggle-log-rotation -R --set-return-path --reset-db-pass" -- ${cur}) )
+        ;;
+
+      copy)
+        COMPREPLY=( $(compgen -W "-x --exclude-dirs -a --auto-create-database -N --new-database-name -U --new-database-user -P --new-database-pass -b --new-base-url -y --assume-yes" -- ${cur}) )
+        ;;
+
+      link)
+        COMPREPLY=( $(compgen -W "" -- ${cur}) )
+        ;;
+
+      dbrepair)
+        COMPREPLY=( $(compgen -W "--setup-only -b --backup -r --restore-on-error -y --assume-yes -c --change-log" -- ${cur}) )
+        ;;
+
+      backup)
+        COMPREPLY=( $(compgen -W "-o --output -d --database-only -f --files-only -F --force" -- ${cur}) )
+        ;;
+
+      crondump)
+        COMPREPLY=( $(compgen -W "-s --start-time -e --end-time -f --format -d --delimiter -H --hide-header -R --repeat-header" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif echo "$prev" | grep -qE '^-'; then
+    # list possible option->choices
+    case "$prev" in
+      -C|--set-cache-method)
+        COMPREPLY=( $(compgen -W "file  files  apc  memcached  memcache  redis" -- ${cur}) )
+        ;;
+
+      -S|--set-session-storage)
+        COMPREPLY=( $(compgen -W "files  file  db  memcache  memcached  redis" -- ${cur}) )
+        ;;
+
+      -f|--format)
+        COMPREPLY=( $(compgen -W "csv  table" -- ${cur}) )
+        ;;
+
+
+      *)
+        ;;
+    esac
+  elif [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+  fi
+}
+compdef _nkmagento nkmagento
