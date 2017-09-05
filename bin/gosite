@@ -131,25 +131,32 @@ elif  [ "$host" == "sucuri" ]; then
   read -rep "Press enter to continue";
 
 else
+  rdns="$(dig +short -x "$ip_addr")";
 
-  printf "Domain pointed to an unknown host/proxy\n";
-  read -rep "View WHOIS? N/y : " viewwhois;
+  if [ "$rdns" == "*nexcess*" ]; then
 
-  if [ "$viewwhois" == "y" ]; then
+    _login "${ip_addr}";
 
-    echo "$whoisinfo";
+  else
 
+    printf "Domain pointed to an unknown host/proxy\n";
+    read -rep "View WHOIS? N/y : " viewwhois;
+
+    if [ "$viewwhois" == "y" ]; then
+
+      echo "$whoisinfo";
+
+    fi
+
+    echo;
+    read -rep "Continue? Y/n : " keepgoing;
+
+    if [ "$keepgoing" == "n" ]; then
+
+      exit 0;
+
+    fi
   fi
-
-  echo;
-  read -rep "Continue? Y/n : " keepgoing;
-
-  if [ "$keepgoing" == "n" ]; then
-
-    exit 0;
-
-  fi
-
 fi
 
 # If site not pointed at nexcess
