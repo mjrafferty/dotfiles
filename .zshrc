@@ -13,6 +13,13 @@ source $ZSH/oh-my-zsh.sh
 # Create directories for files used by vim if necessary
 mkdir -p ~/.vimfiles/{backup,swp,undo}
 
+zstyle ':completion:*' completer _expand _complete _ignored _match _correct _approximate _prefix
+zstyle ':completion:*' max-errors 2 numeric
+zstyle :compinstall filename '~/.zshrc'
+
+autoload -Uz compinit
+compinit -u
+
 if [ -f /opt/nexcess/php56u/enable ]; then
   source /opt/nexcess/php56u/enable;
 fi
