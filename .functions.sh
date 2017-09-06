@@ -537,7 +537,7 @@ nameserver () {
   echo;
   nameservers=($(sed -n 's/ns[1-2]="\([^"]*\).*/\1/p' ~iworx/iworx.ini))
   for (( x=1; x<=${#nameservers[@]}; x++ )) do
-    echo "$x ($(dig +short "$x"))";
+    echo "${nameservers[$x]} ($(dig +short "${nameservers[$x]}"))";
   done
   echo;
 }
