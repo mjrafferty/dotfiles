@@ -535,7 +535,7 @@ bumpquota(){
 nameserver () {
   local nameservers;
   echo;
-  nameservers=($(grep "ns[1-2]" ~iworx/iworx.ini | cut -d\" -f2;))
+  nameservers=($(sed -n 's/ns[1-2]="\([^"]*\).*/\1/p' ~iworx/iworx.ini))
   for (( x=1; x<=${#nameservers[@]}; x++ )) do
     echo "$x ($(dig +short "$x"))";
   done
