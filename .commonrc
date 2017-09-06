@@ -15,7 +15,7 @@ if [ -f ~/.environment.sh ]; then
 fi
 
 if [ -f /etc/nexcess/shell_functions.sh ]; then
-  source /etc/shell_functions.sh 2> /dev/null
+  source /etc/nexcess/shell_functions.sh 2> /dev/null
 fi
 export ZSH=~/.oh-my-zsh
 
