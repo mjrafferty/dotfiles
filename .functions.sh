@@ -532,7 +532,7 @@ bumpquota(){
 }
 
 ## Lookup the DNS Nameservers on the host
-nameserver () {
+nameservers () {
   local nameservers;
   echo;
   nameservers=($(sed -n 's/ns[1-2]="\([^"]*\).*/\1/p' ~iworx/iworx.ini))
