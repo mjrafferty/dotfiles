@@ -100,13 +100,13 @@ domain=$(echo "$1" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:l
 if [[ "$2" ]]; then
   case "$2" in
     "cdd")
-      echo "rm ~/dotfiles/action.sh; cdd ${domain}" > ~/dotfiles/action.sh;
+      echo "rm '~/dotfiles/action.sh'; cdd ${domain}" > ~/dotfiles/action.sh;
       ;;
     "htacc")
-      echo "rm ~/dotfiles/action.sh; cdd ${domain} && vim .htaccess" > ~/dotfiles/action.sh;
+      echo "rm '~/dotfiles/action.sh'; cdd ${domain} && vim .htaccess" > ~/dotfiles/action.sh;
       ;;
     "logs")
-      echo "rm ~/dotfiles/action.sh; cdlogs ${domain}" > ~/dotfiles/action.sh;
+      echo "rm '~/dotfiles/action.sh'; cdlogs ${domain}" > ~/dotfiles/action.sh;
       ;;
   esac
 fi
