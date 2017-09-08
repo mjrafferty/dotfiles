@@ -38,5 +38,4 @@ fi
 
 if [ -f ~/action.sh ]; then
   source ~/action.sh;
-  rm ~/action.sh;
 fi
