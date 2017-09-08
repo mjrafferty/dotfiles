@@ -1,70 +1,106 @@
 #compdef nkmagento
 
-local curcontext=$curcontext state line
-declare -A opt_args
-
 _nkmagento() {
-  local curcontext="$curcontext" state line
-  typeset -A opt_args
+  local curcontext="$curcontext" state line cur prev
 
-  _arguments \
-    '1: :->command'\
+  _arguments -C \
+    '1: :->command' \
     '*: :->args'
+
+  cur="${words[${#words[@]}]}"
+  prev="${words[${#words[@]}-1]}"
+
   if [[ "$state" == "args" ]]; then
-    case "$line" in
-      "info ")
-        #COMPREPLY=( $(compgen -W "" -- ${cur}) )
+    case "${words[2]}" in
+      "info")
+        _path_files -/;
         ;;
 
-      "install ")
-        compadd -E --enterprise -l --admin-location --admin-pass --admin-user --admin-email -a --auto-create-database -D --only-database -p --package -b --base-url -s --secure-base-url -d --install-sample-data --database-host -N --database-name -P --database-pass -U --database-user --database-port -m --use-memcache -y --assume-yes;
+      "install")
+        if echo "$prev" | grep -qE '^-'; then
+          case "$prev" in
+            *)
+              ;;
+          esac
+        fi
+        compadd  -E --enterprise -l --admin-location --admin-pass --admin-user --admin-email -a --auto-create-database \
+          -D --only-database -p --package -b --base-url -s --secure-base-url -d --install-sample-data --database-host \
+          -N --database-name -P --database-pass -U --database-user --database-port -m --use-memcache -y --assume-yes;
         ;;
 
-      "repair ")
-        #COMPREPLY=( $(compgen -W "-p --set-permissions -o --set-ownership -c --clear-cache --clear-sessions -C --set-cache-method -S --set-session-storage -e --install-extension -b --set-base-url -B --set-secure-base-url -r --reset-admin-pass -i --reindex --cdn-base-url --secure-cdn-base-url -L --toggle-logging -l --log-rotation --toggle-log-rotation -R --set-return-path --reset-db-pass" -- ${cur}) )
+      "repair")
+        if echo "$prev" | grep -qE '^-'; then
+          case "$prev" in
+            -C|--set-cache-method)
+              compadd file  files  apc  memcached  memcache  redis;
+              return;
+              ;;
+
+            -S|--set-session-storage)
+              compadd files  file  db  memcache  memcached  redis;
+              return;
+              ;;
+            *)
+              ;;
+          esac
+        fi
+        compadd -p --set-permissions -o --set-ownership -c --clear-cache --clear-sessions -C --set-cache-method \
+          -S --set-session-storage -e --install-extension -b --set-base-url -B --set-secure-base-url \
+          -r --reset-admin-pass -i --reindex --cdn-base-url --secure-cdn-base-url -L --toggle-logging \
+          -l --log-rotation --toggle-log-rotation -R --set-return-path --reset-db-pass
         ;;
 
-      "copy ")
-        #COMPREPLY=( $(compgen -W "-x --exclude-dirs -a --auto-create-database -N --new-database-name -U --new-database-user -P --new-database-pass -b --new-base-url -y --assume-yes" -- ${cur}) )
+      "copy")
+        if echo "$prev" | grep -qE '^-'; then
+          case "$prev" in
+            *)
+              ;;
+          esac
+        fi
+        compadd -x --exclude-dirs -a --auto-create-database -N --new-database-name -U --new-database-user -P \
+          --new-database-pass -b --new-base-url -y --assume-yes
         ;;
 
-      "link ")
-        #COMPREPLY=( $(compgen -W "" -- ${cur}) )
+      "link")
+        _path_files -/;
         ;;
 
-      "dbrepair ")
-        #COMPREPLY=( $(compgen -W "--setup-only -b --backup -r --restore-on-error -y --assume-yes -c --change-log" -- ${cur}) )
+      "dbrepair")
+        if echo "$prev" | grep -qE '^-'; then
+          case "$prev" in
+            *)
+              ;;
+          esac
+        fi
+        compadd --setup-only -b --backup -r --restore-on-error -y --assume-yes -c --change-log
         ;;
 
-      "backup ")
-        #COMPREPLY=( $(compgen -W "-o --output -d --database-only -f --files-only -F --force" -- ${cur}) )
+      "backup")
+        if echo "$prev" | grep -qE '^-'; then
+          case "$prev" in
+            *)
+              ;;
+          esac
+        fi
+        compadd -o --output -d --database-only -f --files-only -F --force
         ;;
 
-      "crondump ")
-        #COMPREPLY=( $(compgen -W "-s --start-time -e --end-time -f --format -d --delimiter -H --hide-header -R --repeat-header" -- ${cur}) )
+      "crondump")
+        if echo "$prev" | grep -qE '^-'; then
+          case "$prev" in
+            -f|--format)
+              compadd csv  table;
+              return;
+              ;;
+            *)
+              ;;
+          esac
+        fi
+        compadd -s --start-time -e --end-time -f --format -d --delimiter -H --hide-header -R --repeat-header
         ;;
 
 
       "*")
-        ;;
-    esac
-  elif echo "$prev" | grep -qE '^-'; then
-    # list possible option->choices
-    case "$prev" in
-      -C|--set-cache-method)
-        COMPREPLY=( $(compgen -W "file  files  apc  memcached  memcache  redis" -- ${cur}) )
-        ;;
-
-      -S|--set-session-storage)
-        COMPREPLY=( $(compgen -W "files  file  db  memcache  memcached  redis" -- ${cur}) )
-        ;;
-
-      -f|--format)
-        COMPREPLY=( $(compgen -W "csv  table" -- ${cur}) )
-        ;;
-
-
-      *)
         ;;
     esac
   else
