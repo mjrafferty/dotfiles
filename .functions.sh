@@ -24,8 +24,11 @@ cdd () {
   declare -a docroot;
 
   # Obtain input string
-  query=$1;
-
+  if [ -n "$1" ]; then
+    query=$1;
+  else
+    query="$(pwd | sed -e 's_.*home/[^/]*/\([^/]*\)/html.*_\1_' -e 's_.*home/[^/]*/var/\([^/]*\)/.*_\1_')";
+  fi
   # Gather relevant domain information
   domains=$(grep -EH "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_* \
     | sed -r 's/.*vhost_(.*).conf.* ('"$query"'[^ ]*).*/\1\t\2/' \
@@ -81,8 +84,11 @@ cdlogs () {
   local query vhosts logsdir selection;
   declare -a logsdir;
 
-  # Obtain input string
-  query=$1;
+  if [ -n "$1" ]; then
+    query=$1;
+  else
+    query="$(pwd | sed -e 's_.*home/[^/]*/\([^/]*\)/html.*_\1_' -e 's_.*home/[^/]*/var/\([^/]*\)/.*_\1_')";
+  fi
 
   # Gather relevant domain information
   vhosts=($(grep -El "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*));
