@@ -4,20 +4,23 @@
 
 if [[ "$*" =~ -h ]]; then
 
-  echo -e "\n  Usage: xkcd [-l <length>] [-v]\n";
+  echo -e "\n  Usage: xkcd [-l <length>]\n";
   exit 0;
 
 fi
 
 
-if [[ "$*" =~ -v ]]; then
+if [ -f /usr/local/interworx/lib/dict/words ]; then
+
+  wordList='/usr/local/interworx/lib/dict/words';
+
+elif [ -f /usr/share/dict/words ]; then
 
   wordList='/usr/share/dict/words';
 
 else
-
-  wordList='/usr/local/interworx/lib/dict/words';
-
+  echo "No word list found.";
+  exit 1;
 fi
 
 

@@ -1,27 +1,27 @@
 #! /bin/bash
 
 ## Send a file to an email address
-if [[ $@ == '-h' || $@ == '--help' || -z $@ ]]; then
+if [[ "$*" == '-h' || "$*" == '--help' || -z "$*" ]]; then
   echo -e "\n Usage: sendthis <filename> <subject> <emailaddr>\n";
   exit 0;
 fi
 if [[ -n $1 ]]; then
   FILE=$1;
 else
-  read -p "Filename: " FILE;
+  read -rp "Filename: " FILE;
 fi
 if [[ -n $2 ]]; then
   SUBJECT=$2;
 else
-  read -p "Subject: " SUBJECT;
+  read -rp "Subject: " SUBJECT;
 fi
 if [[ -n $3 ]]; then
   EMAIL=$3;
 else
-  read -p "Email: " EMAIL;
+  read -rp "Email: " EMAIL;
 fi
 if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
   echo "See Attached" | mail -s "$SUBJECT" -a "$FILE" "$EMAIL";
 else
-  cat "$FILE" | mail -s "$SUBJECT" "$EMAIL";
+  mail -s "$SUBJECT" "$EMAIL" < "$FILE";
 fi;
