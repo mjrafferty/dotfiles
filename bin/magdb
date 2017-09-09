@@ -301,6 +301,10 @@ case $opt in
 			username=$(echo "$param" | awk '{print $1}');
 			password=$(echo "$param" | awk '{print $2}');
 
+      if [ -z "$password" ]; then
+        password="$(xkcd)";
+      fi
+
 			_magdbconnect -e "UPDATE ${prefix}admin_user SET password = MD5(\"$password\") WHERE ${prefix}admin_user.username = \"$username\";"
 
 			echo -e "New Magento Login Credentials:\nUsername: $username\nPassword: $password"
