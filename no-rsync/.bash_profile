@@ -23,19 +23,19 @@ SSH_ENV="$HOME/.ssh/environment"
 
 start_agent () {
     echo "Initialising new SSH agent...";
-    /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}";
+    /usr/bin/ssh-agent -t 43200 | sed 's/^echo/#echo/' > "${SSH_ENV}";
     echo "succeeded";
     chmod 600 "${SSH_ENV}";
     source "${SSH_ENV}" > /dev/null;
-    /usr/bin/ssh-add;
+    /usr/bin/ssh-add ~/.ssh/nexmrafferty.id_rsa;
 }
 
 # Source SSH settings, if applicable
 if [ -f "${SSH_ENV}" ]; then
     source "${SSH_ENV}" > /dev/null;
-    ps -ef \
-			| grep ${SSH_AGENT_PID} \
-			| grep ssh-agent$ > /dev/null || start_agent;
+
+		# verify agent is running
+		ps -U $UID | grep ^$SSH_AGENT_PID > /dev/null || start_agent;
 else
     start_agent;
 fi
