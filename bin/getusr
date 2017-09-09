@@ -1,5 +1,4 @@
 #! /bin/bash
 
 pwd \
-  | sed 's:^/chroot::' \
-  | cut -d/ -f3;
+  | sed 's_.*home/\([^/]*\).*_\1_' \
