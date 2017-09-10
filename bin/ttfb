@@ -11,7 +11,7 @@ _timetofirstbyte () {
 }
 if [[ "$1" == "m" || "$1" == "mag" ]]; then
   if [[ -z "$2" ]]; then
-    read -p "Domain: " D;
+    read -rp "Domain: " D;
   else
     D="$2";
   fi;

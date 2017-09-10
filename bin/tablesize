@@ -5,6 +5,7 @@ if [[ -z $1 || $1 == '-h' || $1 = '--help' ]]; then
   echo -e "\n  Usage: tablesize [dbname] [option] [linecount]\n\n  Options:\n    -r ... Sort by most Rows\n    -d ... Sort by largest Data_Size\n    -i ... Sort by largest Index_Size\n";
   exit 0;
 fi
+
 if [[ $1 == '.' ]]; then
   dbname=$(finddb);
   shift;
@@ -12,8 +13,9 @@ elif [[ $1 =~ ^[a-z]{1,}_.*$ ]]; then
   dbname="$1";
   shift;
 else
-  read -p "Database: " dbname;
+  read -rp "Database: " dbname;
 fi
+
 case $1 in
   -r )
     col='4';
@@ -27,6 +29,7 @@ case $1 in
   * )
     col='6';;
 esac
+
 if [[ $1 =~ [0-9]{1,} ]]; then
   top="$1";
 else
@@ -34,6 +37,10 @@ else
 fi
 echo -e "\nDatabase: $dbname\n$(dashes 93)";
 printf "| %-50s | %8s | %11s | %11s |\n" "Name" "Rows" "Data_Size" "Index_Size";
-echo "$(dashes 93)";
-echo "show table status" | m $dbname | awk 'NR>1 {printf "| %-50s | %8s | %10.2fM | %10.2fM |\n",$1,$5,($7/1024000),($9/1024000)}' | sort -rnk$col | head -n$top
+dashes 93
+echo "show table status" \
+  | m "$dbname" \
+  | awk 'NR>1 {printf "| %-50s | %8s | %10.2fM | %10.2fM |\n",$1,$5,($7/1024000),($9/1024000)}' \
+  | sort -rnk$col \
+  | head -n$top;
 echo -e "$(dashes 93)\n"

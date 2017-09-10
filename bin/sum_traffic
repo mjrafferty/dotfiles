@@ -2,12 +2,11 @@
 
 ## Print hits per hour for all domains on the server (using current transfer.log's)
 echo;
-FMT=" %5s"
 
 ## Header
 printf "${BRIGHT} %9s" "User/Hour"
 for hour in $(seq -w 0 23); do
-  printf "$FMT" "$hour:00";
+  printf "%5s" "$hour:00";
 done
 printf "%8s %-s${NORMAL}\n" "Total" " Domain Name"
 
@@ -35,10 +34,10 @@ for logfile in /home/*/var/*/logs/transfer.log${DATE}; do
   else
     color='';
   fi
-  printf "${color} %9s" "$(echo $logfile | cut -d/ -f3)"
+  printf "${color} %9s" "$(echo "$logfile" | cut -d/ -f3)"
   for hour in $(seq -w 0 23); do
-    count=$($DECOMP -Ec "[0-9]{4}:$hour:" $logfile);
-    hourtotal[$i]=$((${hourtotal[$i]}+$count))
+    count=$($DECOMP -Ec "[0-9]{4}:$hour:" "$logfile");
+    hourtotal[$i]=$((${hourtotal[$i]}+"$count"))
 
     ## COLOR VERSION (HEAT MAP)
     if [[ $1 != '-n' && $1 != '--nocolor' ]]; then
@@ -54,15 +53,15 @@ for logfile in /home/*/var/*/logs/transfer.log${DATE}; do
     else
       color='';
     fi
-    printf "${color}$FMT${NORMAL}" "$count"
-    total=$((${total}+${count}));
-    i=$(($i+1))
+    printf "${color}%5s${NORMAL}" "$count"
+    total=$(("${total}"+"${count}"));
+    i=$(("$i"+1))
   done
-  grandtotal=$(($grandtotal+$total))
+  grandtotal=$(("$grandtotal"+"$total"))
 
   if [[ $1 != '-n' && $1 != '--nocolor' ]]; then ## Color version
-    printf "${CYAN}%8s ${PURPLE}%-s${NORMAL}\n" "$total" "$(echo $logfile | cut -d/ -f5)"
-  else printf "%8s %-s\n" "$total" "$(echo $logfile | cut -d/ -f5)";
+    printf "${CYAN}%8s ${PURPLE}%-s${NORMAL}\n" "$total" "$(echo "$logfile" | cut -d/ -f5)"
+  else printf "%8s %-s\n" "$total" "$(echo "$logfile" | cut -d/ -f5)";
   fi
 
 done
@@ -70,7 +69,7 @@ done
 ## Footer
 printf "${BRIGHT} %9s" "Total"
 for i in $(seq 0 23); do
-  printf "$FMT" "${hourtotal[$i]}";
+  printf "%5s" "${hourtotal[$i]}";
 done
 printf "%8s %-s${NORMAL}\n" "$grandtotal" "<< Grand Total"
 echo

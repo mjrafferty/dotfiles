@@ -46,7 +46,7 @@ if [[ $1 == '.' ]]; then
   DOMAIN=$(pwd | sed 's:^/chroot::' | cut -d/ -f4);
   shift;
 else
-  DOMAIN=$(echo $1 | sed 's:/$::');
+  DOMAIN="${1/\/$/}";
   shift;
 fi
 
@@ -58,7 +58,7 @@ VHOST="/etc/httpd/conf.d/vhost_${DOMAIN}.conf"
 if [[ $(hostname) =~ .*-lb ]]; then
   LOGFILE="/var/log/interworx/*/${DOMAIN}/logs/transfer.log";
 else
-  LOGFILE="$(awk '/CustomLog/ {print $2}' $VHOST | head -n1)${DATE}";
+  LOGFILE="$(awk '/CustomLog/ {print $2}' "$VHOST" | head -n1)${DATE}";
 fi
 
 SEARCH='';
@@ -100,66 +100,66 @@ echo
 case $opt in
 
   ua|useragent  )
-    $DECOMP "$SEARCH" $LOGFILE | awk -F\" '{freq[$6]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}'\
-      | sort -rn | head -n$TOP ;;
+    $DECOMP "$SEARCH" "$LOGFILE" | awk -F\" '{freq[$6]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}' \
+      | sort -rn | head -n"$TOP" ;;
 
   bot|robots  )
-    $DECOMP "$SEARCH" $LOGFILE | awk -F\" '($6 ~ /[Bb]ot|[Cc]rawler|[Ss]pider/) {freq[$6]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}'\
-      | sort -rn | head -n$TOP ;;
+    $DECOMP "$SEARCH" "$LOGFILE" | awk -F\" '($6 ~ /[Bb]ot|[Cc]rawler|[Ss]pider/) {freq[$6]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}' \
+      | sort -rn | head -n"$TOP" ;;
 
   scr|scripts )
-    $DECOMP "$SEARCH" $LOGFILE | awk -F\" '($6 ~ /^-?$/) {print $1}' | awk '{freq[$1]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}'\
-      | sort -rn | head -n$TOP ;;
+    $DECOMP "$SEARCH" "$LOGFILE" | awk -F\" '($6 ~ /^-?$/) {print $1}' | awk '{freq[$1]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}' \
+      | sort -rn | head -n"$TOP" ;;
 
 
   ip|ipaddress  )
-    $DECOMP "$SEARCH" $LOGFILE | awk '{freq[$1]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}'\
-      | sort -rn | head -n$TOP ;;
+    $DECOMP "$SEARCH" "$LOGFILE" | awk '{freq[$1]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}' \
+      | sort -rn | head -n"$TOP" ;;
 
 
   bw|bandwidth  )
-    $DECOMP "$SEARCH" $LOGFILE | awk '{tx[$1]+=$10} END {for (x in tx) {printf "   %-15s   %8s M\n",x,(tx[x]/1024000)}}'\
-      | sort -k 2n | tail -n$TOP | tac ;;
+    $DECOMP "$SEARCH" "$LOGFILE" | awk '{tx[$1]+=$10} END {for (x in tx) {printf "   %-15s   %8s M\n",x,(tx[x]/1024000)}}' \
+      | sort -k 2n | tail -n"$TOP" | tac ;;
 
   bwt|bwtotal     )
-    $DECOMP "$SEARCH" $LOGFILE | awk '{tx+=$10} END {print (tx/1024000)"M"}' ;;
+    $DECOMP "$SEARCH" "$LOGFILE" | awk '{tx+=$10} END {print (tx/1024000)"M"}' ;;
 
   sum|summary )
-    for x in $($DECOMP "$SEARCH" $LOGFILE | awk '{freq[$1]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}' | sort -rn | head -n$TOP | awk '{print $2}'); do
-      echo $x; $DECOMP "$SEARCH" $LOGFILE | grep $x | cut -d' ' -f9,12- | sort | uniq -c | sort -rn | head -n$TOP | tr -d \"; echo;
+    for x in $($DECOMP "$SEARCH" "$LOGFILE" | awk '{freq[$1]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}' | sort -rn | head -n"$TOP" | awk '{print $2}'); do
+      echo "$x"; $DECOMP "$SEARCH" "$LOGFILE" | grep "$x" | cut -d' ' -f9,12- | sort | uniq -c | sort -rn | head -n"$TOP" | tr -d \"; echo;
     done ;;
 
   s|search  )
-    $DECOMP "$SEARCH" $LOGFILE ;;
+    $DECOMP "$SEARCH" "$LOGFILE" ;;
 
   hr|hour   )
     for x in $(seq -w 0 23); do
-      echo -n "${x}:00 "; $DECOMP "$SEARCH" $LOGFILE | egrep -c "/[0-9]{4}:$x:";
+      echo -n "${x}:00 "; $DECOMP "$SEARCH" "$LOGFILE" | grep -Ec "/[0-9]{4}:$x:";
     done ;;
 
   gr|graph  )
     for x in $(seq -w 0 23); do
       echo -n "${x}:00";
-      count=$($DECOMP "$SEARCH" $LOGFILE | egrep -c "/[0-9]{4}:$x:");
-      printf "%7s |%s\n" "$count" "$(_trafficDash $(($count/500)))";
+      count=$($DECOMP "$SEARCH" "$LOGFILE" | grep -Ec "/[0-9]{4}:$x:");
+      printf "%7s |%s\n" "$count" "$(_trafficDash $(("$count"/500)))";
     done;;
 
   min|minute  )
-    $DECOMP "$SEARCH" $LOGFILE | awk '{print $4}' | awk -F: '{print $1" "$2":"$3}' | sort | uniq -c | tr -d \[ ;;
+    $DECOMP "$SEARCH" "$LOGFILE" | awk '{print $4}' | awk -F: '{print $1" "$2":"$3}' | sort | uniq -c | tr -d \[ ;;
 
   type|request  )
-    $DECOMP "$SEARCH" $LOGFILE | awk '{freq[$6]++} END {for (x in freq) {print x,freq[x]}}' | tr -d \" | sed 's/-/TIMEOUT/' | column -t ;;
+    $DECOMP "$SEARCH" "$LOGFILE" | awk '{freq[$6]++} END {for (x in freq) {print x,freq[x]}}' | tr -d \" | sed 's/-/TIMEOUT/' | column -t ;;
 
   url|file  )
-    $DECOMP "$SEARCH" $LOGFILE | awk '{freq[$7]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}'\
-      | sort -rn | head -n$TOP ;;
+    $DECOMP "$SEARCH" "$LOGFILE" | awk '{freq[$7]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}' \
+      | sort -rn | head -n"$TOP" ;;
 
   ref|referrer  )
-    $DECOMP "$SEARCH" $LOGFILE | awk '{freq[$11]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}'\
-      | tr -d \" | sort -rn | head -n$TOP ;;
+    $DECOMP "$SEARCH" "$LOGFILE" | awk '{freq[$11]++} END {for (x in freq) {printf "%8s %s\n",freq[x],x}}' \
+      | tr -d \" | sort -rn | head -n"$TOP" ;;
 
   code|response )
-    $DECOMP "$SEARCH" $LOGFILE | awk '{print $4":"$9}' | awk -F: '{print $1,$5}' | sort | uniq -c | tr -d \[ ;;
+    $DECOMP "$SEARCH" "$LOGFILE" | awk '{print $4":"$9}' | awk -F: '{print $1,$5}' | sort | uniq -c | tr -d \[ ;;
 
   -h|--help|*)
     _trafficUsage ;;

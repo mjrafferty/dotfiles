@@ -16,7 +16,7 @@ case "$1" in
     log='/var/log/imap4/current'     ;;
   'imap4-ssl' )
     log='/var/log/imap4-ssl/current' ;;
-  *[0-9]*     ) log="$(find /var/log/{send,smtp,smtp2,pop3,pop3-ssl,imap4,imap4-ssl}/ -name '*$1*' -type f | head -1)" ;;
+  *[0-9]*     ) log="$(find /var/log/{send,smtp,smtp2,pop3,pop3-ssl,imap4,imap4-ssl}/ -name "*$1*" -type f | head -1)" ;;
 esac
 echo "$log"
 /usr/bin/tai64nlocal < "$log" | $PAGER
