@@ -41,6 +41,7 @@ _nkwordpress() {
         ;;
 
       "copy")
+        _arguments \
         '(-N --new-database-name)'{-N,--new-database-name}'[Name of the new database]' \
           '(-U --new-database-user)'{-U,--new-database-user}'[Name of the new database user]' \
           '(-P --new-database-pass)'{-P,--new-database-pass}'[Pass for the new database user]' \
