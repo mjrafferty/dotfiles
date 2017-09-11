@@ -1,0 +1,33 @@
+#compdef nkfirewall
+
+_nkfirewall() {
+  local curcontext="$curcontext" state
+  local -a mainopts
+
+  mainopts=(
+  'rule:Modify a firewall rule'
+  )
+  _arguments -C \
+    '1: :->command'\
+    '*: :->args'
+
+  if [[ "$state" == "args" ]]; then
+    case "${words[2]}" in
+      "rule")
+        _arguments \
+        '(-p --port)'{-p,--port}'[Destination port, specify range with dash (ex: 456-567)]' \
+        '(-P --protocol)'{-P,--protocol}'[Connection protocol (default: tcp) Default value: tcp]:Protocol:(tcp udp)' \
+        '(-d --direction)'{-d,--direction}'[Initial connection direction (default: in) Default value: in]:Direction:(in out)' \
+        '(-c --comment)'{-c,--comment}'[Add a comment to the rule]' \
+        '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes at prompts]' \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "*")
+        ;;
+    esac
+  else
+    _describe -t commands " Sub commands " mainopts
+  fi
+}
+compdef _nkfirewall nkfirewall

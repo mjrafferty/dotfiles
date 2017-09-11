@@ -1,0 +1,83 @@
+#compdef nkmagento2
+
+_nkvbulletin() {
+  subcommands="install"
+
+      install)
+        --admin-pass
+        --admin-user
+        -T --title
+        -a --auto-create-database
+        -D --only-database
+        -b --base-url
+        --database-host
+        -N --database-name
+        --database-pass
+        -U --database-user
+        --database-port
+        -y --assume-yes
+        ;;
+}
+_nkmagento2() {
+  local curcontext="$curcontext" state
+  local -a mainopts
+
+  mainopts=(
+  'info: Show Informatin '
+  'install: Install Magento'
+  'repair: Repair/modify installation'
+  )
+  _arguments -C \
+    '1: :->command'\
+    '*: :->args'
+
+  if [[ "$state" == "args" ]]; then
+    case "${words[2]}" in
+      "info")
+        _arguments \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "install")
+        _arguments \
+        '(-E --enterprise)'{-E,--enterprise}'[Enterprise edition]' \
+        '(-l --admin-location)'{-l,--admin-location}'[Admin location]' \
+        '--admin-pass[Admin password]' \
+        '--admin-user[Admin user]' \
+        '--admin-email[Admin email]' \
+        '(-a --auto-create-database)'{-a,--auto-create-database}'[Create database]' \
+        '(-D --only-database)'{-D,--only-database}'[Database only]' \
+        '(-p --package)'{-p,--package}'[Package/version]' \
+        '(-b --base-url)'{-b,--base-url}'[Set base URL]' \
+        '(-s --secure-base-url)'{-s,--secure-base-url}'[Set secure base URL]' \
+        '--database-host[Database host]' \
+        '(-N --database-name)'{-N,--database-name}'[Database name]' \
+        '--database-pass[Database password]' \
+        '(-U --database-user)'{-U,--database-user}'[Database username]' \
+        '--database-port[Database port]' \
+        '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes]' \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "repair")
+        _arguments \
+        '(-p --set-permissions)'{-p,--set-permissions}'[Set permissions]' \
+        '(-o --set-ownership)'{-o,--set-ownership}'[Set ownership]' \
+        '(-b --base-url)'{-b,--base-url}'[Set base URL]' \
+        '(-B --secure-base-url)'{-B,--secure-base-url}'[Set sercure base URL]' \
+        '(-f --fix-file)'{-f,--fix-file}'[Fix file]' \
+        '(-c --clear-cache)'{-c,--clear-cache}'[Clear cache]' \
+        '--clear-sessions[Clear sessions]' \
+        '(-C --set-cache-method)'{-C,--set-cache-method}'[Set cache storage method]:Cache Storage Method:(file files redis)' \
+        '(-S --set-session-storage)'{-S,--set-session-storage}'[Set session storage method]:Set session storage method:(file files memcache memcached)' \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "*")
+        ;;
+    esac
+  else
+    _describe -t commands " Sub commands " mainopts
+  fi
+}
+compdef _nkmagento2 nkmagento2

@@ -1,0 +1,34 @@
+#compdef nkdell
+
+_nkdell() {
+  local curcontext="$curcontext" state
+  local -a mainopts
+
+  mainopts=(
+  'pushHardwareProfile:Set the text of the front panel LCD'
+  'setText:Set the text of the front panel LCD'
+  )
+  _arguments -C \
+    '1: :->command'\
+    '*: :->args'
+
+  if [[ "$state" == "args" ]]; then
+    case "${words[2]}" in
+      "pushHardwareProfile")
+        _arguments \
+          '*:Dell Directory:_path_files'
+        ;;
+
+      "setText")
+        _arguments \
+          '*:Dell Directory:_path_files'
+        ;;
+
+      "*")
+        ;;
+    esac
+  else
+    _describe -t commands " Sub commands " mainopts
+  fi
+}
+compdef _nkdell nkdell
