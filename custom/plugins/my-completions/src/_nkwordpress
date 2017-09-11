@@ -5,10 +5,10 @@ _nkwordpress() {
   local -a mainopts
 
   mainopts=(
-  'info: Show Informatin '
-  'install: Install Wordpress'
-  'repair: Repair/modify installation'
-  'copy: Copy installation'
+  'info:Display info about a Wordpress instance'
+  'install:Install Wordpress'
+  'copy:Copy Wordpress'
+  'repair:Fixes for Wordpress'
   )
   _arguments -C \
     '1: :->command'\
@@ -18,47 +18,47 @@ _nkwordpress() {
     case "${words[2]}" in
       "info")
         _arguments \
-          '*:Wordpress Directory:_path_files -/'
+          '*:Path to the Wordpress instance:_path_files -/'
         ;;
 
       "install")
         _arguments \
-          '--admin-password[Admin password]' \
-          '--admin-username[Admin username]' \
-          '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes]' \
-          '(-a --auto-create-database)'{-a,--auto-create-database}'[Create database]' \
-          '(-b --base-url)'{-b,--base-url}'[Set base URL]' \
-          '(-t --blog-title)'{-t,--blog-title}'[Blog title]' \
+          '--admin-password[Specify an initial password for the admin user]' \
+          '--admin-username[Specify the username for the default admin user]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes at all prompts]' \
+          '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
+          '(-b --base-url)'{-b,--base-url}'[Base URL to use for Wordpress]' \
+          '(-t --blog-title)'{-t,--blog-title}'[Initial title for the Wordpress instance]' \
           '--database-host[Database host]' \
           '(-N --database-name)'{-N,--database-name}'[Database name]' \
-          '(-p --package)'{-p,--package}'[Package/version to install]' \
+          '(-p --package)'{-p,--package}'[Wordpress version to install, defaults to "latest"]' \
           '(-P --database-pass)'{-P,--database-pass}'[Database password]' \
           '(-U --database-user)'{-U,--database-user}'[Database user]' \
-          '(-s --secure-admin)'{-s,--secure-admin}'[Secure admin]' \
-          '(-M --memcached)'{-M,--memcached}'[Use memcached]' \
-          '(-W --install-woocommerce)'{-W,--install-woocommerce}'[Install WooCommerce]' \
-          '*:Wordpress Directory:_path_files -/'
+          '(-s --secure-admin)'{-s,--secure-admin}'[Require SSL connections for the admin section]' \
+          '(-M --memcached)'{-M,--memcached}'[Use W3TC with Memcached for caching]' \
+          '(-W --install-woocommerce)'{-W,--install-woocommerce}'[Install the WooCommerce plugin]' \
+          '*:Path to install Wordpress to (must exist):_path_files -/'
+        ;;
+
+      "copy")
+        '(-N --new-database-name)'{-N,--new-database-name}'[Name of the new database]' \
+          '(-U --new-database-user)'{-U,--new-database-user}'[Name of the new database user]' \
+          '(-P --new-database-pass)'{-P,--new-database-pass}'[Pass for the new database user]' \
+          '(-b --new-base-url)'{-b,--new-base-url}'[Base URL for the new Wordpress]' \
+          '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume "YES" at prompts]' \
+          '*:Source Wordpress path Destination Wordpress path:_path_files -/'
         ;;
 
       "repair")
         _arguments \
-          '(-r --reset-password)'{-r,--reset-password}'[Reset password]' \
-          '(-o --set-ownership)'{-o,--set-ownership}'[Set ownership]' \
-          '(-p --set-permissions)'{-p,--set-permissions}'[Set permissions]' \
-          '(-b --set-base-url)'{-b,--set-base-url}'[Set base URL]' \
-          '--set-home-url[Set home URL]' \
-          '--set-site-url[Set site URL]' \
-          '*:Wordpress Directory:_path_files -/'
-        ;;
-
-      "copy")
-        '(-N --new-database-name)'{-N,--new-database-name}'[New database name]' \
-          '(-U --new-database-user)'{-U,--new-database-user}'[New database username]' \
-          '(-P --new-database-pass)'{-P,--new-database-pass}'[New database password]' \
-          '(-b --new-base-url)'{-b,--new-base-url}'[New base URL]' \
-          '(-a --auto-create-database)'{-a,--auto-create-database}'[Create new database]' \
-          '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes]' \
-          '*:Wordpress Directory:_path_files -/'
+          '(-r --reset-password)'{-r,--reset-password}'[Set the password of a user]' \
+          '(-o --set-ownership)'{-o,--set-ownership}'[Correct the file and directory ownership]' \
+          '(-p --set-permissions)'{-p,--set-permissions}'[Correct the file and directory permissions]' \
+          '(-b --set-base-url)'{-b,--set-base-url}'[Set the Wordpress site and home URLs]' \
+          '--set-home-url[Set the Wordpress home (frontend) URL]' \
+          '--set-site-url[Set the Wordpress site (backend) URL]' \
+          '*:Path to the Wordpress instance:_path_files -/'
         ;;
 
       "*")
