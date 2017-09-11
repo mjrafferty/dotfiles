@@ -226,7 +226,7 @@ ipsbymb () {
 uabymb () {
   zless -f "$@" \
     | cut -d\  -f10- \
-    | grep -v ^- \
+    | grep -v "^-" \
     | sed 's_^\([0-9]*\).*" "\(.*\)"$_\1\t\2_' \
     | awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
     | sort -hr \
@@ -237,7 +237,7 @@ uabymb () {
 refbymb () {
   zless -f "$@" \
     | cut -d\  -f10,11 \
-    | grep -v ^- \
+    | grep -v "^-" \
     | awk '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
     | sort -hr \
     | head -n 20;
@@ -490,7 +490,7 @@ sysusage () {
   printf "%-10s %10s %10s %10s %10s\n" "User" "Mem (MB)" "Process" "CPU(%)" "MEM(%)";
   dashes 54;
   ps aux \
-    | grep -v ^USER \
+    | grep -v "^USER" \
     | awk '{ mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' \
     | sort -nrk$colsort \
     | head;
