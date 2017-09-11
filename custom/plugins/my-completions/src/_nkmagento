@@ -5,14 +5,14 @@ _nkmagento() {
   local -a mainopts
 
   mainopts=(
-  'info: Show Informatin '
-  'install: Install Magento'
-  'repair: Repair/modify installation'
-  'copy: Copy this site to a new one'
-  'link: Create multistore symlinks'
-  'dbrepair: Repair database'
-  'backup: Backup this installation'
-  'crondump: Show cron info'
+  'info:Display info about a Magento site'
+  'install:Install Magento'
+  'repair:Repair Magento'
+  'copy:Copy Magento'
+  'link:Create a Magento storefront'
+  'dbrepair:Run the Magento DB Repair tool'
+  'backup:Create a Magento backup'
+  'crondump:Dump the Magento internal cron status'
   );
 
   _arguments -C \
@@ -23,15 +23,15 @@ _nkmagento() {
     case "${words[2]}" in
       "info")
         _arguments \
-          '*:Magento Directory:_path_files -/'
+          '*:Path to the Magento site:_path_files -/'
         ;;
 
       "install")
         _arguments \
-          '(-E --enterprise)'{-E,--enterprise}'[Enterprise edition]' \
-          '(-l --admin-location)'{-l,--admin-location}'[Admin location]' \
-          '--admin-pass[Admin pass]' \
-          '--admin-user[Admin user]' \
+          '(-E --enterprise)'{-E,--enterprise}'[Install Magento EE]' \
+          '(-l --admin-location)'{-l,--admin-location}'[Install Magento EE]' \
+          '--admin-pass[Specify the Magento admin password (default: randomly generated password)]' \
+          '--admin-user[Specify the Magento admin username (default: admin)]' \
           '--admin-email[Admin email]' \
           '(-a --auto-create-database)'{-a,--auto-create-database}'[Auto create database]' \
           '(-D --only-database)'{-D,--only-database}'[Only create database]' \
