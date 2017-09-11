@@ -1,42 +1,15 @@
-#compdef nkmagento2
+#compdef nkredis
 
 _nkredis() {
-  subcommands="create modify remove list info"
-
-      create)
-        -i --ip-address
-        -p --port
-        -s --socket
-        -u --username
-        -I --instance-id
-        ;;
-
-      modify)
-        -i --ip-address
-        -p --port
-        -s --socket
-        -m --mem-limit
-        -S --no-restart
-        ;;
-
-      remove)
-        ;;
-
-      list)
-        -p --parsable
-        ;;
-
-      info)
-        ;;
-}
-_nkmagento2() {
   local curcontext="$curcontext" state
   local -a mainopts
 
   mainopts=(
-  'info: Show Informatin '
-  'install: Install Magento'
-  'repair: Repair/modify installation'
+  'create:Create a new redis-multi instance.'
+  'modify:Modify an existing redis-multi instance'
+  'remove:Remove a redis-multi instance'
+  'list:List existing redis-multi instances'
+  'info:Display info about a particular redis-multi instance'
   )
   _arguments -C \
     '1: :->command'\
@@ -44,43 +17,39 @@ _nkmagento2() {
 
   if [[ "$state" == "args" ]]; then
     case "${words[2]}" in
+      "create")
+        _arguments \
+          '(-i --ip-address)'{-i,--ip-address}'[IP  address  to  listen  on  for  TCP connections (default: 127.0.0.1) Default value: 127.0.0.1]' \
+          '(-p --port)'{-p,--port}'[Port to listen on for TCP connections (default: 6379) Default value: 6379]' \
+          '(-s --socket)'{-s,--socket}'[Listen on a UNIX socket, overrides TCP options]' \
+          '(-u --username)'{-u,--username}'[User to run instance as (default: redis) Default value: redis]' \
+          '(-I --instance-id)'{-I,--instance-id}'[Unique string identifying this redis instance]' \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "modify")
+        _arguments \
+          '(-i --ip-address)'{-i,--ip-address}'[(non-public) IP address to listen on for TCP connections]' \
+          '(-p --port)'{-p,--port}'[Port to listen on for TCP connections]' \
+          '(-s --socket)'{-s,--socket}'[Listen on a UNIX socket, overrides TCP options]' \
+          '(-m --mem-limit)'{-m,--mem-limit}'[Max memory for instance to use (in MB)]' \
+          '(-S --no-restart)'{-S,--no-restart}'[Don’t automatically restart the instance after making changes]' \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "remove")
+        _arguments \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "list")
+        _arguments \
+          '(-p --parsable)'{-p,--parsable}'[Display output in a format more suitable for scripting]' \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
       "info")
         _arguments \
-          '*:Magento Directory:_path_files -/'
-        ;;
-
-      "install")
-        _arguments \
-        '(-E --enterprise)'{-E,--enterprise}'[Enterprise edition]' \
-        '(-l --admin-location)'{-l,--admin-location}'[Admin location]' \
-        '--admin-pass[Admin password]' \
-        '--admin-user[Admin user]' \
-        '--admin-email[Admin email]' \
-        '(-a --auto-create-database)'{-a,--auto-create-database}'[Create database]' \
-        '(-D --only-database)'{-D,--only-database}'[Database only]' \
-        '(-p --package)'{-p,--package}'[Package/version]' \
-        '(-b --base-url)'{-b,--base-url}'[Set base URL]' \
-        '(-s --secure-base-url)'{-s,--secure-base-url}'[Set secure base URL]' \
-        '--database-host[Database host]' \
-        '(-N --database-name)'{-N,--database-name}'[Database name]' \
-        '--database-pass[Database password]' \
-        '(-U --database-user)'{-U,--database-user}'[Database username]' \
-        '--database-port[Database port]' \
-        '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes]' \
-          '*:Magento Directory:_path_files -/'
-        ;;
-
-      "repair")
-        _arguments \
-        '(-p --set-permissions)'{-p,--set-permissions}'[Set permissions]' \
-        '(-o --set-ownership)'{-o,--set-ownership}'[Set ownership]' \
-        '(-b --base-url)'{-b,--base-url}'[Set base URL]' \
-        '(-B --secure-base-url)'{-B,--secure-base-url}'[Set sercure base URL]' \
-        '(-f --fix-file)'{-f,--fix-file}'[Fix file]' \
-        '(-c --clear-cache)'{-c,--clear-cache}'[Clear cache]' \
-        '--clear-sessions[Clear sessions]' \
-        '(-C --set-cache-method)'{-C,--set-cache-method}'[Set cache storage method]:Cache Storage Method:(file files redis)' \
-        '(-S --set-session-storage)'{-S,--set-session-storage}'[Set session storage method]:Set session storage method:(file files memcache memcached)' \
           '*:Magento Directory:_path_files -/'
         ;;
 
@@ -91,4 +60,4 @@ _nkmagento2() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
-compdef _nkmagento2 nkmagento2
+compdef _nkredis nkredis

@@ -23,41 +23,41 @@ _nkwordpress() {
 
       "install")
         _arguments \
-        '--admin-password[Admin password]' \
-        '--admin-username[Admin username]' \
-        '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes]' \
-        '(-a --auto-create-database)'{-a,--auto-create-database}'[Create database]' \
-        '(-b --base-url)'{-b,--base-url}'[Set base URL]' \
-        '(-t --blog-title)'{-t,--blog-title}'[Blog title]' \
-        '--database-host[Database host]' \
-        '(-N --database-name)'{-N,--database-name}'[Database name]' \
-        '(-p --package)'{-p,--package}'[Package/version to install]' \
-        '(-P --database-pass)'{-P,--database-pass}'[Database password]' \
-        '(-U --database-user)'{-U,--database-user}'[Database user]' \
-        '(-s --secure-admin)'{-s,--secure-admin}'[Secure admin]' \
-        '(-M --memcached)'{-M,--memcached}'[Use memcached]' \
-        '(-W --install-woocommerce)'{-W,--install-woocommerce}'[Install WooCommerce]' \
+          '--admin-password[Admin password]' \
+          '--admin-username[Admin username]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes]' \
+          '(-a --auto-create-database)'{-a,--auto-create-database}'[Create database]' \
+          '(-b --base-url)'{-b,--base-url}'[Set base URL]' \
+          '(-t --blog-title)'{-t,--blog-title}'[Blog title]' \
+          '--database-host[Database host]' \
+          '(-N --database-name)'{-N,--database-name}'[Database name]' \
+          '(-p --package)'{-p,--package}'[Package/version to install]' \
+          '(-P --database-pass)'{-P,--database-pass}'[Database password]' \
+          '(-U --database-user)'{-U,--database-user}'[Database user]' \
+          '(-s --secure-admin)'{-s,--secure-admin}'[Secure admin]' \
+          '(-M --memcached)'{-M,--memcached}'[Use memcached]' \
+          '(-W --install-woocommerce)'{-W,--install-woocommerce}'[Install WooCommerce]' \
           '*:Wordpress Directory:_path_files -/'
         ;;
 
       "repair")
         _arguments \
-        '(-r --reset-password)'{-r,--reset-password}'[Reset password]' \
-        '(-o --set-ownership)'{-o,--set-ownership}'[Set ownership]' \
-        '(-p --set-permissions)'{-p,--set-permissions}'[Set permissions]' \
-        '(-b --set-base-url)'{-b,--set-base-url}'[Set base URL]' \
-        '--set-home-url[Set home URL]' \
-        '--set-site-url[Set site URL]' \
+          '(-r --reset-password)'{-r,--reset-password}'[Reset password]' \
+          '(-o --set-ownership)'{-o,--set-ownership}'[Set ownership]' \
+          '(-p --set-permissions)'{-p,--set-permissions}'[Set permissions]' \
+          '(-b --set-base-url)'{-b,--set-base-url}'[Set base URL]' \
+          '--set-home-url[Set home URL]' \
+          '--set-site-url[Set site URL]' \
           '*:Wordpress Directory:_path_files -/'
         ;;
 
       "copy")
         '(-N --new-database-name)'{-N,--new-database-name}'[New database name]' \
-        '(-U --new-database-user)'{-U,--new-database-user}'[New database username]' \
-        '(-P --new-database-pass)'{-P,--new-database-pass}'[New database password]' \
-        '(-b --new-base-url)'{-b,--new-base-url}'[New base URL]' \
-        '(-a --auto-create-database)'{-a,--auto-create-database}'[Create new database]' \
-        '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes]' \
+          '(-U --new-database-user)'{-U,--new-database-user}'[New database username]' \
+          '(-P --new-database-pass)'{-P,--new-database-pass}'[New database password]' \
+          '(-b --new-base-url)'{-b,--new-base-url}'[New base URL]' \
+          '(-a --auto-create-database)'{-a,--auto-create-database}'[Create new database]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes]' \
           '*:Wordpress Directory:_path_files -/'
         ;;
 

@@ -18,9 +18,9 @@ _nkdrac() {
     case "${words[2]}" in
       "setUser")
         _arguments \
-        '(-u --username)'{-u,--username}'[Username to use (default: admin) Default value: admin]'
-        '(-p --password)'{-p,--password}'[Set the password for user (default: random)]'
-        '(-i --id)'{-i,--id}'[Specify the user ID to set (default: 2). Must be 2-16.  Default value: 2]'
+          '(-u --username)'{-u,--username}'[Username to use (default: admin) Default value: admin]' \
+          '(-p --password)'{-p,--password}'[Set the password for user (default: random)]' \
+          '(-i --id)'{-i,--id}'[Specify the user ID to set (default: 2). Must be 2-16.  Default value: 2]' \
           '*:Drac Directory:_path_files'
         ;;
 
@@ -31,14 +31,14 @@ _nkdrac() {
 
       "reset")
         _arguments \
-        '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes to prompts]'
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes to prompts]' \
           '*:Drac Directory:_path_files'
         ;;
 
       "update")
         _arguments \
-        '(-u --firmware-url)'{-u,--firmware-url}'[Use a specific firmware package instead of the latest]'
-        '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes to prompts]'
+          '(-u --firmware-url)'{-u,--firmware-url}'[Use a specific firmware package instead of the latest]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes to prompts]' \
           '*:Drac Directory:_path_files'
         ;;
 

@@ -1,33 +1,13 @@
-#compdef nkmagento2
+#compdef nkmysql
 
 _nkmysql() {
-  subcommands="import export copy"
-
-      import)
-        -z --compressed
-        -d --drop
-        -y --assume-yes
-        ;;
-
-      export)
-        -z --compressed
-        -d --drop
-        -y --assume-yes
-        ;;
-
-      copy)
-        -d --drop
-        -y --assume-yes
-        ;;
-}
-_nkmagento2() {
   local curcontext="$curcontext" state
   local -a mainopts
 
   mainopts=(
-  'info: Show Informatin '
-  'install: Install Magento'
-  'repair: Repair/modify installation'
+  'import:Import a database file'
+  'export:Export a database to a file'
+  'copy:Copy a database into another database'
   )
   _arguments -C \
     '1: :->command'\
@@ -35,43 +15,26 @@ _nkmagento2() {
 
   if [[ "$state" == "args" ]]; then
     case "${words[2]}" in
-      "info")
+      "import")
         _arguments \
+          '(-z --compressed)'{-z,--compressed}'[Specify that the source file is compresed]' \
+          '(-d --drop)'{-d,--drop}'[Drop the target database before importing]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume "YES" at prompts]' \
           '*:Magento Directory:_path_files -/'
         ;;
 
-      "install")
+      "export")
         _arguments \
-        '(-E --enterprise)'{-E,--enterprise}'[Enterprise edition]' \
-        '(-l --admin-location)'{-l,--admin-location}'[Admin location]' \
-        '--admin-pass[Admin password]' \
-        '--admin-user[Admin user]' \
-        '--admin-email[Admin email]' \
-        '(-a --auto-create-database)'{-a,--auto-create-database}'[Create database]' \
-        '(-D --only-database)'{-D,--only-database}'[Database only]' \
-        '(-p --package)'{-p,--package}'[Package/version]' \
-        '(-b --base-url)'{-b,--base-url}'[Set base URL]' \
-        '(-s --secure-base-url)'{-s,--secure-base-url}'[Set secure base URL]' \
-        '--database-host[Database host]' \
-        '(-N --database-name)'{-N,--database-name}'[Database name]' \
-        '--database-pass[Database password]' \
-        '(-U --database-user)'{-U,--database-user}'[Database username]' \
-        '--database-port[Database port]' \
-        '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes]' \
+          '(-z --compressed)'{-z,--compressed}'[Specify that the target file should be compressed]' \
+          '(-d --drop)'{-d,--drop}'[Drop the source database after successful export]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume "YES" at prompts]' \
           '*:Magento Directory:_path_files -/'
         ;;
 
-      "repair")
+      "copy")
         _arguments \
-        '(-p --set-permissions)'{-p,--set-permissions}'[Set permissions]' \
-        '(-o --set-ownership)'{-o,--set-ownership}'[Set ownership]' \
-        '(-b --base-url)'{-b,--base-url}'[Set base URL]' \
-        '(-B --secure-base-url)'{-B,--secure-base-url}'[Set sercure base URL]' \
-        '(-f --fix-file)'{-f,--fix-file}'[Fix file]' \
-        '(-c --clear-cache)'{-c,--clear-cache}'[Clear cache]' \
-        '--clear-sessions[Clear sessions]' \
-        '(-C --set-cache-method)'{-C,--set-cache-method}'[Set cache storage method]:Cache Storage Method:(file files redis)' \
-        '(-S --set-session-storage)'{-S,--set-session-storage}'[Set session storage method]:Set session storage method:(file files memcache memcached)' \
+          '(-d --drop)'{-d,--drop}'[Drop the destination database before importing]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume "YES" at prompts]' \
           '*:Magento Directory:_path_files -/'
         ;;
 
@@ -82,4 +45,4 @@ _nkmagento2() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
-compdef _nkmagento2 nkmagento2
+compdef _nkmysql nkmysql

@@ -1,31 +1,12 @@
-#compdef nkmagento2
+#compdef nksshd
 
 _nksshd() {
-  subcommands="userControl userInfo"
-
-      userControl)
-        --create
-        -r --reset-failures
-        -s --enable-ssh
-        -p --password
-        -a --auto
-        -S --shell
-        -R --root
-        -e --expiration
-        -i --allowed-ips
-        ;;
-
-      userInfo)
-        ;;
-}
-_nkmagento2() {
   local curcontext="$curcontext" state
   local -a mainopts
 
   mainopts=(
-  'info: Show Informatin '
-  'install: Install Magento'
-  'repair: Repair/modify installation'
+  'userControl:Create and modify users'
+  'userInfo:Display info about a user'
   )
   _arguments -C \
     '1: :->command'\
@@ -33,43 +14,22 @@ _nkmagento2() {
 
   if [[ "$state" == "args" ]]; then
     case "${words[2]}" in
-      "info")
+      "userControl")
         _arguments \
+          '--create[Create the user if it doesn’t exist]' \
+          '(-r --reset-failures)'{-r,--reset-failures}'[Reset the failed authentication count]' \
+          '(-s --enable-ssh)'{-s,--enable-ssh}'[Enable SSH access for the user]' \
+          '(-p --password)'{-p,--password}'[Set the password for the user, if no argument is given a password will be generated.]' \
+          '(-a --auto)'{-a,--auto}'[Equivalent to -r -p -s]' \
+          '(-S --shell)'{-S,--shell}'[Set the shell for the user]' \
+          '(-R --root)'{-R,--root}'[Grant the user superuser privileges (wheel membership)]' \
+          '(-e --expiration)'{-e,--expiration}'[Set the expiration for the user, in day offsets (+7 for a week, 0 to disable)]' \
+          '(-i --allowed-ips)'{-i,--allowed-ips}'[Comma-separated list of IPs to allow for SSH access]' \
           '*:Magento Directory:_path_files -/'
         ;;
 
-      "install")
+      "userInfo")
         _arguments \
-        '(-E --enterprise)'{-E,--enterprise}'[Enterprise edition]' \
-        '(-l --admin-location)'{-l,--admin-location}'[Admin location]' \
-        '--admin-pass[Admin password]' \
-        '--admin-user[Admin user]' \
-        '--admin-email[Admin email]' \
-        '(-a --auto-create-database)'{-a,--auto-create-database}'[Create database]' \
-        '(-D --only-database)'{-D,--only-database}'[Database only]' \
-        '(-p --package)'{-p,--package}'[Package/version]' \
-        '(-b --base-url)'{-b,--base-url}'[Set base URL]' \
-        '(-s --secure-base-url)'{-s,--secure-base-url}'[Set secure base URL]' \
-        '--database-host[Database host]' \
-        '(-N --database-name)'{-N,--database-name}'[Database name]' \
-        '--database-pass[Database password]' \
-        '(-U --database-user)'{-U,--database-user}'[Database username]' \
-        '--database-port[Database port]' \
-        '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes]' \
-          '*:Magento Directory:_path_files -/'
-        ;;
-
-      "repair")
-        _arguments \
-        '(-p --set-permissions)'{-p,--set-permissions}'[Set permissions]' \
-        '(-o --set-ownership)'{-o,--set-ownership}'[Set ownership]' \
-        '(-b --base-url)'{-b,--base-url}'[Set base URL]' \
-        '(-B --secure-base-url)'{-B,--secure-base-url}'[Set sercure base URL]' \
-        '(-f --fix-file)'{-f,--fix-file}'[Fix file]' \
-        '(-c --clear-cache)'{-c,--clear-cache}'[Clear cache]' \
-        '--clear-sessions[Clear sessions]' \
-        '(-C --set-cache-method)'{-C,--set-cache-method}'[Set cache storage method]:Cache Storage Method:(file files redis)' \
-        '(-S --set-session-storage)'{-S,--set-session-storage}'[Set session storage method]:Set session storage method:(file files memcache memcached)' \
           '*:Magento Directory:_path_files -/'
         ;;
 
@@ -80,4 +40,4 @@ _nkmagento2() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
-compdef _nkmagento2 nkmagento2
+compdef _nksshd nksshd

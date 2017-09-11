@@ -20,18 +20,18 @@ _nkcraft() {
 
       "install")
         _arguments \
-        '--admin-password[Specify an initial password for the admin user]' \
-        '--admin-username[Specify the username for the default admin user]' \
-        '(-e --admin-email)'{-e,--admin-email}'[Admin user’s email address]' \
-        '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes at all prompts]' \
-        '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user' \
-        '(-s --site-url)'{-s,--site-url}'[Site URL to use for CraftCMS]' \
-        '(-L --site-label)'{-L,--site-label}'[Initial title for the CraftCMS instance]' \
-        '(-p --package)'{-p,--package}'[CraftCMS version to install, defaults to "latest"]' \
-        '--database-host[Database host]' \
-        '(-N --database-name)'{-N,--database-name}'[Database name]' \
-        '--database-pass[Database password]' \
-        '(-U --database-user)'{-U,--database-user}'[Database user]' \
+          '--admin-password[Specify an initial password for the admin user]' \
+          '--admin-username[Specify the username for the default admin user]' \
+          '(-e --admin-email)'{-e,--admin-email}'[Admin user’s email address]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes at all prompts]' \
+          '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user' \
+          '(-s --site-url)'{-s,--site-url}'[Site URL to use for CraftCMS]' \
+          '(-L --site-label)'{-L,--site-label}'[Initial title for the CraftCMS instance]' \
+          '(-p --package)'{-p,--package}'[CraftCMS version to install, defaults to "latest"]' \
+          '--database-host[Database host]' \
+          '(-N --database-name)'{-N,--database-name}'[Database name]' \
+          '--database-pass[Database password]' \
+          '(-U --database-user)'{-U,--database-user}'[Database user]' \
           '*:Craft Directory:_path_files -/'
         ;;
 
