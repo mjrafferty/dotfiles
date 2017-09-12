@@ -32,7 +32,7 @@ _nkmagento() {
           '(-l --admin-location)'{-l,--admin-location}'[Backend URL token (default: username_admin)]:Backend URL token (default\: username_admin): ' \
           '--admin-pass[Specify the Magento admin password (default: randomly generated password)]:Specify the Magento admin password (default\: randomly generated password): ' \
           '--admin-user[Specify the Magento admin username (default: admin)]:Specify the Magento admin username (default\: admin): ' \
-          '--admin-email[Specify the Magento admin email address (default: email of sitworx user):Specify the Magento admin email address (default\: email of sitworx user): ' \
+          '--admin-email[Specify the Magento admin email address (default: email of sitworx user)]:Specify the Magento admin email address (default\: email of sitworx user): ' \
           '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
           '(-D --only-database)'{-D,--only-database}'[When used with -a, only the database is automatically created (not the user)]' \
           '(-p --package)'{-p,--package}'[URL, file path, or version number of Magento to install]:URL, file path, or version number of Magento to install: ' \
