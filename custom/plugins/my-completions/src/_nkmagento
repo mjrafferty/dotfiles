@@ -29,19 +29,19 @@ _nkmagento() {
       "install")
         _arguments \
           '(-E --enterprise)'{-E,--enterprise}'[Install Magento EE]' \
-          '(-l --admin-location)'{-l,--admin-location}'[Install Magento EE]' \
-          '--admin-pass[Specify the Magento admin password (default: randomly generated password)]' \
-          '--admin-user[Specify the Magento admin username (default: admin)]' \
-          '--admin-email[Specify the Magento admin email address (default: email of sitworx user)' \
+          '(-l --admin-location)'{-l,--admin-location}'[Install Magento EE]: ' \
+          '--admin-pass[Specify the Magento admin password (default: randomly generated password)]: ' \
+          '--admin-user[Specify the Magento admin username (default: admin)]: ' \
+          '--admin-email[Specify the Magento admin email address (default: email of sitworx user): ' \
           '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
           '(-D --only-database)'{-D,--only-database}'[When used with -a, only the database is automatically created (not the user)]' \
-          '(-p --package)'{-p,--package}'[URL, file path, or version number of Magento to install]' \
-          '(-b --base-url)'{-b,--base-url}'[Specify the Magento base URL (default: auto-detected)]' \
-          '(-s --secure-base-url)'{-s,--secure-base-url}'[Specify the Magento secure base URL]' \
+          '(-p --package)'{-p,--package}'[URL, file path, or version number of Magento to install]: ' \
+          '(-b --base-url)'{-b,--base-url}'[Specify the Magento base URL (default: auto-detected)]: ' \
+          '(-s --secure-base-url)'{-s,--secure-base-url}'[Specify the Magento secure base URL]: ' \
           '(-d --install-sample-data)'{-d,--install-sample-data}'[Install the Magento sample data]' \
-          '--database-host[Database host]' \
-          '(-N --database-name)'{-N,--database-name}'[Database name. Default value: magento]' \
-          '(-P --database-pass)'{-P,--database-pass}'[Database user password]' \
+          '--database-host[Database host]: ' \
+          '(-N --database-name)'{-N,--database-name}'[Database name. Default value: magento]: ' \
+          '(-P --database-pass)'{-P,--database-pass}'[Database user password]: ' \
           '(-U --database-user)'{-U,--database-user}'[Database username. Default value: magento]' \
           '--database-port[Database port. Default value: 3306]' \
           '(-m --use-memcache)'{-m,--user-memcache}'[Create and use private memcache instances (requires root)]' \
