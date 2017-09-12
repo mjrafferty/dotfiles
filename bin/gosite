@@ -11,7 +11,7 @@ _login () {
     if [[ $(stat -c '%a' ~/dotfiles/) -ne 700 ]]; then
       chmod 700 ~/dotfiles;
     fi;
-    rsync -q --chmod=o-rwx -rpt \
+    rsync -ql --force --chmod=o-rwx -rpt \
       --exclude '*history' \
       --exclude '.ssh' \
       --exclude 'clients' \
