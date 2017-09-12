@@ -57,10 +57,10 @@ _nkmagento() {
           '--clear-sessions[Clear the saved sessions]' \
           '(-C --set-cache-method)'{-C,--set-cache-method}'[Set the Magento caching method]:Cache Storage Method:(file files apc memcached memcache redis)' \
           '(-S --set-session-storage)'{-S,--set-session-storage}'[Set the session storage location]:Session Storage Method:(files file db memcache memcached redis)' \
-          '(-e --install-extension)'{-e,--install-extension}'[Install a Magento connect extension via key]' \
-          '(-b --set-base-url)'{-b,--set-base-url}'[Set Magento’s base URL]' \
-          '(-B --set-secure-base-url)'{-B,--set-secure-base-url}'[Set Magento’s secure base URL]' \
-          '(-r --reset-admin-pass)'{-r,--reset-admin-pass}'[Reset a Magento admin user’s password (default: "admin" user and random password)]' \
+          '(-e --install-extension)'{-e,--install-extension}'[Install a Magento connect extension via key]:Install a Magento connect extension via key: ' \
+          '(-b --set-base-url)'{-b,--set-base-url}'[Set Magento’s base URL]:Set Magento’s base URL: ' \
+          '(-B --set-secure-base-url)'{-B,--set-secure-base-url}'[Set Magento’s secure base URL]:Set Magento’s secure base URL: ' \
+          '(-r --reset-admin-pass)'{-r,--reset-admin-pass}'[Reset a Magento admin user’s password (default: "admin" user and random password)]:Admin username: :New password: ' \
           '(-i --reindex)'{-i,--reindex}'[Comma separated list of indexes to re-index or special word "all"]' \
           '--cdn-base-url[Base URL for the CDN (ex: http://cdn.example.com/), use "reset" to reset to default values (no CDN)]' \
           '--secure-cdn-base-url[Like --cdn-base-url but for secure CDN base URLs, use "reset" to reset to default values (no CDN)]' \
