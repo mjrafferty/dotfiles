@@ -5,6 +5,11 @@ _admin_users () {
     | sed -n 's/.*username: \(.*\)/\1/p';
 }
 
+_indexers () {
+  magdb -X info \
+    | grep -Eo "^[a-z,[:punct:]]*"
+}
+
 _nkmagento() {
   local curcontext="$curcontext" state
   local -a mainopts
@@ -66,13 +71,13 @@ _nkmagento() {
           '(-b --set-base-url)'{-b,--set-base-url}'[Set Magento’s base URL]:Set Magento’s base URL: ' \
           '(-B --set-secure-base-url)'{-B,--set-secure-base-url}'[Set Magento’s secure base URL]:Set Magento’s secure base URL: ' \
           '(-r --reset-admin-pass)'{-r,--reset-admin-pass}'[Reset a Magento admin user’s password (default: "admin" user and random password)]:Admin username:($(_admin_users)):New password: ' \
-          '(-i --reindex)'{-i,--reindex}'[Comma separated list of indexes to re-index or special word "all"]' \
-          '--cdn-base-url[Base URL for the CDN (ex: http://cdn.example.com/), use "reset" to reset to default values (no CDN)]' \
-          '--secure-cdn-base-url[Like --cdn-base-url but for secure CDN base URLs, use "reset" to reset to default values (no CDN)]' \
+          '(-i --reindex)'{-i,--reindex}'[Comma separated list of indexes to re-index or special word "all"]:Comma separated list of indexes to re-index or special word "all":($(_indexers))' \
+          '--cdn-base-url[Base URL for the CDN (ex: http://cdn.example.com/), use "reset" to reset to default values (no CDN)]:Base URL for the CDN (ex: http://cdn.example.com/), use "reset" to reset to default values (no CDN): ' \
+          '--secure-cdn-base-url[Like --cdn-base-url but for secure CDN base URLs, use "reset" to reset to default values (no CDN)]:Like --cdn-base-url but for secure CDN base URLs, use "reset" to reset to default values (no CDN): ' \
           '(-L --toggle-logging)'{-L,--toggle-logging}'[Toggle Magento’s internal logging function on or off]' \
-          '(-l --log-rotation)'{-l,--log-rotation}'[Set the number of days to keep Magento database logs]' \
+          '(-l --log-rotation)'{-l,--log-rotation}'[Set the number of days to keep Magento database logs]:Set the number of days to keep Magento database logs: ' \
           '--toggle-log-rotation[Toggle log rotation of Magento’s log files]' \
-          '(-R --set-return-path)'{-R,--set-return-path}'[Set the return-path email address for Magento emails]' \
+          '(-R --set-return-path)'{-R,--set-return-path}'[Set the return-path email address for Magento emails]:Set the return-path email address for Magento emails: ' \
           '--reset-db-pass[Reset the database user’s password to something random, update the local.xml, and clear the site cache]' \
           '*:Path to Magento:_path_files -/'
         ;;
