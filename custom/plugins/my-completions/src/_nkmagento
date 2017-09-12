@@ -81,13 +81,17 @@ _nkmagento() {
           '(-P --new-database-pass)'{-P,--new-database-pass}'[New database user password (default: src db pass)]' \
           '(-b --new-base-url)'{-b,--new-base-url}'[The base URL for the new copy (default: auto-detect)]' \
           '(-y --assume-yes)'{-y,--assume-yes}'[Assume "YES" at prompts]' \
-          '*:Source File Path:_path_files -/' \
-          '*:Destination File Path:_path_files -/'
+          ':Source File Path:_path_files -/' \
+          ':Source File Path:_path_files -/' \
+          ':Destination File Path:_path_files -/'
         ;;
 
       "link")
         _arguments \
-          '*:New Storefront Path | Existing Magento Path | New Storefront Store Code:_path_files -/'
+          ':New Storefront Path:_path_files -/'  \
+          ':New Storefront Path:_path_files -/'  \
+          ':Existing Magento Path:_path_files -/' \
+          ':New Storefront Store Code:_path_files -/'
         ;;
 
       "dbrepair")
