@@ -21,7 +21,7 @@ _nkdell() {
 
       "setText")
         _arguments \
-          '*:Dell Directory:_path_files'
+          '*:The text for the LCD:_path_files'
         ;;
 
       "*")

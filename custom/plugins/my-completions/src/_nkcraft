@@ -15,7 +15,7 @@ _nkcraft() {
     case "${words[2]}" in
       "info")
         _arguments \
-          '*:Craft Directory:_path_files -/'
+          '*:Path to the Craft CMS site:_path_files -/'
         ;;
 
       "install")
@@ -32,7 +32,7 @@ _nkcraft() {
           '(-N --database-name)'{-N,--database-name}'[Database name]' \
           '--database-pass[Database password]' \
           '(-U --database-user)'{-U,--database-user}'[Database user]' \
-          '*:Craft Directory:_path_files -/'
+          '*::Path to install CraftCMS to (must exist)_path_files -/'
         ;;
 
       "*")

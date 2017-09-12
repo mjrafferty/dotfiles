@@ -74,49 +74,49 @@ _nkmagento() {
 
       "copy")
         _arguments \
-          '(-x --exclude-dirs)'{-x,--exclude-dirs}'[]' \
-          '(-a --auto-create-database)'{-a,--auto-create-database}'[]' \
-          '(-N --new-database-name)'{-N,--new-database-name}'[]' \
-          '(-U --new-database-user)'{-U,--new-database-user}'[]' \
-          '(-P --new-database-pass)'{-P,--new-database-pass}'[]' \
-          '(-b --new-base-url)'{-b,--new-base-url}'[]' \
-          '(-y --assume-yes)'{-y,--assume-yes}'[]' \
-          '*::_path_files -/'
+          '(-x --exclude-dirs)'{-x,--exclude-dirs}'[Comma-separated list of directories (relative to source path) to exclude from the copy]' \
+          '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
+          '(-N --new-database-name)'{-N,--new-database-name}'[Name of the new database (default: src db name + _copy)]' \
+          '(-U --new-database-user)'{-U,--new-database-user}'[Name of the new database user (default: src db user)]' \
+          '(-P --new-database-pass)'{-P,--new-database-pass}'[New database user password (default: src db pass)]' \
+          '(-b --new-base-url)'{-b,--new-base-url}'[The base URL for the new copy (default: auto-detect)]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume "YES" at prompts]' \
+          '*:Source File Path:_path_files -/:Destination File Path:_path_files -/'
         ;;
 
       "link")
         _arguments \
-          '*::_path_files -/'
+          '*:New Storefront Path | Existing Magento Path | New Storefront Store Code:_path_files -/'
         ;;
 
       "dbrepair")
         _arguments \
-          '--setup-only[]' \
-          '(-b --backup)'{-b,--backup}'[]' \
-          '(-r --restore-on-error)'{-r,--restore-on-error}'[]' \
-          '(-y --assume-yes)'{-y,--assume-yes}'[]' \
-          '(-c --change-log)'{-c,--change-log}'[]' \
-          '*::_path_files -/'
+          '--setup-only[Only setup up the repair, don’t actually run it]' \
+          '(-b --backup)'{-b,--backup}'[Create a backup of the live database before running repair]' \
+          '(-r --restore-on-error)'{-r,--restore-on-error}'[Restore from backup on error during repair (implies -b)]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume "YES" at prompts]' \
+          '(-c --change-log)'{-c,--change-log}'[Store list of database changes made to this file]' \
+          '*:Path to the Magento site to repair:_path_files -/'
         ;;
 
       "backup")
         _arguments \
-          '(-o --output)'{-o,--output}'[]' \
-          '(-d --database-only)'{-d,--database-only}'[]' \
-          '(-f --files-only)'{-f,--files-only}'[]' \
-          '(-F --force)'{-f,--force}'[]' \
-          '*::_path_files -/'
+          '(-o --output)'{-o,--output}'[Name of the file for the backup output]' \
+          '(-d --database-only)'{-d,--database-only}'[Only backup the database (overrides -f)]' \
+          '(-f --files-only)'{-f,--files-only}'[Only backup the files]' \
+          '(-F --force)'{-f,--force}'[Overwrite the output file if it already exists]' \
+          '*:Path to the Magento site to repair:_path_files -/'
         ;;
 
       "crondump")
         _arguments \
-          "(-s --start-time)"{-s,--start-time}"[]" \
-          "(-e --end-time)"{-e,--end-time}"[]" \
-          "(-f --format)"{-f,--format}"[]:Format type:(csv table)" \
-          "(-d --delimiter)"{-d,--delimiter}"[]" \
-          "(-H --hide-header)"{-H,--hide-header}"[]" \
-          "(-R --repeat-header)"{-R,--repeat-header}"[]" \
-          '*::_path_files -/'
+          "(-s --start-time)"{-s,--start-time}"[Start start for the dump]" \
+          "(-e --end-time)"{-e,--end-time}"[End point for the dump]" \
+          "(-f --format)"{-f,--format}"[Output format Default value: table]:Format type:(csv table)" \
+          "(-d --delimiter)"{-d,--delimiter}"[Field delimiter for CSV output format Default value: ,]" \
+          "(-H --hide-header)"{-H,--hide-header}"[Hide the header at the top of csv and tsv formats and the column header  for  the  table format]" \
+          "(-R --repeat-header)"{-R,--repeat-header}"[Repeat the column header every X rows in table format (default: 0)]" \
+          '*:Path to the Magento site:_path_files -/'
         ;;
 
       "*")
