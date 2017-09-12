@@ -1,5 +1,10 @@
 #compdef nkmagento
 
+_admin_users () {
+  magdb -u 2> /dev/null \
+    | sed -n 's/.*username: \(.*\)/\1/p';
+}
+
 _nkmagento() {
   local curcontext="$curcontext" state
   local -a mainopts
@@ -60,7 +65,7 @@ _nkmagento() {
           '(-e --install-extension)'{-e,--install-extension}'[Install a Magento connect extension via key]:Install a Magento connect extension via key: ' \
           '(-b --set-base-url)'{-b,--set-base-url}'[Set Magento’s base URL]:Set Magento’s base URL: ' \
           '(-B --set-secure-base-url)'{-B,--set-secure-base-url}'[Set Magento’s secure base URL]:Set Magento’s secure base URL: ' \
-          '(-r --reset-admin-pass)'{-r,--reset-admin-pass}'[Reset a Magento admin user’s password (default: "admin" user and random password)]:Admin username:magdb -u 2> /dev/null | sed -n "s/.*username: \(.*\)/\1/p":New password: ' \
+          '(-r --reset-admin-pass)'{-r,--reset-admin-pass}'[Reset a Magento admin user’s password (default: "admin" user and random password)]:Admin username:($(_admin_users)):New password: ' \
           '(-i --reindex)'{-i,--reindex}'[Comma separated list of indexes to re-index or special word "all"]' \
           '--cdn-base-url[Base URL for the CDN (ex: http://cdn.example.com/), use "reset" to reset to default values (no CDN)]' \
           '--secure-cdn-base-url[Like --cdn-base-url but for secure CDN base URLs, use "reset" to reset to default values (no CDN)]' \
