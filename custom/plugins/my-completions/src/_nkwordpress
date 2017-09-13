@@ -6,6 +6,11 @@ _packages () {
     | sort -u
 }
 
+_admin_users () {
+  wpdb -u 2> /dev/null \
+    | sed -n 's/.*user_nicename: \(.*\)/\1/p';
+}
+
 _nkwordpress() {
   local curcontext="$curcontext" state
   local -a mainopts
@@ -38,8 +43,8 @@ _nkwordpress() {
           '--database-host[Database host]:Database host: ' \
           '(-N --database-name)'{-N,--database-name}'[Database name]:Database name: ' \
           '(-p --package)'{-p,--package}'[Wordpress version to install, defaults to "latest"]:Wordpress version to install, defaults to "latest":($(_packages) latest)' \
-          '(-P --database-pass)'{-P,--database-pass}'[Database password]' \
-          '(-U --database-user)'{-U,--database-user}'[Database user]' \
+          '(-P --database-pass)'{-P,--database-pass}'[Database password]:Database password: ' \
+          '(-U --database-user)'{-U,--database-user}'[Database user]:Database user: ' \
           '(-s --secure-admin)'{-s,--secure-admin}'[Require SSL connections for the admin section]' \
           '(-M --memcached)'{-M,--memcached}'[Use W3TC with Memcached for caching]' \
           '(-W --install-woocommerce)'{-W,--install-woocommerce}'[Install the WooCommerce plugin]' \
@@ -48,10 +53,10 @@ _nkwordpress() {
 
       "copy")
         _arguments \
-        '(-N --new-database-name)'{-N,--new-database-name}'[Name of the new database]' \
-          '(-U --new-database-user)'{-U,--new-database-user}'[Name of the new database user]' \
-          '(-P --new-database-pass)'{-P,--new-database-pass}'[Pass for the new database user]' \
-          '(-b --new-base-url)'{-b,--new-base-url}'[Base URL for the new Wordpress]' \
+          '(-N --new-database-name)'{-N,--new-database-name}'[Name of the new database]:Name of the new database: ' \
+          '(-U --new-database-user)'{-U,--new-database-user}'[Name of the new database user]:Name of the new database user: ' \
+          '(-P --new-database-pass)'{-P,--new-database-pass}'[Pass for the new database user]:Pass for the new database user: ' \
+          '(-b --new-base-url)'{-b,--new-base-url}'[Base URL for the new Wordpress]:Base URL for the new Wordpress: ' \
           '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
           '(-y --assume-yes)'{-y,--assume-yes}'[Assume "YES" at prompts]' \
           '*:Source Wordpress path Destination Wordpress path:_path_files -/'
@@ -59,7 +64,7 @@ _nkwordpress() {
 
       "repair")
         _arguments \
-          '(-r --reset-password)'{-r,--reset-password}'[Set the password of a user]' \
+          '(-r --reset-password)'{-r,--reset-password}'[Set the password of a user]:Admin user:($(_admin_users)):New password: ' \
           '(-o --set-ownership)'{-o,--set-ownership}'[Correct the file and directory ownership]' \
           '(-p --set-permissions)'{-p,--set-permissions}'[Correct the file and directory permissions]' \
           '(-b --set-base-url)'{-b,--set-base-url}'[Set the Wordpress site and home URLs]' \
