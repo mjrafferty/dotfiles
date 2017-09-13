@@ -125,12 +125,12 @@ _nkmagento() {
 
       "crondump")
         _arguments \
-          '(-s --start-time)"{-s,--start-time}"[Start time for the dump]:Start time for the dump: ' \
-          '(-e --end-time)"{-e,--end-time}"[End point for the dump]:End point for the dump: ' \
-          '(-f --format)"{-f,--format}"[Output format Default value: table]:Output format Default value\: table:(csv table)' \
-          '(-d --delimiter)"{-d,--delimiter}"[Field delimiter for CSV output format Default value: ,]:Field delimiter for CSV output format Default value\: ,: ' \
-          '(-H --hide-header)"{-H,--hide-header}"[Hide the header at the top of csv and tsv formats and the column header  for  the  table format]' \
-          '(-R --repeat-header)"{-R,--repeat-header}"[Repeat the column header every X rows in table format (default: 0)]:Repeat the column header every X rows in table format (default\: 0): ' \
+          '(-s --start-time)'{-s,--start-time}'[Start time for the dump]:Start time for the dump: ' \
+          '(-e --end-time)'{-e,--end-time}'[End point for the dump]:End point for the dump: ' \
+          '(-f --format)'{-f,--format}'[Output format Default value: table]:Output format Default value\: table:(csv table)' \
+          '(-d --delimiter)'{-d,--delimiter}'[Field delimiter for CSV output format Default value: ,]:Field delimiter for CSV output format Default value\: ,: ' \
+          '(-H --hide-header)'{-H,--hide-header}'[Hide the header at the top of csv and tsv formats and the column header  for  the  table format]' \
+          '(-R --repeat-header)'{-R,--repeat-header}'[Repeat the column header every X rows in table format (default: 0)]:Repeat the column header every X rows in table format (default\: 0): ' \
           '*:Path to the Magento site:_path_files -/'
         ;;
 
