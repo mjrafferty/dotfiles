@@ -11,7 +11,7 @@ _indexers () {
 }
 
 _packages () {
-  curl http://pubfiles.nexcess.net/magento/ce-packages/ \
+  curl http://pubfiles.nexcess.net/magento/ce-packages/ 2> /dev/null \
     | sed -n 's/.*magento-\(.*\).tar.gz.*/\1/p'
 }
 
