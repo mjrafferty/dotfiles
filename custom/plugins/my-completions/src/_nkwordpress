@@ -1,9 +1,8 @@
 #compdef nkwordpress
 
 _packages () {
-  curl https://wordpress.org/download/release-archive/ 2> /dev/null \
-    | grep -Eo "wordpress-[0-9,a-z,A-Z,.]*.tar.gz" \
-    | sed -n 's/.*wordpress-\(.*\).tar.gz/\1/p' \
+  curl --location --silent https://wordpress.org/download/release-archive/ \
+    | grep -Po '(?<=-)[\d+\.]+(?=\.tar\.gz)' \
     | sort -u
 }
 
