@@ -84,12 +84,12 @@ _nkmagento() {
 
       "copy")
         _arguments \
-          '(-x --exclude-dirs)'{-x,--exclude-dirs}'[Comma-separated list of directories (relative to source path) to exclude from the copy]' \
+          '(-x --exclude-dirs)'{-x,--exclude-dirs}'[Comma-separated list of directories (relative to source path) to exclude from the copy]:Comma-separated list of directories (relative to source path) to exclude from the copy: ' \
           '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
           '(-N --new-database-name)'{-N,--new-database-name}'[Name of the new database (default: src db name + _copy)]' \
-          '(-U --new-database-user)'{-U,--new-database-user}'[Name of the new database user (default: src db user)]' \
-          '(-P --new-database-pass)'{-P,--new-database-pass}'[New database user password (default: src db pass)]' \
-          '(-b --new-base-url)'{-b,--new-base-url}'[The base URL for the new copy (default: auto-detect)]' \
+          '(-U --new-database-user)'{-U,--new-database-user}'[Name of the new database user (default: src db user)]:Name of the new database user (default\: src db user): ' \
+          '(-P --new-database-pass)'{-P,--new-database-pass}'[New database user password (default: src db pass)]:New database user password (default\: src db pass): ' \
+          '(-b --new-base-url)'{-b,--new-base-url}'[The base URL for the new copy (default: auto-detect)]:The base URL for the new copy (default\: auto-detect): ' \
           '(-y --assume-yes)'{-y,--assume-yes}'[Assume "YES" at prompts]' \
           ':Source File Path:_path_files -/' \
           ':Source File Path:_path_files -/' \
@@ -110,13 +110,13 @@ _nkmagento() {
           '(-b --backup)'{-b,--backup}'[Create a backup of the live database before running repair]' \
           '(-r --restore-on-error)'{-r,--restore-on-error}'[Restore from backup on error during repair (implies -b)]' \
           '(-y --assume-yes)'{-y,--assume-yes}'[Assume "YES" at prompts]' \
-          '(-c --change-log)'{-c,--change-log}'[Store list of database changes made to this file]' \
+          '(-c --change-log)'{-c,--change-log}'[Store list of database changes made to this file]:Store list of database changes made to this file:_path_files' \
           '*:Path to the Magento site to repair:_path_files -/'
         ;;
 
       "backup")
         _arguments \
-          '(-o --output)'{-o,--output}'[Name of the file for the backup output]' \
+          '(-o --output)'{-o,--output}'[Name of the file for the backup output]:Name of the file for the backup output:_path_files' \
           '(-d --database-only)'{-d,--database-only}'[Only backup the database (overrides -f)]' \
           '(-f --files-only)'{-f,--files-only}'[Only backup the files]' \
           '(-F --force)'{-f,--force}'[Overwrite the output file if it already exists]' \
@@ -125,12 +125,12 @@ _nkmagento() {
 
       "crondump")
         _arguments \
-          "(-s --start-time)"{-s,--start-time}"[Start start for the dump]" \
-          "(-e --end-time)"{-e,--end-time}"[End point for the dump]" \
-          "(-f --format)"{-f,--format}"[Output format Default value: table]:Format type:(csv table)" \
-          "(-d --delimiter)"{-d,--delimiter}"[Field delimiter for CSV output format Default value: ,]" \
-          "(-H --hide-header)"{-H,--hide-header}"[Hide the header at the top of csv and tsv formats and the column header  for  the  table format]" \
-          "(-R --repeat-header)"{-R,--repeat-header}"[Repeat the column header every X rows in table format (default: 0)]" \
+          '(-s --start-time)"{-s,--start-time}"[Start time for the dump]:Start time for the dump: ' \
+          '(-e --end-time)"{-e,--end-time}"[End point for the dump]:End point for the dump: ' \
+          '(-f --format)"{-f,--format}"[Output format Default value: table]:Output format Default value\: table:(csv table)' \
+          '(-d --delimiter)"{-d,--delimiter}"[Field delimiter for CSV output format Default value: ,]:Field delimiter for CSV output format Default value\: ,: ' \
+          '(-H --hide-header)"{-H,--hide-header}"[Hide the header at the top of csv and tsv formats and the column header  for  the  table format]' \
+          '(-R --repeat-header)"{-R,--repeat-header}"[Repeat the column header every X rows in table format (default: 0)]:Repeat the column header every X rows in table format (default\: 0): ' \
           '*:Path to the Magento site:_path_files -/'
         ;;
 
