@@ -10,6 +10,11 @@ _indexers () {
     | grep -Eo "^[a-z,[:punct:]]*"
 }
 
+_packages () {
+  curl http://pubfiles.nexcess.net/magento/ce-packages/ \
+    | sed -n 's/.*magento-\(.*\).tar.gz.*/\1/p'
+}
+
 _nkmagento() {
   local curcontext="$curcontext" state
   local -a mainopts
@@ -45,7 +50,7 @@ _nkmagento() {
           '--admin-email[Specify the Magento admin email address (default: email of sitworx user)]:Specify the Magento admin email address (default\: email of sitworx user): ' \
           '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
           '(-D --only-database)'{-D,--only-database}'[When used with -a, only the database is automatically created (not the user)]' \
-          '(-p --package)'{-p,--package}'[URL, file path, or version number of Magento to install]:URL, file path, or version number of Magento to install: ' \
+          '(-p --package)'{-p,--package}'[URL, file path, or version number of Magento to install]:URL, file path, or version number of Magento to install:($(_packages))' \
           '(-b --base-url)'{-b,--base-url}'[Specify the Magento base URL (default: auto-detected)]:Specify the Magento base URL (default\: auto-detected): ' \
           '(-s --secure-base-url)'{-s,--secure-base-url}'[Specify the Magento secure base URL]:Specify the Magento secure base URL: ' \
           '(-d --install-sample-data)'{-d,--install-sample-data}'[Install the Magento sample data]' \
