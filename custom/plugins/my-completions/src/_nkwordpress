@@ -67,9 +67,9 @@ _nkwordpress() {
           '(-r --reset-password)'{-r,--reset-password}'[Set the password of a user]:Admin user:($(_admin_users)):New password: ' \
           '(-o --set-ownership)'{-o,--set-ownership}'[Correct the file and directory ownership]' \
           '(-p --set-permissions)'{-p,--set-permissions}'[Correct the file and directory permissions]' \
-          '(-b --set-base-url)'{-b,--set-base-url}'[Set the Wordpress site and home URLs]' \
-          '--set-home-url[Set the Wordpress home (frontend) URL]' \
-          '--set-site-url[Set the Wordpress site (backend) URL]' \
+          '(-b --set-base-url)'{-b,--set-base-url}'[Set the Wordpress site and home URLs]:Set the Wordpress site and home URLs: ' \
+          '--set-home-url[Set the Wordpress home (frontend) URL]:Set the Wordpress home (frontend) URL: ' \
+          '--set-site-url[Set the Wordpress site (backend) URL]:Set the Wordpress site (backend) URL: ' \
           '*:Path to the Wordpress instance:_path_files -/'
         ;;
 
