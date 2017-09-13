@@ -54,7 +54,7 @@ _nkmagento() {
           '(-P --database-pass)'{-P,--database-pass}'[Database password]:Database password: ' \
           '(-U --database-user)'{-U,--database-user}'[Database username. Default value: magento]:Database username. Default value\: magento: ' \
           '--database-port[Database port. Default value: 3306]: ' \
-          '(-m --use-memcache)'{-m,--user-memcache}'[Create and use private memcache instances (requires root)]' \
+          '(-m --use-memcache)'{-m,--use-memcache}'[Create and use private memcache instances (requires root)]' \
           '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes at prompts]' \
           '*:Path to install Magento to:_path_files -/'
         ;;
