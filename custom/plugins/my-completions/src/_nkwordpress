@@ -1,5 +1,12 @@
 #compdef nkwordpress
 
+_packages () {
+  curl https://wordpress.org/download/release-archive/ 2> /dev/null \
+    | grep -Eo "wordpress-[0-9,a-z,A-Z,.]*.tar.gz" \
+    | sed -n 's/.*wordpress-\(.*\).tar.gz/\1/p' \
+    | sort -u
+}
+
 _nkwordpress() {
   local curcontext="$curcontext" state
   local -a mainopts
@@ -23,15 +30,15 @@ _nkwordpress() {
 
       "install")
         _arguments \
-          '--admin-password[Specify an initial password for the admin user]' \
-          '--admin-username[Specify the username for the default admin user]' \
+          '--admin-password[Specify an initial password for the admin user]:Specify an initial password for the admin user: ' \
+          '--admin-username[Specify the username for the default admin user]:Specify the username for the default admin user: ' \
           '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes at all prompts]' \
           '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
-          '(-b --base-url)'{-b,--base-url}'[Base URL to use for Wordpress]' \
-          '(-t --blog-title)'{-t,--blog-title}'[Initial title for the Wordpress instance]' \
-          '--database-host[Database host]' \
-          '(-N --database-name)'{-N,--database-name}'[Database name]' \
-          '(-p --package)'{-p,--package}'[Wordpress version to install, defaults to "latest"]' \
+          '(-b --base-url)'{-b,--base-url}'[Base URL to use for Wordpress]:Base URL to use for Wordpress: ' \
+          '(-t --blog-title)'{-t,--blog-title}'[Initial title for the Wordpress instance]:Initial title for the Wordpress instance: ' \
+          '--database-host[Database host]:Database host: ' \
+          '(-N --database-name)'{-N,--database-name}'[Database name]:Database name: ' \
+          '(-p --package)'{-p,--package}'[Wordpress version to install, defaults to "latest"]:Wordpress version to install, defaults to "latest":($(_packages) latest)' \
           '(-P --database-pass)'{-P,--database-pass}'[Database password]' \
           '(-U --database-user)'{-U,--database-user}'[Database user]' \
           '(-s --secure-admin)'{-s,--secure-admin}'[Require SSL connections for the admin section]' \
