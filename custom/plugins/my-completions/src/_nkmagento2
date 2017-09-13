@@ -1,5 +1,10 @@
 #compdef nkmagento2
 
+_packages () {
+  curl http://pubfiles.nexcess.net/magento/ce-packages/ 2> /dev/null \
+    | sed -n 's/.*magento2-\(.*\).tar.gz.*/\1/p'
+}
+
 _nkmagento2() {
   local curcontext="$curcontext" state
   local -a mainopts
@@ -23,20 +28,20 @@ _nkmagento2() {
       "install")
         _arguments \
           '(-E --enterprise)'{-E,--enterprise}'[Install Magento EE]' \
-          '(-l --admin-location)'{-l,--admin-location}'[Backend URL token (default: username_admin)]' \
-          '--admin-pass[Specify the Magento 2 admin password (default: randomly generated password)]' \
-          '--admin-user[Specify the Magento 2 admin username (default: admin)]' \
-          '--admin-email[Specify the admin email address (default: email of siteworx user)]' \
+          '(-l --admin-location)'{-l,--admin-location}'[Backend URL token (default: username_admin)]:Backend URL token (default\: username_admin): ' \
+          '--admin-pass[Specify the Magento 2 admin password (default: randomly generated password)]:Specify the Magento 2 admin password (default\: randomly generated password): ' \
+          '--admin-user[Specify the Magento 2 admin username (default: admin)]:Specify the Magento 2 admin username (default\: admin): ' \
+          '--admin-email[Specify the admin email address (default: email of siteworx user)]:Specify the admin email address (default\: email of siteworx user): ' \
           '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
           '(-D --only-database)'{-D,--only-database}'[When used with -a, only the database is automatically created (not the user)]' \
-          '(-p --package)'{-p,--package}'[URL, file path, or version number of Magento 2 to install]' \
-          '(-b --base-url)'{-b,--base-url}'[Specify the Magento base URL (default: auto-detected)]' \
-          '(-s --secure-base-url)'{-s,--secure-base-url}'[Specify the Magento 2 secure base URL]' \
-          '--database-host[Database host]' \
-          '(-N --database-name)'{-N,--database-name}'[Database name. Default value: mage2]' \
-          '--database-pass[Database password]' \
-          '(-U --database-user)'{-U,--database-user}'[Database username. Default value: mage2]' \
-          '--database-port[Database port. Default value: 3306]' \
+          '(-p --package)'{-p,--package}'[URL, file path, or version number of Magento 2 to install]:URL, file path, or version number of Magento 2 to install:($(_packages))' \
+          '(-b --base-url)'{-b,--base-url}'[Specify the Magento base URL (default: auto-detected)]:Specify the Magento base URL (default\: auto-detected): ' \
+          '(-s --secure-base-url)'{-s,--secure-base-url}'[Specify the Magento 2 secure base URL]:Specify the Magento 2 secure base URL: ' \
+          '--database-host[Database host]:Database host: ' \
+          '(-N --database-name)'{-N,--database-name}'[Database name. Default value: mage2]:Database name. Default value\: mage2: ' \
+          '--database-pass[Database password]:Database password: ' \
+          '(-U --database-user)'{-U,--database-user}'[Database username. Default value: mage2]:Database username. Default value\: mage2: ' \
+          '--database-port[Database port. Default value: 3306]:Database port. Default value\: 3306: ' \
           '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes at prompts]' \
           '*:Path in which to install Magento 2:_path_files -/'
         ;;
@@ -45,8 +50,8 @@ _nkmagento2() {
         _arguments \
           '(-p --set-permissions)'{-p,--set-permissions}'[Set file and directory permissions]' \
           '(-o --set-ownership)'{-o,--set-ownership}'[Set file and directory ownership (requires root access)]' \
-          '(-b --base-url)'{-b,--base-url}'[Specify the Magento base URL]' \
-          '(-B --secure-base-url)'{-B,--secure-base-url}'[Specify the Magento 2 secure base URL]' \
+          '(-b --base-url)'{-b,--base-url}'[Specify the Magento base URL]:Specify the Magento base URL: ' \
+          '(-B --secure-base-url)'{-B,--secure-base-url}'[Specify the Magento 2 secure base URL]:Specify the Magento base URL: ' \
           '(-f --fix-file)'{-f,--fix-file}'[Set permissions inside Magento 2 code]' \
           '(-c --clear-cache)'{-c,--clear-cache}'[Clear pear, image, and web cache]' \
           '--clear-sessions[Clear the saved sessions]' \
