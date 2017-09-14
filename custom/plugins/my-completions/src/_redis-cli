@@ -141,3 +141,5 @@ if (( CURRENT == 1 )); then
   return
 fi
 }
+
+compdef _redis-cli redis-cli
