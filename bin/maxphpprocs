@@ -1,0 +1,20 @@
+#! /bin/bash
+
+phprocs=$(ps -eo args \
+  | awk '/^php-fpm: pool/ && $NF != "www"{  a[$NF] += 1 } END{for(i in a){ printf "%-10s %d\n",i,a[i] } }' \
+  | sort -k2nr);
+
+numprocs=($(echo "$phprocs" | awk '{print $1}'));
+users=($(echo "$phprocs" | awk '{print $2}'));
+
+for ((x=0;x<"$#{users[@]}";x++)); do
+
+  max=$(sed -n 's/pm.max_children = \([0-9]*\).*/\1/p' /opt/nexcess/php*/root/etc/php-fpm.d/"${users[$x]}".conf /etc/php-fpm.d/"${users[$x]}".conf);
+
+  if [ "${numprocs[$x]}" -ge "$max"  ]; then
+    echo "${users[$x]} at max children";
+  elif [ "${numprocs[$x]}" -ge "$(("$max" * .9 ))"  ]; then
+    echo "${users[$x]} near max children";
+  fi
+
+done
