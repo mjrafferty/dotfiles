@@ -1,20 +1,21 @@
 #! /bin/bash
 
 phprocs=$(ps -eo args \
-  | awk '/^php-fpm: pool/ && $NF != "www"{  a[$NF] += 1 } END{for(i in a){ printf "%-10s %d\n",i,a[i] } }' \
+  | awk '/^php-fpm: pool/ && $NF != "www"{  a[$NF] += 1 } END {for(i in a){ printf "%-10s %d\n",i,a[i] } }' \
   | sort -k2nr);
 
-numprocs=($(echo "$phprocs" | awk '{print $1}'));
-users=($(echo "$phprocs" | awk '{print $2}'));
+numprocs=($(echo "$phprocs" | awk '{print $2}'));
+users=($(echo "$phprocs" | awk '{print $1}'));
 
-for ((x=0;x<"$#{users[@]}";x++)); do
+for ((x=0;x<"${#users[@]}";x++)); do
 
-  max=$(sed -n 's/pm.max_children = \([0-9]*\).*/\1/p' /opt/nexcess/php*/root/etc/php-fpm.d/"${users[$x]}".conf /etc/php-fpm.d/"${users[$x]}".conf);
+  max="$(find {,/opt/nexcess/php*/root}/etc/php-fpm.d/*.conf -name "${users[$x]}.conf" -exec awk -F '=' '/^[^#;]*pm.max_children/{ gsub(/\ [^0-9]*$/,"",$2); gsub(/^\ */,"",$2); print $2  }' {} +)"
 
-  if [ "${numprocs[$x]}" -ge "$max"  ]; then
+  if [ "${numprocs[$x]}" -ge "$max" ]; then
     echo "${users[$x]} at max children";
-  elif [ "${numprocs[$x]}" -ge "$(("$max" * .9 ))"  ]; then
+  elif [ "${numprocs[$x]}" -ge "$((2*max/10))" ]; then
     echo "${users[$x]} near max children";
   fi
 
 done
+
