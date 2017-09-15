@@ -9,11 +9,13 @@ users=($(echo "$phprocs" | awk '{print $1}'));
 
 for ((x=0;x<"${#users[@]}";x++)); do
 
-  max="$(find {,/opt/nexcess/php*/root}/etc/php-fpm.d/*.conf -name "${users[$x]}.conf" -exec awk -F '=' '/^[^#;]*pm.max_children/{ gsub(/\ [^0-9]*$/,"",$2); gsub(/^\ */,"",$2); print $2  }' {} +)"
+  max="$(find {/opt/nexcess/php*/root,}/etc/php-fpm.d/*.conf -name "${users[$x]}.conf" \
+    -exec awk -F '=' '/^[^#;]*pm.max_children/{ gsub(/\ [^0-9]*$/,"",$2); gsub(/^\ */,"",$2); print $2  }' {} + \
+    | head -n1)"
 
   if [ "${numprocs[$x]}" -ge "$max" ]; then
     echo "${users[$x]} at max children";
-  elif [ "${numprocs[$x]}" -ge "$((2*max/10))" ]; then
+  elif [ "${numprocs[$x]}" -ge "$((9*max/10))" ]; then
     echo "${users[$x]} near max children";
   fi
 
