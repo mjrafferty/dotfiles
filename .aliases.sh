@@ -12,7 +12,7 @@ alias less='less -i -n -S -F'
 alias poweroff='systemctl poweroff'
 alias reboot='systemctl reboot'
 
-alias connections="lsof -n | grep -E 'httpd.*ESTABLISHED|httpd.*CLOSE_WAIT' | sed 's_.*:http.*->\(.*\):.*_\1_' | sort | uniq -c | sort -hr"
+alias connections="lsof -nu apache | grep -E 'httpd.*ESTABLISHED|httpd.*CLOSE_WAIT' | sed 's_.*:http.*->\(.*\):.*_\1_' | sort | uniq -c | sort -hr"
 
 alias mountro="mount -o ro,remount /usr && mount -o ro,remount /boot && mount -o ro,remount /"
 alias mountrw="mount -o rw,remount /usr; mount -o rw,remount /boot; mount -o rw,remount /"
