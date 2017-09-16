@@ -40,7 +40,10 @@ if [ -f ~/action.sh ]; then
   source ~/action.sh;
 fi
 
+# Server health check
+echo;
 maxphpprocs;
 maxclients;
 memcheck;
 loadavgchk;
+echo;
