@@ -39,3 +39,8 @@ fi
 if [ -f ~/action.sh ]; then
   source ~/action.sh;
 fi
+
+maxphpprocs;
+maxclients;
+memcheck;
+loadavgcheck;
