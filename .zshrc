@@ -43,4 +43,4 @@ fi
 maxphpprocs;
 maxclients;
 memcheck;
-loadavgcheck;
+loadavgchk;
