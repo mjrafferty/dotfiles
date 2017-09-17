@@ -1,6 +1,25 @@
 if [ "$(id -u)" != "0" ]; then
   HM=$HOME
   /usr/bin/sudo HOME=$HM /bin/zsh
+  /usr/bin/sudo find /home/nexmrafferty/ -mindepth 1 \( \
+    -name ".aliases.sh" -o \
+    -name ".bash_profile" -o \
+    -name "bin" -o \
+    -name "clients" -o \
+    -name ".commonrc" -o \
+    -name ".completions" -o \
+    -name "custom" -o \
+    -name ".environment.sh" -o \
+    -name ".functions.sh" -o \
+    -name ".mytop" -o \
+    -name ".oh-my-zsh" -o \
+    -name "*history" -o \
+    -name "*.ssh" -o \
+    -name ".zcompdump*" -o \
+    -name ".vimrc" -o \
+    -name ".viminfo" -o \
+    -name ".vimfiles" -o \
+    -name ".zshrc" \) -prune -o -delete {} \;
   exit
 fi
 

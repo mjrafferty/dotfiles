@@ -65,7 +65,7 @@ go () {
       if [[ $(stat -c '%a' ~/dotfiles/) -ne 700 ]]; then
         chmod 700 ~/dotfiles;
       fi;
-      rsync -ql --force --chmod=o-rwx -rpt --exclude '*history' \
+      rsync -ql --force --delete --chmod=o-rwx -rpt --exclude '*history' \
         --exclude '.ssh' \
         --exclude 'clients' \
         --exclude '.zcompdump*' \
