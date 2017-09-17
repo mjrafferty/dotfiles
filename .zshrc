@@ -43,7 +43,7 @@ fi
 # Server health check
 echo;
 parallel -- \
-  longrunqueires \
+  longrunqueries \
   maxphpprocs \
   maxclients \
   memcheck \
