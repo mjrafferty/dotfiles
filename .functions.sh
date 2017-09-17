@@ -195,13 +195,13 @@ hitslasthour () {
     regex="${times[1]}:($prevhour:(${times[3]}[${times[4]}-9]|[$((times[3]+1))-5][0-9])|${times[2]}:)"
   fi
 
-  echo -e "\n\n";
+  echo -e "\n";
    find {/var/log/,/home/*/var/*/logs} -name transfer.log -exec grep -EHc "$regex" {} + \
     | grep -v ":0$" \
     | sed 's_log:_log\t_' \
     | sort -nr -k 2 \
     | awk 'BEGIN{print "\t\t\tTransfer Log\t\t\t\t\tHits Last Hour"}{printf "%-75s %-s\n", $1, $2}';
-  echo -e "\n\n"
+  echo -e "\n"
 }
 
 # Measure time to first byte of the given url
@@ -437,7 +437,7 @@ recmod () {
   fi;
   for x in "$@"; do
     echo "Files modified within $x day(s) or $((x*24)) hours ago";
-    find $DIR -type f -mtime $((x-1)) -exec ls -lath {} \; \
+    find $DIR -type f -ctime $((x-1)) -exec ls -lath {} \; \
       | grep -Ev '(var|log|cache|media|tmp|jpg|png|gif)' \
       | column -t;
     echo;
