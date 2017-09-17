@@ -179,7 +179,7 @@ updatequota () {
 
 # Show number of hits received on every site since the beginning of the current hour
 hitslasthour () {
-  local prevhour;
+  local prevhour regex;
   local -a times;
 
   times=($(date +%Y:%R | sed -e 's/:/ /g' -e 's/\([0-9]\)\([0-9]\)$/\1 \2/'))
@@ -189,10 +189,14 @@ hitslasthour () {
   else
     prevhour=$(printf "%02d" "$((times[2]-1))");
   fi
+  if [ "${times[3]}" -eq 5 ]; then
+    regex="${times[1]}:($prevhour:5[${times[4]}-9]|${times[2]}:)"
+  else
+    regex="${times[1]}:($prevhour:(${times[3]}[${times[4]}-9]|[$((times[3]+1))-5][0-9])|${times[2]}:)"
+  fi
 
   echo -e "\n\n";
-  grep -Ec "${times[1]}:($prevhour:(${times[3]}[${times[4]}-9]|[$((times[3]+1))-5][0-9])|${times[2]}:)" \
-    $(find {/var/log/,/home/*/var/*/logs} -name transfer.log) \
+  grep -Ec "$regex" $(find {/var/log/,/home/*/var/*/logs} -name transfer.log) \
     | grep -v ":0$" \
     | sed 's_log:_log\t_' \
     | sort -nr -k 2 \
