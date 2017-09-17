@@ -187,7 +187,7 @@ hitslasthour () {
   if [ "${times[2]}" -eq 00 ]; then
     prevhour=23;
   else
-    prevhour=$((times[2]-1));
+    prevhour=$(printf "%02d" "$((times[2]-1))");
   fi
 
   echo -e "\n\n";
