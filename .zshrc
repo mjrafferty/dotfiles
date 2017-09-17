@@ -42,8 +42,9 @@ fi
 
 # Server health check
 echo;
-maxphpprocs;
-maxclients;
-memcheck;
-loadavgchk;
+parallel -- \
+  maxphpprocs \
+  maxclients \
+  memcheck \
+  loadavgchk;
 echo;
