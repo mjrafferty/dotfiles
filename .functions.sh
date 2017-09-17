@@ -180,7 +180,10 @@ updatequota () {
 # Show number of hits received on every site since the beginning of the current hour
 hitslasthour () {
   echo -e "\n\n";
-  grep -c "$(date +%Y:%H)" /home/*/var/*/logs/transfer.log \
+  #grep -c "$(date +%Y:%H)" /home/*/var/*/logs/transfer.log \
+  local times=($(date +%Y:%R | sed -e 's/:/ /g' -e 's/\([0-9]\)\([0-9]\)$/\1 \2/'));
+
+  grep -Ec "2017:($((times[1]-1)):(${times[2]}[${times[3]}-9]|[3-5][0-9])|$((times[1])):)" /home/*/var/*/logs/transfer.log \
     | grep -v ":0$" \
     | sed 's_log:_log\t_' \
     | sort -nr -k 2 \
