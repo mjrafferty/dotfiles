@@ -75,7 +75,7 @@ go () {
         --exclude 'no-rsync' \
         --exclude '.vimfiles/*/.*' ~/dotfiles/ \
         -e "ssh -q -i ${HOME}/.ssh/nex$(whoami).id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" nex"$(whoami)"@"$1":~/ \
-        && ssh -i ~/.ssh/nex"$(whoami)".id_rsa \
+         ssh -i ~/.ssh/nex"$(whoami)".id_rsa \
         -o UserKnownHostsFile=/dev/null \
         -o StrictHostKeyChecking=no \
         -o PasswordAuthentication=no nex"$(whoami)"@"$1";
