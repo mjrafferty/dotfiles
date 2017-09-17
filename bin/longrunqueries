@@ -1,0 +1,9 @@
+#! /bin/bash
+
+count=$(m -e'select count(*) from information_schema.PROCESSLIST where TIME>=0\G' 2> /dev/null \
+  | sed -n 's/count(\*): \([0-9]*\).*/\1/p');
+
+if [ "$count" -ge 10 ]; then
+  echo "$count long running queries";
+fi
+
