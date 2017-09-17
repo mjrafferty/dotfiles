@@ -196,7 +196,7 @@ hitslasthour () {
   fi
 
   echo -e "\n\n";
-   find {/var/log/,/home/*/var/*/logs} -name transfer.log -exec grep -EHc "$regex" + \
+   find {/var/log/,/home/*/var/*/logs} -name transfer.log -exec grep -EHc "$regex" {} + \
     | grep -v ":0$" \
     | sed 's_log:_log\t_' \
     | sort -nr -k 2 \
