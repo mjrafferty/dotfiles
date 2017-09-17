@@ -192,7 +192,7 @@ hitslasthour () {
 
   echo -e "\n\n";
   grep -Ec "${times[1]}:($prevhour:(${times[3]}[${times[4]}-9]|[3-5][0-9])|${times[2]}:)" \
-    "$(find {/var/log/,/home/*/var/*/logs} -name transfer.log)" \
+    $(find {/var/log/,/home/*/var/*/logs} -name transfer.log) \
     | grep -v ":0$" \
     | sed 's_log:_log\t_' \
     | sort -nr -k 2 \
