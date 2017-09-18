@@ -54,32 +54,3 @@ me () {
     echo -ne "\ek$(hostname)\e\\"
   fi
 }
-
-go () {
-  if [ -z "$1" ]; then
-    echo 'No hostname/ip passed';
-    return 1;
-  else
-    echo -ne "\ek$1\e\\";
-    if [[ -d ~/dotfiles/ ]]; then
-      if [[ $(stat -c '%a' ~/dotfiles/) -ne 700 ]]; then
-        chmod 700 ~/dotfiles;
-      fi;
-      rsync -ql --force --delete --chmod=o-rwx -rpt --exclude '*history' \
-        --exclude '.ssh' \
-        --exclude 'clients' \
-        --exclude '.zcompdump*' \
-        --exclude '.mytop' \
-        --exclude '.git' \
-        --exclude 'YouCompleteMe' \
-        --exclude 'no-rsync' \
-        --exclude '.vimfiles/*/.*' ~/dotfiles/ \
-        -e "ssh -q -i ${HOME}/.ssh/nex$(whoami).id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" nex"$(whoami)"@"$1":~/ 2>/dev/null
-      ssh -i ~/.ssh/nex"$(whoami)".id_rsa \
-        -o UserKnownHostsFile=/dev/null \
-        -o StrictHostKeyChecking=no \
-        -o PasswordAuthentication=no nex"$(whoami)"@"$1";
-      echo -ne "\ek$(hostname)\e\\";
-    fi;
-  fi
-}
