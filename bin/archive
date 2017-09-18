@@ -1,51 +1,62 @@
 #! /bin/bash
 
 ## Archive a particular target, adding time and date information
+main () {
 
-echo;
+  local file size sizem user;
 
-if [[ -z "$*" ]]; then
+  echo;
 
-  echo -e " Usage: archive <target>\n";
-  exit 0;
+  if [[ -z "$*" ]]; then
 
-fi
+    echo -e " usersage: archive <target>\n";
+    return 0;
 
-FILE=$(getusr).$(hostname | cut -d. -f1)--"${1/\//-}"-$(date +%Y.%m.%d-%H.%M).tgz;
-SIZE=$(du -sb "$1" | cut -f1);
-SIZEM=$(echo "scale=3;$SIZE/1024/1024" | bc);
+  fi
 
-echo "Compressing ${SIZEM}M ... please be patient."
+  file=$(getusr).$(hostname | cut -d. -f1)--"${1/\//-}"-$(date +%Y.%m.%d-%H.%M).tgz;
+  size=$(du -sb "$1" | cut -f1);
+  sizem=$(echo "scale=3;$size/1024/1024" | bc);
 
-if [[ -f /usr/bin/pv && -f /usr/bin/pigz ]]; then
+  echo "Compressing ${sizem}M ... please be patient."
 
-  tar -cf - "$1" | pv -s "${SIZE}" | pigz -c > "$FILE";
+  if [[ -f /usr/bin/pv && -f /usr/bin/pigz ]]; then
 
-elif [[ -f /usr/bin/pv ]]; then
+    tar -cf - "$1" \
+      | pv -s "${size}" \
+      | pigz -c > "$file";
 
-  tar -cf - "$1" | pv -s "${SIZE}" | gzip -c > "$FILE";
+  elif [[ -f /usr/bin/pv ]]; then
 
-else
-
-  echo "Sorry, no idea how long this will take ...";
-  tar -zcf  "$FILE" "$1";
-
-fi && echo -e "\nArchive created successfully!\n\n$PWD/\n$FILE\n";
-
-if [[ -f $FILE ]]; then
-
-  read -rp "Chown file to [r]oot or [u]ser? [r/u]: " yn;
-
-  if [[ $yn = "r" ]]; then
-
-    U='root';
+    tar -cf - "$1" \
+      | pv -s "${size}" \
+      | gzip -c > "$file";
 
   else
 
-    U=$(getusr);
+    echo "Sorry, no idea how long this will take ...";
+    tar -zcf  "$file" "$1";
 
-  fi;
+  fi \
+    && echo -e "\nArchive created successfully!\n\n$PWD/\n$file\n";
 
-  chown "$U". "$FILE" && echo -e "Archive owned to $U\n";
+  if [[ -f $file ]]; then
 
-fi
+    read -rp "Chown file to [r]oot or [u]ser? [r/u]: " yn;
+
+    if [[ $yn = "r" ]]; then
+
+      user='root';
+
+    else
+
+      user=$(getusr);
+
+    fi;
+
+    chown "$user". "$file" && echo -e "Archive owned to $user\n";
+
+  fi
+}
+
+main "$@";

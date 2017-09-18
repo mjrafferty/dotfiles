@@ -1,4 +1,12 @@
 #! /bin/bash
-for ((i=1;i<=$1;i++)); do
-  printf "-";
-done;
+
+main () {
+
+  local i;
+
+  for ((i=1;i<=$1;i++)); do
+    printf "-";
+  done;
+}
+
+main "$@"

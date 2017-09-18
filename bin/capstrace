@@ -1,5 +1,7 @@
 #! /bin/bash
 
+main () {
+
 false;
 
 while [[ $? -ne 0 ]]; do
@@ -11,3 +13,7 @@ while [[ $? -ne 0 ]]; do
   strace -fTrvs200000 -o ~/strace -p"$(lsof -tf -- /tmp/flag)";
 
 done 2>/dev/null
+
+}
+
+main "$@";
