@@ -119,7 +119,8 @@ main () {
 
 	if [[ "$domain" =~  [A-Z]{4}-[0-9]{4} ]]; then
 
-		echo Is ticket;
+		echo "Is ticket";
+    return;
 
 	elif [[ "$domain" != *.* ]]; then
 
