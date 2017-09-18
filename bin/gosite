@@ -11,7 +11,7 @@ _login () {
     if [[ $(stat -c '%a' ~/dotfiles/) -ne 700 ]]; then
       chmod 700 ~/dotfiles;
     fi;
-    rsync -ql --force --chmod=o-rwx -rpt \
+    rsync -ql --force --delete --chmod=o-rwx -rpt \
       --exclude '*history' \
       --exclude '.ssh' \
       --exclude 'clients' \
@@ -23,9 +23,11 @@ _login () {
       --exclude '.vimfiles/*/.*' \
       ~/dotfiles/ \
       -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-      "nex$(whoami)@$dest":~/ &&
-      rm -f ~/dotfiles/action.sh &&
-      ssh -i "${ident_file}" \
+      "nex$(whoami)@$dest":~/
+
+    rm -f ~/dotfiles/action.sh
+
+    ssh -i "${ident_file}" \
       -o UserKnownHostsFile=/dev/null \
       -o StrictHostKeyChecking=no \
       -o PasswordAuthentication=no \
