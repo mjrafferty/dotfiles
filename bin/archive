@@ -9,7 +9,7 @@ main () {
 
   if [[ -z "$*" ]]; then
 
-    echo -e " usersage: archive <target>\n";
+    echo -e " Usage: archive <target>\n";
     return 0;
 
   fi
