@@ -16,9 +16,7 @@ if [ "$(id -u)" != "0" ]; then
     -path "*/*history" -o \
     -path "*/.ssh" -o \
     -path "*/.zcompdump*" -o \
-    -path "*/.vimrc" -o \
-    -path "*/.viminfo" -o \
-    -path "*/.vimfiles" -o \
+    -path "*/.vim*" -o \
     -path "*/.zshrc" \) -prune -o -exec rm -rf {} + 2> /dev/null
   exit
 fi
