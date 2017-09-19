@@ -1,10 +1,15 @@
 #! /bin/bash
 
+readonly PROGNAME=$(basename "$0")
+readonly PROGDIR=$(readlink -m "$(dirname "$0")")
+readonly ARGS="$*"
+
+destination="";
+
 _login () {
 
-	local ident_file dest;
+	local ident_file;
 
-	dest="$1";
 	ident_file=${HOME}/.ssh/nex$(whoami).id_rsa;
 
 	if [[ -d ~/dotfiles/ ]]; then
@@ -23,7 +28,7 @@ _login () {
 			--exclude '.vimfiles/*/.*' \
 			~/dotfiles/ \
 			-e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-			"nex$(whoami)@$dest":~/ 2> /dev/null
+			"nex$(whoami)@$destination":~/ 2> /dev/null
 
 		rm -f ~/dotfiles/action.sh
 
@@ -31,9 +36,15 @@ _login () {
 			-o UserKnownHostsFile=/dev/null \
 			-o StrictHostKeyChecking=no \
 			-o PasswordAuthentication=no \
-			"nex$(whoami)@$dest";
+			"nex$(whoami)@$destination";
 		echo -ne "\ek$(hostname)\e\\";
 	fi;
+}
+
+_usage () {
+
+		printf "Usage: gosite [DOMAIN]\n\n";
+		printf "[DOMAIN] must be the target domain you wish to locate.\n";
 }
 
 ################################ BEGIN CHRIS ORLANDO'S WORK ##############################################
@@ -81,10 +92,10 @@ _findsite () {
 
 main () {
 
-	local domain ip_addr whoisinfo host rdns findsitelist find_servers find_ips destination
+	local domain ip_addr whoisinfo host rdns findsitelist find_servers find_ips
 
 	# Check parameters
-	if [[ ! "$1" ]]; then
+	if [ -z "$ARGS" ]; then
 
 		printf "No domain given. This command requires a domain as an argument.\n";
 
@@ -92,9 +103,7 @@ main () {
 
 	elif [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]] || [[ "$1" == "help" ]]; then
 
-		printf "Usage: gosite [DOMAIN]\n\n";
-		printf "[DOMAIN] must be the target domain you wish to locate.\n";
-
+    _usage;
 		return 0;
 
 	fi
@@ -119,6 +128,7 @@ main () {
 
 	if [[ "$domain" =~  [a-z]{4}-[0-9]{4} ]]; then
 
+    if [ ! -d "$T" ]; then mkdir -p "$T"; echo yes; fi
 		echo "Is ticket";
     return;
 
@@ -208,10 +218,11 @@ main () {
 
 		fi
 	fi
-	_login "${destination}";
+
+	_login;
 
 	return 0;
 
 };
 
-main "$@";
+main;

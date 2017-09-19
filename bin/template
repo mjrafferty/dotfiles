@@ -1,0 +1,17 @@
+#! /bin/bash
+
+readonly PROGNAME=$(basename "$0")
+readonly PROGDIR=$(readlink -m "$(dirname "$0")")
+readonly ARGS="$*"
+
+_usage() {
+	cat <<- EOF
+
+	EOF
+}
+
+main () {
+	//TODO
+}
+
+main;
