@@ -500,12 +500,12 @@ nexinfo () {
 
 ## System resource usage by account
 sysusage () {
-  local colsort=2;
+  local COLSORT=2;
 
   printf "\n%-10s %10s %10s %10s %10s\n%s\n" "User" "Mem (MB)" "Process" "CPU(%)" "MEM(%)" "$(dashes 54)";
   ps aux \
     | awk ' !/^USER/ { mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' \
-    | sort -nrk$colsort \
+    | sort -nrk$COLSORT \
     | head;
   echo;
 }
@@ -826,10 +826,12 @@ diskusage(){
 
 ## Simple System Status to check if services that should be running are running
 srvstatus(){
-  echo;
-  printf "%-18s %s\n" " Service" " Status";
-  printf "%-18s %s\n" "$(dashes 18)" "$(dash 55)";
-  for x in $(chkconfig --list | awk '/3:on/ {print $1}' | sort); do
+  local servicelist;
+  servicelist=$(chkconfig --list | awk '/3:on/ {print $1}' | sort);
+
+  printf "\n%-18s %s\n%-18s %s\n" " Service" " Status" "$(dashes 18)" "$(dash 55)";
+
+  for x in $servicelist; do
     printf "%-18s %s\n" " $x" " $(service "$x" status 2> /dev/null | head -1)";
   done;
   echo
