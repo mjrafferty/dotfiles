@@ -500,9 +500,9 @@ nexinfo () {
 
 ## System resource usage by account
 sysusage () {
-  local colsort=4;
-  echo;
-  printf "%-10s %10s %10s %10s %10s\n%s\n" "User" "Mem (MB)" "Process" "CPU(%)" "MEM(%)" "$(dashes 54)";
+  local colsort=2;
+
+  printf "\n%-10s %10s %10s %10s %10s\n%s\n" "User" "Mem (MB)" "Process" "CPU(%)" "MEM(%)" "$(dashes 54)";
   ps aux \
     | awk ' !/^USER/ { mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' \
     | sort -nrk$colsort \
