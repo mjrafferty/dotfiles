@@ -827,11 +827,11 @@ diskusage(){
 ## Simple System Status to check if services that should be running are running
 srvstatus(){
   local servicelist;
-  servicelist=$(chkconfig --list | awk '/3:on/ {print $1}' | sort);
+  servicelist=($(chkconfig --list | awk '/3:on/ {print $1}' | sort));
 
   printf "\n%-18s %s\n%-18s %s\n" " Service" " Status" "$(dashes 18)" "$(dashes 55)";
 
-  for x in $servicelist; do
+  for x in ${servicelist[*]}; do
     printf "%-18s %s\n" " $x" " $(service "$x" status 2> /dev/null | head -1)";
   done;
   echo
