@@ -101,14 +101,13 @@ _login () {
 
 _getServer () {
 
-  local findsitelist selection
-  declare -a find_servers find_ips;
+  local findsitelist selection find_servers
+  declare -a find_servers
 
   # If site not pointed at nexcess
   findsitelist=$(_findsite "$domain");
 
   find_servers=($(echo "${findsitelist}" | awk '{print $1}'));
-  find_ips=($(echo "${findsitelist}" | awk '{print $2}'));
 
   # Evaluate too few or too many domains
   if [ -z "${find_servers[0]}" ]; then
@@ -129,11 +128,11 @@ _getServer () {
     echo;
     read -rep "Choose server:" selection;
 
-    destination=${find_ips[$selection]};
+    destination=${find_servers[$selection]};
 
   else
 
-    destination=${find_ips[0]};
+    destination=${find_servers[0]};
 
   fi;
 
