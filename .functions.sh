@@ -829,7 +829,7 @@ srvstatus(){
   local servicelist;
   servicelist=$(chkconfig --list | awk '/3:on/ {print $1}' | sort);
 
-  printf "\n%-18s %s\n%-18s %s\n" " Service" " Status" "$(dashes 18)" "$(dash 55)";
+  printf "\n%-18s %s\n%-18s %s\n" " Service" " Status" "$(dashes 18)" "$(dashes 55)";
 
   for x in $servicelist; do
     printf "%-18s %s\n" " $x" " $(service "$x" status 2> /dev/null | head -1)";
