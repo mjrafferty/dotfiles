@@ -54,7 +54,8 @@ main () {
 
     fi;
 
-    chown "$user". "$file" && echo -e "Archive owned to $user\n";
+    chown "$user". "$file" \
+      && echo -e "Archive owned to $user\n";
 
   fi
 }
