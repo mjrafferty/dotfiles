@@ -1,17 +1,19 @@
 #! /bin/bash
 
-readonly PROGNAME=$(basename "$0")
-readonly PROGDIR=$(readlink -m "$(dirname "$0")")
 readonly ARGS="$*"
+readonly ARGA=("$@")
 
 _usage() {
 	cat <<- EOF
-
+    This is the usage
 	EOF
 }
 
 main () {
-	//TODO
+  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
 }
 
 main;

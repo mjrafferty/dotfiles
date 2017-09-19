@@ -3,225 +3,244 @@
 readonly PROGNAME=$(basename "$0")
 readonly PROGDIR=$(readlink -m "$(dirname "$0")")
 readonly ARGS="$*"
+readonly ARGA=("$@")
+
+# Trim any fat off the domain name
+domain=$(echo "${ARGA[0]}" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
 
 destination="";
-
-_login () {
-
-	local ident_file;
-
-	ident_file=${HOME}/.ssh/nex$(whoami).id_rsa;
-
-	if [[ -d ~/dotfiles/ ]]; then
-		if [[ $(stat -c '%a' ~/dotfiles/) -ne 700 ]]; then
-			chmod 700 ~/dotfiles;
-		fi;
-		rsync -ql --force --delete --chmod=o-rwx -rpt \
-			--exclude '*history' \
-			--exclude '.ssh' \
-			--exclude 'clients' \
-			--exclude '.zcompdump*' \
-			--exclude '.mytop' \
-			--exclude '.git' \
-			--exclude 'YouCompleteMe' \
-			--exclude 'no-rsync' \
-			--exclude '.vimfiles/*/.*' \
-			~/dotfiles/ \
-			-e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-			"nex$(whoami)@$destination":~/ 2> /dev/null
-
-		rm -f ~/dotfiles/action.sh
-
-		ssh -i "${ident_file}" \
-			-o UserKnownHostsFile=/dev/null \
-			-o StrictHostKeyChecking=no \
-			-o PasswordAuthentication=no \
-			"nex$(whoami)@$destination";
-		echo -ne "\ek$(hostname)\e\\";
-	fi;
-}
+host="";
+whoisinfo="";
 
 _usage () {
+cat <<- EOF
+Usage: gosite [DOMAIN]
 
-		printf "Usage: gosite [DOMAIN]\n\n";
-		printf "[DOMAIN] must be the target domain you wish to locate.\n";
+[DOMAIN] must be the target domain you wish to locate.
+
+EOF
 }
 
 ################################ BEGIN CHRIS ORLANDO'S WORK ##############################################
 _urlencode () {
-	echo -ne "$1" \
-		| xxd -plain \
-		| tr -d '\n' \
-		| sed 's/\(..\)/%\1/g'
+  echo -ne "$1" \
+    | xxd -plain \
+    | tr -d '\n' \
+    | sed 's/\(..\)/%\1/g'
 }
 
 _uuid2fqdn () {
-	curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
-		--data "query=$(_urlencode '["=", "name", "fqdn"]')" \
-		| grep -oP '(?<=value":")[^"]*'
+  curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
+    --data "query=$(_urlencode '["=", "name", "fqdn"]')" \
+    | grep -oP '(?<=value":")[^"]*'
 }
 
 _uuid2ip () {
-	curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
-		--data "query=$(_urlencode '["=", "name", "ipaddress"]')" \
-		| grep -oP '(?<=value":")[^"]*'
+  curl -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
+    --data "query=$(_urlencode '["=", "name", "ipaddress"]')" \
+    | grep -oP '(?<=value":")[^"]*'
 }
 
 _findsite () {
 
-	query="[\"and\", [\"=\", \"name\", \"domains\" ], [\"=\", \"value\", \"$1\"]]"
+  query="[\"and\", [\"=\", \"name\", \"domains\" ], [\"=\", \"value\", \"$1\"]]"
 
-	servers=$(curl -sG 'http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/fact-contents' \
-		--data "query=$(_urlencode "$query")" \
-		| grep -oP '(?<=certname":")[^"]*');
+  servers=$(curl -sG 'http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/fact-contents' \
+    --data "query=$(_urlencode "$query")" \
+    | grep -oP '(?<=certname":")[^"]*');
 
-	if [[ -z "$servers" ]]; then
+  if [[ -z "$servers" ]]; then
 
-		return 1;
+    return 1;
 
-	fi
+  fi
 
-	for uuid in $servers; do
+  for uuid in $servers; do
 
-		_uuid2fqdn "$uuid" | tr '\n' '\t';
-		_uuid2ip "$uuid";
+    _uuid2fqdn "$uuid" | tr '\n' '\t';
+    _uuid2ip "$uuid";
 
-	done
+  done
 }
 ################################ END CHRIS ORLANDO'S WORK ##############################################
 
-main () {
+_login () {
 
-	local domain ip_addr whoisinfo host rdns findsitelist find_servers find_ips
+  local ident_file;
 
-	# Check parameters
-	if [ -z "$ARGS" ]; then
+  ident_file=${HOME}/.ssh/nex$(whoami).id_rsa;
 
-		printf "No domain given. This command requires a domain as an argument.\n";
+  if [[ -d ~/dotfiles/ ]]; then
+    if [[ $(stat -c '%a' ~/dotfiles/) -ne 700 ]]; then
+      chmod 700 ~/dotfiles;
+    fi;
+    rsync -ql --force --delete --chmod=o-rwx -rpt \
+      --exclude '*history' \
+      --exclude '.ssh' \
+      --exclude 'clients' \
+      --exclude '.zcompdump*' \
+      --exclude '.mytop' \
+      --exclude '.git' \
+      --exclude 'YouCompleteMe' \
+      --exclude 'no-rsync' \
+      --exclude '.vimfiles/*/.*' \
+      ~/dotfiles/ \
+      -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
+      "nex$(whoami)@$destination":~/ 2> /dev/null
 
-		return 1;
+    rm -f ~/dotfiles/action.sh
 
-	elif [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]] || [[ "$1" == "help" ]]; then
+    ssh -i "${ident_file}" \
+      -o UserKnownHostsFile=/dev/null \
+      -o StrictHostKeyChecking=no \
+      -o PasswordAuthentication=no \
+      "nex$(whoami)@$destination";
+    echo -ne "\ek$(hostname)\e\\";
+  fi;
+}
 
-    _usage;
-		return 0;
+_getServer () {
 
-	fi
+  local findsitelist selection
+  declare -a find_servers find_ips;
 
-	# Trim any fat off the domain name
-	domain=$(echo "$1" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
+  # If site not pointed at nexcess
+  findsitelist=$(_findsite "$domain");
 
-	# Action to perform upon login
-	if [[ "$2" ]]; then
-		case "$2" in
-			"cdd")
-				echo "rm ~/action.sh; cdd ${domain}" > ~/dotfiles/action.sh;
-				;;
-			"htacc")
-				echo "rm ~/action.sh; cdd ${domain} && vim .htaccess" > ~/dotfiles/action.sh;
-				;;
-			"logs")
-				echo "rm ~/action.sh; cdlogs ${domain}" > ~/dotfiles/action.sh;
-				;;
-		esac
-	fi
+  find_servers=($(echo "${findsitelist}" | awk '{print $1}'));
+  find_ips=($(echo "${findsitelist}" | awk '{print $2}'));
 
-	if [[ "$domain" =~  [a-z]{4}-[0-9]{4} ]]; then
+  # Evaluate too few or too many domains
+  if [ -z "${find_servers[0]}" ]; then
 
-    if [ ! -d "$T" ]; then mkdir -p "$T"; echo yes; fi
-		echo "Is ticket";
+    echo "Domain not found";
     return;
 
-	elif [[ "$domain" != *.* ]]; then
+  elif [ "${find_servers[1]}" ]; then
 
-		destination="${domain}"
+    echo "Domain ambiguous. Select server:";
 
-	else
+    for (( i=0; i<${#find_servers[@]}; i++ )); do
 
-		ip_addr="$(dig +short "$domain" | sort | head -n1)";
-		whoisinfo="$(whois "$ip_addr")";
-		host=$(echo "$whoisinfo"  | grep -m1 -ioE "nexcess|sucuri|cloudflare" | tr '[:upper:]' '[:lower:]');
-		rdns="$(dig +short -x "$ip_addr" | grep -o "nexcess")";
+      echo "$i  ${find_servers[$i]}";
 
-		# Evaluate where domain is hosted
-		if [ "$host" == "nexcess" ] || [ "$rdns" == "nexcess" ]; then
+    done | column -t;
 
-			destination="${ip_addr}";
+    echo;
+    read -rep "Choose server:" selection;
 
-		else
+    destination=${find_ips[$selection]};
 
-			if  [ "$host" == "cloudflare" ]; then
+  else
 
-				printf "Domain pointed to %s\n" "$host";
-				read -rep "Press enter to continue";
+    destination=${find_ips[0]};
 
-			elif  [ "$host" == "sucuri" ]; then
+  fi;
 
-				printf "Domain pointed to %s\n" "$host";
-				read -rep "Press enter to continue";
 
-			else
+}
 
-				printf "Domain pointed to an unknown host/proxy\n";
-				read -rep "View WHOIS? N/y : " viewwhois;
+_getDest () {
 
-				if [ "$viewwhois" == "y" ]; then
+  local viewwhois keepgoing
 
-					echo "$whoisinfo";
+  if  [ "$host" == "cloudflare" ]; then
 
-				fi
+    printf "Domain pointed to %s\n" "$host";
+    read -rep "Press enter to continue";
 
-				echo;
-				read -rep "Continue? Y/n : " keepgoing;
+  elif  [ "$host" == "sucuri" ]; then
 
-				if [ "$keepgoing" == "n" ]; then
+    printf "Domain pointed to %s\n" "$host";
+    read -rep "Press enter to continue";
 
-					return 0;
+  else
 
-				fi
-			fi
+    printf "Domain pointed to an unknown host/proxy\n";
+    read -rep "View WHOIS? N/y : " viewwhois;
 
-			# If site not pointed at nexcess
-			findsitelist=$(_findsite "$domain");
+    if [ "$viewwhois" == "y" ]; then
 
-			declare -a find_servers find_ips;
+      echo "$whoisinfo";
 
-			find_servers=($(echo "${findsitelist}" | awk '{print $1}'));
-			find_ips=($(echo "${findsitelist}" | awk '{print $2}'));
+    fi
 
-			# Evaluate too few or too many domains
-			if [ -z "${find_servers[0]}" ]; then
+    echo;
+    read -rep "Continue? Y/n : " keepgoing;
 
-				echo "Domain not found";
-				return;
+    if [ "$keepgoing" == "n" ]; then
 
-			elif [ "${find_servers[1]}" ]; then
+      return 0;
 
-				echo "Domain ambiguous. Select server:";
+    fi
+  fi
 
-				for (( i=0; i<${#find_servers[@]}; i++ )); do
+  _getServer;
 
-					echo "$i  ${find_servers[$i]}";
+}
 
-				done | column -t;
+_setDest () {
 
-				echo;
-				read -rep "Choose server:" selection;
+  local ip_addr rdns
 
-				destination=${find_ips[$selection]};
+  if [[ "$domain" =~  [a-z]{4}-[0-9]{4} ]]; then
 
-			else
+    if [ ! -d "$T" ]; then mkdir -p "$T"; echo yes; fi
+    echo "Is ticket";
+    return;
 
-				destination=${find_ips[0]};
+  elif [[ "$domain" != *.* ]]; then
 
-			fi;
+    destination="${domain}"
 
-		fi
-	fi
+  else
 
-	_login;
+    ip_addr="$(dig +short "$domain" | sort | head -n1)";
+    whoisinfo="$(whois "$ip_addr")";
+    host=$(echo "$whoisinfo"  | grep -m1 -ioE "nexcess|sucuri|cloudflare" | tr '[:upper:]' '[:lower:]');
+    rdns="$(dig +short -x "$ip_addr" | grep -o "nexcess")";
 
-	return 0;
+    # Evaluate where domain is hosted
+    if [ "$host" == "nexcess" ] || [ "$rdns" == "nexcess" ]; then
+      destination="${domain}";
+    else
+      _getDest;
+    fi
+
+  fi
+
+}
+
+_setAction () {
+  if [[ "${ARGA[1]}" ]]; then
+    case "${ARGA[1]}" in
+      "cdd")
+        echo "rm ~/action.sh; cdd ${domain}" > ~/dotfiles/action.sh;
+        ;;
+      "htacc")
+        echo "rm ~/action.sh; cdd ${domain} && vim .htaccess" > ~/dotfiles/action.sh;
+        ;;
+      "logs")
+        echo "rm ~/action.sh; cdlogs ${domain}" > ~/dotfiles/action.sh;
+        ;;
+    esac
+  fi
+}
+
+main () {
+
+  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+  _setAction;
+
+  _setDest;
+
+  _login;
+
+  return 0;
 
 };
 
