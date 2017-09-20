@@ -5,6 +5,7 @@ readonly ARGA=("$@")
 
 _usage() {
   cat <<- EOF
+
   Archive a particular target, adding time and date information
 
   archive <target>

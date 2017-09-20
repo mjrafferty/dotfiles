@@ -14,9 +14,6 @@ if [ -f ~/.environment.sh ]; then
   source ~/.environment.sh
 fi
 
-if [ -f /etc/nexcess/shell_functions.sh ]; then
-  source /etc/nexcess/shell_functions.sh 2> /dev/null
-fi
 export ZSH=~/.oh-my-zsh
 
 ZSH_THEME="matts"
