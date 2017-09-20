@@ -1,10 +1,20 @@
 #! /bin/bash
+readonly ARGS="$*"
+readonly ARGA=("$@")
 
-IP="$1";
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
 
-if [ -z "$IP" ]; then
-  echo "No IP address provided";
-else
+main () {
+  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+  IP="${ARGS[0]}";
 
   # Grab necessary data from log
   logentries=$(sed -n 's/.*'"$IP"'.*\[uri \"\([^"]*\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
@@ -34,4 +44,7 @@ else
 
   done;
   echo "</IfModule>";
-fi
+}
+
+main;
+
