@@ -71,6 +71,11 @@ main () {
 
   local target file size sizem;
 
+  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
   target="${ARGA[0]}"
   file=$(getusr).$(hostname | cut -d. -f1)--"${target/\//-}"-$(date +%Y.%m.%d-%H.%M).tgz;
   size=$(du -sb "$target" | cut -f1);
