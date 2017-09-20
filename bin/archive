@@ -69,7 +69,7 @@ main () {
   local target file size sizem;
 
   target="${ARGA[0]}"
-  file=$(getusr).$(hostname | cut -d. -f1)--"$target/\//-}"-$(date +%Y.%m.%d-%H.%M).tgz;
+  file=$(getusr).$(hostname | cut -d. -f1)--"${target/\//-}"-$(date +%Y.%m.%d-%H.%M).tgz;
   size=$(du -sb "$target" | cut -f1);
   sizem=$(echo "scale=3;$size/1024/1024" | bc);
 
