@@ -1,44 +1,47 @@
 #! /bin/bash
 
-## Archive a particular target, adding time and date information
-main () {
+readonly ARGS="$*"
+readonly ARGA=("$@")
 
-  local file size sizem user;
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
 
-  echo;
+_compress () {
 
-  if [[ -z "$*" ]]; then
+  local target size file
 
-    echo -e " Usage: archive <target>\n";
-    return 0;
-
-  fi
-
-  file=$(getusr).$(hostname | cut -d. -f1)--"${1/\//-}"-$(date +%Y.%m.%d-%H.%M).tgz;
-  size=$(du -sb "$1" | cut -f1);
-  sizem=$(echo "scale=3;$size/1024/1024" | bc);
-
-  echo "Compressing ${sizem}M ... please be patient."
+  target="$1";
+  file="$2";
+  size="$3";
 
   if [[ -f /usr/bin/pv && -f /usr/bin/pigz ]]; then
 
-    tar -cf - "$1" \
+    tar -cf - "$target" \
       | pv -s "${size}" \
       | pigz -c > "$file";
 
   elif [[ -f /usr/bin/pv ]]; then
 
-    tar -cf - "$1" \
+    tar -cf - "$target" \
       | pv -s "${size}" \
       | gzip -c > "$file";
 
   else
 
     echo "Sorry, no idea how long this will take ...";
-    tar -zcf  "$file" "$1";
+    tar -zcf  "$file" "$target";
 
   fi \
     && echo -e "\nArchive created successfully!\n\n$PWD/\n$file\n";
+}
+
+_chown () {
+
+  local file yn user
+  file="$1";
 
   if [[ -f $file ]]; then
 
@@ -58,6 +61,24 @@ main () {
       && echo -e "Archive owned to $user\n";
 
   fi
+
+}
+## Archive a particular target, adding time and date information
+main () {
+
+  local target file size sizem;
+
+  target="${ARGA[0]}"
+  file=$(getusr).$(hostname | cut -d. -f1)--"$target/\//-}"-$(date +%Y.%m.%d-%H.%M).tgz;
+  size=$(du -sb "$target" | cut -f1);
+  sizem=$(echo "scale=3;$size/1024/1024" | bc);
+
+  echo "Compressing ${sizem}M ... please be patient."
+
+  _compress "$target" "$file" "$size";
+
+  _chown "$file";
+
 }
 
-main "$@";
+main;
