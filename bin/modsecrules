@@ -3,4 +3,4 @@
 modgrep -s "$1" -f /var/log/httpd/modsec_audit.log \
   | sed -nr 's/.*\[id[^"]*"([0-9]*).*/\1/p' \
   | sort -u \
-  | grep -Ev "^9815$|^4049";
+  | grep -Ev "^981176$|^4011015$|^4049";
