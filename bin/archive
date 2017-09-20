@@ -5,7 +5,10 @@ readonly ARGA=("$@")
 
 _usage() {
   cat <<- EOF
-  This is the usage
+  Archive a particular target, adding time and date information
+
+  archive <target>
+
 EOF
 }
 
@@ -63,7 +66,7 @@ _chown () {
   fi
 
 }
-## Archive a particular target, adding time and date information
+
 main () {
 
   local target file size sizem;
