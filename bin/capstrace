@@ -29,6 +29,18 @@ EOF
 
 }
 
+_strace () {
+
+  rm /tmp/flag 2> /dev/null
+
+  while [ ! -f /tmp/flag ]; do
+    sleep 0.25s;
+    printf "\r%s" "$(date)";
+  done 2>/dev/null
+
+    strace -fTrvs200000 -o ~/strace -p"$(lsof -tf -- /tmp/flag)";
+}
+
 main () {
 
   if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
@@ -41,17 +53,7 @@ main () {
 
   _addCode "$target" || return 1;
 
-  false;
-
-  while [[ $? -ne 0 ]]; do
-
-    sleep 0.25s;
-
-    printf "\r%s" "$(date)";
-
-    strace -fTrvs200000 -o ~/strace -p"$(lsof -tf -- /tmp/flag)";
-
-  done 2>/dev/null
+  _strace;
 
 }
 
