@@ -11,7 +11,7 @@ EOF
 
 _addCode () {
 
-  mv "$1"{,.bak} || return 1;
+  mv "$1"{,.nexcess.bak} || return 1;
 
   cat << EOF >> "$1"
   <?php
