@@ -4,25 +4,25 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 _usage() {
-	cat <<- EOF
-	This is the usage
-	EOF
+  cat <<- EOF
+  This is the usage
+EOF
 }
 
 _addCode () {
 
   mv "$1"{,.bak} || return 1;
 
-	cat << EOF >> "$1"
-<?php
-### Nexcess diagnostic edit - please remove when not in use
-if(\$_SERVER["REMOTE_ADDR"] == "192.240.191.2" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "192.240.191.2"){
-  \$f = fopen('/tmp/flag','w');
-  sleep(2);
-  fclose(\$f);
-}
-### End Nexcess diagnostic edit - please remove when not in use
-?>
+  cat << EOF >> "$1"
+  <?php
+  ### Nexcess diagnostic edit - please remove when not in use
+  if(\$_SERVER["REMOTE_ADDR"] == "192.240.191.2" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "192.240.191.2"){
+    \$f = fopen('/tmp/flag','w');
+    sleep(2);
+    fclose(\$f);
+  }
+  ### End Nexcess diagnostic edit - please remove when not in use
+  ?>
 EOF
 
   cat "$1".bak >> "$1";
@@ -31,6 +31,8 @@ EOF
 
 _strace () {
 
+  local pid
+
   rm /tmp/flag 2> /dev/null
 
   while [ ! -f /tmp/flag ]; do
@@ -38,7 +40,8 @@ _strace () {
     printf "\r%s" "$(date)";
   done 2>/dev/null
 
-    strace -fTrvs200000 -o ~/strace -p"$(lsof -tf -- /tmp/flag)";
+  pid="$(lsof -tf -- /tmp/flag)";
+  strace -fTrvs200000 -o ~/strace-"$(date "+%F-%T")" -p"$pid";
 }
 
 main () {
