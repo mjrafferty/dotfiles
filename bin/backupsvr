@@ -25,7 +25,7 @@ _printbackupsvr () {
 
     if [[ -n $rdns ]]; then
 
-      echo "R1Soft rDNS: https://$(echo "$rdns" | sed 's/\.$//'):8001";
+      echo "R1Soft rDNS: https://${rdns/\.$/}:8001";
 
     fi;
   fi
@@ -69,4 +69,4 @@ main () {
   done
 }
 
-main "$@";
+main;
