@@ -1,5 +1,14 @@
 #! /bin/bash
 
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
 ## Check users quota usage
 _quotaheader () {
   echo;
@@ -15,19 +24,20 @@ _quotausage () {
 
 main () {
 
+  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
   local x;
 
-  case "$1" in
-    "-h"|"--help")
-      echo -e "\n Usage: checkquota [--user <username>|--all|--large]\n   -u|--user user1 [user2..] .. Show quota usage for a user or list of users \n   -a|--all ................... List quota usage for all users\n   -l|--large ................. List all users at or above 80% of quota\n";
-      ;;
+  case "${ARGS[0]}" in
     "-a"|"--all")
       _quotaheader;
       for x in $(laccounts); do
         _quotausage "$x";
       done \
         | sort;
-      echo;
       ;;
     "-l"|"--large")
       _quotaheader;
@@ -37,22 +47,20 @@ main () {
       done \
         | sort \
         | grep -E '[8,9][0-9]\..*%|1[0-9]{2}\..*%';
-      echo;
       ;;
     "-u"|"--user"|"*")
       _quotaheader;
-      shift;
-      if [[ -z "$*" ]]; then
+      if [[ -z "${ARGA[1]}" ]]; then
         _quotausage "$(getusr)";
       else
-        for x in "$@"; do
-          _quotausage "$x";
+        for ((x=1;x<${#ARGA[@]};i++)); do
+          _quotausage "${ARGA[$x]}";
         done;
       fi;
       echo;
-      echo;
       ;;
   esac
+  echo;
 }
 
-main "$@";
+main;

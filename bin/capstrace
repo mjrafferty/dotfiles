@@ -1,19 +1,33 @@
 #! /bin/bash
 
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
 main () {
 
-false;
+  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
 
-while [[ $? -ne 0 ]]; do
+  false;
 
-  sleep 0.25s;
+  while [[ $? -ne 0 ]]; do
 
-  printf "\r%s" "$(date)";
+    sleep 0.25s;
 
-  strace -fTrvs200000 -o ~/strace -p"$(lsof -tf -- /tmp/flag)";
+    printf "\r%s" "$(date)";
 
-done 2>/dev/null
+    strace -fTrvs200000 -o ~/strace -p"$(lsof -tf -- /tmp/flag)";
+
+  done 2>/dev/null
 
 }
 
-main "$@";
+main;
