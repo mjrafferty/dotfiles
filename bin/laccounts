@@ -10,7 +10,7 @@ _usage() {
 }
 
 main () {
-  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+  if [[ "$ARGS" =~ --help$|-h$ ]]; then
     _usage;
     return 0;
   fi
