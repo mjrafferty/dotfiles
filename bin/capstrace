@@ -4,9 +4,29 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 _usage() {
-  cat <<- EOF
-  This is the usage
+	cat <<- EOF
+	This is the usage
+	EOF
+}
+
+_addCode () {
+
+  mv "$1"{,.bak} || return 1;
+
+	cat << EOF >> "$1"
+<?php
+### Nexcess diagnostic edit - please remove when not in use
+if(\$_SERVER["REMOTE_ADDR"] == "192.240.191.2" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "192.240.191.2"){
+  \$f = fopen('/tmp/flag','w');
+  sleep(2);
+  fclose(\$f);
+}
+### End Nexcess diagnostic edit - please remove when not in use
+?>
 EOF
+
+  cat "$1".bak >> "$1";
+
 }
 
 main () {
@@ -15,6 +35,11 @@ main () {
     _usage;
     return 0;
   fi
+
+  local target;
+  target="${ARGA[0]}";
+
+  _addCode "$target" || return 1;
 
   false;
 
