@@ -53,7 +53,7 @@ main () {
       if [[ -z "${ARGA[1]}" ]]; then
         _quotausage "$(getusr)";
       else
-        for ((x=1;x<${#ARGA[@]};i++)); do
+        for ((x=1;x<${#ARGA[@]};x++)); do
           _quotausage "${ARGA[$x]}";
         done;
       fi;

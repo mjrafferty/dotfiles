@@ -1,0 +1,22 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+	cat <<- EOF
+    This is the usage
+	EOF
+}
+
+main () {
+  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+  ~iworx/bin/listaccounts.pex \
+    | awk '{print $1}';
+}
+
+main;

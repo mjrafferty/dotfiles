@@ -647,12 +647,6 @@ ldomains () {
   cd "$DIR" || return;
 }
 
-## List the usernames for all accounts on the server
-laccounts () {
-  ~iworx/bin/listaccounts.pex \
-    | awk '{print $1}';
-}
-
 ## List Sitworx accouts sorted by Reseller
 lreseller () {
   ( nodeworx -u -n -c Siteworx -a listAccounts \
