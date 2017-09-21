@@ -1,12 +1,25 @@
 #! /bin/bash
 
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
 main () {
+  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
 
   local i;
 
-  for ((i=1;i<=$1;i++)); do
+  for ((i=0;i<=ARGA[0];i++)); do
     printf "-";
   done;
 }
 
-main "$@"
+main;

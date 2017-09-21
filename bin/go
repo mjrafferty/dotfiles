@@ -82,6 +82,7 @@ _login () {
       --exclude 'YouCompleteMe' \
       --exclude 'no-rsync' \
       --exclude '.vimfiles/*/.*' \
+      --exclude '*SNAPS*' \
       ~/dotfiles/ \
       -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
       "nex$(whoami)@$destination":~/ 2> /dev/null

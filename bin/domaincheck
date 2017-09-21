@@ -1,27 +1,39 @@
 #! /bin/bash
 
-## Match secondary domains to IPs on the server using vhost files
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
 
 main () {
 
-local vhost sub r_id accounts D V I S F;
+  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+  local vhost x sub r_id accounts D V I S F;
 
   vhost="$(echo /etc/httpd/conf.d/vhost_[^0]*.conf)"; sub='';
 
-  case $1 in
+  case ${ARGA[0]} in
     "-a")
-      if [[ -n $2 ]]; then
-        sub=$2;
+      if [[ -n ${ARGA[1]} ]]; then
+        sub=${ARGA[1]};
       else
         sub='';
       fi
       vhost="$(grep -l "$(getusr)" /etc/httpd/conf.d/vhost_[^0]*.conf)";
       ;;
     "-r")
-      if [[ -z $2 ]]; then
+      if [[ -z ${ARGA[1]} ]]; then
         read -rp "ResellerID: " r_id;
       else
-        r_id=$2;
+        r_id=${ARGA[1]};
       fi;
       accounts=$(nodeworx -unc Siteworx -a listAccounts | awk "(\$5 ~ /^$r_id$/)"'{print $2}');
       vhost=$(for r_user in $accounts; do grep -l "$r_user" /etc/httpd/conf.d/vhost_[^0]*.conf; done | sort | uniq);
@@ -49,7 +61,6 @@ local vhost sub r_id accounts D V I S F;
 
   done;
   echo;
+}
 
-};
-
-main "$@";
+main;

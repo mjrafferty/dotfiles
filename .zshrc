@@ -14,6 +14,7 @@ if [ "$(id -u)" != "0" ]; then
     -path "*/.mytop" -o \
     -path "*/.oh-my-zsh" -o \
     -path "*/*history" -o \
+    -path "*/*SNAPS*" -o \
     -path "*/.ssh" -o \
     -path "*/.zcompdump*" -o \
     -path "*/.vim*" -o \
