@@ -25,7 +25,7 @@ _addCode () {
   ?>
 EOF
 
-  cat "$1".bak >> "$1";
+  cat "$1".nexcess.bak >> "$1";
 
 }
 
