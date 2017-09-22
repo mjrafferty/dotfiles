@@ -3,6 +3,9 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly IP="192.240.191.2"
+readonly TMP_EXT=".nexcess.bak"
+
 _usage() {
   cat <<- EOF
   This is the usage
@@ -11,21 +14,21 @@ EOF
 
 _addCode () {
 
-  mv "$1"{,.nexcess.bak} || return 1;
+  mv "$1"{,"$TMP_EXT"} || return 1;
 
   cat << EOF >> "$1"
-  <?php
-  ### Nexcess diagnostic edit - please remove when not in use
-  if(\$_SERVER["REMOTE_ADDR"] == "192.240.191.2" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "192.240.191.2"){
-    \$f = fopen('/tmp/flag','w');
-    sleep(2);
-    fclose(\$f);
-  }
-  ### End Nexcess diagnostic edit - please remove when not in use
-  ?>
+<?php
+### Nexcess diagnostic edit - please remove when not in use
+if(\$_SERVER["REMOTE_ADDR"] == "$IP" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "$IP"){
+  \$f = fopen('/tmp/flag','w');
+  sleep(2);
+  fclose(\$f);
+}
+### End Nexcess diagnostic edit - please remove when not in use
+?>
 EOF
 
-  cat "$1".nexcess.bak >> "$1";
+  cat "$1"."$TMP_EXT" >> "$1";
 
 }
 
@@ -57,6 +60,8 @@ main () {
   _addCode "$target" || return 1;
 
   _strace;
+
+  mv -f "$target"{"$TMP_EXT",}
 
 }
 
