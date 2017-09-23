@@ -12,9 +12,10 @@ whoisinfo="";
 
 _usage () {
 cat <<- EOF
-Usage: gosite [DOMAIN]
 
-[DOMAIN] must be the target domain you wish to locate.
+  Usage: go [DOMAIN]
+
+  [DOMAIN] must be the target domain/server you wish to go to.
 
 EOF
 }
