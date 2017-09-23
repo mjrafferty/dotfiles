@@ -8,7 +8,15 @@ readonly TMP_EXT=".nexcess.bak"
 
 _usage() {
   cat <<- EOF
-  strace a php-fpm process when
+
+  Perform a strace of a php-fpm process when requesting a page.
+  Outputs strace to home directory. Target is usually site's
+  index.php, though not always.
+
+  Usage:
+
+  capstrace <target>
+
 EOF
 }
 
