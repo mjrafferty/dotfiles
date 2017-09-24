@@ -1,6 +1,32 @@
 #! /bin/bash
 
-modgrep -s "$1" -f /var/log/httpd/modsec_audit.log \
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+readonly EXCLUDE_RULES="^981176$|^4011015$|^4049";
+
+_usage() {
+	cat <<- EOF
+
+  Prints out mod security rules triggered by the provided
+  unique id.
+
+  Usage:  modsecrules < unique id >
+
+	EOF
+}
+
+main () {
+  if [[ -z "$ARGS" ||  "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+modgrep -s "${ARGA[0]}" -f /var/log/httpd/modsec_audit.log \
   | sed -n 's/.*\[id[^"]*"\([0-9]*\).*/\1/p' \
   | sort -u \
-  | grep -Ev "^981176$|^4011015$|^4049";
+  | grep -Ev "$EXCLUDE_RULES";
+
+}
+
+main;

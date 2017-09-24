@@ -4,18 +4,24 @@ readonly ARGA=("$@")
 
 _usage() {
   cat <<- EOF
-  This is the usage
+
+  Identifies all mod security rules triggered by the given IP address
+  in the current error.log file. Must be run from the site's log directory.
+  Output is the complete block to be copied into vhost.
+
+  Usage:  modsecbyip < target ip >
+
 EOF
 }
 
 main () {
 
-  local ip uris uniqueid i
-
   if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
     _usage;
     return 0;
   fi
+
+  local ip uris uniqueid i logentries
 
   ip="${ARGS[0]}";
 
@@ -24,7 +30,6 @@ main () {
 
   # Find unique uris
   uris=($(echo "$logentries" | cut -f2 | cut -d/ -f1-4 | sort -u ));
-
 
   echo "<IfModule mod_security2.c>";
   # Print LocationMatch block for each uri

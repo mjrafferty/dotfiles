@@ -5,7 +5,20 @@ readonly ARGA=("$@")
 
 _usage() {
   cat <<- EOF
-  This is the usage
+
+  Check user disk quotas.
+
+  Usage : checkquota [flag] < user >
+
+  Flags:
+
+    -a --all    Check all users.
+
+    -l --large  Show users with the most disk usage.
+
+    -u --user   Specify user. Will use current user directory
+                If none is specified.
+
 EOF
 }
 
@@ -24,7 +37,7 @@ _quotausage () {
 
 main () {
 
-  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
     _usage;
     return 0;
   fi

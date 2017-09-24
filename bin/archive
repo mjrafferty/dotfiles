@@ -47,24 +47,20 @@ _chown () {
   local file yn user
   file="$1";
 
-  if [[ -f $file ]]; then
+  read -rp "Chown file to [r]oot or [u]ser? [r/u]: " yn;
 
-    read -rp "Chown file to [r]oot or [u]ser? [r/u]: " yn;
+  if [[ $yn = "r" ]]; then
 
-    if [[ $yn = "r" ]]; then
+    user='root';
 
-      user='root';
+  else
 
-    else
+    user=$(getusr);
 
-      user=$(getusr);
+  fi;
 
-    fi;
-
-    chown "$user". "$file" \
-      && echo -e "Archive owned to $user\n";
-
-  fi
+  chown "$user". "$file" \
+    && echo -e "Archive owned to $user\n";
 
 }
 
@@ -72,7 +68,7 @@ main () {
 
   local target file size sizem;
 
-  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
     _usage;
     return 0;
   fi
@@ -85,6 +81,8 @@ main () {
   echo "Compressing ${sizem}M ... please be patient."
 
   _compress "$target" "$file" "$size";
+
+  [[ -f $file ]] || return 1;
 
   _chown "$file";
 

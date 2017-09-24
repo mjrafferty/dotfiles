@@ -5,12 +5,16 @@ readonly ARGA=("$@")
 
 _usage() {
   cat <<- EOF
-  This is the usage
+
+  Prints dashes.
+
+  Usage: dashes <quantity>
+
 EOF
 }
 
 main () {
-  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
     _usage;
     return 0;
   fi
