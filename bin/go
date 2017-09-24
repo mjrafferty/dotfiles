@@ -228,7 +228,7 @@ _setAction () {
 
 main () {
 
-  if [ -z "$ARGS" ] || [[ "$ARGS" =~ --help$|-h$ ]]; then
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
     _usage;
     return 0;
   fi
