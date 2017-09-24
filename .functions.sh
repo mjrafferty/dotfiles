@@ -1,23 +1,5 @@
 #! /bin/bash
 
-# Show sites and their corresponding reseller
-resellers () {
-  (nodeworx -u -n -c Siteworx -a listAccounts \
-    | sed 's/ /_/g' \
-    | awk '{print $5,$2,$10,$9}';
-
-  nodeworx -u -n -c Reseller -a listResellers \
-    | sed 's/ /_/g' \
-    | awk '{print $1,"0Reseller",$3, $2}') \
-    | sort -n \
-    | column -t \
-    | sed 's/\(.*0Re.*\)/\n\1/' > /tmp/rslr;
-
-  while read -r; do
-    awk '{if ($2 == "0Reseller") print "Reseller: " $3, "( "$4" )"; else if ($3 == "master") print ($2,$4); else print ($2,$3);}';
-  done < /tmp/rslr | sed 's/_/ /g';
-}
-
 # Change directory to a website's docroot
 cdd () {
   local query domains domain alias docroot subdir selection;
@@ -119,6 +101,108 @@ cdlogs () {
   pwd;
 }
 
+#### Bandwidth ######
+
+# Show top IP addresses by bandwidth usage
+ipsbymb () {
+  zless -f "$@" \
+    | awk '{tx[$1]+=$10} END {for (x in tx) {print x, "\t", tx[x]/1048576, "M"}}' \
+    | sort -k 2n \
+    | tail -n 20 \
+    | tac;
+}
+
+# Show top user agents by bandwidth usage
+uabymb () {
+  zless -f "$@" \
+    | cut -d\  -f10- \
+    | grep -v "^-" \
+    | sed 's_^\([0-9]*\).*" "\(.*\)"$_\1\t\2_' \
+    | awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
+    | sort -hr \
+    | head -n 20;
+}
+
+# Show top referers by bandwidth usage
+refbymb () {
+  zless -f "$@" \
+    | cut -d\  -f10,11 \
+    | grep -v "^-" \
+    | awk '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
+    | sort -hr \
+    | head -n 20;
+}
+
+# Show top uris by bandwidth usage
+uribymb () {
+  zless -f "$@" \
+    | cut -d\  -f7,10 \
+    | grep -v "\-$" \
+    | sed 's/?.* / /' \
+    | awk '{tx[$1]+=$2} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
+    | sort -hr \
+    | head -n 20;
+}
+
+# Show total bandwidth usage
+totalmb () {
+  zless -f "$@" \
+    | awk '{sum+=$10} END {print sum/1048576 " M"}'
+}
+
+##### Traffic #######
+#
+# Show top IP addresses by number of hits
+topips () {
+  zless -f "$@" \
+    | awk '{freq[$1]++} END {for (x in freq) {print freq[x], x}}' \
+    | sort -rn \
+    | head -20;
+}
+
+# Show top user agents by number of hits
+topuseragents () {
+  zless -f "$@" \
+    | cut -d\  -f12- \
+    | sort \
+    | uniq -c \
+    | sort -rn \
+    | head -20;
+}
+
+# Show top uris by number of hits
+topuri () {
+  zless -f "$@" \
+    | grep -hv " 403 " \
+    | cut -d\  -f7 \
+    | sed 's/?.*//' \
+    | sort \
+    | uniq -c \
+    | sort -hr \
+    | head;
+}
+
+# Show top referers by number of hits
+topref () {
+  zless -f "$@" \
+    | grep -hv " 403 " \
+    | cut -d\  -f11 \
+    | sort \
+    | uniq -c \
+    | sort -hr \
+    | head;
+}
+
+# Show number of hits per hour
+hitsperhour () {
+  zless -f "$@" \
+    | sed 's_.*../.*/....:\(..\).*_\1_' \
+    | sort -h \
+    | uniq -c \
+    | sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_'
+}
+
+
 # Identify the backup server that the current server uses
 whichsoft () {
   grep "AUTH.*allow" /usr/sbin/r1soft/log/cdp.log \
@@ -211,108 +295,6 @@ ttfb () {
   curl -o /dev/null -w"$output"  -s "$1";
 }
 
-# Show top IP addresses by number of hits
-topips () {
-  zless -f "$@" \
-    | awk '{freq[$1]++} END {for (x in freq) {print freq[x], x}}' \
-    | sort -rn \
-    | head -20;
-}
-
-# Show top user agents by number of hits
-topuseragents () {
-  zless -f "$@" \
-    | cut -d\  -f12- \
-    | sort \
-    | uniq -c \
-    | sort -rn \
-    | head -20;
-}
-
-# Show top IP addresses by bandwidth usage
-ipsbymb () {
-  zless -f "$@" \
-    | awk '{tx[$1]+=$10} END {for (x in tx) {print x, "\t", tx[x]/1048576, "M"}}' \
-    | sort -k 2n \
-    | tail -n 20 \
-    | tac;
-}
-
-# Show top user agents by bandwidth usage
-uabymb () {
-  zless -f "$@" \
-    | cut -d\  -f10- \
-    | grep -v "^-" \
-    | sed 's_^\([0-9]*\).*" "\(.*\)"$_\1\t\2_' \
-    | awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
-    | sort -hr \
-    | head -n 20;
-}
-
-# Show top referers by bandwidth usage
-refbymb () {
-  zless -f "$@" \
-    | cut -d\  -f10,11 \
-    | grep -v "^-" \
-    | awk '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
-    | sort -hr \
-    | head -n 20;
-}
-
-# Show top uris by bandwidth usage
-uribymb () {
-  zless -f "$@" \
-    | cut -d\  -f7,10 \
-    | grep -v "\-$" \
-    | sed 's/?.* / /' \
-    | awk '{tx[$1]+=$2} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
-    | sort -hr \
-    | head -n 20;
-}
-
-# Show total bandwidth usage
-totalmb () {
-  zless -f "$@" \
-    | awk '{sum+=$10} END {print sum/1048576 " M"}'
-}
-
-# Show number of hits per hour
-hitsperhour () {
-  zless -f "$@" \
-    | sed 's_.*../.*/....:\(..\).*_\1_' \
-    | sort -h \
-    | uniq -c \
-    | sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_'
-}
-
-# Show top uris by number of hits
-topuri () {
-  zless -f "$@" \
-    | grep -hv " 403 " \
-    | cut -d\  -f7 \
-    | sed 's/?.*//' \
-    | sort \
-    | uniq -c \
-    | sort -hr \
-    | head;
-}
-
-# Show top referers by number of hits
-topref () {
-  zless -f "$@" \
-    | grep -hv " 403 " \
-    | cut -d\  -f11 \
-    | sort \
-    | uniq -c \
-    | sort -hr \
-    | head;
-}
-
-# Make a compressed backup of the given file/folder
-backup () {
-  tar -czvf "$1.tar.gz" "$1";
-}
-
 # Check several email blacklists for the given IP
 blacklistcheck () {
   for b in $1; do
@@ -351,6 +333,24 @@ maldetstat () {
   done
 }
 
+# Show sites and their corresponding reseller
+resellers () {
+  (nodeworx -u -n -c Siteworx -a listAccounts \
+    | sed 's/ /_/g' \
+    | awk '{print $5,$2,$10,$9}';
+
+  nodeworx -u -n -c Reseller -a listResellers \
+    | sed 's/ /_/g' \
+    | awk '{print $1,"0Reseller",$3, $2}') \
+    | sort -n \
+    | column -t \
+    | sed 's/\(.*0Re.*\)/\n\1/' > /tmp/rslr;
+
+  while read -r; do
+    awk '{if ($2 == "0Reseller") print "Reseller: " $3, "( "$4" )"; else if ($3 == "master") print ($2,$4); else print ($2,$3);}';
+  done < /tmp/rslr | sed 's/_/ /g';
+}
+
 # Show number of hits by known bot user agents for the given user
 botsearch () {
   for x in /home/$1/var/*/logs/transfer.log ; do
@@ -383,99 +383,10 @@ ftpdb () {
   $(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
 }
 
-## Lookup mail account password (http://www.qmailwiki.org/Vpopmail#vuserinfo)
-emailpass () {
-  echo -e "\nUsername: $1\nPassword: $(~vpopmail/bin/vuserinfo -C "$1")\n";
-}
-
-## Print the hostname if it resolves, otherwise print the main IP
-serverName () {
-  if [[ -n $(dig +time=1 +tries=1 +short "$(hostname)") ]]; then
-    hostname;
-  else
-    ip addr show \
-      | awk '/inet / {print $2}' \
-      | cut -d/ -f1 \
-      | grep -Ev '^127\.' \
-      | head -1;
-  fi
-}
-
-## Print out most often accessed Nodeworx links
-lworx () {
-  echo;
-  if [[ -z "$1" ]]; then
-    (for x in siteworx reseller dns/zone ip; do
-    echo "$x : https://$(serverName):2443/nodeworx/$x";
-  done;
-  echo "webmail : https://$(serverName):2443/webmail") \
-    | column -t
-else
-  echo -e "Siteworx:\nLoginURL: https://$(serverName):2443/siteworx/?domain=$1";
-fi;
-echo
-}
-
 ## Add date and time with username and open server_notes.txt for editing
 srvnotes () {
   echo -e "\n#$(date) - ${SUDO_USER/nex/}" >> /etc/nexcess/server_notes.txt;
   nano /etc/nexcess/server_notes.txt;
-}
-
-## Find files in a directory that were modified a certain number of days ago
-recmod () {
-  local DIR;
-  if [[ -z "$*" || "$1" == "-h" || "$1" == "--help" ]]; then
-    echo -e "\n Usage: recmod [-p <path>] [days|{sequence}]\n  Note: Paths with * in them need to be quoted\n";
-    return 0;
-  elif [[ "$1" == "-p" ]]; then
-    DIR="$2";
-    shift;
-    shift;
-  else
-    DIR=".";
-  fi;
-  for x in "$@"; do
-    echo "Files modified within $x day(s) or $((x*24)) hours ago";
-    find $DIR -type f -ctime $((x-1)) -exec ls -lath {} \; \
-      | grep -Ev '(var|log|cache|media|tmp|jpg|png|gif)' \
-      | column -t;
-    echo;
-  done
-}
-
-## Update ownership to the username for the PWD
-fixowner () {
-  local U P owner;
-  U=$(getusr)
-  if [[ -z $2 ]]; then
-    P='.';
-  else
-    P=$2;
-  fi
-  case $1 in
-    -u|--user) owner="$U:$U" ;;
-    -a|--apache) owner="apache:$U" ;;
-    -r|--root) owner="root:root" ;;
-    *|-h|--help) echo -e "\n Usage: fixowner [option] [path]\n    -u | --user ..... Change ownership to $U:$U\n    -a | --apache ... Change ownership to apache:$U\n    -r | --root ..... Change ownership to root:root\n    -h | --help ..... Show this help output\n"; return 0 ;;
-  esac
-  chown -R $owner "$P" \
-    && echo -e "\n Files owned to $owner\n"
-}
-
-## Generate .ftpaccess file to create read only FTP user
-# http://www.proftpd.org/docs/howto/Limit.html
-ftpreadonly () {
-  local U;
-  echo;
-  if [[ -z "$1" ]]; then
-    vared -p "FTP Username: " -c U;
-  else
-    U="$1";
-  fi
-  echo -e "\n<Limit WRITE>\n  DenyUser $U\n</Limit>\n" >> .ftpaccess \
-    && chown "$(getusr)". .ftpaccess \
-    && echo -e "\n.ftpaccess file has been updated.\n";
 }
 
 ## Create or add http-auth section for given .htaccess file
@@ -697,125 +608,13 @@ magsymlinks () {
   fi
 }
 
-## Use CSR or CRT, generate a new key and CSR (SHA-256).
-sslrekey(){
-  local domain csrfile subject;
-  if [[ -z $1 ]]; then
-    vared -p "Domain Name: " -c domain;
-  else
-    domain="${1/\//}";
-  fi
 
-  csrfile="/home/*/var/${domain}/ssl/${domain}.csr"
-  crtfile="/home/*/var/${domain}/ssl/${domain}.crt"
 
-  if [[ -f "$csrfile" ]]; then
-    subject="$(openssl req -in "$csrfile" -subject -noout | sed 's/^subject=//' | sed -n l0 | sed 's/$$//')"
-    openssl req -nodes -sha256 -newkey rsa:2048 -keyout new."$domain".priv.key -out new."$domain".csr -subj "$subject" \
-      && cat new."${domain}".*
-  elif [[ -f "$crtfile" ]]; then
-    subject="$(openssl x509 -in "$crtfile" -subject -noout | sed 's/^subject= //' | sed -n l0 | sed 's/$$//')"
-    openssl req -nodes -sha256 -newkey rsa:2048 -keyout new."$domain".priv.key -out new."$domain".csr -subj "$subject" \
-      && cat new."${domain}".*
-  else
-    echo -e "\nNo CSR/CRT to souce from!\n"
-  fi
-}
-
-## Use CSR or CRT, and KEY, generate new CSR (SHA-256)
-sslrehash(){
-  local domain keyfile csrfile subject;
-  if [[ -z $1 ]]; then
-    vared -p "Domain Name: " -c domain;
-  else
-    domain="${1/\//}";
-  fi
-
-  keyfile="/home/*/var/${domain}/ssl/${domain}.priv.key"
-  csrfile="/home/*/var/${domain}/ssl/${domain}.csr"
-  crtfile="/home/*/var/${domain}/ssl/${domain}.crt"
-
-  if [[ -f "$csrfile" && -f "$keyfile" ]]; then
-    subject="$(openssl req -in "$csrfile" -subject -noout | sed 's/^subject=//' | sed -n l0 | sed 's/$$//')"
-    openssl req -nodes -sha256 -new -key "$keyfile" -out "$domain".sha256.csr -subj "${subject}" \
-      && cat "$domain".sha256.csr
-  elif [[ -f "$crtfile" && -f "$keyfile" ]]; then
-    subject="$(openssl x509 -in "$crtfile" -subject -noout | sed 's/^subject= //' | sed -n l0 | sed 's/$$//')"
-    openssl req -nodes -sha256 -new -key "$keyfile" -out "$domain".sha256.csr -subj "${subject}" \
-      && cat "$domain".sha256.csr
-  else
-    echo -e "\nNo CSR/CRT or KEY to souce from!\n"
-  fi
-}
-
-## Generate DCV file from the hash of the CSR for a Domain
-dcvfile(){
-  local domain csrfile md5 sha1;
-  if [[ -z $1 ]]; then
-    vared -p "Domain: " -c domain;
-  elif [[ $1 == '.' ]]; then
-    domain=$(pwd -P | sed 's:/chroot::' | cut -d/ -f4);
-  else
-    domain=$1;
-  fi
-  csrfile="/home/*/var/${domain}/ssl/${domain}.csr"
-  if [[ -f "$csrfile" ]]; then
-    md5=$(openssl req -in "$csrfile" -outform DER | openssl dgst -md5 | awk '{print $2}' | sed 's/\(.*\)/\U\1/g');
-    sha1=$(openssl req -in "$csrfile" -outform DER | openssl dgst -sha1 | awk '{print $2}' | sed 's/\(.*\)/\U\1/g');
-    echo -e "${sha1}\ncomodoca.com" > "${md5}".txt;
-    chown "$(getusr)". "${md5}".txt
-  else
-    echo "Could not find csr for ${domain}!";
-  fi
-}
 
 ## Find files group owned by username in employee folders or temp directories
 savethequota(){
   find /home/tmp -type f -size +100000k -group "$(getusr)" -exec ls -lah {} \;
   find /home/nex* -type f -group "$(getusr)" -exec ls -lah {} \;
-}
-
-## Give a breakdown of user's large disk objects
-diskhogs(){
-  local DEPTH;
-  if [[ "$*" == "*-h*" ]]; then
-    echo -e "\n Usage: diskhogs [maxdepth] [-d]\n";
-    return 0;
-  fi;
-  if [[ "$*" == "*[0-9]{1,}*" ]]; then
-    DEPTH=$(echo "$*" | grep -Eo '[0-9]{1,}');
-  else
-    DEPTH=3;
-  fi;
-  echo -e "\n---------- Large Directories $(dashes 51)";
-  du -h --max-depth $DEPTH | grep -E '[0-9]G|[0-9]{3}M';
-  if [[ ! "$*" == '*-d*' ]]; then
-    echo -e "\n---------- Large Files $(dashes 57)";
-    find . -type f -size +100000k -group "$(getusr)" -exec ls -lah {} \;;
-  fi;
-  echo -e "\n---------- Large Databases $(dashes 53)";
-  du -sh /var/lib/mysql/"$(getusr)"_* \
-    | grep -E '[0-9]G|[0-9]{3}M';
-  echo
-}
-
-## Give a breakdown of user's disk usage by area of use
-diskusage(){
-  local DIR;
-  DIR=$PWD;
-  cd /home/"$(getusr)" || return;
-  echo -e "\n---------- File Usage ----------";
-  du -h --max-depth 2 \
-    | grep -v var;
-  echo -e "\n---------- Mail Usage ----------";
-  du -sh var/*/mail/*/Maildir;
-  echo -e "\n---------- Log File Usage ----------";
-  du -sh var/*/logs;
-  du -sh var/php-fpm/ 2> /dev/null;
-  echo -e "\n---------- Database Usage ----------";
-  du -sh /var/lib/mysql/"$(getusr)"_*;
-  echo;
-  cd "$DIR" || return;
 }
 
 ## Simple System Status to check if services that should be running are running
