@@ -1,6 +1,7 @@
 if [ "$(id -u)" != "0" ]; then
-  HM=$HOME
-  /usr/bin/sudo HOME=$HM /bin/zsh
+
+  /usr/bin/sudo HOME=$HOME /bin/zsh
+
   /usr/bin/sudo find /home/nexmrafferty/ -mindepth 1 \( \
     -path "*/.aliases.sh" -o \
     -path "*/.bash_profile" -o \
@@ -18,17 +19,17 @@ if [ "$(id -u)" != "0" ]; then
     -path "*/.ssh" -o \
     -path "*/.zcompdump*" -o \
     -path "*/.vim*" -o \
-    -path "*/.zshrc" \) -prune -o -exec rm -rf {} + 2> /dev/null
-  exit
+    -path "*/.zshrc" \) -prune -o -exec rm -rf {} + 2> /dev/null;
+
+  exit;
+
 fi
 
-if [ -f ~/.commonrc ]; then
-  source ~/.commonrc
-fi
+[ -r ~/.commonrc ] && source ~/.commonrc;
 
 export ZSH_TMUX_AUTOSTART=true
 
-source $ZSH/oh-my-zsh.sh
+[ -r $ZSH/oh-my-zsh.sh ] && source $ZSH/oh-my-zsh.sh
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/opt/puppetlabs/bin:/var/qmail/bin:/usr/nexkit/bin:~/bin
 
@@ -50,13 +51,9 @@ compinit -u
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets line)
 ZSH_HIGHLIGHT_STYLES[line]='bold'
 
-if [ -f /opt/nexcess/php56u/enable ]; then
-  source /opt/nexcess/php56u/enable;
-fi
+[ -r /opt/nexcess/php56u/enable ] && source /opt/nexcess/php56u/enable;
 
-if [ -f ~/action.sh ]; then
-  source ~/action.sh;
-fi
+[ -r ~/action.sh ] && source ~/action.sh;
 
 # Server health check
 echo;

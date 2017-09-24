@@ -1,22 +1,10 @@
 #! /bin/bash
-if [ -f /etc/bashrc ]; then
-  source  /etc/bashrc
-fi
-if [ -f /etc/bashrc.nexcess ]; then
-  source /etc/bashrc.nexcess
-fi
-if [ -f ~/.bashrc ]; then
-  source  ~/.bashrc
-fi
-if [ -f ~/.aliases.sh ]; then
-  source ~/.aliases.sh
-fi
-if [ -f ~/.functions.sh ]; then
-  source ~/.functions.sh
-fi
-if [ -f ~/.environment.sh ]; then
-  source ~/.environment.sh
-fi
+[ -r /etc/bashrc ] && source  /etc/bashrc
+[ -r /etc/bashrc.nexcess ] && source /etc/bashrc.nexcess
+[ -r ~/.bashrc ] && source  ~/.bashrc
+[ -r ~/.aliases.sh ] && source ~/.aliases.sh
+[ -r ~/.functions.sh ] && source ~/.functions.sh
+[ -r ~/.environment.sh ] && source ~/.environment.sh
 
 export PATH=$PATH:~/bin
 
@@ -32,7 +20,7 @@ start_agent () {
 }
 
 # Source SSH settings, if applicable
-if [ -f "${SSH_ENV}" ]; then
+if [ -r "${SSH_ENV}" ]; then
   source "${SSH_ENV}" > /dev/null;
 
   # verify agent is running

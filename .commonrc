@@ -2,17 +2,9 @@
 
 export LANG=en_US.UTF-8
 
-if [ -f ~/.functions.sh ]; then
-  source ~/.functions.sh
-fi
-
-if [ -f ~/.aliases.sh ]; then
-  source ~/.aliases.sh
-fi
-
-if [ -f ~/.environment.sh ]; then
-  source ~/.environment.sh
-fi
+[ -r ~/.functions.sh ] && source ~/.functions.sh
+[ -r ~/.aliases.sh ] && source ~/.aliases.sh
+[ -r ~/.environment.sh ] && source ~/.environment.sh
 
 export ZSH=~/.oh-my-zsh
 
