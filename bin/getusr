@@ -1,4 +1,10 @@
 #! /bin/bash
 
+main () {
+
 pwd \
   | sed 's_.*home/\([^/]*\).*_\1_' \
+
+}
+
+main;
