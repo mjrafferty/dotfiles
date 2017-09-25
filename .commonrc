@@ -1,23 +1,54 @@
 #! /bin/zsh
 
-export LANG=en_US.UTF-8
 
+##### Env Variables #####
+export LANG=en_US.UTF-8
+export HISTTIMEFORMAT="%F %T "
+export PAGER=/usr/bin/less
+export EDITOR=/usr/bin/vim
+export VISUAL=/usr/bin/vim
+
+
+##### Aliases #####
+alias r="/usr/bin/sudo HOME=$HOME /bin/zsh"
+
+alias rm='rm --preserve-root'
+alias chown='chown --preserve-root'
+alias chmod='chmod --preserve-root'
+alias chgrp='chgrp --preserve-root'
+
+alias ls='ls -F --color=auto'
+alias less='less -i -n -S -F'
+
+alias poweroff='systemctl poweroff'
+alias reboot='systemctl reboot'
+
+alias mountro="mount -o ro,remount /usr && mount -o ro,remount /boot && mount -o ro,remount /"
+alias mountrw="mount -o rw,remount /usr; mount -o rw,remount /boot; mount -o rw,remount /"
+
+alias diff=colordiff
+
+alias dotpush="cd ~/dotfiles; git add .; git commit -a -m updates; git push; cd -;"
+
+alias connections="lsof -nu apache | grep -E 'httpd.*ESTABLISHED|httpd.*CLOSE_WAIT' | sed 's_.*:http.*->\(.*\):.*_\1_' | sort | uniq -c | sort -hr"
+alias sshsync="rsync -p -v --progress -e ssh -a -u -z"
+alias grepphp='grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png| 403 "'
+
+
+##### Functions #####
 [ -r ~/.functions.sh ] && source ~/.functions.sh
-[ -r ~/.aliases.sh ] && source ~/.aliases.sh
-[ -r ~/.environment.sh ] && source ~/.environment.sh
+
+
+##### ZSH #####
 
 export ZSH=~/.oh-my-zsh
 
 ZSH_THEME="matts"
-
 HYPHEN_INSENSITIVE="true"
-
 DISABLE_AUTO_UPDATE="true"
-
 ENABLE_CORRECTION="true"
-
 COMPLETION_WAITING_DOTS="true"
-
 HIST_STAMPS="mm/dd/yyyy"
 
 plugins=(git colored-man-pages colorize command-not-found cp extract history history-substring-search tmux redis-cli fasd zsh-syntax-highlighting zsh-autosuggestions zsh-completions my-completions)
+
