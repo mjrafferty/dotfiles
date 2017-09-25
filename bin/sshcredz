@@ -1,34 +1,46 @@
 #! /bin/bash
 
-## Setup or reset SSH account
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  echo -e "\n Usage: sshcredz [-p <password>] [-i \"<IP1> <IP2> <IP3> ...\"] [comment]\n";
-  exit 0;
-fi
+readonly ARGS="$*"
+readonly ARGA=("$@")
 
-# if password specified
-if [[ $1 == '-p' ]]; then
-  newPass="$2";
-  shift;
-  shift;
-else
-  newPass=$(mkpasswd -l 15);
-fi
+_usage() {
+  cat <<- EOF
 
-# if whitelist specified
-if [[ $1 == '-i' ]]; then
-  whitelist ssh "$2" "$3";
-fi
+  Usage: sshcredz [-p <password>]
 
-# Set shell, and add to ssh user's group; then reset failed logins, and reset password.
-usermod -s /bin/bash -a -G sshusers "$(getusr)" \
-  && echo -n "User $(getusr) added to sshusers, and shell set to /bin/bash ... "
+EOF
+}
 
-pam_tally2 -u "$(getusr)" -r &> /dev/null && echo -n "Failures for $(getusr) reset ... "
+main () {
 
-echo "$newPass" \
-  | passwd --stdin "$(getusr)" &> /dev/null \
-  && echo "Password set to $newPass"
+  if [[ "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
 
-# Output block for copy pasta
-echo -e "\nHostname: $(serverName)\nUsername: $(getusr)\nPassword: $newPass\n";
+  local newPass;
+
+  # if password specified
+  if [[ ${ARGA[0]} == '-p' ]]; then
+    newPass="${ARGA[1]}";
+  else
+    newPass=$(xkcd);
+  fi
+
+  # Set shell, and add to ssh user's group; then reset failed logins, and reset password.
+  usermod -s /bin/bash -a -G sshusers "$(getusr)" \
+    && echo -n "User $(getusr) added to sshusers, and shell set to /bin/bash ... "
+
+  pam_tally2 -u "$(getusr)" -r &> /dev/null \
+    && echo -n "Failures for $(getusr) reset ... "
+
+  echo "$newPass" \
+    | passwd --stdin "$(getusr)" &> /dev/null \
+    && echo "Password set to $newPass"
+
+  # Output block for copy pasta
+  echo -e "\nHostname: $(serverName)\nUsername: $(getusr)\nPassword: $newPass\n";
+
+}
+
+main;

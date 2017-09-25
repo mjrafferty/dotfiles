@@ -1,27 +1,48 @@
 #! /bin/bash
 
-## Send a file to an email address
-if [[ "$*" == '-h' || "$*" == '--help' || -z "$*" ]]; then
-  echo -e "\n Usage: sendthis <filename> <subject> <emailaddr>\n";
-  exit 0;
-fi
-if [[ -n $1 ]]; then
-  FILE=$1;
-else
-  read -rp "Filename: " FILE;
-fi
-if [[ -n $2 ]]; then
-  SUBJECT=$2;
-else
-  read -rp "Subject: " SUBJECT;
-fi
-if [[ -n $3 ]]; then
-  EMAIL=$3;
-else
-  read -rp "Email: " EMAIL;
-fi
-if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
-  echo "See Attached" | mail -s "$SUBJECT" -a "$FILE" "$EMAIL";
-else
-  mail -s "$SUBJECT" "$EMAIL" < "$FILE";
-fi;
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+  cat <<- EOF
+
+  Usage: sendthis <filename> <subject> <emailaddr>
+
+EOF
+}
+
+main () {
+
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+  if [[ -r ${ARGA[0]} ]]; then
+    FILE=${ARGA[0]};
+  else
+    read -rp "Filename: " FILE;
+  fi
+
+  if [[ -n ${ARGA[1]} ]]; then
+    SUBJECT=${ARGA[1]};
+  else
+    read -rp "Subject: " SUBJECT;
+  fi
+
+  if [[ -n ${ARGA[2]} ]]; then
+    EMAIL=${ARGA[2]};
+  else
+    read -rp "Email: " EMAIL;
+  fi
+
+  if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
+    echo "See Attached" \
+      | mail -s "$SUBJECT" -a "$FILE" "$EMAIL";
+  else
+    mail -s "$SUBJECT" "$EMAIL" < "$FILE";
+  fi;
+
+}
+
+main;

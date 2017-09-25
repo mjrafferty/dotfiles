@@ -1,64 +1,78 @@
 #! /bin/bash
 
-## Generate xkcd / iworx style passwords
+readonly ARGS="$*"
+readonly ARGA=("$@")
 
-if [[ "$*" =~ -h ]]; then
+_usage() {
+  cat <<- EOF
 
-  echo -e "\n  Usage: xkcd [-l <length>]\n";
-  exit 0;
+  Usage: xkcd [-l <length>]
 
-fi
+EOF
+}
 
+main () {
 
-if [ -f /usr/local/interworx/lib/dict/words ]; then
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
 
-  wordList='/usr/local/interworx/lib/dict/words';
+  local wordList wordLength n word len rnd
 
-elif [ -f /usr/share/dict/words ]; then
+  if [ -r /usr/local/interworx/lib/dict/words ]; then
 
-  wordList='/usr/share/dict/words';
+    wordList='/usr/local/interworx/lib/dict/words';
 
-else
-  echo "No word list found.";
-  exit 1;
-fi
+  elif [ -r /usr/share/dict/words ]; then
 
+    wordList='/usr/share/dict/words';
 
-if [[ $1 =~ -l ]]; then
-
-  wordLength=$(( (${2} - 4) / 4 ));
-
-else
-
-  wordLength="4,8";
-
-fi
+  else
+    echo "No word list found.";
+    return 1;
+  fi
 
 
-if [[ -x /usr/bin/shuf ]]; then
+  if [[ ${ARGA[0]} =~ -l ]]; then
 
-  echo $(shuf -n1000 $wordList | grep -E "^[a-z]{$wordLength}$" | shuf -n4 )$(( (RANDOM % 9000) + 1000 )) \
-    | sed 's/\b\([a-zA-Z]\)/\u\1/g' \
-    | sed 's/ //g'
+    wordLength=$(( (ARGA[1] - 4) / 4 ));
 
-else
+  else
 
-  n=0;  word=(); len=$(wc -l < $wordList)
+    wordLength="4,8";
 
-  while [[ $n -lt 4 ]]; do
+  fi
 
-    rnd=$(( ( $(od -vAn -N4 -tu4 < /dev/urandom) )%(len)+1 ));
 
-    word[$n]=$(sed -n "${rnd}p" $wordList | grep -E "^[a-z]{4,8}$" | sed 's:\b\(.\):\u\1:');
+  if [[ -x /usr/bin/shuf ]]; then
 
-    if [[ -n ${word[$n]} ]]; then
+    echo $(shuf -n1000 $wordList | grep -E "^[a-z]{$wordLength}$" | shuf -n4 )$(( (RANDOM % 9000) + 1000 )) \
+      | sed 's/\b\([a-zA-Z]\)/\u\1/g' \
+      | sed 's/ //g'
 
-      n=$n+1;
+  else
 
-    fi;
+    n=0;  word=(); len=$(wc -l < $wordList)
 
-  done;
+    while [[ $n -lt 4 ]]; do
 
-  echo "${word[0]}${word[1]}${word[2]}${word[3]}$(( RANDOM % 9000 + 1000 ))";
+      rnd=$(( ( $(od -vAn -N4 -tu4 < /dev/urandom) )%(len)+1 ));
 
-fi
+      word[$n]=$(sed -n "${rnd}p" $wordList | grep -E "^[a-z]{4,8}$" | sed 's:\b\(.\):\u\1:');
+
+      if [[ -n ${word[$n]} ]]; then
+
+        n=$n+1;
+
+      fi;
+
+    done;
+
+    echo "${word[0]}${word[1]}${word[2]}${word[3]}$(( RANDOM % 9000 + 1000 ))";
+
+  fi
+
+}
+
+main;

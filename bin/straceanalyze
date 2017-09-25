@@ -1,5 +1,28 @@
 #! /bin/bash
 
-file=$1
+readonly ARGS="$*"
+readonly ARGA=("$@")
 
-awk '{ gsub(/<|>/,"",$(NF)); print (sum += ($2 - $(NF))) }' "$file" | paste - "$file"
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
+main () {
+
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+  local file;
+
+  file="${ARGA[0]}"
+
+  awk '{ gsub(/<|>/,"",$(NF)); print (sum += ($2 - $(NF))) }' "$file" \
+    | paste - "$file"
+
+}
+
+main;
