@@ -1,24 +1,47 @@
 #! /bin/bash
 
-logs=$(mktemp);
-tai64nlocal < /var/log/send/* | nl > "$logs"
+readonly ARGS="$*"
+readonly ARGA=("$@")
 
-email=$1;
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
 
-declare -a delivery msg;
+main () {
 
-output=$(grep -h "to.*$email" /var/log/send/* | cut -d\  -f4,6 | sed 's/://')
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
 
-delivery=($(echo "$output" | awk '{print $1}'));
-msg=($(echo "$output" | awk '{print $2}'));
+  local logs email delivery msg output i
 
-for ((i=0;i < ${#msg[@]}; i++)); do
-  grep -h -C40 "$email" /var/log/send/* \
-    | tai64nlocal \
-    | grep -E " $(echo "${msg[$i]}" | awk '{print $1}') | $(echo "${msg[$i]}" | awk '{print $2}') ";
-  echo;
-done
+  logs=$(mktemp);
+  tai64nlocal < /var/log/send/* | nl > "$logs"
 
+  email=${ARGA[0]};
+
+  declare -a delivery msg;
+
+  output=$(grep -h "to.*$email" /var/log/send/* | cut -d\  -f4,6 | sed 's/://')
+
+  delivery=($(echo "$output" | awk '{print $1}'));
+  msg=($(echo "$output" | awk '{print $2}'));
+
+  for ((i=0;i < ${#msg[@]}; i++)); do
+    grep -h -C40 "$email" /var/log/send/* \
+      | tai64nlocal \
+      | grep -E " $(echo "${msg[$i]}" | awk '{print $1}') | $(echo "${msg[$i]}" | awk '{print $2}') ";
+    echo;
+  done
+
+
+
+}
+
+main;
 
 mail msg  <<< EOF
 
