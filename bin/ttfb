@@ -18,6 +18,7 @@ if [[ "$1" == "m" || "$1" == "mag" ]]; then
   for x in index.php robots.txt; do
     echo -e "\n$D/$x"; _timetofirstbyte "$D/$x";
   done;
+
 else
   D="$1";
   echo;

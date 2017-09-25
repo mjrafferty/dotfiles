@@ -1,5 +1,7 @@
 #! /bin/bash
 
+##### Change Directory #####
+
 # Change directory to a website's docroot
 cdd () {
   local query domains domain alias docroot subdir selection;
@@ -101,6 +103,7 @@ cdlogs () {
   pwd;
 }
 
+
 #### Bandwidth ######
 
 # Show top IP addresses by bandwidth usage
@@ -150,8 +153,9 @@ totalmb () {
     | awk '{sum+=$10} END {print sum/1048576 " M"}'
 }
 
+
 ##### Traffic #######
-#
+
 # Show top IP addresses by number of hits
 topips () {
   zless -f "$@" \
@@ -202,66 +206,7 @@ hitsperhour () {
     | sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_'
 }
 
-
-# Identify the backup server that the current server uses
-whichsoft () {
-  grep "AUTH.*allow" /usr/sbin/r1soft/log/cdp.log \
-    | sed 's_.*server.allow/\(.*\).$_\1_' \
-    | tail -n1 \
-    | awk -F'/' '{print $NF}' \
-    | xargs -rn1 host -W5 \
-    | awk '/name pointer/{sub(/\.$/,"",$NF); printf "https://%s:8001/\n",$NF}'
-}
-
-# Check disk quotas
-quotacheck () {
-  echo;
-  grep -E ":/home/[^\:]+:" /etc/passwd \
-    | cut -d : -f1 \
-    | while read  -r _user_; do
-  echo -n "$_user_";
-  quota -g "$_user_" 2>/dev/null \
-    | perl -pe 's,\*,,g' \
-    | tail -n+3 \
-    | awk '{print " "$2/$3*100,$2/1000/1024,$3/1024/1000}';
-  echo;
-done \
-  | grep '\.' \
-  | sort -grk2 \
-  | awk 'BEGIN{printf "%-15s %-10s %-10s %-10s\n","User","% Used","Used (G)","Total (G)"; for (x=1; x<50; x++) {printf "-"}; printf "\n"} {printf "%-15s %-10.2f %-10.2f %-10.2f\n",$1,$2,$3,$4}';
-echo;
-}
-
-# Connect to the iworx database
-iworxdb () {
-  local user pass database socket;
-
-  user="iworx";
-  pass="$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)";
-  database="iworx";
-  socket="$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | awk -F'[()]' '{print $2}')";
-
-  mysql -u"$user" -p"$pass" -S"$socket" -D"$database";
-}
-
-# Tool to raise or lower disk quota
-updatequota () {
-  local master_domain new_disk_quota;
-  if (( $# < 2 )); then
-    echo -e "Must provide two arguments\n\nUsage: nwupdatequota \$master_domain \$new_quota\n\n";
-    return;
-  elif (( $# > 2)); then
-    echo -e "Too many arguments\n\nUsage: nwupdatequota \$master_domain \$new_quota\n\n";
-    return;
-  fi
-
-  master_domain=$1;
-  new_disk_quota=$2;
-
-  nodeworx -u -n -c Siteworx -a edit --OPT_STORAGE "$new_disk_quota" --domain "$master_domain";
-}
-
-# Show number of hits received on every site since the beginning of the current hour
+# Show number of hits received on every site in the last hour
 hitslasthour () {
   local prevhour regex;
   local -a times;
@@ -288,11 +233,108 @@ hitslasthour () {
   echo -e "\n"
 }
 
-# Measure time to first byte of the given url
-ttfb () {
-  local output="Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n";
 
-  curl -o /dev/null -w"$output"  -s "$1";
+##### Disk Usage ######
+
+## Find files group owned by username in employee folders or temp directories
+savethequota(){
+  find /home/tmp -type f -size +100000k -group "$(getusr)" -exec ls -lah {} \;
+  find /home/nex* -type f -group "$(getusr)" -exec ls -lah {} \;
+}
+
+## Adjust user quota on the fly using Nodeworx CLI
+bumpquota(){
+
+  local newQuota primaryDomain;
+
+  if [[ -z "$*" || $1 == "*-h" ]]; then
+    echo -e "\n Usage: bumpquota <username> <newquota>\n  Note: <username> can be '.' to get user from PWD\n";
+    return 0;
+  elif [[ $1 == "^[a-z].*$" ]]; then
+    U=$1;
+    shift;
+  elif [[ $1 == '.' ]]; then
+    U=$(getusr);
+    shift;
+  fi
+
+  newQuota=$1;
+  primaryDomain=$(~iworx/bin/listaccounts.pex | grep "$U" | awk '{print $2}')
+
+  nodeworx -u -n -c Siteworx -a edit --domain "$primaryDomain" --OPT_STORAGE "$newQuota" \
+    && echo -e "\nDisk Quota for $U has been set to $newQuota MB\n";
+
+  checkquota -u "$U";
+}
+
+
+#### Special Databases ########
+
+# Connect to the iworx database
+iworxdb () {
+  local user pass database socket;
+
+  user="iworx";
+  pass="$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)";
+  database="iworx";
+  socket="$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | awk -F'[()]' '{print $2}')";
+
+  mysql -u"$user" -p"$pass" -S"$socket" -D"$database";
+}
+
+# Vpopmail
+vpopdb () {
+  $(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
+}
+
+# ProFTPd
+ftpdb () {
+  $(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
+}
+
+
+###### IP addresses ##########
+
+## List server IPs, and all domains configured on them.
+domainips () {
+  local D;
+  echo;
+  for I in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.'); do
+    printf "  ${BRIGHT}${YELLOW}%-15s${NORMAL}  " "$I";
+    D=$(grep -l "$I" /etc/httpd/conf.d/vhost_[^0]*.conf | cut -d_ -f2 | sed 's/.conf$//');
+    for x in $D; do
+      printf "%s " "$x";
+    done;
+    echo;
+  done;
+  echo
+}
+
+## Find IPs in use by a Siteowrx account
+accountips () {
+  domaincheck -a "$1";
+}
+
+## Find IPs in use by a Reseller account
+resellerips () {
+  domaincheck -r "$1";
+}
+
+## Find IPs that are not configured in any vhost files
+freeips () {
+  echo;
+  for x in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.|^10\.|^172\.'); do
+    printf "\n%-15s " "$x";
+    grep -l "$x" /etc/httpd/conf.d/vhost_[^0]*.conf 2> /dev/null;
+  done \
+    | grep -v \.conf$ \
+    | column -t;
+  echo
+}
+
+## Add an IP to a Siteworx account
+addip () {
+  nodeworx -u -n -c Siteworx -a addIp --domain "$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')" --ipv4 "$1";
 }
 
 # Check several email blacklists for the given IP
@@ -324,14 +366,8 @@ blacklistcheck () {
   done;
 }
 
-# Stat the files listed in the given maldet report
-maldetstat () {
-  local files;
-  files=($(awk '{print $3}' /usr/local/maldetect/sess/session.hits."$1"));
-  for (( x=1; x<=${#files[@]}; x++ )); do
-    stat "${files[$x]}";
-  done
-}
+
+####### Nodeworx ##########
 
 # Show sites and their corresponding reseller
 resellers () {
@@ -351,17 +387,50 @@ resellers () {
   done < /tmp/rslr | sed 's/_/ /g';
 }
 
-# Show number of hits by known bot user agents for the given user
-botsearch () {
-  for x in /home/$1/var/*/logs/transfer.log ; do
-    echo -e "\n####### $x" ;
-    grep -v ' 403 ' "$x" \
-      | grep -iE 'bot|megaindex|crawl|spider|slurp' \
-      | cut -d\  -f12- \
-      | sort \
-      | uniq -c \
-      | sort -rn \
-      | head ;
+# Lookup Siteworx account details
+acctdetail () {
+  nodeworx -u -n -c Siteworx -a querySiteworxAccountDetails --domain "$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')"\
+    | sed 's:\([a-zA-Z]\) \([a-zA-Z]\):\1_\2:g;s:\b1\b:YES:g;s:\b0\b:NO:g' \
+    | column -t
+}
+
+## Enable Siteworx backups for an account
+addbackups () {
+  nodeworx -u -n -c Siteworx -a edit --domain "$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')" --OPT_BACKUP 1;
+}
+
+
+
+## Simple System Status to check if services that should be running are running
+srvstatus(){
+  local servicelist;
+  servicelist=($(chkconfig --list | awk '/3:on/ {print $1}' | sort));
+
+  printf "\n%-18s %s\n%-18s %s\n" " Service" " Status" "$(dashes 18)" "$(dashes 55)";
+
+  for x in ${servicelist[*]}; do
+    printf "%-18s %s\n" " $x" " $(service "$x" status 2> /dev/null | head -1)";
+  done;
+  echo
+}
+
+## Lookup the DNS Nameservers on the host
+nameservers () {
+  local nameservers;
+  echo;
+  nameservers=($(sed -n 's/ns[1-2]="\([^"]*\).*/\1/p' ~iworx/iworx.ini))
+  for (( x=1; x<=${#nameservers[@]}; x++ )) do
+    echo "${nameservers[$x]} ($(dig +short "${nameservers[$x]}"))";
+  done
+  echo;
+}
+
+# Stat the files listed in the given maldet report
+maldetstat () {
+  local files;
+  files=($(awk '{print $3}' /usr/local/maldetect/sess/session.hits."$1"));
+  for (( x=1; x<=${#files[@]}; x++ )); do
+    stat "${files[$x]}";
   done
 }
 
@@ -371,16 +440,6 @@ finddups () {
     | xargs -0 md5sum \
     | sort \
     | uniq -w32 --all-repeated=separate
-}
-
-# Vpopmail
-vpopdb () {
-  $(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
-}
-
-# ProFTPd
-ftpdb () {
-  $(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
 }
 
 ## Add date and time with username and open server_notes.txt for editing
@@ -421,57 +480,6 @@ sysusage () {
   echo;
 }
 
-# Lookup Siteworx account details
-acctdetail () {
-  nodeworx -u -n -c Siteworx -a querySiteworxAccountDetails --domain "$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')"\
-    | sed 's:\([a-zA-Z]\) \([a-zA-Z]\):\1_\2:g;s:\b1\b:YES:g;s:\b0\b:NO:g' \
-    | column -t
-}
-
-## Add an IP to a Siteworx account
-addip () {
-  nodeworx -u -n -c Siteworx -a addIp --domain "$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')" --ipv4 "$1";
-}
-
-## Enable Siteworx backups for an account
-addbackups () {
-  nodeworx -u -n -c Siteworx -a edit --domain "$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')" --OPT_BACKUP 1;
-}
-
-## Adjust user quota on the fly using Nodeworx CLI
-bumpquota(){
-
-  local newQuota primaryDomain;
-  if [[ -z "$*" || $1 == "*-h" ]]; then
-    echo -e "\n Usage: bumpquota <username> <newquota>\n  Note: <username> can be '.' to get user from PWD\n";
-    return 0;
-  elif [[ $1 == "^[a-z].*$" ]]; then
-    U=$1;
-    shift;
-  elif [[ $1 == '.' ]]; then
-    U=$(getusr);
-    shift;
-  fi
-
-  newQuota=$1;
-  primaryDomain=$(~iworx/bin/listaccounts.pex | grep "$U" | awk '{print $2}')
-
-  nodeworx -u -n -c Siteworx -a edit --domain "$primaryDomain" --OPT_STORAGE "$newQuota" \
-    && echo -e "\nDisk Quota for $U has been set to $newQuota MB\n";
-  checkquota -u "$U";
-}
-
-## Lookup the DNS Nameservers on the host
-nameservers () {
-  local nameservers;
-  echo;
-  nameservers=($(sed -n 's/ns[1-2]="\([^"]*\).*/\1/p' ~iworx/iworx.ini))
-  for (( x=1; x<=${#nameservers[@]}; x++ )) do
-    echo "${nameservers[$x]} ($(dig +short "${nameservers[$x]}"))";
-  done
-  echo;
-}
-
 ## Quick summary of domain DNS info
 ddns () {
   local D;
@@ -494,43 +502,6 @@ ddns () {
   done
 }
 
-## List server IPs, and all domains configured on them.
-domainips () {
-  local D;
-  echo;
-  for I in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.'); do
-    printf "  ${BRIGHT}${YELLOW}%-15s${NORMAL}  " "$I";
-    D=$(grep -l "$I" /etc/httpd/conf.d/vhost_[^0]*.conf | cut -d_ -f2 | sed 's/.conf$//');
-    for x in $D; do
-      printf "%s " "$x";
-    done;
-    echo;
-  done;
-  echo
-}
-
-## Find IPs in use by a Siteowrx account
-accountips () {
-  domaincheck -a "$1";
-}
-
-## Find IPs in use by a Reseller account
-resellerips () {
-  domaincheck -r "$1";
-}
-
-## Find IPs that are not configured in any vhost files
-freeips () {
-  echo;
-  for x in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.|^10\.|^172\.'); do
-    printf "\n%-15s " "$x";
-    grep -l "$x" /etc/httpd/conf.d/vhost_[^0]*.conf 2> /dev/null;
-  done \
-    | grep -v \.conf$ \
-    | column -t;
-  echo
-}
-
 ## Check if gzip is working for domain(s)
 chkgzip () {
   local DNAME;
@@ -544,33 +515,6 @@ chkgzip () {
     curl -I -H 'Accept-Encoding: gzip,deflate' "$x";
   done;
   echo
-}
-
-## Attempt to list Secondary Domains on an account
-ldomains () {
-  local DIR;
-  DIR=$PWD;
-  cd /home/"$(getusr)" || return;
-  for x in */html; do
-    echo "$x" \
-      | sed 's/\/html//g';
-  done;
-  cd "$DIR" || return;
-}
-
-## List Sitworx accouts sorted by Reseller
-lreseller () {
-  ( nodeworx -u -n -c Siteworx -a listAccounts \
-    | sed 's/ /_/g' \
-    | awk '{print $5,$2,$10}';
-  nodeworx -u -n -c Reseller -a listResellers \
-    | sed 's/ /_/g' \
-    | awk '{print $1,"0.Reseller",$3}' )\
-    | sort -n \
-    | column -t \
-    | sed 's/\(.*0\.Re.*\)/\n\1/' \
-    | grep -Ev '^1 ';
-  echo;
 }
 
 ## List the daily snapshots for a database to see the dates/times on the snapshots
@@ -606,26 +550,4 @@ magsymlinks () {
       sudo -u "$U" cp /home/"$U"/"$D"/html/$Y .;
     done;
   fi
-}
-
-
-
-
-## Find files group owned by username in employee folders or temp directories
-savethequota(){
-  find /home/tmp -type f -size +100000k -group "$(getusr)" -exec ls -lah {} \;
-  find /home/nex* -type f -group "$(getusr)" -exec ls -lah {} \;
-}
-
-## Simple System Status to check if services that should be running are running
-srvstatus(){
-  local servicelist;
-  servicelist=($(chkconfig --list | awk '/3:on/ {print $1}' | sort));
-
-  printf "\n%-18s %s\n%-18s %s\n" " Service" " Status" "$(dashes 18)" "$(dashes 55)";
-
-  for x in ${servicelist[*]}; do
-    printf "%-18s %s\n" " $x" " $(service "$x" status 2> /dev/null | head -1)";
-  done;
-  echo
 }
