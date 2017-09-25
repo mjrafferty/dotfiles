@@ -2,15 +2,34 @@
 
 ## Find basic Drupal information and display it in the nexkit-style
 
-if [[ -n $1 ]]; then
-  sitepath="$1";
-else
-  sitepath='.';
-fi
+readonly ARGS="$*"
+readonly ARGA=("$@")
 
-config="${sitepath}/sites/default/settings.php"
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
 
-if [[ -f ${config} ]]; then
+main () {
+
+  if [[ "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+  local sitepath config verfile version installdate dbname dbuser dbpass dbhost dbdriv prefix;
+  local base_path base_url sitename posts;
+
+  if [[ -n ${ARGA[0]} ]]; then
+    sitepath="${ARGA[0]}";
+  else
+    sitepath='.';
+  fi
+
+  config="${sitepath}/sites/default/settings.php"
+
+  [[ -f ${config} ]] || (echo -e "\nCould not find Drupal install at ${sitepath}\n"; return 1);
 
   # Version Information
   if grep -q "define('VERSION'" ${sitepath}/modules/system/system.module; then
@@ -49,8 +68,8 @@ if [[ -f ${config} ]]; then
 
   database="${dbdriv}://${dbuser}:${dbpass}@${dbhost}/${dbname}$(if [[ -n ${prefix} ]]; then echo ."${prefix}"*; fi)"
 
-  base_path=$(cd $sitepath || exit; pwd -P;)
-  base_url=$(cd $sitepath || exit; pwd -P | sed 's:/chroot::g;s:/html::g' | cut -d/ -f4-)
+  base_path=$(cd $sitepath || return; pwd -P;)
+  base_url=$(cd $sitepath || return; pwd -P | sed 's:/chroot::g;s:/html::g' | cut -d/ -f4-)
   sitename=$(mysql -u "$dbuser" -p"$dbpass" "$dbname" -h "$dbhost" -e "select name,value from ${prefix}variable where name=\"site_name\";" | tail -1 | cut -d\" -f2)
   posts=$(mysql -u "$dbuser" -p"$dbpass" "$dbname" -h "$dbhost" -e "select count(*) from ${prefix}node;" | tail -1)
 
@@ -65,6 +84,6 @@ if [[ -f ${config} ]]; then
   printf "%-18s: %s\n" "DB Connection" "${database}"
   echo;
 
-else
-  echo -e "\nCould not find Drupal install at ${sitepath}\n";
-fi
+}
+
+main;
