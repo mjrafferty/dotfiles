@@ -50,12 +50,12 @@ _listRecords () {
 
   local zoneid="$1"
 
-  echo -e "\nID ... MX-Records-for: $2"
+  echo;
   (sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid") \
     | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' \
     | sort -nk3 \
     | column -t;
-  echo
+  echo;
 
 }
 
@@ -66,7 +66,9 @@ main () {
     return 0;
   fi
 
-  zoneid=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a listZones | awk "(\${ARGA[1]} ~ /${ARGA[1]}/)"'{print $1}')
+  local zoneid;
+
+  zoneid=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a listZones | awk "/${ARGA[1]}/)"'{print $1}')
 
   if [[ ${ARGA[0]} = '-c' && -n ${ARGA[1]} ]]; then
 
@@ -74,7 +76,7 @@ main () {
 
   elif [[ ${ARGA[0]} == '-a' && -n ${ARGA[1]} ]]; then
 
-    echo -e "\nID ... MX-Records-for: ${ARGA[1]}"
+    echo;
     (sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid") \
       | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' \
       | sort -nk3 \
