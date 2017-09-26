@@ -14,196 +14,211 @@ _genPass(){
     newPass=$(xkcd);
   fi
 }
+readonly ARGS="$*"
+readonly ARGA=("$@")
 
-# Get domain
-if [[ $1 == '-d' ]]; then
-  primaryDomain=$2;
-  shift;
-  shift;
-else
-  primaryDomain=$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}');
-fi
+_usage() {
+  cat <<- EOF
 
-# Execute request
-case $1 in
-  -e ) # Listing/Updating Email Passwords
-    if [[ -z $2 || $2 == '--list' ]]; then
+  Usage: iworxcredz OPTION [--list] [USER/ID] PASSWORD [newPassword]
+  Ex: iworxcredz -d secondaryDomain -f ftpUserName -m
+  Ex: iworxcredz -f ftpUserName -p newPassword
+  Ex: iworxcredz -s emailAddress -x
+  Ex: iworxcredz -r --list
 
-      echo -e "\n----- EmailAddresses -----";
+  OPTIONS: (use '--list' to list available users)
+  -d [domain] . Specify domain for secondary FTP users
+  -e [email] .. Email Users
+  -f [user] ... FTP Users (default is ftp@primarydomain.tld)
+  -s [email] .. Siteworx Users (default is primary user)
+  -r [id] ..... Reseller Users
+  -n [email] .. Nodeworx Users
+  -m [user] ... MySQL Users
 
-      for x in /home/$(getusr)/var/*/mail/*/Maildir/; do
-        echo "$x" \
-          | awk -F/ '{print $7"@"$5}';
-      done;
+  PASSWORD: (password generation or input)
+  -m ... Generate password using mkpasswd
+  -x ... Generate password using xkcd (default)
+  -p ... Specify new password directly (-p <password>)
 
-      echo;
-    else
+EOF
+}
 
-      emailAddress=$2;
+main () {
 
-      _genPass "$3" "$4"
-      ~vpopmail/bin/vpasswd "$emailAddress" "$newPass"
-      echo -e "\nLoginURL: https://$(serverName):2443/webmail\nUsername: $emailAddress\nPassword: $newPass\n"
-    fi;
-    ;;
+  # Get domain
+  if [[ $1 == '-d' ]]; then
+    primaryDomain=$2;
+    shift;
+    shift;
+  else
+    primaryDomain=$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}');
+  fi
 
-  -f ) # Listing/Updating FTP Users
-    if [[ -z $2 || $2 == '--list' ]]; then
+  # Execute request
+  case $1 in
+    -e ) # Listing/Updating Email Passwords
+      if [[ -z $2 || $2 == '--list' ]]; then
 
-      echo;
-      (echo "ShortName FullName";
-      sudo -u "$(getusr)" siteworx -unc Ftp -a list) \
-        | column -t;
-      echo;
+        echo -e "\n----- EmailAddresses -----";
 
-    elif [[ $2 == '.' ]]; then
+        for x in /home/$(getusr)/var/*/mail/*/Maildir/; do
+          echo "$x" \
+            | awk -F/ '{print $7"@"$5}';
+        done;
 
-      ftpUser='ftp';
+        echo;
+      else
 
-      _genPass "$3" "$4"
+        emailAddress=$2;
 
-      sudo -u "$(getusr)" siteworx -u --login_domain "$primaryDomain" -n -c Ftp -a edit --password "$newPass" --confirm_password "$newPass" --user $ftpUser
-      echo -e "\nFor Testing: \nlftp -e'ls;quit' -u ${ftpUser}@${primaryDomain},'$newPass' $(serverName)"
-      echo -e "\nHostname: $(serverName)\nUsername: ${ftpUser}@${primaryDomain}\nPassword: $newPass\n"
+        _genPass "$3" "$4"
+        ~vpopmail/bin/vpasswd "$emailAddress" "$newPass"
+        echo -e "\nLoginURL: https://$(serverName):2443/webmail\nUsername: $emailAddress\nPassword: $newPass\n"
+      fi;
+      ;;
 
-    else
+    -f ) # Listing/Updating FTP Users
+      if [[ -z $2 || $2 == '--list' ]]; then
 
-      ftpUser=$2;
+        echo;
+        (echo "ShortName FullName";
+        sudo -u "$(getusr)" siteworx -unc Ftp -a list) \
+          | column -t;
+        echo;
 
-      _genPass "$3" "$4;"
+      elif [[ $2 == '.' ]]; then
 
-      sudo -u "$(getusr)" siteworx -u --login_domain "$primaryDomain" -n -c Ftp -a edit --password "$newPass" --confirm_password "$newPass" --user "$ftpUser"
-      echo -e "\nFor Testing: \nlftp -e'ls;quit' -u ${ftpUser}@${primaryDomain},'$newPass' $(serverName)"
-      echo -e "\nHostname: $(serverName)\nUsername: ${ftpUser}@${primaryDomain}\nPassword: $newPass\n"
-    fi
-    ;;
+        ftpUser='ftp';
 
-  -s ) # Listing/Updating Siteworx Users
-    if [[ -z $2 || $2 = '--list' ]]; then
+        _genPass "$3" "$4"
 
-      echo;
-      (echo "EmailAddress Name Status";
-      sudo -u "$(getusr)" siteworx -unc Users -a listUsers \
-        | sed 's/ /_/g' \
-        | awk '{print $2,$3,$5}') \
-        | column -t;
-      echo;
+        sudo -u "$(getusr)" siteworx -u --login_domain "$primaryDomain" -n -c Ftp -a edit --password "$newPass" --confirm_password "$newPass" --user $ftpUser
+        echo -e "\nFor Testing: \nlftp -e'ls;quit' -u ${ftpUser}@${primaryDomain},'$newPass' $(serverName)"
+        echo -e "\nHostname: $(serverName)\nUsername: ${ftpUser}@${primaryDomain}\nPassword: $newPass\n"
 
-    elif [[ $2 == '.' ]]; then # Lookup primary domain and primary email address
+      else
 
-      primaryEmail=$(nodeworx -unc Siteworx -a querySiteworxAccounts --domain "$primaryDomain" --account_data email)
+        ftpUser=$2;
 
-      _genPass "$3" "$4"
+        _genPass "$3" "$4;"
 
-      nodeworx -unc Siteworx -a edit --password "$newPass" --confirm_password "$newPass" --domain "$primaryDomain"
+        sudo -u "$(getusr)" siteworx -u --login_domain "$primaryDomain" -n -c Ftp -a edit --password "$newPass" --confirm_password "$newPass" --user "$ftpUser"
+        echo -e "\nFor Testing: \nlftp -e'ls;quit' -u ${ftpUser}@${primaryDomain},'$newPass' $(serverName)"
+        echo -e "\nHostname: $(serverName)\nUsername: ${ftpUser}@${primaryDomain}\nPassword: $newPass\n"
+      fi
+      ;;
 
-      echo -e "\nLoginURL: https://$(serverName):2443/siteworx/?domain=$primaryDomain\nUsername: $primaryEmail\nPassword: $newPass\nDomain: $primaryDomain\n"
+    -s ) # Listing/Updating Siteworx Users
+      if [[ -z $2 || $2 = '--list' ]]; then
 
-    else # Update Password for specific user
+        echo;
+        (echo "EmailAddress Name Status";
+        sudo -u "$(getusr)" siteworx -unc Users -a listUsers \
+          | sed 's/ /_/g' \
+          | awk '{print $2,$3,$5}') \
+          | column -t;
+        echo;
 
-      emailAddress=$2;
+      elif [[ $2 == '.' ]]; then # Lookup primary domain and primary email address
 
-      _genPass "$3" "$4"
+        primaryEmail=$(nodeworx -unc Siteworx -a querySiteworxAccounts --domain "$primaryDomain" --account_data email)
 
-      sudo -u "$(getusr)" siteworx -unc Users -a edit --user "$emailAddress" --password "$newPass" --confirm_password "$newPass"
+        _genPass "$3" "$4"
 
-      echo -e "\nFor Testing:\nsiteworx --login_email $emailAddress --login_password $newPass --login_domain $primaryDomain"
-      echo -e "\nLoginURL: https://$(serverName):2443/siteworx/?domain=$primaryDomain\nUsername: $emailAddress\nPassword: $newPass\nDomain: $primaryDomain\n"
+        nodeworx -unc Siteworx -a edit --password "$newPass" --confirm_password "$newPass" --domain "$primaryDomain"
 
-    fi;;
+        echo -e "\nLoginURL: https://$(serverName):2443/siteworx/?domain=$primaryDomain\nUsername: $primaryEmail\nPassword: $newPass\nDomain: $primaryDomain\n"
 
-  -r ) # Listing/Updating Reseller Users
-    if [[ -z $2 || $2 == '--list' ]]; then # List out Resellers nicely
+      else # Update Password for specific user
 
-      echo;
-      (echo "ID Reseller_Email Name";
-      nodeworx -unc Reseller -a listResellers \
-        | sed 's/ /_/g' \
-        | awk '{print $1,$2,$3}') \
-        | column -t;
-      echo;
-    else # Update Password for specific Reseller
+        emailAddress=$2;
 
-      resellerID=$2;
+        _genPass "$3" "$4"
 
-      _genPass "$3" "$4"
+        sudo -u "$(getusr)" siteworx -unc Users -a edit --user "$emailAddress" --password "$newPass" --confirm_password "$newPass"
 
-      nodeworx -unc Reseller -a edit --reseller_id "$resellerID" --password "$newPass" --confirm_password "$newPass"
+        echo -e "\nFor Testing:\nsiteworx --login_email $emailAddress --login_password $newPass --login_domain $primaryDomain"
+        echo -e "\nLoginURL: https://$(serverName):2443/siteworx/?domain=$primaryDomain\nUsername: $emailAddress\nPassword: $newPass\nDomain: $primaryDomain\n"
 
-      emailAddress=$(nodeworx -unc Reseller -a listResellers | grep "^$resellerID" | awk '{print $2}')
+      fi;;
 
-      echo -e "\nFor Testing:\nnodeworx --login_email $emailAddress --login_password $newPass"
-      echo -e "\nLoginURL: https://$(serverName):2443/nodeworx/\nUsername: $emailAddress\nPassword: $newPass\n\n"
+    -r ) # Listing/Updating Reseller Users
+      if [[ -z $2 || $2 == '--list' ]]; then # List out Resellers nicely
 
-    fi;;
+        echo;
+        (echo "ID Reseller_Email Name";
+        nodeworx -unc Reseller -a listResellers \
+          | sed 's/ /_/g' \
+          | awk '{print $1,$2,$3}') \
+          | column -t;
+        echo;
+      else # Update Password for specific Reseller
 
-  -m ) # Listing/Updating MySQL Users
-    if [[ -z $2 || $2 == '--list' ]]; then
+        resellerID=$2;
 
-      echo;
-      ( echo -e "Username   Databases"
-      sudo -u "$(getusr)" siteworx -unc Mysqluser -a listMysqlUsers \
-        | awk '{print $2,$3}' ) \
-        | column -t;
-      echo;
+        _genPass "$3" "$4"
 
-    else
+        nodeworx -unc Reseller -a edit --reseller_id "$resellerID" --password "$newPass" --confirm_password "$newPass"
 
-      _genPass "$3" "$4"
+        emailAddress=$(nodeworx -unc Reseller -a listResellers | grep "^$resellerID" | awk '{print $2}')
 
-      dbs=$(sudo -u "$(getusr)" siteworx -unc Mysqluser -a listMysqlUsers | grep "$2" | awk '{print $3}' | sed 's/,/, /')
+        echo -e "\nFor Testing:\nnodeworx --login_email $emailAddress --login_password $newPass"
+        echo -e "\nLoginURL: https://$(serverName):2443/nodeworx/\nUsername: $emailAddress\nPassword: $newPass\n\n"
 
-      sudo -u "$(getusr)" siteworx -unc MysqlUser -a edit --name "${2/$(getusr)/}" --password "$newPass" --confirm_password "$newPass"
+      fi;;
 
-      echo -e "\nFor Testing: \nmysql -u'$2' -p'$newPass' $(echo "$dbs" | cut -d, -f1)"
-      echo -e "\nUsername: $2\nPassword: $newPass\nDatabases: $dbs\n"
+    -m ) # Listing/Updating MySQL Users
+      if [[ -z $2 || $2 == '--list' ]]; then
 
-    fi;;
+        echo;
+        ( echo -e "Username   Databases"
+        sudo -u "$(getusr)" siteworx -unc Mysqluser -a listMysqlUsers \
+          | awk '{print $2,$3}' ) \
+          | column -t;
+        echo;
 
-  -n ) # Listing/Updating Nodeworx Users
-    if [[ -z $2 || $2 == '--list' ]]; then # List Nodeworx (non-Nexcess) users
+      else
 
-      echo;
-      (echo "Email_Address Name";
-      nodeworx -unc Users -a list \
-        | grep -v nexcess.net \
-        | sed 's/ /_/g') \
-        | column -t;
-      echo;
+        _genPass "$3" "$4"
 
-    elif [[ ! $2 =~ nexcess\.net$ ]]; then # Update Password for specific Nodeworx user
+        dbs=$(sudo -u "$(getusr)" siteworx -unc Mysqluser -a listMysqlUsers | grep "$2" | awk '{print $3}' | sed 's/,/, /')
 
-      emailAddress=$2;
+        sudo -u "$(getusr)" siteworx -unc MysqlUser -a edit --name "${2/$(getusr)/}" --password "$newPass" --confirm_password "$newPass"
 
-      _genPass "$3" "$4"
+        echo -e "\nFor Testing: \nmysql -u'$2' -p'$newPass' $(echo "$dbs" | cut -d, -f1)"
+        echo -e "\nUsername: $2\nPassword: $newPass\nDatabases: $dbs\n"
 
-      nodeworx -unc Users -a edit --user "$emailAddress" --password "$newPass" --confirm_password "$newPass"
+      fi;;
 
-      echo -e "\nFor Testing:\nnodeworx --login_email $emailAddress --login_password $newPass"
-      echo -e "\nLoginURL: https://$(serverName):2443/nodeworx/\nUsername: $emailAddress\nPassword: $newPass\n\n"
+    -n ) # Listing/Updating Nodeworx Users
+      if [[ -z $2 || $2 == '--list' ]]; then # List Nodeworx (non-Nexcess) users
 
-    fi;;
+        echo;
+        (echo "Email_Address Name";
+        nodeworx -unc Users -a list \
+          | grep -v nexcess.net \
+          | sed 's/ /_/g') \
+          | column -t;
+        echo;
 
-  -h | --help | * )
-    echo -e "\n  For FTP and Siteworx, run this from within the user's /home/dir/\n
-    Usage: iworxcredz OPTION [--list] [USER/ID] PASSWORD [newPassword]
-    Ex: iworxcredz -d secondaryDomain -f ftpUserName -m
-    Ex: iworxcredz -f ftpUserName -p newPassword
-    Ex: iworxcredz -s emailAddress -x
-    Ex: iworxcredz -r --list
+      elif [[ ! $2 =~ nexcess\.net$ ]]; then # Update Password for specific Nodeworx user
 
-    OPTIONS: (use '--list' to list available users)
-    -d [domain] . Specify domain for secondary FTP users
-    -e [email] .. Email Users
-    -f [user] ... FTP Users (default is ftp@primarydomain.tld)
-    -s [email] .. Siteworx Users (default is primary user)
-    -r [id] ..... Reseller Users
-    -n [email] .. Nodeworx Users
-    -m [user] ... MySQL Users
+        emailAddress=$2;
 
-    PASSWORD: (password generation or input)
-    -m ... Generate password using mkpasswd
-    -x ... Generate password using xkcd (default)
-    -p ... Specify new password directly (-p <password>)\n";
-    exit 0;;
-esac
+        _genPass "$3" "$4"
+
+        nodeworx -unc Users -a edit --user "$emailAddress" --password "$newPass" --confirm_password "$newPass"
+
+        echo -e "\nFor Testing:\nnodeworx --login_email $emailAddress --login_password $newPass"
+        echo -e "\nLoginURL: https://$(serverName):2443/nodeworx/\nUsername: $emailAddress\nPassword: $newPass\n\n"
+
+      fi;;
+
+    -h | --help | * )
+      _usage;
+      return 0;
+      ;;
+  esac
+}
+
+main "$@";
