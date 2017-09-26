@@ -2,57 +2,96 @@
 
 ## Setup Google MX records and turn off local delivery
 
-if [[ -z $1 || $1 == '-h' || $1 == '--help' ]]; then
+readonly ARGS="$*"
+readonly ARGA=("$@")
 
-  echo -e "\n Usage: googlemx OPTION DOMAIN
-  EX: googlemx -a DOMAIN\n    Ex: googlemx -c DOMAIN\n    Ex: googlemx --list\n\n OPTIONS
-  -a ... Remove old MX records and add Google MX\n     -c ... Check existing MX records for domain\n --list ... List domains and ids for the account\n";
+_usage() {
+  cat <<- EOF
 
-fi
+  Usage: googlemx OPTION DOMAIN
+  EX: googlemx -a DOMAIN
+  Ex: googlemx -c DOMAIN
+  Ex: googlemx --list
 
-if [[ $1 == --list ]]; then
+  OPTIONS
+  -a      Remove old MX records and add Google MX
+  -c      Check existing MX records for domain
 
-  echo;
-  (echo 'ID Domain'; sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a listZones | awk '($2 !~ /nextmp/) {print $1,$2}') | column -t;
-  echo
+EOF
+}
 
-elif [[ $1 = '-c' && -n $2 ]]; then
+_removeRecords () {
 
-  zoneid=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a listZones | awk "(\$2 ~ /$2/)"'{print $1}')
+  local zoneid mxrecord
 
-  echo -e "\nID ... MX-Records-for: $2"
-  (sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid") | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' | sort -nk3 | column -t;
-  echo
-
-fi
-
-if [[ $1 == '-a' && -n $2 ]]; then
-
-  zoneid=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a listZones | awk "(\$2 ~ /$2/)"'{print $1}')
-
-  echo -e "\nID ... MX-Records-for: $1"
-  (sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid") | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' | sort -nk3 | column -t;
-
-  echo
-
-  echo "Removing old records"
-
+  zoneid="$1";
   mxrecord=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid" | awk '($4 ~ /MX/) {print $1}')
 
+  echo "Removing old records";
   for x in $mxrecord; do
     nodeworx -u -n -c DnsRecord -a delete --record_id "$x";
   done
 
-  echo;
+}
 
-  # Create records
+_addRecords () {
+
+  local zoneid="$1"
+
   sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 1 --mail_server ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ASPMX.L.GOOGLE.COM';
   sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 5 --mail_server ALT1.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT1.ASPMX.L.GOOGLE.COM';
   sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 5 --mail_server ALT2.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT2.ASPMX.L.GOOGLE.COM';
   sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 10 --mail_server ALT3.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT3.ASPMX.L.GOOGLE.COM';
   sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 10 --mail_server ALT4.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT4.ASPMX.L.GOOGLE.COM';
 
-  # Disable local delivery
-  localdelivery -d "$2";
+}
 
-fi
+_listRecords () {
+
+  local zoneid="$1"
+
+  echo -e "\nID ... MX-Records-for: $2"
+  (sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid") \
+    | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' \
+    | sort -nk3 \
+    | column -t;
+  echo
+
+}
+
+main () {
+
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+  zoneid=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a listZones | awk "(\${ARGA[1]} ~ /${ARGA[1]}/)"'{print $1}')
+
+  if [[ ${ARGA[0]} = '-c' && -n ${ARGA[1]} ]]; then
+
+    _listRecords "$zoneid";
+
+  elif [[ ${ARGA[0]} == '-a' && -n ${ARGA[1]} ]]; then
+
+    echo -e "\nID ... MX-Records-for: ${ARGA[1]}"
+    (sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid") \
+      | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' \
+      | sort -nk3 \
+      | column -t;
+
+    echo;
+
+    _removeRecords "$zoneid";
+
+    echo;
+
+    _addRecords "$zoneid";
+
+    # Disable local delivery
+    localdelivery -d "${ARGA[1]}";
+
+  fi
+}
+
+main;
