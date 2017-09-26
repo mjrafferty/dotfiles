@@ -76,13 +76,7 @@ main () {
 
   elif [[ ${ARGA[0]} == '-a' && -n ${ARGA[1]} ]]; then
 
-    echo;
-    (sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid") \
-      | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' \
-      | sort -nk3 \
-      | column -t;
-
-    echo;
+    _listRecords "$zoneid";
 
     _removeRecords "$zoneid";
 
