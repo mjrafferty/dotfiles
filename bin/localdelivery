@@ -18,7 +18,7 @@ _localDeliveryCheck(){
 if [[ $2 == 'all' ]]; then
   domain='';
 elif [[ -n $2 ]]; then
-  domain="${$2/\//}";
+  domain="${2/\//}";
 else
   domain=$(pwd | sed 's:^/chroot::' | cut -d/ -f4);
 fi
