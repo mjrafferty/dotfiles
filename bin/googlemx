@@ -68,7 +68,7 @@ main () {
 
   local zoneid;
 
-  zoneid=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a listZones | awk "/${ARGA[1]}/)"'{print $1}')
+  zoneid=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a listZones | awk "/${ARGA[1]}"'{print $1}')
 
   if [[ ${ARGA[0]} = '-c' && -n ${ARGA[1]} ]]; then
 
