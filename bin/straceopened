@@ -1,0 +1,25 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+	cat <<- EOF
+    This is the usage
+	EOF
+}
+
+main () {
+
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+
+  sed -n 's_.*open("/chroot/home.*html/\([^"]*\).*_\1_p' "${ARGA[0]}" \
+    | sort -u
+
+}
+
+main;

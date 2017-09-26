@@ -1,0 +1,25 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
+main () {
+
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+  ps -u "${ARGA[0]}" \
+    | awk ' !/PID/ {print " -p " $1}' \
+    | xargs timeout 3 strace -q
+
+}
+
+main;
