@@ -17,7 +17,7 @@ main () {
   fi
 
 
-  sed -n 's_.*open("/chroot/home.*html/\([^"]*\).*_\1_p' "${ARGA[0]}" \
+  sed -n 's_.*open("/chroot/home/[^/]*/[^/]*/html/\([^"]*\).*_\1_p' "${ARGA[0]}" \
     | sort -u
 
 }
