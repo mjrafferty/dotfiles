@@ -2,6 +2,8 @@
 
 main () {
 
+  local avgs cpucount;
+
   avgs=($(cut -d ' ' -f1-3 /proc/loadavg));
 
   avgs[0]=$(printf "%.*f\n" 0 "${avgs[0]}")

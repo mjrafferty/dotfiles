@@ -1,42 +1,62 @@
 #! /bin/bash
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+  cat <<- EOF
+
+  Usage: killqueries [sleep|select]
+
+EOF
+}
+
 source /etc/nexcess/shell_functions.sh;
-## Kill SELECT or Sleep queries on a server, potentialy for just one username
 
 _querieslog () {
 
-	filename="mytop-dump--$(date +%Y.%m.%d-%H.%M).dump";
+  local filename="$1"
 
-	mytop -b --nocolor > ~/"$filename";
+  mytop -b --nocolor > ~/"$filename";
 
-	echo -e "\n~/$filename created ...\nBegin killing queries ...";
+  echo -e "\n~/$filename created ...\nBegin killing queries ...";
 }
 
-case $1 in
-	"sel"|"select")
-		_querieslog;
+main () {
 
-		x=$(awk '/SELECT/ {print $1}' ~/"$filename");
+  local filename x i;
 
-		for i in $x; do
-			echo "Killing: $i";
-			m -e"kill $i";
-		done;
+  filename="mytop-dump--$(date +%Y.%m.%d-%H.%M).dump";
 
-		echo -e "Operation completed.\n";
-		;;
-	"sle"|"sleep")
-		_querieslog;
+  case ${ARGA[0]} in
+    "sel"|"select")
+      _querieslog "$filename";
 
-		x=$(awk '/Sleep/ {print $1}' ~/"$filename");
+      x=$(awk '/SELECT/ {print $1}' ~/"$filename");
 
-		for i in $x; do
-			echo "Killing $i";
-			m -e"kill $i";
-		done;
+      for i in $x; do
+        echo "Killing: $i";
+        m -e"kill $i";
+      done;
 
-		echo -e "Operation completed.\n";
-		;;
-	"-h"|"--help"|"*")
-		echo -e "\n Usage: killqueries [sleep|select]\n";
-		;;
-esac
+      echo -e "Operation completed.\n";
+      ;;
+    "sle"|"sleep")
+      _querieslog "$filename";
+
+      x=$(awk '/Sleep/ {print $1}' ~/"$filename");
+
+      for i in $x; do
+        echo "Killing $i";
+        m -e"kill $i";
+      done;
+
+      echo -e "Operation completed.\n";
+      ;;
+    "-h"|"--help"|"*")
+      _usage;
+      ;;
+  esac
+
+}
+
+main;
