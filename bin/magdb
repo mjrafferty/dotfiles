@@ -146,7 +146,7 @@ case $opt in
 		echo -e "Username: $username\nPassword: $password";
 		;;
 	-b|--base)
-		_magdbconnect -e "SELECT * FROM ${prefix}core_config_data WHERE path RLIKE \"base_url\";";
+		_magdbconnect -e "SELECT * FROM ${prefix}core_config_data WHERE path RLIKE \"base.*url\";";
 		;;
 	-B|--backup)
 		_magdbbackup;
