@@ -93,7 +93,7 @@ _magdbconnect () {
 		runonce=1;
 	fi;
 
-	mysql -u"$dbuser" -p"$dbpass" -h "$dbhost" "$dbname" "$@";
+	mysql -u"$dbuser" -p"$dbpass" -h "$dbhost" "$dbname" "$@" 2> /dev/null;
 }
 
 _magdbbackup () {
