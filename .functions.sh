@@ -186,6 +186,17 @@ topuri () {
     | head;
 }
 
+#Top query strings
+topquery () {
+  zless -f "$@" \
+    | grep -hv " 403 " \
+    | sed -n 's_.*?\(.*\) HTTP/[0-2]\.[0-2]".*_\1_p' \
+    | sort \
+    | uniq -c \
+    | sort -hr \
+    | head;
+}
+
 # Show top referers by number of hits
 topref () {
   zless -f "$@" \
