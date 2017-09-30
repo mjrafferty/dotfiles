@@ -16,7 +16,7 @@ _querieslog () {
 
   local filename="$1"
 
-  mytop -b --nocolor > ~/"$filename";
+  mytop -b -i --nocolor > ~/"$filename";
 
   echo -e "\n~/$filename created ...\nBegin killing queries ...";
 }

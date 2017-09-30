@@ -37,6 +37,7 @@ _addCode () {
 EOF
 
   cat "$1""$TMP_EXT" >> "$1";
+  chown "$(getusr)". "$1";
 
 }
 
@@ -48,7 +49,7 @@ _strace () {
 
   rm /tmp/flag 2> /dev/null;
 
-  trap 'return' INT;
+  trap 'break' INT;
 
   set -m;
   while [ ! -f /tmp/flag ]; do
@@ -70,6 +71,8 @@ _strace () {
       break;
     fi
   done
+
+  kill "$str_pid" 2> /dev/null;
 }
 
 main () {
