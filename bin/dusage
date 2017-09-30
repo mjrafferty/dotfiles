@@ -5,7 +5,7 @@ readonly ARGA=("$@")
 
 main () {
 
-  cd ~"$(getusr)" || return;
+  cd /home/"$(getusr)" || return;
 
   printf "\n----- Large Files ------\n";
 
@@ -32,6 +32,8 @@ main () {
     -type d \
     -group "$(getusr)"\
     -exec parallel du -sh -- {} + | sort -hr | head -20
+
+  echo;
 
 }
 
