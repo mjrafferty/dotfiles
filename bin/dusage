@@ -5,21 +5,22 @@ readonly ARGA=("$@")
 
 main () {
 
-  find ~"$(getusr)" \
+  cd ~"$(getusr)" || return;
+  find . \
     -mindepth 1 \
     -size +100M \
     -group "$(getusr)" \
     -exec parallel du -sh -- {} + | sort -hr | head -20
 
 
-  find ~"$(getusr)" \
+  find . \
     -mindepth 1 \
     -maxdepth 4 \
     -type d \
     -group "$(getusr)" \
     -exec parallel du -sh -- {} + | sort -hr | head -20
 
-  find ~"$(getusr)"/var/*/mail/* \
+  find ./var/*/mail/* \
     -mindepth 1 \
     -maxdepth 1 \
     -type d \
