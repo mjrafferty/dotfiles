@@ -283,6 +283,7 @@ bumpquota(){
 
 # Connect to the iworx database
 iworxdb () {
+
   local user pass database socket;
 
   user="iworx";
