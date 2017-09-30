@@ -298,11 +298,26 @@ vpopdb () {
   $(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini \
     | tail -1 \
     | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
+  local user pass database socket;
+
+  user="iworx_ftp"
+  pass="$(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | cut -d: -f3 | cut -d\@ -f1)"
+  database="iworx_ftp";
+  socket="$(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | awk -F'[()]' '{print $2}')";
+
+  mysql -u"$user" -p"$pass" -S"$socket" -D"$database" "$@";
 }
 
 # ProFTPd
 ftpdb () {
-  $(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | sed 's_.*://\(.*\):\(.*\)@unix(\(.*\))/\(.*\)"_mysql -u \1 -p\2 -S \3 \4_') "$@";
+  local user pass database socket;
+
+  user="iworx_ftp"
+  pass="$(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | cut -d: -f3 | cut -d\@ -f1)"
+  database="iworx_ftp";
+  socket="$(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1| awk -F'[()]' '{print $2}')";
+
+  mysql -u"$user" -p"$pass" -S"$socket" -D"$database" "$@";
 }
 
 
