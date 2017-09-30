@@ -298,9 +298,9 @@ vpopdb () {
 
   local user pass database socket;
 
-  user="iworx_ftp"
+  user="iworx_vpopmail"
   pass="$(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | cut -d: -f3 | cut -d\@ -f1)"
-  database="iworx_ftp";
+  database="iworx_vpopmail";
   socket="$(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | awk -F'[()]' '{print $2}')";
 
   mysql -u"$user" -p"$pass" -S"$socket" -D"$database" "$@";
