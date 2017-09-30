@@ -6,12 +6,16 @@ readonly ARGA=("$@")
 main () {
 
   cd ~"$(getusr)" || return;
+
+  printf "\n----- Large Files ------\n";
+
   find . \
     -mindepth 1 \
     -size +100M \
     -group "$(getusr)" \
     -exec parallel du -sh -- {} + | sort -hr | head -20
 
+  printf "\n----- Large Directories ------\n";
 
   find . \
     -mindepth 1 \
@@ -19,6 +23,8 @@ main () {
     -type d \
     -group "$(getusr)" \
     -exec parallel du -sh -- {} + | sort -hr | head -20
+
+  printf "\n----- Large Mailboxes ------\n";
 
   find ./var/*/mail/* \
     -mindepth 1 \
