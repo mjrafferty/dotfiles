@@ -48,6 +48,8 @@ _strace () {
 
   rm /tmp/flag 2> /dev/null;
 
+  trap 'return' INT;
+
   set -m;
   while [ ! -f /tmp/flag ]; do
     printf "\rWaiting for process. Press enter to stop.";

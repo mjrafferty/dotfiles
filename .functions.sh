@@ -179,7 +179,7 @@ topuri () {
   zless -f "$@" \
     | grep -hv " 403 " \
     | cut -d\  -f7 \
-    | sed 's/?.*//' \
+    | sed 's/?.*/?/' \
     | sort \
     | uniq -c \
     | sort -hr \
