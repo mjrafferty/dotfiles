@@ -49,7 +49,7 @@ _strace () {
 
   rm /tmp/flag 2> /dev/null;
 
-  trap 'break' INT;
+  trap 'return' INT;
 
   set -m;
   while [ ! -f /tmp/flag ]; do
@@ -64,6 +64,7 @@ _strace () {
 
   str_pid="$!"
 
+  trap 'break' INT;
   sleep 0.1;
   while(true); do
     if tail "$output" | grep -q "accept(0"; then
