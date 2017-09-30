@@ -15,7 +15,7 @@ cdd () {
   fi
   # Gather relevant domain information
   domains=$(grep -EH "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_* \
-    | sed -r 's/.*vhost_(.*).conf.* ('"$query"'[^ ]*).*/\1\t\2/' \
+    | sed -r 's/.*vhost_(.*).conf:.* ('"$query"'[^ ]*).*/\1\t\2/' \
     | sort -u);
 
   domain=($(echo "$domains" \
@@ -141,7 +141,7 @@ uribymb () {
   zless -f "$@" \
     | cut -d\  -f7,10 \
     | grep -v "\-$" \
-    | sed 's/?.* / /' \
+    | sed 's/?.* /? /' \
     | awk '{tx[$1]+=$2} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
     | sort -hr \
     | head -n 20;
@@ -295,12 +295,14 @@ iworxdb () {
 
 # Vpopmail
 vpopdb () {
-  $(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
+  $(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini \
+    | tail -1 \
+    | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
 }
 
 # ProFTPd
 ftpdb () {
-  $(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
+  $(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | sed 's_.*://\(.*\):\(.*\)@unix(\(.*\))/\(.*\)"_mysql -u \1 -p\2 -S \3 \4_') "$@";
 }
 
 
