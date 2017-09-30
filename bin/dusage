@@ -31,7 +31,7 @@ main () {
     -maxdepth 1 \
     -type d \
     -group "$(getusr)"\
-    -exec parallel du -sh -- {} + | sort -hr | head -20
+    -exec parallel du -sh -- {} + | sort -hr | head -10
 
   echo;
 
