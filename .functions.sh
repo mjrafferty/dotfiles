@@ -295,9 +295,7 @@ iworxdb () {
 
 # Vpopmail
 vpopdb () {
-  $(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini \
-    | tail -1 \
-    | sed 's|.*://\(.*\):\(.*\)@.*\(/usr.*.sock\)..\(.*\)"|mysql -u \1 -p\2 -S \3 \4|') "$@";
+
   local user pass database socket;
 
   user="iworx_ftp"
@@ -310,6 +308,7 @@ vpopdb () {
 
 # ProFTPd
 ftpdb () {
+
   local user pass database socket;
 
   user="iworx_ftp"
