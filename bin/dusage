@@ -29,8 +29,7 @@ main () {
   cd var || return 1;
 
   find ./*/mail/* \
-    -mindepth 1 \
-    -maxdepth 1 \
+    -maxdepth 0 \
     -type d \
     -group "$(getusr)"\
     -exec parallel du -sh -- {} + | sort -hr | head -10
