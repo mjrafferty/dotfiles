@@ -61,6 +61,8 @@ _login () {
 
   local ident_file destination;
 
+  destination="$1"
+
   ident_file=${HOME}/.ssh/nex$(whoami).id_rsa;
 
   if [[ -d ~/dotfiles/ ]]; then
