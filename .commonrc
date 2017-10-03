@@ -32,7 +32,7 @@ alias dotpush="cd ~/dotfiles; git add .; git commit -a -m updates; git push; cd 
 
 alias connections="lsof -nu apache | grep -E 'httpd.*ESTABLISHED|httpd.*CLOSE_WAIT' | sed 's_.*:http.*->\(.*\):.*_\1_' | sort | uniq -c | sort -hr"
 alias sshsync="rsync -p -v --progress -e ssh -a -u -z"
-alias grepphp='grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png| 403 "'
+alias grepphp='grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png|pub/static| 403 "'
 
 
 ##### Functions #####
