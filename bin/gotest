@@ -3,15 +3,9 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-# Trim any fat off the domain name
-domain=$(echo "${ARGA[0]}" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
-
-destination="";
-host="";
-whoisinfo="";
 
 _usage () {
-cat <<- EOF
+  cat <<- EOF
 
   Usage: go [DOMAIN]
 
@@ -65,7 +59,7 @@ _findsite () {
 
 _login () {
 
-  local ident_file;
+  local ident_file destination;
 
   ident_file=${HOME}/.ssh/nex$(whoami).id_rsa;
 
@@ -87,22 +81,24 @@ _login () {
       ~/dotfiles/ \
       -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
       "nex$(whoami)@$destination":~/ 2> /dev/null
-
-    rm -f ~/dotfiles/action.sh
-
-    ssh -i "${ident_file}" \
-      -o UserKnownHostsFile=/dev/null \
-      -o StrictHostKeyChecking=no \
-      -o PasswordAuthentication=no \
-      "nex$(whoami)@$destination";
-    echo -ne "\ek$(hostname)\e\\";
   fi;
+
+  rm -f ~/dotfiles/action.sh
+
+  ssh -i "${ident_file}" \
+    -o UserKnownHostsFile=/dev/null \
+    -o StrictHostKeyChecking=no \
+    -o PasswordAuthentication=no \
+    "nex$(whoami)@$destination";
+  echo -ne "\ek$(hostname)\e\\";
 }
 
-_getServer () {
+_findSiteLogin () {
 
-  local findsitelist selection find_servers
+  local findsitelist selection find_servers domain destination;
   declare -a find_servers
+
+  domain="$1"
 
   # If site not pointed at nexcess
   findsitelist=$(_findsite "$domain");
@@ -113,7 +109,7 @@ _getServer () {
   if [ -z "${find_servers[0]}" ]; then
 
     echo "Domain not found";
-    return;
+    return 1;
 
   elif [ "${find_servers[1]}" ]; then
 
@@ -136,52 +132,41 @@ _getServer () {
 
   fi;
 
-
+  _login "$destination";
 }
 
-_getDest () {
+_setAction () {
+  if [[ "${ARGA[1]}" ]]; then
+    case "${ARGA[1]}" in
+      "cdd") # Go to domain's docroot
+        echo "rm ~/action.sh; cdd ${domain}" > ~/dotfiles/action.sh;
+        ;;
+      "htacc") # Edit .htaccess
+        echo "rm ~/action.sh; cdd ${domain} && vim .htaccess" > ~/dotfiles/action.sh;
+        ;;
+      "logs") # Go to domain's log directory
+        echo "rm ~/action.sh; cdlogs ${domain}" > ~/dotfiles/action.sh;
+        ;;
+    esac
+  fi
+}
 
-  local viewwhois keepgoing
+main () {
 
-  if  [ "$host" == "cloudflare" ]; then
-
-    printf "Domain pointed to %s\n" "$host";
-    read -rep "Press enter to continue";
-
-  elif  [ "$host" == "sucuri" ]; then
-
-    printf "Domain pointed to %s\n" "$host";
-    read -rep "Press enter to continue";
-
-  else
-
-    printf "Domain pointed to an unknown host/proxy\n";
-    read -rep "View WHOIS? N/y : " viewwhois;
-
-    if [ "$viewwhois" == "y" ]; then
-
-      echo "$whoisinfo";
-
-    fi
-
-    echo;
-    read -rep "Continue? Y/n : " keepgoing;
-
-    if [ "$keepgoing" == "n" ]; then
-
-      return 0;
-
-    fi
+  # Show help
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
   fi
 
-  _getServer;
+  local ip_addr whoisinfo host rdns viewwhois keepgoing domain destination;
 
-}
+  # Trim any fat off the domain name
+  domain=$(echo "${ARGA[0]}" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
 
-_setDest () {
+  _setAction;
 
-  local ip_addr rdns
-
+  # Determine query type and take appopriate action
   if [[ "$domain" =~  [a-z]{4}-[0-9]{4} ]]; then
 
     if [ ! -d "$T" ]; then mkdir -p "$T"; echo yes; fi
@@ -199,45 +184,41 @@ _setDest () {
     host=$(echo "$whoisinfo"  | grep -m1 -ioE "nexcess|sucuri|cloudflare" | tr '[:upper:]' '[:lower:]');
     rdns="$(dig +short -x "$ip_addr" | grep -o "nexcess")";
 
-    # Evaluate where domain is hosted
+    # Try to identify if domain is hosted at Nexcess. Rely on findsite if unsure
     if [ "$host" == "nexcess" ] || [ "$rdns" == "nexcess" ]; then
+
       destination="${domain}";
+
     else
-      _getDest;
+
+      # Print waring if domain behind proxy.
+      if [[ $host ]]; then
+        printf "Domain pointed to %s\n" "$host";
+        read -rep "Press enter to continue";
+
+      else
+
+        printf "Domain pointed to an unknown host/proxy\n";
+        read -rep "View WHOIS? N/y : " viewwhois;
+
+        if [ "$viewwhois" == "y" ]; then
+          echo "$whoisinfo";
+        fi
+
+        read -rep "\nContinue? Y/n : " keepgoing;
+
+        if [ "$keepgoing" == "n" ]; then
+          return 0;
+        fi
+
+      fi
+
+      _findSiteLogin "$domain" || return 1;
+
     fi
-
   fi
 
-}
-
-_setAction () {
-  if [[ "${ARGA[1]}" ]]; then
-    case "${ARGA[1]}" in
-      "cdd")
-        echo "rm ~/action.sh; cdd ${domain}" > ~/dotfiles/action.sh;
-        ;;
-      "htacc")
-        echo "rm ~/action.sh; cdd ${domain} && vim .htaccess" > ~/dotfiles/action.sh;
-        ;;
-      "logs")
-        echo "rm ~/action.sh; cdlogs ${domain}" > ~/dotfiles/action.sh;
-        ;;
-    esac
-  fi
-}
-
-main () {
-
-  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
-  fi
-
-  _setAction;
-
-  _setDest;
-
-  _login;
+  _login "$destination";
 
   return 0;
 
