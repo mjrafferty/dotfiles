@@ -5,21 +5,25 @@ readonly ARGA=("$@")
 
 _usage() {
 	cat <<- EOF
-    This is the usage
-	EOF
+	This is the usage
+EOF
 }
 
 main () {
 
-  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
-  fi
+	if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+		_usage;
+		return 0;
+	fi
 
-awk '{ gsub(/<|>/,"",$(NF)); gsub(/\(.*/,"",$3); time[$3]+=$(NF); numcalls[$3]++} END { for (x in time) {print x, "\t", time[x], "\t", numcalls[x] }}' "${ARGA[0]}" \
-  | sed 's/\S*e-\S*/0.000001/' \
-  | column -t \
-  | sort -k2nr
+	echo;
+	(printf "syscall\ttime\tquantity\n%s\t%s\t%s\n" "$(dashes 10)" "$(dashes 10)" "$(dashes 10)"
+	awk '{ gsub(/<|>/,"",$(NF)); gsub(/\(.*/,"",$3); time[$3]+=$(NF); numcalls[$3]++} END { for (x in time) {print x, "\t", time[x], "\t", numcalls[x] }}' "${ARGA[0]}" \
+		| sed 's/\S*e-\S*/0.000001/' \
+		| sort -k2nr) \
+		| column -t
+
+	echo;
 
 }
 
