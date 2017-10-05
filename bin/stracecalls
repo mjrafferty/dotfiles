@@ -1,0 +1,26 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+	cat <<- EOF
+    This is the usage
+	EOF
+}
+
+main () {
+
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+awk '{ gsub(/<|>/,"",$(NF)); gsub(/\(.*/,"",$3); time[$3]+=$(NF); numcalls[$3]++} END { for (x in time) {print x, "\t", time[x], "\t", numcalls[x] }}' "${ARGA[0]}" \
+  | sed 's/\Se-\S/0.00001/' \
+  | column -t \
+  | sort -k3nr
+
+}
+
+main;
