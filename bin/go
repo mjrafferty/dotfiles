@@ -135,6 +135,7 @@ _findSiteLogin () {
   fi;
 
   _login "$destination";
+
 }
 
 _setAction () {
@@ -216,6 +217,7 @@ main () {
       fi
 
       _findSiteLogin "$domain" || return 1;
+      return 0;
 
     fi
   fi
