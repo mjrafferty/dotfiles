@@ -320,8 +320,8 @@ ftpdb () {
   mysql -u"$user" -p"$pass" -S"$socket" -D"$database" "$@";
 }
 
-# ProFTPd
-ftpdb () {
+# Spam Assassin DB
+spamdb () {
 
   local user pass database socket;
 
