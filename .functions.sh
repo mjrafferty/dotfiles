@@ -320,6 +320,19 @@ ftpdb () {
   mysql -u"$user" -p"$pass" -S"$socket" -D"$database" "$@";
 }
 
+# ProFTPd
+ftpdb () {
+
+  local user pass database socket;
+
+  user="iworx_spam"
+  pass="$(grep bayes_sql_password /etc/mail/spamassassin/local.cf| awk '{print $2}')"
+  database="iworx_spam";
+  socket="$(grep 'user_scores_dsn' /etc/mail/spamassassin/local.cf | sed -n 's|.*mysql_socket=\(.*\)|\1|p')";
+
+  mysql -u"$user" -p"$pass" -S"$socket" -D"$database" "$@";
+}
+
 
 ###### IP addresses ##########
 

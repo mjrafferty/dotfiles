@@ -1,0 +1,4 @@
+
+
+
+straceopened ~/strace-2017-10-05-19:47:32 | sed -n -e 's_app/code/local/\([^/]*/[^/]*\)/.*_\1_p' -e 's_app/code/community/\([^/]*/[^/]*\)/.*_\1_p' | sort -u
