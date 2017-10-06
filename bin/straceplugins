@@ -1,4 +1,29 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
+main () {
+
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+  straceopened "${ARGA[0]}" \
+    | sed -n \
+    -e 's_app/code/local/\([^/]*/[^/]*\)/.*_\1_p' \
+    -e 's_app/code/community/\([^/]*/[^/]*\)/.*_\1_p' \
+    -e 's_wp-content/plugins/\([^/]*\)/.*_\1_p' \
+    | sort -u
 
 
+}
 
-straceopened ~/strace-2017-10-05-19:47:32 | sed -n -e 's_app/code/local/\([^/]*/[^/]*\)/.*_\1_p' -e 's_app/code/community/\([^/]*/[^/]*\)/.*_\1_p' | sort -u
+main;
