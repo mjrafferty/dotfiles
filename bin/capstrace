@@ -27,7 +27,7 @@ _addCode () {
   cat << EOF >> "$1"
 <?php
   ### Nexcess diagnostic edit - please remove when not in use
-  if((\$_SERVER["REMOTE_ADDR"] == "$IP" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "$IP") (strlen(strstr(\$_SERVER["REQUEST_URI"],"${ARGA[1]}"))>0)){
+  if((\$_SERVER["REMOTE_ADDR"] == "$IP" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "$IP") and (strlen(strstr(\$_SERVER["REQUEST_URI"],"${ARGA[1]}"))>0)){
     \$f = fopen('/tmp/flag','w');
     sleep(2);
     fclose(\$f);
