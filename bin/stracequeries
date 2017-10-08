@@ -16,8 +16,7 @@ main () {
     return 0;
   fi
 
-  grep -Eio "(select .*from .*|insert .*into .*|update .*set .*|delete .*from)" "${ARGA[0]}" \
-    |sort \
+  grep -Eio "(select [^;]*from [^;]*|insert [^;]*into [^;]*|update [^;]*set [^;]*|delete [^;]*from)" "${ARGA[0]}" \
     | less
 
 }
