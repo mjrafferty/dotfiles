@@ -3,7 +3,6 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-readonly IP="192.240.191.2"
 readonly TMP_EXT=".nexcess.bak"
 
 _usage() {
@@ -20,26 +19,67 @@ _usage() {
 EOF
 }
 
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    local args delim
+    delim=""
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--location"|"-l")
+        args="${args}-l "
+        ;;
+      "--ip-address"|"-i")
+        args="${args}-i "
+        ;;
+      "--uri"|"-u")
+        args="${args}-u "
+        ;;
+      *) [[ "${x:0:1}" == "-" ]] || delim="\"";
+        args="${args}${delim}${x}${delim} "
+        ;;
+    esac
+
+  done
+
+
+  echo "$args";
+}
+
 _addCode () {
 
-  mv "$1"{,"$TMP_EXT"} || return 1;
+  local file address uri uristring;
 
- URI=" and (strlen(strstr(\$_SERVER[\"REQUEST_URI\"],\"${ARGA[1]}\"))>0)";
+  file="$1";
+  address="$2";
+  uri="$3";
 
-  cat << EOF >> "$1"
-<?php
-  ### Nexcess diagnostic edit - please remove when not in use
-  if((\$_SERVER["REMOTE_ADDR"] == "$IP" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "$IP")$URI){
+  mv "$file"{,"$TMP_EXT"} || return 1;
+
+  if [[ "$uri" == "/" ]]; then
+    uristring="";
+  else
+    uristring=" and (strlen(strstr(\$_SERVER[\"REQUEST_URI\"],\"$uri\"))>0)";
+  fi
+
+  cat << EOF >> "$file"
+<<?php
+  if((\$_SERVER["REMOTE_ADDR"] == "$address" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "$address")$uristring){
     \$f = fopen('/tmp/flag','w');
     sleep(2);
     fclose(\$f);
   }
-  ### End Nexcess diagnostic edit - please remove when not in use
 ?>
 EOF
 
-  cat "$1""$TMP_EXT" >> "$1";
-  chown "$(getusr)". "$1";
+  cat "$file""$TMP_EXT" >> "$file";
+  chown "$(getusr)". "$file";
 
 }
 
@@ -62,6 +102,7 @@ _strace () {
   done
 
   pid="$(lsof -tf -- /tmp/flag)";
+
   strace -fTrvs200000 -o "$output" -p"$pid" &
 
   str_pid="$!"
@@ -80,18 +121,45 @@ _strace () {
 
 main () {
 
-  if [[ -z "$ARGS" ||  "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
+  local file address uri;
+
+  while getopts "hf:i:u:" OPTION "$(_cmdline)"; do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      f)
+        file="$OPTARG";
+        ;;
+      i)
+        address="$OPTARG";
+        ;;
+      u)
+        uri="$OPTARG";
+        ;;
+    esac
+
+  done
+
+  if [[ -z "$file" ]]; then
+    file="${ARGA[0]}";
   fi
 
-  local target="${ARGA[0]}";
+  if [[ -z "$address" ]]; then
+    address="192.240.191.2";
+  fi
 
-  _addCode "$target" || return 1;
+  if [[ -z "$uri" ]]; then
+    uri="/";
+  fi
+
+  _addCode "$file" "$address" "$uri" || return 1;
 
   _strace;
 
-  mv -f "$target"{"$TMP_EXT",}
+  mv -f "$file"{"$TMP_EXT",}
 
 }
 
