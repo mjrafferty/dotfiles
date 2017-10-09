@@ -122,7 +122,7 @@ main () {
 
   local file address uri;
 
-  while getopts "hf:i:u:" OPTION "$(_cmdline)"; do
+  while getopts "hf:i:u:" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
