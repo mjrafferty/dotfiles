@@ -25,8 +25,7 @@ _cmdline() {
 
   for x in ${ARGA[*]}; do
 
-    local args delim
-    delim=""
+    local args
 
     case "$x" in
       "--help"|"-h")
@@ -41,8 +40,8 @@ _cmdline() {
       "--uri"|"-u")
         args="${args}-u "
         ;;
-      *) [[ "${x:0:1}" == "-" ]] || delim="\"";
-        args="${args}${delim}${x}${delim} "
+      *)
+        args="${args}${x} ";
         ;;
     esac
 
