@@ -68,7 +68,7 @@ _addCode () {
   fi
 
   cat << EOF >> "$file"
-<<?php
+<?php
   if((\$_SERVER["REMOTE_ADDR"] == "$address" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "$address")$uristring){
     \$f = fopen('/tmp/flag','w');
     sleep(2);
