@@ -208,7 +208,8 @@ main () {
           echo "$whoisinfo";
         fi
 
-        read -rep "\nContinue? Y/n : " keepgoing;
+        echo;
+        read -rep "Continue? Y/n : " keepgoing;
 
         if [ "$keepgoing" == "n" ]; then
           return 0;
