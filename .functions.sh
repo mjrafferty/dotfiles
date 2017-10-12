@@ -110,9 +110,9 @@ cdlogs () {
 ipsbymb () {
   zless -f "$@" \
     | awk '{tx[$1]+=$10} END {for (x in tx) {print x, "\t", tx[x]/1048576, "M"}}' \
-    | sort -k 2n \
-    | tail -n 20 \
-    | tac;
+    | sort -k2nr \
+    | head -n20 \
+    | column -t;
 }
 
 # Show top user agents by bandwidth usage
