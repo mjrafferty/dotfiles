@@ -17,7 +17,7 @@ main () {
   fi
 
   ps -u "${ARGA[0]}" \
-    | awk ' !/PID/ {print " -p " $1}' \
+    | awk ' /php-fpm/ {print " -p " $1}' \
     | xargs timeout 3 strace -q
 
 }
