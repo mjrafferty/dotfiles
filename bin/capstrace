@@ -37,6 +37,9 @@ _cmdline() {
       "--ip-address"|"-i")
         args="${args}-i "
         ;;
+      "--query-string"|"-q")
+        args="${args}-q "
+        ;;
       "--uri"|"-u")
         args="${args}-u "
         ;;
@@ -53,23 +56,30 @@ _cmdline() {
 
 _addCode () {
 
-  local file address uri uristring;
+  local file address uri uristring query querystring;
 
   file="$1";
   address="$2";
   uri="$3";
+  query="$4"
 
   mv "$file"{,"$TMP_EXT"} || return 1;
 
-  if [[ "$uri" == "/" ]]; then
+  if [[ "$uri" == "NULL" ]]; then
     uristring="";
   else
     uristring=" and (strlen(strstr(\$_SERVER[\"REQUEST_URI\"],\"$uri\"))>0)";
   fi
 
+  if [[ "$query" == "NULL" ]]; then
+    querystring="";
+  else
+    querystring=" and (strlen(strstr(\$_SERVER[\"QUERY_STRING\"],\"$query\"))>0)";
+  fi
+
   cat << EOF >> "$file"
 <?php
-  if((\$_SERVER["REMOTE_ADDR"] == "$address" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "$address")$uristring){
+  if(((\$_SERVER["REMOTE_ADDR"] == "$address" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "$address")$uristring)$querystring){
     \$f = fopen('/tmp/flag','w');
     sleep(2);
     fclose(\$f);
@@ -120,9 +130,9 @@ _strace () {
 
 main () {
 
-  local file address uri;
+  local file address uri query;
 
-  while getopts "hf:i:u:" OPTION $(_cmdline); do
+  while getopts "hf:i:u:q:" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -139,6 +149,9 @@ main () {
       u)
         uri="$OPTARG";
         ;;
+      q)
+        query="$OPTARG";
+        ;;
     esac
 
   done
@@ -152,10 +165,14 @@ main () {
   fi
 
   if [[ -z "$uri" ]]; then
-    uri="/";
+    uri="NULL";
   fi
 
-  _addCode "$file" "$address" "$uri" || return 1;
+  if [[ -z "$query" ]]; then
+    query="NULL";
+  fi
+
+  _addCode "$file" "$address" "$uri" "$query" || return 1;
 
   _strace;
 
