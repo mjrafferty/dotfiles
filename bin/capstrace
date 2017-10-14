@@ -144,7 +144,6 @@ main () {
         ;;
       i)
         address="$OPTARG";
-        echo hello;
         ;;
       u)
         uri="$OPTARG";
