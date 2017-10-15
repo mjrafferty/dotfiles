@@ -136,7 +136,7 @@ _strace () {
 
   kill "$str_pid" 2> /dev/null;
 
-  find /tmp -name "GLOBALS-*" -user "$(getusr)" -exec mv {} "$OUTPUT_DIR" +;
+  find /tmp/ -name "GLOBALS-*" -user "$(getusr)" -exec mv -t "$OUTPUT_DIR" {} +;
 
   chmod 600 "${OUTPUT_DIR}"/*
   chown root. "${OUTPUT_DIR}"/*
@@ -187,7 +187,7 @@ main () {
   fi
 
   mkdir "${OUTPUT_DIR}" 2>/dev/null;
-  chmod 733 "${OUTPUT_DIR}"
+  chmod 700 "${OUTPUT_DIR}"
 
   _addCode "$file" "$address" "$uri" "$query" || return 1;
 
