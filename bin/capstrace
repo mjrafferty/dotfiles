@@ -56,7 +56,7 @@ _cmdline() {
 
 _addCode () {
 
-  local file address uri uristring query querystring;
+  local file address addressstring uri uristring query querystring;
 
   file="$1";
   address="$2";
@@ -77,9 +77,15 @@ _addCode () {
     querystring=" and (strlen(strstr(\$_SERVER[\"QUERY_STRING\"],\"$query\"))>0)";
   fi
 
+  if [[ "$address" == "all" ]]; then
+    addressstring="1";
+  else
+    addressstring="\$_SERVER[\"REMOTE_ADDR\"] == \"$address\" || \$_SERVER[\"HTTP_X_FORWARDED_FOR\"] == \"$address\"";
+  fi
+
   cat << EOF >> "$file"
 <?php
-  if(((\$_SERVER["REMOTE_ADDR"] == "$address" || \$_SERVER["HTTP_X_FORWARDED_FOR"] == "$address")$uristring)$querystring){
+  if((($addressstring)$uristring)$querystring){
     \$f = fopen('/tmp/flag','w');
     sleep(2);
     fclose(\$f);
