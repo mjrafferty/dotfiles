@@ -89,7 +89,7 @@ _addCode () {
 <?php
   if((@($addressstring)$uristring)$querystring){
 
-    file_put_contents("/tmp" . "/GLOBALS-" . date('Y-m-d-H:i:s'), print_r(\$GLOBALS,true));
+    file_put_contents("/tmp/" . date('Y-m-d-H:i:s') . "-GLOBALS", print_r(\$GLOBALS,true));
 
     \$f = fopen("$FLAG_FILE",'w');
     sleep(2);
@@ -118,7 +118,7 @@ _strace () {
     fi
   done
 
-  output="${OUTPUT_DIR}/strace-$(date "+%F-%T")";
+  output="${OUTPUT_DIR}/$(date "+%F-%T")-strace";
   pid="$(lsof -tf -- $FLAG_FILE)";
 
   strace -fTrvs200000 -o "$output" -p"$pid" &
@@ -136,7 +136,7 @@ _strace () {
 
   kill "$str_pid" 2> /dev/null;
 
-  find /tmp/ -name "GLOBALS-*" -user "$(getusr)" -exec mv -t "$OUTPUT_DIR" {} +;
+  find /tmp/ -name "*-GLOBALS" -user "$(getusr)" -exec mv -t "$OUTPUT_DIR" {} +;
 
   chmod 600 "${OUTPUT_DIR}"/*
   chown root. "${OUTPUT_DIR}"/*
