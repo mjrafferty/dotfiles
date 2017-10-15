@@ -4,6 +4,8 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly TMP_EXT=".nexcess.bak"
+readonly FLAG_FILE="/tmp/nexcess_strace_flag"
+readonly OUTPUT_DIR="${HOME}/nex_strace"
 
 _usage() {
   cat <<- EOF
@@ -87,16 +89,12 @@ _addCode () {
 <?php
   if((@($addressstring)$uristring)$querystring){
 
-    \$nexdate = date('Y-m-d-H:i:s');
-    \$nexdir = "/tmp/strace" . date('Y-m-d-H:i:s');
+    file_put_contents($OUTPUT_DIR" . "/GLOBALS-" . date('Y-m-d-H:i:s'), print_r(\$GLOBALS,true));
 
-    mkdir(\$nexdir);
-
-  	file_put_contents(\$nexdir . "/GLOBALS", print_r(\$GLOBALS,true));
-
-    \$f = fopen('/tmp/flag','w');
+    \$f = fopen("$FLAG_FILE",'w');
     sleep(2);
     fclose(\$f);
+    unlink("$FLAG_FILE");
   }
 ?>
 EOF
@@ -110,21 +108,18 @@ _strace () {
 
   local pid str_pid output
 
-  output="$HOME/strace-$(date "+%F-%T")";
-
-  rm /tmp/flag 2> /dev/null;
-
   trap 'return' INT;
 
   set -m;
-  while [ ! -f /tmp/flag ]; do
+  while [ ! -f $FLAG_FILE ]; do
     printf "\rWaiting for process. Press enter to stop.";
     if read -rt0.1; then
       return;
     fi
   done
 
-  pid="$(lsof -tf -- /tmp/flag)";
+  output="${OUTPUT_DIR}/strace-$(date "+%F-%T")";
+  pid="$(lsof -tf -- $FLAG_FILE)";
 
   strace -fTrvs200000 -o "$output" -p"$pid" &
 
@@ -135,11 +130,13 @@ _strace () {
   while(true); do
     if tail "$output" | grep -q "accept(0"; then
       kill "$str_pid";
+      chmod 600 "$output";
       break;
     fi
   done
 
   kill "$str_pid" 2> /dev/null;
+
 }
 
 main () {
@@ -184,6 +181,9 @@ main () {
   if [[ -z "$query" ]]; then
     query="NULL";
   fi
+
+  mkdir -f "${OUTPUT_DIR}";
+  chmod 733 "${OUTPUT_DIR}"
 
   _addCode "$file" "$address" "$uri" "$query" || return 1;
 
