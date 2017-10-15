@@ -92,14 +92,14 @@ _addCode () {
 
     mkdir(\$nexdir);
 
-  	file_put_contents(\$nexdir . "/GLOBALS", print_r($GLOBALS,true));
-  	file_put_contents(\$nexdir . "/POST", print_r($_POST,true));
-  	file_put_contents(\$nexdir . "/GET", print_r($_GET,true));
-  	file_put_contents(\$nexdir . "/SERVER", print_r($_SERVER,true));
-  	file_put_contents(\$nexdir . "/FILES", print_r($_FILES,true));
-  	file_put_contents(\$nexdir . "/SESSION", print_r($_SESSION,true));
-  	file_put_contents(\$nexdir . "/ENV", print_r($_ENV,true));
-  	file_put_contents(\$nexdir . "/COOKIE", print_r($_COOKIE,true));
+  	file_put_contents(\$nexdir . "/GLOBALS", print_r(\$GLOBALS,true));
+  	file_put_contents(\$nexdir . "/POST", print_r(\$_POST,true));
+  	file_put_contents(\$nexdir . "/GET", print_r(\$_GET,true));
+  	file_put_contents(\$nexdir . "/SERVER", print_r(\$_SERVER,true));
+  	file_put_contents(\$nexdir . "/FILES", print_r(\$_FILES,true));
+  	file_put_contents(\$nexdir . "/SESSION", print_r(\$_SESSION,true));
+  	file_put_contents(\$nexdir . "/ENV", print_r(\$_ENV,true));
+  	file_put_contents(\$nexdir . "/COOKIE", print_r(\$_COOKIE,true));
 
     \$f = fopen('/tmp/flag','w');
     sleep(2);
