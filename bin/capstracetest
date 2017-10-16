@@ -146,9 +146,9 @@ _monitor () {
 
   printf "\rWaiting for process. Press enter to stop.";
 
-  while (true); do
+  (while (true); do
 
-    read -rt0.1 pid;
+    read -r pid;
 
     if [[ -n $pid ]]; then
       if [[ -n $persist ]]; then
@@ -159,7 +159,13 @@ _monitor () {
       fi
     fi
 
-  done <"$PIPE_NAME";
+  done <"$PIPE_NAME"; ) &
+
+  while (true); do
+    if read -rt0.1; then
+      return;
+    fi
+  done
 }
 
 main () {
