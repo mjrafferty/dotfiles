@@ -145,7 +145,7 @@ _monitor () {
   set -m;
 
   printf "\rWaiting for process. Press enter to stop.";
-
+  parent="$$";
   (while (true); do
 
     read -r pid;
@@ -157,6 +157,7 @@ _monitor () {
         _strace "$pid" &
       else
         _strace "$pid";
+        kill -s INT "$parent";
         return;
       fi
     fi
