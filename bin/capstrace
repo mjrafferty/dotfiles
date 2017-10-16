@@ -95,7 +95,7 @@ _addCode () {
   if((@($addressstring)$uristring)$querystring){
 
     file_put_contents("$PIPE_NAME",getmypid());
-
+    sleep(1);
     file_put_contents("/tmp/" . date('Y-m-d-H:i:s') . "-GLOBALS", print_r(\$GLOBALS,true));
   }
 ?>
