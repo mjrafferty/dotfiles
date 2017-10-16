@@ -151,7 +151,9 @@ _monitor () {
     read -r pid;
 
     if [[ -n $pid ]]; then
-      if [[ -n $persist ]]; then
+      if [[ $pid == "quit" ]]; then
+        return;
+      elif [[ -n $persist ]]; then
         _strace "$pid" &
       else
         _strace "$pid";
@@ -163,6 +165,7 @@ _monitor () {
 
   while (true); do
     if read -rt0.1; then
+      echo "quit" > "$PIPE_NAME";
       return;
     fi
   done
