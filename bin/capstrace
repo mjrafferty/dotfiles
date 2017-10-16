@@ -4,8 +4,8 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly TMP_EXT=".nexcess.bak"
-readonly FLAG_FILE="/tmp/nexcess_strace_flag"
 readonly OUTPUT_DIR="${HOME}/nex_strace"
+readonly PIPE_NAME="/tmp/nexcess_strace_pipe"
 
 _usage() {
   cat <<- EOF
@@ -45,6 +45,9 @@ _cmdline() {
       "--uri"|"-u")
         args="${args}-u "
         ;;
+      "--persist"|"-p")
+        args="${args}-p "
+        ;;
       *)
         args="${args}${x} ";
         ;;
@@ -67,6 +70,8 @@ _addCode () {
 
   mv "$file"{,"$TMP_EXT"} || return 1;
 
+  cp -a "$file""$TMP_EXT" "$file";
+
   if [[ "$uri" == "NULL" ]]; then
     uristring="";
   else
@@ -85,41 +90,27 @@ _addCode () {
     addressstring="\$_SERVER[\"REMOTE_ADDR\"] == \"$address\" || \$_SERVER[\"HTTP_X_FORWARDED_FOR\"] == \"$address\"";
   fi
 
-  cat << EOF >> "$file"
+  cat << EOF > "$file"
 <?php
   if((@($addressstring)$uristring)$querystring){
 
-    file_put_contents("/tmp/" . date('Y-m-d-H:i:s') . "-GLOBALS", print_r(\$GLOBALS,true));
+    file_put_contents("$PIPE_NAME",getmypid());
 
-    \$f = fopen("$FLAG_FILE",'w');
-    sleep(2);
-    fclose(\$f);
-    unlink("$FLAG_FILE");
+    file_put_contents("/tmp/" . date('Y-m-d-H:i:s') . "-GLOBALS", print_r(\$GLOBALS,true));
   }
 ?>
 EOF
 
   cat "$file""$TMP_EXT" >> "$file";
-  chown "$(getusr)". "$file";
 
 }
 
 _strace () {
 
-  local pid str_pid output
-
-  trap 'return' INT;
-
-  set -m;
-  while [ ! -f $FLAG_FILE ]; do
-    printf "\rWaiting for process. Press enter to stop.";
-    if read -rt0.1; then
-      return;
-    fi
-  done
+  local output pid str_pid
 
   output="${OUTPUT_DIR}/$(date "+%F-%T")-strace";
-  pid="$(lsof -tf -- $FLAG_FILE)";
+  pid="$1";
 
   strace -fTrvs200000 -o "$output" -p"$pid" &
 
@@ -143,11 +134,49 @@ _strace () {
 
 }
 
+_monitor () {
+
+  local pid persist
+
+  persist="$1";
+
+  trap 'return' INT;
+
+  set -m;
+
+  printf "\rWaiting for process. Press enter to stop.";
+  parent="$$";
+  (while (true); do
+
+  read -r pid;
+
+  if [[ -n $pid ]]; then
+    if [[ $pid == "quit" ]]; then
+      return;
+    elif [[ -n $persist ]]; then
+      _strace "$pid" &
+    else
+      _strace "$pid";
+      kill -s INT "$parent" 2>/dev/null;
+      return;
+    fi
+  fi
+
+done <"$PIPE_NAME"; ) &
+
+while (true); do
+  if read -rt0.1; then
+    echo "quit" > "$PIPE_NAME";
+    return;
+  fi
+done
+}
+
 main () {
 
-  local file address uri query;
+  local file address uri query persist;
 
-  while getopts "hf:i:u:q:" OPTION $(_cmdline); do
+  while getopts "hf:i:u:q:p" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -165,6 +194,9 @@ main () {
         ;;
       q)
         query="$OPTARG";
+        ;;
+      p)
+        persist="yes";
         ;;
     esac
 
@@ -186,14 +218,18 @@ main () {
     query="NULL";
   fi
 
-  mkdir "${OUTPUT_DIR}" 2>/dev/null;
+  [[ -d $OUTPUT_DIR ]] || mkdir "${OUTPUT_DIR}";
   chmod 700 "${OUTPUT_DIR}"
+
+  mkfifo -m 666 "$PIPE_NAME";
 
   _addCode "$file" "$address" "$uri" "$query" || return 1;
 
-  _strace;
+  _monitor "$persist";
 
   mv -f "$file"{"$TMP_EXT",}
+
+  rm "$PIPE_NAME";
 
 }
 
