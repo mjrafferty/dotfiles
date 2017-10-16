@@ -1,0 +1,224 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+readonly TMP_EXT=".nexcess.bak"
+readonly OUTPUT_DIR="${HOME}/nex_strace"
+readonly PIPE_NAME="/tmp/nexcess_strace_pipe"
+
+_usage() {
+	cat <<- EOF
+
+	Perform a strace of a php-fpm process when requesting a page.
+	Outputs strace to home directory. Target is usually site's
+	index.php, though not always.
+
+	Usage:
+
+	capstrace <target>
+
+EOF
+}
+
+_cmdline() {
+
+	local x;
+
+	for x in ${ARGA[*]}; do
+
+		local args
+
+		case "$x" in
+			"--help"|"-h")
+				args="${args}-h "
+				;;
+			"--file"|"-f")
+				args="${args}-f "
+				;;
+			"--ip-address"|"-i")
+				args="${args}-i "
+				;;
+			"--query-string"|"-q")
+				args="${args}-q "
+				;;
+			"--uri"|"-u")
+				args="${args}-u "
+				;;
+			"--persist"|"-p")
+				args="${args}-p "
+				;;
+			*)
+				args="${args}${x} ";
+				;;
+		esac
+
+	done
+
+
+	echo "$args";
+}
+
+_addCode () {
+
+	local file address addressstring uri uristring query querystring;
+
+	file="$1";
+	address="$2";
+	uri="$3";
+	query="$4"
+
+	mv "$file"{,"$TMP_EXT"} || return 1;
+
+	if [[ "$uri" == "NULL" ]]; then
+		uristring="";
+	else
+		uristring=" and (strlen(strstr(\$_SERVER[\"REQUEST_URI\"],\"$uri\"))>0)";
+	fi
+
+	if [[ "$query" == "NULL" ]]; then
+		querystring="";
+	else
+		querystring=" and (strlen(strstr(\$_SERVER[\"QUERY_STRING\"],\"$query\"))>0)";
+	fi
+
+	if [[ "$address" == "all" ]]; then
+		addressstring="1";
+	else
+		addressstring="\$_SERVER[\"REMOTE_ADDR\"] == \"$address\" || \$_SERVER[\"HTTP_X_FORWARDED_FOR\"] == \"$address\"";
+	fi
+
+	cat << EOF >> "$file"
+<?php
+	if((@($addressstring)$uristring)$querystring){
+
+		file_put_contents("/tmp/" . date('Y-m-d-H:i:s') . "-GLOBALS", print_r(\$GLOBALS,true));
+
+		file_put_contents("$PIPE_NAME",getmypid());
+		sleep(1);
+	}
+?>
+EOF
+
+cat "$file""$TMP_EXT" >> "$file";
+chown "$(getusr)". "$file";
+
+}
+
+_strace () {
+
+	local output pid str_pid
+
+	output="${OUTPUT_DIR}/$(date "+%F-%T")-strace";
+	pid="$1";
+
+	strace -fTrvs200000 -o "$output" -p"$pid" &
+
+	str_pid="$!"
+
+	trap 'break' INT;
+	sleep 0.1;
+	while(true); do
+		if tail "$output" | grep -q "accept(0"; then
+			kill "$str_pid";
+			break;
+		fi
+	done
+
+	kill "$str_pid" 2> /dev/null;
+
+	find /tmp/ -name "*-GLOBALS" -user "$(getusr)" -exec mv -t "$OUTPUT_DIR" {} +;
+
+	chmod 600 "${OUTPUT_DIR}"/*
+	chown root. "${OUTPUT_DIR}"/*
+
+}
+
+_monitor () {
+
+	local pid persist
+
+	persist="$1";
+
+	trap 'return' INT;
+
+	set -m;
+
+	printf "\rWaiting for process. Press enter to stop.";
+
+	while (true) ; do
+
+		if read -rt0.1 pid <"$PIPE_NAME"; then
+			_strace "$pid" &
+			[[ -n $persist ]] || return;
+		fi
+
+		if read -rt0.1; then
+			return;
+		fi
+
+	done
+}
+
+main () {
+
+	local file address uri query persist;
+
+	while getopts "hf:i:u:q:" OPTION $(_cmdline); do
+
+		case $OPTION in
+			h)
+				_usage;
+				exit 0;
+				;;
+			f)
+				file="$OPTARG";
+				;;
+			i)
+				address="$OPTARG";
+				;;
+			u)
+				uri="$OPTARG";
+				;;
+			q)
+				query="$OPTARG";
+				;;
+			p)
+				persist="yes";
+				;;
+		esac
+
+	done
+
+	if [[ -z "$file" ]]; then
+		file="${ARGA[0]}";
+	fi
+
+	if [[ -z "$address" ]]; then
+		address="192.240.191.2";
+	fi
+
+	if [[ -z "$uri" ]]; then
+		uri="NULL";
+	fi
+
+	if [[ -z "$query" ]]; then
+		query="NULL";
+	fi
+
+	[[ -d $OUTPUT_DIR ]] || mkdir "${OUTPUT_DIR}";
+	chmod 700 "${OUTPUT_DIR}"
+
+	mkfifo -m 666 "$PIPE_NAME";
+
+	_addCode "$file" "$address" "$uri" "$query" || return 1;
+
+	_monitor "$persist";
+
+	mv -f "$file"{"$TMP_EXT",}
+
+	rm "$PIPE_NAME";
+
+}
+
+main;
