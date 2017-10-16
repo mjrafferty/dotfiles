@@ -70,6 +70,8 @@ _addCode () {
 
   mv "$file"{,"$TMP_EXT"} || return 1;
 
+  cp -a "$file""$TMP_EXT" "$file";
+
   if [[ "$uri" == "NULL" ]]; then
     uristring="";
   else
@@ -88,7 +90,7 @@ _addCode () {
     addressstring="\$_SERVER[\"REMOTE_ADDR\"] == \"$address\" || \$_SERVER[\"HTTP_X_FORWARDED_FOR\"] == \"$address\"";
   fi
 
-  cat << EOF >> "$file"
+  cat << EOF > "$file"
 <?php
   if((@($addressstring)$uristring)$querystring){
 
@@ -100,7 +102,6 @@ _addCode () {
 EOF
 
   cat "$file""$TMP_EXT" >> "$file";
-  chown "$(getusr)". "$file";
 
 }
 
@@ -147,28 +148,28 @@ _monitor () {
   parent="$$";
   (while (true); do
 
-    read -r pid;
+  read -r pid;
 
-    if [[ -n $pid ]]; then
-      if [[ $pid == "quit" ]]; then
-        return;
-      elif [[ -n $persist ]]; then
-        _strace "$pid" &
-      else
-        _strace "$pid";
-        kill -s INT "$parent" 2>/dev/null;
-        return;
-      fi
-    fi
-
-  done <"$PIPE_NAME"; ) &
-
-  while (true); do
-    if read -rt0.1; then
-      echo "quit" > "$PIPE_NAME";
+  if [[ -n $pid ]]; then
+    if [[ $pid == "quit" ]]; then
+      return;
+    elif [[ -n $persist ]]; then
+      _strace "$pid" &
+    else
+      _strace "$pid";
+      kill -s INT "$parent" 2>/dev/null;
       return;
     fi
-  done
+  fi
+
+done <"$PIPE_NAME"; ) &
+
+while (true); do
+  if read -rt0.1; then
+    echo "quit" > "$PIPE_NAME";
+    return;
+  fi
+done
 }
 
 main () {
