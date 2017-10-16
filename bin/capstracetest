@@ -157,7 +157,7 @@ _monitor () {
         _strace "$pid" &
       else
         _strace "$pid";
-        kill -s INT "$parent";
+        kill -s INT "$parent" 2>/dev/null;
         return;
       fi
     fi
