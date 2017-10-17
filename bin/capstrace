@@ -119,8 +119,7 @@ _strace () {
   sleep 0.1;
 
   while(true); do
-    read -r line;
-    if [[ $line =~ accept.0 ]]; then
+    if tail | grep -q "accept(0"; then
       kill "$str_pid";
       break;
     fi
