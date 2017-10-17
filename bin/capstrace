@@ -231,6 +231,9 @@ main () {
 
   mv -f "$file"{"$TMP_EXT",}
 
+  # Flush pipe to prevent any remaining PHP processes from hanging
+  dd if="$PIPE_NAME" iflag=nonblock of=/dev/null &> /dev/null
+
   rm "$PIPE_NAME";
 
 }
