@@ -96,7 +96,7 @@ _addCode () {
 
     file_put_contents("$PIPE_NAME",getmypid() . "\n");
     sleep(1);
-    file_put_contents("/tmp/" . date('Y-m-d-H:i:s') . "-GLOBALS", print_r(\$GLOBALS,true));
+    file_put_contents("/tmp/" . date('Y-m-d-H:i:s') . "-" . getmypid() . "-GLOBALS", print_r(\$GLOBALS,true));
   }
 ?>
 EOF
@@ -109,10 +109,9 @@ _strace () {
 
   local output pid str_pid
 
-  output="${OUTPUT_DIR}/$(date "+%F-%T")-strace";
-  pid="$1";
+  output="${OUTPUT_DIR}/$(date "+%F-%T")-$1-strace";
 
-  strace -fTrvs200000 -o "$output" -p"$pid" &
+  strace -fTrvs200000 -o "$output" -p"$1" &
 
   str_pid="$!"
 
