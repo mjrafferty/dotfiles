@@ -17,7 +17,7 @@ main () {
   fi
 
   grep -Eio "(select [^;]*from [^;]*|insert [^;]*into [^;]*|update [^;]*set [^;]*|delete [^;]*from [^;]*)" "${ARGA[0]}" \
-    | sed 's_",_;_' \
+    | sed 's_",.*_;_' \
     | less -S
 
 }
