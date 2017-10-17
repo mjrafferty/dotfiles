@@ -118,12 +118,14 @@ _strace () {
 
   trap 'break' INT;
   sleep 0.1;
+
   while(true); do
-    if tail "$output" | grep -q "accept(0"; then
+    read -r line;
+    if [[ $line =~ accept\(0 ]]; then
       kill "$str_pid";
       break;
     fi
-  done
+  done < "$output"
 
   kill "$str_pid" 2> /dev/null;
 
@@ -136,7 +138,7 @@ _strace () {
 
 _monitor () {
 
-  local pid persist
+  local pid persist parent child
 
   persist="$1";
 
@@ -163,10 +165,12 @@ _monitor () {
 
   done <"$PIPE_NAME"; ) &
 
+  child="$!"
+
   trap 'return' INT;
 
   if read -r; then
-    echo "quit" > "$PIPE_NAME";
+    kill "$child";
     return;
   fi
 }
