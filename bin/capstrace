@@ -33,7 +33,24 @@ _usage() {
 
   Usage:
 
-  capstrace <target>
+  capstrace [options]
+
+  --help|-h                        Prints this message.
+
+  --file|-f file                   Target file for catching process.
+                                   Usually an index.php, but not always.
+
+  --ip-address|-i REMOTE_ADDR,all  IP address initiating process.
+                                   Default value is Nexcess IP: 192.240.191.2
+                                   Special value of 'all' will match any IP.
+
+  --uri|-u REQUEST_URI             Specific URI to monitor for.
+
+  --query-string|-q REQUEST_URI    Specific query string to monitor for.
+
+  --persist|-p                     Default behavior is to catch one request. This
+                                   flag enables capstrace to catch every matching
+                                   request until you exit capstrace.
 
 EOF
 }
