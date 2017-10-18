@@ -168,7 +168,7 @@ _monitor () {
   trap 'return' INT;
 
   if read -r; then
-    kill "$child";
+     { kill "$child" && wait "$child"; } 2>/dev/null
     return;
   fi
 }
