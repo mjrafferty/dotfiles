@@ -6,6 +6,7 @@ readonly ARGA=("$@")
 readonly TMP_EXT=".nexcess.bak"
 readonly OUTPUT_DIR="${HOME}/nex_strace"
 readonly PIPE_NAME="/tmp/nexcess_strace_pipe"
+readonly DEFAULT_IP="192.240.191.2"
 
 alias mkfio="/usr/bin/mkfifo"
 alias dd="/bin/dd"
@@ -24,6 +25,7 @@ alias strace='/usr/bin/strace'
 alias sleep='/bin/sleep'
 alias true='/bin/true'
 
+# Print usage
 _usage() {
   cat <<- EOF
 
@@ -34,26 +36,27 @@ _usage() {
 
   capstrace [options]
 
-  --help|-h                        Prints this message.
+  -h|--help                        Prints this message.
 
-  --file|-f file                   Target file for catching process.
+  -f|--file FILE                   Target file for catching process.
                                    Usually an index.php, but not always.
 
-  --ip-address|-i REMOTE_ADDR,all  IP address initiating process.
+  -i|--ip-address REMOTE_ADDR,all  IP address initiating process.
                                    Default value is Nexcess IP: 192.240.191.2
                                    Special value of 'all' will match any IP.
 
-  --uri|-u REQUEST_URI             Specific URI to monitor for.
+  -u|--uri REQUEST_URI             Specific URI to monitor for.
 
-  --query-string|-q REQUEST_URI    Specific query string to monitor for.
+  -q|--query-string QUERY_STRING   Specific query string to monitor for.
 
-  --persist|-p                     Default behavior is to catch one request. This
+  -p--persist                      Default behavior is to catch one request. This
                                    flag enables capstrace to catch every matching
                                    request until you exit capstrace.
 
 EOF
 }
 
+# Convert long command line options into short ones for getopts
 _cmdline() {
 
   local x;
@@ -92,6 +95,7 @@ _cmdline() {
   echo "$args";
 }
 
+# Insert code into target file
 _addCode () {
 
   local file address addressstring uri uristring query querystring;
@@ -138,6 +142,7 @@ EOF
 
 }
 
+# Perform strace of request
 _strace () {
 
   local output str_pid
@@ -151,6 +156,7 @@ _strace () {
   trap 'break' INT;
   sleep 0.1;
 
+  # Kill strace once php process becomes idle
   while(true); do
     if tail | grep -q "accept(0"; then
       kill "$str_pid";
@@ -167,6 +173,7 @@ _strace () {
 
 }
 
+# Monitor for incoming requests
 _monitor () {
 
   local pid persist parent child
@@ -177,6 +184,7 @@ _monitor () {
 
   parent="$$";
 
+  # Perform monitoring in background
   (while (true); do
 
   read -r pid;
@@ -195,8 +203,8 @@ _monitor () {
 
   child="$!"
 
+  # Handle user exiting capstrace
   trap 'return' INT;
-
   if read -r; then
      { kill "$child" && wait "$child"; } 2>/dev/null
     return;
@@ -207,6 +215,7 @@ main () {
 
   local file address uri query persist;
 
+  # Parse command line options
   while getopts "hf:i:u:q:p" OPTION $(_cmdline); do
 
     case $OPTION in
@@ -233,12 +242,18 @@ main () {
 
   done
 
+  # Set defaults where necessary
   if [[ -z "$file" ]]; then
-    file="${ARGA[0]}";
+    if [[ -r "${ARGA[0]}" ]]; then
+      file="${ARGA[0]}";
+    else
+      _usage;
+      return;
+    fi
   fi
 
   if [[ -z "$address" ]]; then
-    address="192.240.191.2";
+    address="$DEFAULT_IP";
   fi
 
   if [[ -z "$uri" ]]; then
