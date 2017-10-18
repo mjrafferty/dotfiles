@@ -7,6 +7,20 @@ readonly TMP_EXT=".nexcess.bak"
 readonly OUTPUT_DIR="${HOME}/nex_strace"
 readonly PIPE_NAME="/tmp/nexcess_strace_pipe"
 
+alias mkfio="/usr/bin/mkfifo"
+alias dd="/bin/dd"
+alias rm="/bin/rm --preserve-root"
+alias mv="/bin/mv"
+alias chmod='/bin/chmod --preserve-root'
+alias chown='/bin/chown --preserve-root'
+alias mkdir='/bin/mkdir'
+alias test='/usr/bin/test'
+alias find='/bin/find'
+alias kill='/bin/kill'
+alias printf='/usr/bin/printf'
+alias cat='/bin/cat'
+alias grep='/bin/grep'
+
 _usage() {
   cat <<- EOF
 
@@ -127,7 +141,7 @@ _strace () {
 
   kill "$str_pid" 2> /dev/null;
 
-  find /tmp/ -name "*-GLOBALS" -user "$(getusr)" -exec mv -t "$OUTPUT_DIR" {} + 2>/dev/null
+  find /tmp/ -name "*-GLOBALS" -user "$(getusr)" -exec /bin/mv -t "$OUTPUT_DIR" {} + 2>/dev/null
 
   chmod 600 "${OUTPUT_DIR}"/*
   chown root. "${OUTPUT_DIR}"/*
@@ -136,30 +150,21 @@ _strace () {
 
 _monitor () {
 
-  local pid persist parent child
+  local persist parent child
 
   persist="$1";
-
-
-  set -m;
 
   printf "\rWaiting for process. Press enter to stop.";
   parent="$$";
   (while (true); do
 
-  read -r pid;
-
-  if [[ -n $pid ]]; then
-    if [[ $pid == "quit" ]]; then
-      return;
-    elif [[ -n $persist ]]; then
-      _strace "$pid" &
+    if [[ -n $persist ]]; then
+      _strace "$1" &
     else
-      _strace "$pid";
+      _strace "$1";
       kill -s INT "$parent" 2>/dev/null;
       return;
     fi
-  fi
 
   done <"$PIPE_NAME"; ) &
 
@@ -168,8 +173,8 @@ _monitor () {
   trap 'return' INT;
 
   if read -r; then
-     { kill "$child" && wait "$child"; } 2>/dev/null
-    return;
+    { kill "$child" && wait "$child"; } 2>/dev/null
+      return;
   fi
 }
 
