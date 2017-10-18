@@ -20,6 +20,9 @@ alias kill='/bin/kill'
 alias printf='/usr/bin/printf'
 alias cat='/bin/cat'
 alias grep='/bin/grep'
+alias strace='/usr/bin/strace'
+alias sleep='/bin/sleep'
+alias true='/bin/true'
 
 _usage() {
   cat <<- EOF
@@ -121,7 +124,7 @@ EOF
 
 _strace () {
 
-  local output pid str_pid
+  local output str_pid
 
   output="${OUTPUT_DIR}/$(date "+%F-%T")-$1-strace";
 
@@ -150,21 +153,27 @@ _strace () {
 
 _monitor () {
 
-  local persist parent child
+  local pid persist parent child
 
   persist="$1";
 
   printf "\rWaiting for process. Press enter to stop.";
+
   parent="$$";
+
   (while (true); do
 
+  read -r pid;
+
+  if [[ -n $pid ]]; then
     if [[ -n $persist ]]; then
-      _strace "$1" &
+      _strace "$pid" &
     else
-      _strace "$1";
+      _strace "$pid";
       kill -s INT "$parent" 2>/dev/null;
       return;
     fi
+  fi
 
   done <"$PIPE_NAME"; ) &
 
@@ -173,8 +182,8 @@ _monitor () {
   trap 'return' INT;
 
   if read -r; then
-    { kill "$child" && wait "$child"; } 2>/dev/null
-      return;
+     { kill "$child" && wait "$child"; } 2>/dev/null
+    return;
   fi
 }
 
