@@ -153,7 +153,7 @@ _strace () {
 
   str_pid="$!"
 
-  trap 'break' INT;
+  trap 'break' INT QUIT TERM;
   sleep 0.1;
 
   # Kill strace once php process becomes idle
@@ -204,7 +204,7 @@ _monitor () {
   child="$!"
 
   # Handle user exiting capstrace
-  trap 'return' INT;
+  trap 'return' INT QUIT TERM;
   if read -r; then
      { kill "$child" && wait "$child"; } 2>/dev/null
     return;
