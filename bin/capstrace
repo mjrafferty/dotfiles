@@ -27,9 +27,8 @@ alias true='/bin/true'
 _usage() {
   cat <<- EOF
 
-  Perform a strace of a php-fpm process when requesting a page.
-  Outputs strace to home directory. Target is usually site's
-  index.php, though not always.
+  Captures strace and php GLOBALS variable information of one or matching
+  requests to a website. Outputs data to "$OUTPUT_DIR".
 
   Usage:
 
