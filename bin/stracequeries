@@ -16,7 +16,7 @@ main () {
     return 0;
   fi
 
-  grep -Pio "(write\(|sendto\().*\K(select [^;]*from [^;]*|insert [^;]*into [^;]*|update [^;]*set [^;]*|delete [^;]*from [^;]*)" "${ARGA[0]}" \
+  grep -Pio "(write\(|sendto\().*\K(select [^;]*from [^;]*|insert [^;]*into [^;]*|update [^;]*set [^;]*|delete [^;]*from [^;]*)" "${ARGA[*]}" \
     | sed 's_",.*_;_' \
     | less -S
 

@@ -21,7 +21,8 @@ main () {
   file="${ARGA[0]}"
 
   awk '{ gsub(/<|>/,"",$(NF)); print (sum += ($2 - $(NF))) }' "$file" \
-    | paste - "$file"
+    | paste - "$file" \
+    | less -S;
 
 }
 
