@@ -49,7 +49,7 @@ _usage() {
 
   -q|--query-string QUERY_STRING   Specific query string to monitor for.
 
-  -p--persist                      Default behavior is to catch one request. This
+  -p|--persist                     Default behavior is to catch one request. This
                                    flag enables capstrace to catch every matching
                                    request until you exit capstrace.
 
@@ -180,7 +180,7 @@ _monitor () {
 
   persist="$1";
 
-  printf "\rWaiting for process. Press enter to stop.";
+  printf "Waiting for process. Press enter to stop.\n";
 
   parent="$$";
 
