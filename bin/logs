@@ -33,7 +33,7 @@ case "$1" in
     ;;
   "ssh")
     echo;
-    grep -v 'Did not receive' /var/log/secure | tail -n"$N;"
+    grep -v 'Did not receive' /var/log/secure | tail -n"$N";
     echo;
     ;;
   "cron")
