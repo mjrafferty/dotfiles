@@ -23,7 +23,7 @@ main () {
   fi
 
 modgrep -s "${ARGA[0]}" -f /var/log/httpd/modsec_audit.log \
-  | sed -n 's/.*\[id[^"]*"\([0-9]*\).*/\1/p' \
+  | grep -Po '.*\[id[^"]*"[0-9]*'  \
   | sort -u \
   | grep -Ev "$EXCLUDE_RULES";
 

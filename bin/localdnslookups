@@ -3,7 +3,7 @@
 # Gets list of recent DNS lookups from local requests
 
 # list of domains queried
-list=($(grep query /service/dnscache/log/main/* | cut -d\  -f6 | sort -u));
+list=($(parallel grep query -- /service/dnscache/log/main/* | cut -d\  -f6 | sort -u));
 
 for ((i=0;i<${#list[@]};i++)); do
 
