@@ -132,7 +132,7 @@ _addCode () {
   if((@($addressstring)$uristring)$querystring){
 
     file_put_contents("$PIPE_NAME",getmypid() . "\n");
-    sleep(1);
+    usleep(500000);
     file_put_contents("/tmp/" . date('Y-m-d-H:i:s') . "-" . getmypid() . "-GLOBALS", print_r(\$GLOBALS,true));
   }
 ?>
