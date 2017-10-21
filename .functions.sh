@@ -220,7 +220,7 @@ hitsperhour () {
 # Show number of hits per five minute
 hitsperfive () {
   zless -f "$@" \
-    grep -Po "$(date "+%Y"):\K..:.." \
+    | grep -Po "$(date "+%Y"):\K..:.." \
     | awk -F: '{printf "%02d:%02d\n",$1,int($2 / 5) * 5 }' \
     | sort \
     | uniq -c \
