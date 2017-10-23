@@ -133,7 +133,7 @@ _addCode () {
 
     file_put_contents("$PIPE_NAME",getmypid() . "\n");
     usleep(100000);
-    file_put_contents("/tmp/" . date('Y-m-d-H:i:s') . "-" . getmypid() . "-GLOBALS", print_r(\$GLOBALS,true));
+    file_put_contents("/tmp/" . date('Y-m-d-H:i:s') . "-" . getmypid() . "-GLOBALS", print_r(\$GLOBALS,true) . "\\n\\n" . file_get_contents("php://input"));
   }
 ?>
 EOF
