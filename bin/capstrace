@@ -149,8 +149,7 @@ _strace () {
 
   output="${OUTPUT_DIR}/$(date "+%F-%T")-$1-strace";
 
-  (strace -fTrvs200000 -o "$output" -p"$1" 2> /dev/null \
-    || echo "Failed to attach" >> "$output") &
+  strace -fTrvs200000 -o "$output" -p"$1" &
 
   str_pid="$!"
 
