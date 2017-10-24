@@ -157,12 +157,14 @@ _strace () {
   sleep 0.1;
 
   # Kill strace once php process becomes idle
-  while(true); do
-    if tail | grep -qE "accept\(0| \+\+\+ killed by|Failed to attach"; then
-      kill "$str_pid" 2>/dev/null || echo "$1 exited abnormally";
-      break;
-    fi
-  done < "$output"
+  if [ -r "$output" ]; then
+    while(true); do
+      if tail | grep -qE "accept\(0| \+\+\+ killed by|Failed to attach"; then
+        kill "$str_pid" 2>/dev/null || echo "$1 exited abnormally";
+        break;
+      fi
+    done < "$output"
+  fi
 
   kill "$str_pid" 2> /dev/null;
 
@@ -276,6 +278,7 @@ main () {
   mv -f "$file"{"$TMP_EXT",}
 
   # Flush pipe to prevent any remaining PHP processes from hanging
+  sleep 0.1;
   dd if="$PIPE_NAME" iflag=nonblock of=/dev/null &> /dev/null
 
   rm "$PIPE_NAME";
