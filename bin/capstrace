@@ -145,11 +145,13 @@ EOF
 # Perform strace of request
 _strace () {
 
-  local output str_pid
+  local output pid str_pid
 
-  output="${OUTPUT_DIR}/$(date "+%F-%T")-$1-strace";
+  pid="$1";
 
-  strace -fTrvs200000 -o "$output" -p"$1" &
+  output="${OUTPUT_DIR}/$(date "+%F-%T")-$pid-strace";
+
+  strace -fTrvs200000 -o "$output" -p"$pid" &
 
   str_pid="$!"
 
@@ -159,8 +161,8 @@ _strace () {
   # Kill strace once php process becomes idle
   if [[ -e /proc/"$str_pid" ]]; then
     while(true); do
-      if tail | grep -qE "accept\(0| \+\+\+ (killed|exited)"; then
-        kill "$str_pid" 2>/dev/null || echo "$1 exited";
+      if tail | grep -qE "accept\(0|^$pid .* \+\+\+ (killed|exited)"; then
+        kill "$str_pid" 2>/dev/null || echo "$pid exited";
         break;
       fi
     done < "$output"
