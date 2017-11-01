@@ -63,7 +63,7 @@ main () {
 
     local currentfile currentfilenumber;
 
-    currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep "$filepath");
+    currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*");
     currentfilenumber=$(grep -n "$currentfile" "$scanlist" | sed 's/:.*//')
 
     echo $((100 * currentfilenumber/filecount));
