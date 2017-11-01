@@ -52,9 +52,11 @@ main () {
   (nksir maldet "$filepath" >/dev/null) &
 
   nksirpid=$!;
-  scanpid=$(pgrep -g $nksirpid -n bash);
+  sleep 1;
+  scanpid=$(pgrep -P $nksirpid -n bash);
   scanlist="/usr/local/maldetect/tmp/.find.$scanpid"
-  filecount=$(wc -l "$scanlist");
+  filecount=$(wc -l < "$scanlist");
+  sleep 1;
   clamdpid=$(pgrep -u clamav clamd);
 
   while [ -d /proc/"$scanpid" ]; do
@@ -64,7 +66,7 @@ main () {
     currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep "$filepath");
     currentfilenumber=$(grep -n "$currentfile" "$scanlist" | sed 's/:.*//')
 
-    echo $((100 * "$currentfilenumber"/"$filecount"));
+    echo $((100 * currentfilenumber/filecount));
     sleep 10;
 
   done
