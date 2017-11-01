@@ -1,0 +1,70 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    local delim=""
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      *) [[ "${x:0:1}" == "-" ]] || delim="\"";
+        args="${args}${delim}${x}${delim} "
+        ;;
+    esac
+
+  done
+
+
+  echo "$args";
+}
+
+main () {
+
+  while getopts "hxt:c:" OPTION "$(_cmdline)"; do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+    esac
+
+  done
+
+  nksir case -n | grep -Po ": \K.*"
+
+  (nksir maldet /chroot/home/mjraffer/mage1.mjrafferty.org/html >/dev/null) &
+
+  nksirpid=$!;
+  scanpid=$(pgrep -g $nksirpid -n bash);
+  scanlist="/usr/local/maldetect/tmp/.find.$scanpid"
+  filecount=$(wc -l $scanlist);
+  clamdpid=$(pgrep -u clamav clamd);
+
+  while [ -d /proc/"$scanpid" ]; do
+    currentfile=$(lsof -p $clamdpid -ad1-99 | grep "$path");
+    currentfilenumber=$(grep -n $currentfile $scanlist | sed 's/:.*//')
+
+    echo $((100 * $currentfilenumber/$filecount));
+    sleep 10;
+
+  done
+
+
+}
+
+main;
