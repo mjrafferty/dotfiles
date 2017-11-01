@@ -18,7 +18,7 @@ main () {
 
 	echo;
 	(printf "syscall\ttime\tquantity\n%s\t%s\t%s\n" "$(dashes 10)" "$(dashes 10)" "$(dashes 10)"
-	awk '{ gsub(/<|>/,"",$(NF)); gsub(/\(.*/,"",$3); time[$3]+=$(NF); numcalls[$3]++} END { for (x in time) {print x, "\t", time[x], "\t", numcalls[x] }}' "${ARGA[*]}" \
+	awk '{ gsub(/<|>/,"",$(NF)); gsub(/\(.*/,"",$3); time[$3]+=$(NF); numcalls[$3]++} END { for (x in time) {print x, "\t", time[x], "\t", numcalls[x] }}' ${ARGA[*]} \
 		| sed 's/\S*e-\S*/0.000001/' \
 		| sort -k2nr) \
 		| column -t
