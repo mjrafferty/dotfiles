@@ -10,10 +10,10 @@ try {
   $result = $client->catalogProductList((object)array('sessionId' => $sessionId->result, 'filters' => null));
 
 	var_dump($result->result);
+  $client->endSession($sessionId);
 
 }
 catch (Exception $e) {
 	var_dump($e);
 }
-$client->endSession($session);
 ?>
