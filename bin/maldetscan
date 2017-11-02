@@ -65,7 +65,7 @@ main () {
 
     local currentfile currentfilenumber;
 
-    currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*");
+    currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*"| head -n1);
     currentfilenumber=$(grep -n "${currentfile}$" "$scanlist" | cut -d: -f1)
 
     printf "\r%s" $((100 * currentfilenumber/filecount));
