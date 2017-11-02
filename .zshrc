@@ -62,5 +62,6 @@ parallel -- \
   maxphpprocs \
   maxclients \
   memcheck \
-  loadavgchk;
+  loadavgchk \
+  partitioncheck;
 echo;

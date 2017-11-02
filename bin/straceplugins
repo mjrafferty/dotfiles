@@ -16,7 +16,7 @@ main () {
     return 0;
   fi
 
-  straceopened "${ARGA[0]}" \
+  straceopened ${ARGA[*]} \
     | sed -n \
     -e 's_app/code/local/\([^/]*/[^/]*\)/.*_\1_p' \
     -e 's_app/code/community/\([^/]*/[^/]*\)/.*_\1_p' \

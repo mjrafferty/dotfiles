@@ -1,0 +1,79 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    local delim=""
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      *) [[ "${x:0:1}" == "-" ]] || delim="\"";
+        args="${args}${delim}${x}${delim} "
+        ;;
+    esac
+
+  done
+
+
+  echo "$args";
+}
+
+main () {
+
+  local nksirpid scanpid scanlist filecount clamdpid;
+
+  while getopts "hxt:c:" OPTION "$(_cmdline)"; do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+    esac
+
+  done
+
+  nksir case -n | grep -Po ": \K.*"
+
+  filepath="${ARGA[0]}";
+
+  (nksir maldet "$filepath" >/dev/null) &
+
+  nksirpid=$!;
+  sleep 1;
+  scanpid=$(pgrep -P $nksirpid -n bash);
+  scanlist="/usr/local/maldetect/tmp/.find.$scanpid"
+  filecount=$(grep -c "$filepath" "$scanlist");
+  sleep 1;
+  clamdpid=$(pgrep -u clamav clamd);
+
+  while [ -d /proc/"$scanpid" ]; do
+
+    local currentfile currentfilenumber;
+
+    currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*");
+    currentfilenumber=$(grep -n "${currentfile}$" "$scanlist" | cut -d: -f1)
+
+    echo $((100 * currentfilenumber/filecount));
+    sleep 10;
+
+  done
+
+
+}
+
+main;
