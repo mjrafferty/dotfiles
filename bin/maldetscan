@@ -47,11 +47,12 @@ main () {
 
   done
 
-  nksir case -n | grep -Po ": \K.*"
+  #nksir case -n | grep -Po ": \K.*"
 
   filepath="${ARGA[0]}";
 
-  (nksir maldet "$filepath" >/dev/null) &
+  #(nksir maldet "$filepath" >/dev/null) &
+  (maldet -a "$filepath" >/dev/null) &
 
   nksirpid=$!;
 
