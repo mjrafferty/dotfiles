@@ -68,8 +68,8 @@ main () {
     currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*");
     currentfilenumber=$(grep -n "${currentfile}$" "$scanlist" | cut -d: -f1)
 
-    echo $((100 * currentfilenumber/filecount));
-    sleep 10;
+    printf "\r%s" $((100 * currentfilenumber/filecount));
+    sleep 1;
 
   done
 
