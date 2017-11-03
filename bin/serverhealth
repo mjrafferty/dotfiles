@@ -15,7 +15,6 @@ alias awk='/bin/awk'
 alias sort='/bin/sort'
 alias head='/usr/bin/head'
 alias df='/bin/df'
-alias parallel='/usr/bin/parallel'
 alias cut='/bin/cut'
 alias ps='/bin/ps'
 alias wc='/usr/bin/wc'
@@ -175,12 +174,14 @@ main () {
   done
 
   echo;
-    _longrunqueries
-    _maxphpprocs
-    _maxclients
-    _memcheck
-    _loadavgchk
-    _partitioncheck;
+
+  _longrunqueries;
+  _maxphpprocs;
+  _maxclients;
+  _memcheck;
+  _loadavgchk;
+  _partitioncheck;
+
   echo;
 
 }
