@@ -175,12 +175,11 @@ main () {
   done
 
   echo;
-  parallel -- \
-    _longrunqueries \
-    _maxphpprocs \
-    _maxclients \
-    _memcheck \
-    _loadavgchk \
+    _longrunqueries
+    _maxphpprocs
+    _maxclients
+    _memcheck
+    _loadavgchk
     _partitioncheck;
   echo;
 
