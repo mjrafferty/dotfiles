@@ -1,0 +1,231 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+alias test='/usr/bin/test'
+alias find='/bin/find'
+alias printf='/usr/bin/printf'
+alias cat='/bin/cat'
+alias grep='/bin/grep'
+alias true='/bin/true'
+alias mysql='/usr/bin/mysql'
+alias sed='/bin/sed'
+alias awk='/bin/awk'
+alias sort='/bin/sort'
+alias head='/usr/bin/head'
+alias df='/bin/df'
+alias cut='/bin/cut'
+alias ps='/bin/ps'
+alias wc='/usr/bin/wc'
+
+
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    local delim=""
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--queries"|"-q")
+        args="${args}-q "
+        ;;
+      "--php"|"-p")
+        args="${args}-p "
+        ;;
+      "--apache"|"-a")
+        args="${args}-a "
+        ;;
+      "--memory"|"-m")
+        args="${args}-m "
+        ;;
+      "--load"|"-l")
+        args="${args}-l "
+        ;;
+      "--disk"|"-d")
+        args="${args}-d "
+        ;;
+      *) [[ "${x:0:1}" == "-" ]] || delim="\"";
+        args="${args}${delim}${x}${delim} "
+        ;;
+    esac
+
+  done
+
+
+  echo "$args";
+}
+
+_m () {
+
+  mysql -u"$(grep '^rootdsn=' /usr/local/interworx/iworx.ini | cut -d/ -f3 | cut -d: -f1)" \
+    -p"$(grep '^rootdsn=' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)" "$1"
+}
+
+_longrunqueries () {
+
+  local count;
+
+  count=$(_m -e'select count(*) from information_schema.PROCESSLIST where TIME>=10\G' 2> /dev/null \
+    | sed -n 's/count(\*): \([0-9]*\).*/\1/p');
+
+  if [ -n "$count" ] && [ "$count" -ge 10 ]; then
+    echo "$count long running queries";
+  fi
+
+}
+
+_maxphpprocs () {
+
+  local phprocs numprocs users max;
+
+  phprocs=$(ps -eo args \
+    | awk '/^php-fpm: pool/ && $NF != "www"{  a[$NF] += 1 } END {for(i in a){ printf "%-10s %d\n",i,a[i] } }' \
+    | sort -k2nr);
+
+  numprocs=($(echo "$phprocs" | awk '{print $2}'));
+  users=($(echo "$phprocs" | awk '{print $1}'));
+
+  for ((x=0;x<"${#users[@]}";x++)); do
+
+    max="$(find {/opt/nexcess/php*/root,}/etc/php-fpm.d/*.conf -name "${users[$x]}.conf" \
+      -exec /bin/awk -F '=' '/^[^#;]*pm.max_children/{ gsub(/\ [^0-9]*$/,"",$2); gsub(/^\ */,"",$2); print $2  }' {} + \
+      | head -n1)"
+
+    if [ "${numprocs[$x]}" -ge "$max" ]; then
+      echo "${users[$x]} at max children";
+    elif [ "${numprocs[$x]}" -ge "$((9*max/10))" ]; then
+      echo "${users[$x]} near max children";
+    fi
+
+  done
+
+}
+
+_maxclients () {
+
+  local count max;
+
+  count="$(( $(ps -Chttpd | wc -l ) -1 ))";
+  max="$(sed -n 's/^[^#]*MaxClients\s*\([0-9]*\).*/\1/p' /etc/httpd/conf/httpd.conf | head -n1)";
+
+  if [ "$count" -ge "$max" ]; then
+    echo "Apache at MaxClients";
+  elif [ $count -ge "$(( 9 * max / 10 ))" ]; then
+    echo "Apache near MaxClients";
+  fi
+
+}
+
+_memcheck () {
+
+  local active total swptotal swpfree;
+
+  active=$(sed -n 's/Active:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
+  total=$(sed -n 's/MemTotal:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
+  swptotal=$(sed -n 's/SwapTotal:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
+  swpfree=$(sed -n 's/SwapFree:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
+
+  if [ "$active" -ge "$((9 * total / 10))" ]; then
+    echo "System memory low";
+  fi
+  if [ "$swpfree" -le "$((swptotal / 10))" ]; then
+    echo "Swap low";
+  fi
+
+}
+
+_loadavgchk () {
+
+  local avgs cpucount;
+
+  avgs=($(cut -d ' ' -f1-3 /proc/loadavg));
+
+  avgs[0]=$(printf "%.*f\n" 0 "${avgs[0]}")
+  avgs[1]=$(printf "%.*f\n" 0 "${avgs[1]}")
+  avgs[2]=$(printf "%.*f\n" 0 "${avgs[2]}")
+
+
+  cpucount="$(grep -c ^processor /proc/cpuinfo)"
+
+  if [ "${avgs[0]}" -ge "$cpucount" ]; then
+    echo "Load average high";
+  fi
+  if [ "${avgs[1]}" -ge "$cpucount" ]; then
+    echo "5 min load average high";
+  fi
+  if [ "${avgs[2]}" -ge "$cpucount" ]; then
+    echo "15 min load average high";
+  fi
+
+}
+
+_partitioncheck () {
+
+  df \
+    | awk '!/Filesystem/ {gsub(/%/,"",$0); if($5 > 95){print $(NF)" partition "$5"% full"}}'
+
+}
+
+main () {
+
+  while getopts "hqpamld" OPTION "$(_cmdline)"; do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      q)
+        _longrunqueries;
+        exit 0;
+        ;;
+      p)
+        _maxphpprocs;
+        exit 0;
+        ;;
+      a)
+        _maxclients;
+        exit 0;
+        ;;
+      m)
+        _memcheck;
+        exit 0;
+        ;;
+      l)
+        _loadavgchk;
+        exit 0;
+        ;;
+      d)
+        _partitioncheck;
+        exit 0;
+        ;;
+    esac
+
+  done
+
+  echo;
+
+  _longrunqueries;
+  _maxphpprocs;
+  _maxclients;
+  _memcheck;
+  _loadavgchk;
+  _partitioncheck;
+
+  echo;
+
+}
+
+main;

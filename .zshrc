@@ -56,12 +56,4 @@ ZSH_HIGHLIGHT_STYLES[line]='bold'
 [ -r ~/action.sh ] && source ~/action.sh;
 
 # Server health check
-echo;
-parallel -- \
-  longrunqueries \
-  maxphpprocs \
-  maxclients \
-  memcheck \
-  loadavgchk \
-  partitioncheck;
-echo;
+serverhealth;
