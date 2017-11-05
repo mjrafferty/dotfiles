@@ -48,7 +48,6 @@ zstyle :compinstall filename '~/.zshrc'
 autoload -Uz compinit
 compinit -u
 
-ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets line)
 ZSH_HIGHLIGHT_STYLES[line]='bold'
 
 [ -r /opt/nexcess/php56u/enable ] && source /opt/nexcess/php56u/enable;
