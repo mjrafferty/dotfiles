@@ -4,21 +4,21 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 _usage() {
-  cat <<- EOF
-  This is the usage
-EOF
+	cat <<- EOF
+	This is the usage
+	EOF
 }
 
 main () {
 
-  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
-  fi
+	if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+		_usage;
+		return 0;
+	fi
 
-  grep -Pioh "(write\(|sendto\().*\K(select [^;]*from [^;]*|insert [^;]*into [^;]*|update [^;]*set [^;]*|delete [^;]*from [^;]*)" ${ARGA[*]} \
-    | sed -e 's_",.*_;_' -e 's/\\n//g' \
-    | less -S
+	grep -Pioh '(write\(|sendto\()[0-9]*, "[^s,i,u,d,\(]*\K(select .*from|insert .*into|update .*set|delete .*from)[^"]*"' ${ARGA[*]} \
+		| sed -e 's_"$_;_' -e 's/\\n//g' \
+		| less -S
 
 }
 
