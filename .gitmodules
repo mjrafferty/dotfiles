@@ -1,15 +1,6 @@
 [submodule ".oh-my-zsh"]
 	path = .oh-my-zsh
 	url = https://github.com/robbyrussell/oh-my-zsh
-[submodule "custom/plugins/zsh-autosuggestions"]
-	path = custom/plugins/zsh-autosuggestions
-	url = https://github.com/zsh-users/zsh-autosuggestions
-[submodule "custom/plugins/zsh-completions"]
-	path = custom/plugins/zsh-completions
-	url = https://github.com/zsh-users/zsh-completions
-[submodule "custom/plugins/zsh-history-substring-search"]
-	path = custom/plugins/zsh-history-substring-search
-	url = https://github.com/zsh-users/zsh-history-substring-search
 [submodule "no-rsync/bash-it"]
 	path = no-rsync/bash-it
 	url = https://github.com/Bash-it/bash-it
@@ -151,9 +142,6 @@
 [submodule ".vim/bundle/rainbow_parentheses.vim"]
 	path = .vim/bundle/rainbow_parentheses.vim
 	url = https://github.com/junegunn/rainbow_parentheses.vim
-[submodule "custom/plugins/zsh-syntax-highlighting"]
-	path = custom/plugins/zsh-syntax-highlighting
-	url = https://github.com/zsh-users/zsh-syntax-highlighting
 [submodule ".zprezto"]
 	path = .zprezto
 	url = https://github.com/sorin-ionescu/prezto.git
