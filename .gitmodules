@@ -1,6 +1,3 @@
-[submodule ".oh-my-zsh"]
-	path = .oh-my-zsh
-	url = https://github.com/robbyrussell/oh-my-zsh
 [submodule "no-rsync/bash-it"]
 	path = no-rsync/bash-it
 	url = https://github.com/Bash-it/bash-it
