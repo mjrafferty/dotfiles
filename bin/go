@@ -74,6 +74,7 @@ _login () {
       --exclude '.mysql_history' \
       --exclude '.rediscli_history' \
       --exclude '.zsh_history' \
+      --exclude '.zhistory' \
       --exclude '.ssh' \
       --exclude 'clients' \
       --exclude '.zcomp*' \
