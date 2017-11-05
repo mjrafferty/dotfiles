@@ -3,21 +3,19 @@ if [ "$(id -u)" != "0" ]; then
   /usr/bin/sudo HOME=$HOME /bin/zsh
 
   /usr/bin/sudo find /home/nexmrafferty/ -mindepth 1 \( \
-    -path "*/.aliases.sh" -o \
     -path "*/.bash_profile" -o \
     -path "*/bin" -o \
     -path "*/clients" -o \
     -path "*/.commonrc" -o \
     -path "*/.completions" -o \
-    -path "*/custom" -o \
-    -path "*/.environment.sh" -o \
     -path "*/.functions.sh" -o \
     -path "*/.mytop" -o \
-    -path "*/.oh-my-zsh" -o \
     -path "*/*history" -o \
     -path "*/*SNAPS*" -o \
     -path "*/.ssh" -o \
-    -path "*/.zcompdump*" -o \
+    -path "*/.zcomp*" -o \
+    -path "*/.zlogin*" -o \
+    -path "*/.zpr*" -o \
     -path "*/.vim*" -o \
     -path "*/.zshrc" \) -prune -o -exec rm -rf {} + 2> /dev/null;
 

@@ -73,7 +73,7 @@ _login () {
       --exclude '*history' \
       --exclude '.ssh' \
       --exclude 'clients' \
-      --exclude '.zcompdump*' \
+      --exclude '.zcomp*' \
       --exclude '.mytop' \
       --exclude '.git' \
       --exclude 'YouCompleteMe' \
@@ -92,7 +92,7 @@ _login () {
     -o StrictHostKeyChecking=no \
     -o PasswordAuthentication=no \
     "nex$(whoami)@$destination";
-  echo -ne "\ek$(hostname)\e\\";
+  echo -e "\ek$(hostname)\e\\";
 }
 
 _findSiteLogin () {
