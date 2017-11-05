@@ -1,0 +1,73 @@
+#
+# Sets Prezto options.
+#
+# Authors:
+#   Sorin Ionescu <sorin.ionescu@gmail.com>
+
+zstyle ':prezto:*:*' color 'yes'
+
+zstyle ':prezto:load' pmodule \
+  'environment' \
+  'terminal' \
+  'editor' \
+  'history' \
+  'directory' \
+  'git' \
+  'spectrum' \
+  'utility' \
+  'pacman' \
+  'tmux' \
+  'completion' \
+  'fasd' \
+  'command-not-found' \
+  'syntax-highlighting' \
+  'history-substring-search' \
+  'autosuggestions' \
+  'prompt'
+
+ zstyle ':prezto:module:completion:*:hosts' etc-host-ignores \
+   '0.0.0.0' '127.0.0.1'
+
+zstyle ':prezto:module:editor' key-bindings 'emacs'
+
+zstyle ':prezto:module:editor' dot-expansion 'yes'
+zstyle ':prezto:module:editor' ps-context 'yes'
+zstyle ':prezto:module:editor:info:keymap:primary' format '>>>'
+zstyle ':prezto:module:editor:info:keymap:primary:insert' format 'I'
+zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format 'O'
+zstyle ':prezto:module:editor:info:keymap:alternate' format '<<<'
+zstyle ':prezto:module:editor:info:completing' format '...'
+
+zstyle ':prezto:module:git:alias' skip 'yes'
+zstyle ':prezto:module:git:status:ignore' submodules 'all'
+
+#HIST_VERIFY
+#INC_APPEND_HISTORY
+#SHARE_HISTORY
+#HIST_IGNORE_DUPS
+
+zstyle ':prezto:module:prompt' theme 'sorin'
+zstyle ':prezto:module:prompt' pwd-length 'long'
+
+zstyle ':prezto:module:syntax-highlighting' highlighters \
+  'main' \
+  'brackets' \
+  'pattern' \
+  'line'
+
+#zstyle ':prezto:module:syntax-highlighting' styles \
+  #'builtin' 'bg=blue' \
+  #'command' 'bg=blue' \
+  #'function' 'bg=blue'
+
+zstyle ':prezto:module:terminal' auto-title 'always'
+zstyle ':prezto:module:terminal:window-title' format '%n@%m: %s'
+zstyle ':prezto:module:terminal:tab-title' format '%m: %s'
+zstyle ':prezto:module:terminal:multiplexer-title' format '%s'
+
+zstyle ':prezto:module:tmux:auto-start' remote 'yes'
+zstyle ':prezto:module:tmux:session' name 'matt tmux'
+
+zstyle ':prezto:module:utility' safe-ops 'no'.
+
+zstyle ':prezto:module:pacman' frontend 'pacaur'
