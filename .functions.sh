@@ -25,7 +25,7 @@ cdd () {
     | cut -f2));
 
   for (( i=1; i<=${#alias[@]}; i++ )); do
-    docroot[$i]=($(sed -nr 's/.*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"${domain[$i]}".conf \
+    docroot[$i]=($(sed -nr 's/[^#]*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"${domain[$i]}".conf \
       | head -n1));
   done;
 
@@ -78,7 +78,7 @@ cdlogs () {
   vhosts=($(grep -El "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*));
 
   for (( i=1; i<=${#vhosts[@]}; i++ )); do
-    logsdir[$i]=($(sed -nr 's_.*ErrorLog (.*)/error.log_\1_p' "${vhosts[$i]}" \
+    logsdir[$i]=($(sed -nr 's_[^#]*ErrorLog (.*)/error.log_\1_p' "${vhosts[$i]}" \
       | head -n1));
   done;
 
