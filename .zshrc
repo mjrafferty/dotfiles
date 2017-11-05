@@ -25,6 +25,8 @@ if [ "$(id -u)" != "0" ]; then
 
 fi
 
+fpath+="$HOME/.completions"
+
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
