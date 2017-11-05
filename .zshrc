@@ -25,11 +25,12 @@ if [ "$(id -u)" != "0" ]; then
 
 fi
 
+# Source Prezto.
+if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+fi
+
 [ -r ~/.commonrc ] && source ~/.commonrc;
-
-export ZSH_TMUX_AUTOSTART=true
-
-[ -r $ZSH/oh-my-zsh.sh ] && source $ZSH/oh-my-zsh.sh
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/opt/puppetlabs/bin:/var/qmail/bin:/usr/nexkit/bin:~/bin
 
