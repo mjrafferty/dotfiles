@@ -70,7 +70,6 @@ _login () {
       chmod 700 ~/dotfiles;
     fi;
     rsync -ql --force --delete --chmod=o-rwx -rpt \
-      --exclude '.bash_history' \
       --exclude '.mysql_history' \
       --exclude '.rediscli_history' \
       --exclude '.zsh_history' \
