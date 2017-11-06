@@ -1,5 +1,13 @@
 #! /bin/zsh
 
+fpath+="$HOME/.completions"
+
+# Source Prezto.
+if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+fi
+
+
 ##### Env Variables #####
 export LANG=en_US.UTF-8
 export HISTTIMEFORMAT="%F %T "
@@ -39,18 +47,4 @@ alias grepphp='grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png|pub
 
 ##### Functions #####
 [ -r ~/.functions.sh ] && source ~/.functions.sh
-
-
-##### ZSH #####
-
-#export ZSH=~/.oh-my-zsh
-
-ZSH_THEME="matts"
-HYPHEN_INSENSITIVE="true"
-DISABLE_AUTO_UPDATE="true"
-ENABLE_CORRECTION="true"
-COMPLETION_WAITING_DOTS="true"
-HIST_STAMPS="mm/dd/yyyy"
-
-#plugins=(git colored-man-pages colorize command-not-found cp extract history history-substring-search tmux redis-cli fasd zsh-syntax-highlighting zsh-autosuggestions zsh-completions my-completions)
 
