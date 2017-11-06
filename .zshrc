@@ -1,4 +1,4 @@
-if [ "$(id -u)" != "0" ]; then
+if [ "$UID" != "0" ]; then
 
   /usr/bin/sudo HOME=$HOME /bin/zsh
 
@@ -21,13 +21,6 @@ if [ "$(id -u)" != "0" ]; then
 
   exit;
 
-fi
-
-fpath+="$HOME/.completions"
-
-# Source Prezto.
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
 [ -r ~/.commonrc ] && source ~/.commonrc;
