@@ -1,4 +1,4 @@
-if [ "$UID" != "0" ]; then
+if [ "$(id -u)" != "0" ]; then
 
   /usr/bin/sudo HOME=$HOME /bin/zsh
 
