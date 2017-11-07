@@ -1,12 +1,5 @@
 #! /bin/zsh
 
-
-if [[ -z $TMUX ]] then;
- (tmux has-session -t "${HOME/*\//}" && tmux attach -t "${HOME/*\//}") \
-   || tmux new-session -s "${HOME/*\//}"
- exit;
-fi
-
 fpath+="$HOME/.completions"
 
 # Source Prezto.

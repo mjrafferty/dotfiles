@@ -23,6 +23,12 @@ if [ "$(id -u)" != "0" ]; then
 
 fi
 
+if [[ -z $TMUX ]] then;
+ (tmux has-session -t "${HOME/*\//}" && tmux attach -t "${HOME/*\//}") \
+   || tmux new-session -s "${HOME/*\//}"
+ exit;
+fi
+
 [ -r ~/.commonrc ] && source ~/.commonrc;
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/opt/puppetlabs/bin:/var/qmail/bin:/usr/nexkit/bin:~/bin

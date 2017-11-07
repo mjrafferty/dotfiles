@@ -149,22 +149,6 @@ zstyle ':prezto:module:terminal:tab-title' format '%m: %s'
 zstyle ':prezto:module:terminal:multiplexer-title' format '%s'
 
 #
-# Tmux
-#
-
-# Auto start a session when Zsh is launched in a local terminal.
-# zstyle ':prezto:module:tmux:auto-start' local 'yes'
-
-# Auto start a session when Zsh is launched in a SSH connection.
-zstyle ':prezto:module:tmux:auto-start' remote 'yes'
-
-# Integrate with iTerm2.
-# zstyle ':prezto:module:tmux:iterm' integrate 'yes'
-
-# Set the default session name:
-zstyle ':prezto:module:tmux:session' name 'matt tmux'
-
-#
 # Utility
 #
 
@@ -173,7 +157,3 @@ zstyle ':prezto:module:tmux:session' name 'matt tmux'
 # behavior.
 zstyle ':prezto:module:utility' safe-ops 'no'
 
-#HIST_VERIFY
-#INC_APPEND_HISTORY
-#SHARE_HISTORY
-#HIST_IGNORE_DUPS
