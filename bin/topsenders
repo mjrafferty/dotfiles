@@ -1,0 +1,56 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    local delim=""
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      *) [[ "${x:0:1}" == "-" ]] || delim="\"";
+        args="${args}${delim}${x}${delim} "
+        ;;
+    esac
+
+  done
+
+
+  echo "$args";
+}
+
+main () {
+
+  while getopts "hxt:c:" OPTION "$(_cmdline)"; do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+    esac
+
+  done
+
+  grep -Poh "from <\K[^>]*" /var/log/send/* \
+    | sort \
+    | uniq -c \
+    | sort -hr \
+    | head
+
+}
+
+main;
