@@ -23,11 +23,6 @@ if [ "$(id -u)" != "0" ]; then
 
 fi
 
-if [[ $UID == 0 && -z $TMUX ]] then;
- (tmux has-session && tmux attach) || tmux
- exit;
-fi
-
 [ -r ~/.commonrc ] && source ~/.commonrc;
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/opt/puppetlabs/bin:/var/qmail/bin:/usr/nexkit/bin:~/bin
