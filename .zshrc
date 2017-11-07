@@ -1,6 +1,6 @@
 if [ "$(id -u)" != "0" ]; then
 
-  /usr/bin/sudo HOME=$HOME /bin/zsh
+  /usr/bin/sudo HOME=$HOME SSH_TTY=$SSH_TTY /bin/zsh
 
   /usr/bin/sudo find /home/nexmrafferty/ -mindepth 1 \( \
     -path "*/.bash_profile" -o \
@@ -21,12 +21,6 @@ if [ "$(id -u)" != "0" ]; then
 
   exit;
 
-fi
-
-if [[ -z $TMUX ]] then;
- (tmux has-session -t "${HOME/*\//}" && tmux attach -t "${HOME/*\//}") \
-   || tmux new-session -s "${HOME/*\//}"
- exit;
 fi
 
 [ -r ~/.commonrc ] && source ~/.commonrc;
