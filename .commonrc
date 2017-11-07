@@ -2,8 +2,8 @@
 
 
 if [[ -z $TMUX ]] then;
- (tmux has-session -t "${HOME/*\//}" && tmux attach -s "${HOME/*\//}") \
-   || tmux new-session -t "${HOME/*\//}"
+ (tmux has-session -t "${HOME/*\//}" && tmux attach -t "${HOME/*\//}") \
+   || tmux new-session -s "${HOME/*\//}"
  exit;
 fi
 
