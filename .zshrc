@@ -30,20 +30,6 @@ export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/opt/pu
 # Create directories for files used by vim if necessary
 mkdir -p ~/.vimfiles/{backup,swp,undo}
 
-zstyle ':completion:*' verbose yes
-zstyle ':completion:*:descriptions' format '%B%d%b'
-zstyle ':completion:*:messages' format '%d'
-zstyle ':completion:*:warnings' format 'No matches for: %d'
-zstyle ':completion:*' group-name ”
-zstyle ':completion:*' completer _expand _complete _ignored _match _correct _approximate _prefix
-zstyle ':completion:*' max-errors 2 numeric
-zstyle :compinstall filename '~/.zshrc'
-
-autoload -Uz compinit
-compinit -u
-
-ZSH_HIGHLIGHT_STYLES[line]='bold'
-
 [ -r /opt/nexcess/php56u/enable ] && source /opt/nexcess/php56u/enable;
 
 [ -r ~/action.sh ] && source ~/action.sh;
