@@ -201,14 +201,14 @@ _checkservices () {
     echo "httpd dead";
   fi
 
-  configured_memcached=($(find /etc/sysconfig/* -name "memcached.*"));
+  configured_memcached=($(find /etc/sysconfig/ -mindepth 1 -name "memcached.*"));
   running_memcached=($(echo "$TESTINGTHIS" | grep -Po "memcached\..*\.pid"));
 
   if [[ "${#configured_memcached[@]}" != "${#running_memcached[@]}" ]]; then
     echo "memcached dead";
   fi
 
-  configured_redis=($(find /etc/redis-multi/* -name "redis-multi*"));
+  configured_redis=($(find /etc/redis-multi/ -mindepth 1 -name "redis-multi*"));
   running_redis=($(echo "$TESTINGTHIS" | grep -Po "^\S*(?=.*redis-server)" ));
 
   if [[ "${#configured_redis[@]}" != "${#running_redis[@]}" ]]; then
