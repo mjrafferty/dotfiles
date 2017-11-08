@@ -188,35 +188,35 @@ _checkservices () {
   TESTINGTHIS=$(ps -C redis-server,memcached,php-fpm,mysqld,httpd -o user,cmd);
 
   configured_phps=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kphp.*fpm'));
-  running_phps=($(echo "$TESTINGTHIS" | awk '{ /php-fpm.*master/ gsub(/\(|\)/,"",$5); print $5}' | sort));
+  running_phps=($(echo "$TESTINGTHIS" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$5); print $5}'));
 
   if [[ "${#configured_phps[@]}" != "${#running_phps[@]}" ]]; then
     echo "oh no!";
   fi
 
   configured_httpd=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Khttpd'));
-  running_httpd=($(echo "$TESTINGTHIS" | grep "^root.*httpd"));
+  running_httpd=($(echo "$TESTINGTHIS" | grep -Po "^root.*\Khttpd"));
 
   if [[ "${#configured_httpd[@]}" != "${#running_httpd[@]}" ]]; then
     echo "oh no!";
   fi
 
   configured_memcached=($(ls /etc/sysconfig/memcached.*));
-  running_memcached=($(echo "$TESTINGTHIS" | grep memcached));
+  running_memcached=($(echo "$TESTINGTHIS" | grep -Po "memcached\..*\.pid"));
 
   if [[ "${#configured_memcached[@]}" != "${#running_memcached[@]}" ]]; then
     echo "oh no!";
   fi
 
   configured_redis=($(ls /etc/redis-multi/redis-multi_*));
-  running_redis=($(echo "$TESTINGTHIS" | grep redis-server));
+  running_redis=($(echo "$TESTINGTHIS" | grep -Po "^\S*(?=.*redis-server)" ));
 
   if [[ "${#configured_redis[@]}" != "${#running_redis[@]}" ]]; then
     echo "oh no!";
   fi
 
   configured_mysqld=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kmysqld'));
-  running_mysqld=($(echo "$TESTINGTHIS" | grep mysqld));
+  running_mysqld=($(echo "$TESTINGTHIS" | grep -Po "\S*mysqld "));
 
   if [[ "${#configured_mysqld[@]}" != "${#running_mysqld[@]}" ]]; then
     echo "oh no!";
