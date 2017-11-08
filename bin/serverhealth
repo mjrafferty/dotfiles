@@ -191,35 +191,35 @@ _checkservices () {
   running_phps=($(echo "$TESTINGTHIS" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$5); print $5}'));
 
   if [[ "${#configured_phps[@]}" != "${#running_phps[@]}" ]]; then
-    echo "oh no!";
+    echo "php dead";
   fi
 
   configured_httpd=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Khttpd'));
   running_httpd=($(echo "$TESTINGTHIS" | grep -Po "^root.*\Khttpd"));
 
   if [[ "${#configured_httpd[@]}" != "${#running_httpd[@]}" ]]; then
-    echo "oh no!";
+    echo "httpd dead";
   fi
 
   configured_memcached=($(find /etc/sysconfig/ -name "memcached.*"));
   running_memcached=($(echo "$TESTINGTHIS" | grep -Po "memcached\..*\.pid"));
 
   if [[ "${#configured_memcached[@]}" != "${#running_memcached[@]}" ]]; then
-    echo "oh no!";
+    echo "memcached dead";
   fi
 
   configured_redis=($(find /etc/redis-multi/ -name "redis-multi*"));
   running_redis=($(echo "$TESTINGTHIS" | grep -Po "^\S*(?=.*redis-server)" ));
 
   if [[ "${#configured_redis[@]}" != "${#running_redis[@]}" ]]; then
-    echo "oh no!";
+    echo "redis dead";
   fi
 
   configured_mysqld=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kmysqld'));
   running_mysqld=($(echo "$TESTINGTHIS" | grep -Po "\S*mysqld "));
 
   if [[ "${#configured_mysqld[@]}" != "${#running_mysqld[@]}" ]]; then
-    echo "oh no!";
+    echo "mysqld dead";
   fi
 
 }
