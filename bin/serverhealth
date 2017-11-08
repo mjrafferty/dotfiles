@@ -178,6 +178,26 @@ _partitioncheck () {
 
 }
 
+_checkservices () {
+
+	local TESTINGTHIS=$(ps -C redis-server,memcached,php-fpm,mysqld,httpd -o user,cmd);
+
+	configured_phps=$(find /etc/rc.d/rc3.d/ | grep -Po '...\Kphp.*fpm');
+	running_phps=$(echo $TESTINGTHIS | awk '{ /php-fpm.*master/ gsub(/\(|\)/,"",$5); print $5}' | sort);
+
+	configured_httpd=$(find /etc/rc.d/rc3.d/ | grep -Po '...\Khttpd');
+	running_httpd=$(echo $TESTINGTHIS | grep "^root.*httpd");
+
+	configured_memcached=$(ls /etc/sysconfig/memcached.*);
+	running_memcached=$(echo $TESTINGTHIS | grep memcached);
+
+	configured_redis=$(ls /etc/redis-multi/redis-multi_*);
+	running_redis=$(echo $TESTINGTHIS | grep redis-server);
+
+	configured_mysqld=$(find /etc/rc.d/rc3.d/ | grep -Po '...\Kmysqld');
+	running_mysqld=$(echo $TESTINGTHIS | grep mysqld);
+}
+
 main () {
 
   while getopts "hqpamld" OPTION "$(_cmdline)"; do
