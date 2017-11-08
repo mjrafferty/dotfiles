@@ -201,14 +201,14 @@ _checkservices () {
     echo "oh no!";
   fi
 
-  configured_memcached=($(ls /etc/sysconfig/memcached.*));
+  configured_memcached=($(find /etc/sysconfig/memcached.*));
   running_memcached=($(echo "$TESTINGTHIS" | grep -Po "memcached\..*\.pid"));
 
   if [[ "${#configured_memcached[@]}" != "${#running_memcached[@]}" ]]; then
     echo "oh no!";
   fi
 
-  configured_redis=($(ls /etc/redis-multi/redis-multi_*));
+  configured_redis=($(find /etc/redis-multi/redis-multi_*));
   running_redis=($(echo "$TESTINGTHIS" | grep -Po "^\S*(?=.*redis-server)" ));
 
   if [[ "${#configured_redis[@]}" != "${#running_redis[@]}" ]]; then
