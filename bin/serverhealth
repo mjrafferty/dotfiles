@@ -180,22 +180,22 @@ _partitioncheck () {
 
 _checkservices () {
 
-	local TESTINGTHIS=$(ps -C redis-server,memcached,php-fpm,mysqld,httpd -o user,cmd);
+  local TESTINGTHIS=$(ps -C redis-server,memcached,php-fpm,mysqld,httpd -o user,cmd);
 
-	configured_phps=$(find /etc/rc.d/rc3.d/ | grep -Po '...\Kphp.*fpm');
-	running_phps=$(echo $TESTINGTHIS | awk '{ /php-fpm.*master/ gsub(/\(|\)/,"",$5); print $5}' | sort);
+  configured_phps=$(find /etc/rc.d/rc3.d/ | grep -Po '...\Kphp.*fpm');
+  running_phps=$(echo $TESTINGTHIS | awk '{ /php-fpm.*master/ gsub(/\(|\)/,"",$5); print $5}' | sort);
 
-	configured_httpd=$(find /etc/rc.d/rc3.d/ | grep -Po '...\Khttpd');
-	running_httpd=$(echo $TESTINGTHIS | grep "^root.*httpd");
+  configured_httpd=$(find /etc/rc.d/rc3.d/ | grep -Po '...\Khttpd');
+  running_httpd=$(echo $TESTINGTHIS | grep "^root.*httpd");
 
-	configured_memcached=$(ls /etc/sysconfig/memcached.*);
-	running_memcached=$(echo $TESTINGTHIS | grep memcached);
+  configured_memcached=$(ls /etc/sysconfig/memcached.*);
+  running_memcached=$(echo $TESTINGTHIS | grep memcached);
 
-	configured_redis=$(ls /etc/redis-multi/redis-multi_*);
-	running_redis=$(echo $TESTINGTHIS | grep redis-server);
+  configured_redis=$(ls /etc/redis-multi/redis-multi_*);
+  running_redis=$(echo $TESTINGTHIS | grep redis-server);
 
-	configured_mysqld=$(find /etc/rc.d/rc3.d/ | grep -Po '...\Kmysqld');
-	running_mysqld=$(echo $TESTINGTHIS | grep mysqld);
+  configured_mysqld=$(find /etc/rc.d/rc3.d/ | grep -Po '...\Kmysqld');
+  running_mysqld=$(echo $TESTINGTHIS | grep mysqld);
 }
 
 main () {
@@ -235,14 +235,24 @@ main () {
 
   done
 
+  export -f _longrunqueries;
+  export -f _maxphpprocs;
+  export -f _maxclients;
+  export -f _memcheck;
+  export -f _loadavgchk;
+  export -f _partitioncheck;
+  export -f _checkservices;
+
   echo;
 
-  _longrunqueries;
-  _maxphpprocs;
-  _maxclients;
-  _memcheck;
-  _loadavgchk;
-  _partitioncheck;
+  parallel -- \
+  _longrunqueries \
+  _maxphpprocs \
+  _maxclients \
+  _memcheck \
+  _loadavgchk \
+  _partitioncheck \
+  _checkservices;
 
   echo;
 
