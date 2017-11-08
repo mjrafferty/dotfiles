@@ -56,6 +56,9 @@ _cmdline() {
       "--disk"|"-d")
         args="${args}-d "
         ;;
+      "--services"|"-s")
+        args="${args}-s "
+        ;;
       *) [[ "${x:0:1}" == "-" ]] || delim="\"";
         args="${args}${delim}${x}${delim} "
         ;;
@@ -180,27 +183,50 @@ _partitioncheck () {
 
 _checkservices () {
 
-  local TESTINGTHIS=$(ps -C redis-server,memcached,php-fpm,mysqld,httpd -o user,cmd);
+  local TESTINGTHIS;
 
-  configured_phps=$(find /etc/rc.d/rc3.d/ | grep -Po '...\Kphp.*fpm');
-  running_phps=$(echo $TESTINGTHIS | awk '{ /php-fpm.*master/ gsub(/\(|\)/,"",$5); print $5}' | sort);
+  TESTINGTHIS=$(ps -C redis-server,memcached,php-fpm,mysqld,httpd -o user,cmd);
 
-  configured_httpd=$(find /etc/rc.d/rc3.d/ | grep -Po '...\Khttpd');
-  running_httpd=$(echo $TESTINGTHIS | grep "^root.*httpd");
+  configured_phps=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kphp.*fpm'));
+  running_phps=($(echo "$TESTINGTHIS" | awk '{ /php-fpm.*master/ gsub(/\(|\)/,"",$5); print $5}' | sort));
 
-  configured_memcached=$(ls /etc/sysconfig/memcached.*);
-  running_memcached=$(echo $TESTINGTHIS | grep memcached);
+  if [[ "${#configured_phps[@]}" != "${#running_phps[@]}" ]]; then
+    echo "oh no!";
+  fi
 
-  configured_redis=$(ls /etc/redis-multi/redis-multi_*);
-  running_redis=$(echo $TESTINGTHIS | grep redis-server);
+  configured_httpd=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Khttpd'));
+  running_httpd=($(echo "$TESTINGTHIS" | grep "^root.*httpd"));
 
-  configured_mysqld=$(find /etc/rc.d/rc3.d/ | grep -Po '...\Kmysqld');
-  running_mysqld=$(echo $TESTINGTHIS | grep mysqld);
+  if [[ "${#configured_httpd[@]}" != "${#running_httpd[@]}" ]]; then
+    echo "oh no!";
+  fi
+
+  configured_memcached=($(ls /etc/sysconfig/memcached.*));
+  running_memcached=($(echo "$TESTINGTHIS" | grep memcached));
+
+  if [[ "${#configured_memcached[@]}" != "${#running_memcached[@]}" ]]; then
+    echo "oh no!";
+  fi
+
+  configured_redis=($(ls /etc/redis-multi/redis-multi_*));
+  running_redis=($(echo "$TESTINGTHIS" | grep redis-server));
+
+  if [[ "${#configured_redis[@]}" != "${#running_redis[@]}" ]]; then
+    echo "oh no!";
+  fi
+
+  configured_mysqld=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kmysqld'));
+  running_mysqld=($(echo "$TESTINGTHIS" | grep mysqld));
+
+  if [[ "${#configured_mysqld[@]}" != "${#running_mysqld[@]}" ]]; then
+    echo "oh no!";
+  fi
+
 }
 
 main () {
 
-  while getopts "hqpamld" OPTION "$(_cmdline)"; do
+  while getopts "hqpamlds" OPTION "$(_cmdline)"; do
 
     case $OPTION in
       h)
@@ -231,6 +257,10 @@ main () {
         _partitioncheck;
         exit 0;
         ;;
+      d)
+        _checkservices;
+        exit 0;
+        ;;
     esac
 
   done
@@ -246,13 +276,13 @@ main () {
   echo;
 
   parallel -- \
-  _longrunqueries \
-  _maxphpprocs \
-  _maxclients \
-  _memcheck \
-  _loadavgchk \
-  _partitioncheck \
-  _checkservices;
+    _longrunqueries \
+    _maxphpprocs \
+    _maxclients \
+    _memcheck \
+    _loadavgchk \
+    _partitioncheck \
+    _checkservices;
 
   echo;
 

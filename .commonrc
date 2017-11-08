@@ -54,6 +54,8 @@ alias grepphp='grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png|pub
 ##### Functions #####
 [ -r ~/.functions.sh ] && source ~/.functions.sh
 
+
+
 HISTFILE="$HOME/.zsh_history"
 
 zstyle ':completion:*' verbose yes
