@@ -205,8 +205,11 @@ _checkservices () {
   running_memcached=($(echo "$TESTINGTHIS" | grep -Po "memcached\..*\.pid"));
 
   if [[ "${#configured_memcached[@]}" != "${#running_memcached[@]}" ]]; then
+
+    memcached_instances="$(echo "$TESTINGTHIS" | grep -Po '\-s /var/tmp/memcached\.\K\S*(?=.sock)')"
+
     for x in ${configured_memcached[*]}; do
-			if ! lsof -U -ac redis | grep -q "$x"; then
+			if ! echo "$memcached_instances" | grep -q "$x"; then
 				echo "Memcached instance $x is DOWN";
 			fi
 		done
@@ -216,11 +219,15 @@ _checkservices () {
   running_redis=($(echo "$TESTINGTHIS" | grep -Po "^\S*(?=.*redis-server)" ));
 
   if [[ "${#configured_redis[@]}" != "${#running_redis[@]}" ]]; then
+
     redis_instances=$(lsof -U -ap"$(echo "$TESTINGTHIS" | awk 'BEGIN{ORS=",";} /redis-server/ {print $2}')" -Fn)
+
 		for x in ${configured_redis[*]}; do
+
 			if ! echo "$redis_instances" | grep -q "$x"; then
 				echo "Redis instance $x is DOWN";
-			fi
+      fi
+
 		done
   fi
 
