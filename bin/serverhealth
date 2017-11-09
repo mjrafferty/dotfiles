@@ -191,7 +191,17 @@ _checkservices () {
   running_phps=($(echo "$TESTINGTHIS" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$6); print $6}'));
 
   if [[ "${#configured_phps[@]}" != "${#running_phps[@]}" ]]; then
-    echo "php dead";
+
+    php_instances=$(echo "$TESTINGTHIS" | grep -Po "php-fpm: master process \(\K.*" | sed -rn -e 's/.*(php[0-9]{2}).*(php-fpm).*/\1-\2/p' -e 's/^\/etc\/(php-fpm).*/\1/p')
+
+    for x in ${configured_phps[*]}; do
+
+      if ! echo "$php_instances" | grep -qx "$x"; then
+        echo "$x is DOWN";
+      fi
+
+    done
+
   fi
 
   configured_httpd=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Khttpd'));
@@ -209,10 +219,10 @@ _checkservices () {
     memcached_instances="$(echo "$TESTINGTHIS" | grep -Po '\-s /var/tmp/memcached\.\K\S*(?=.sock)')"
 
     for x in ${configured_memcached[*]}; do
-			if ! echo "$memcached_instances" | grep -q "$x"; then
-				echo "Memcached instance $x is DOWN";
-			fi
-		done
+      if ! echo "$memcached_instances" | grep -q "$x"; then
+        echo "Memcached instance $x is DOWN";
+      fi
+    done
   fi
 
   configured_redis=($(find /etc/redis-multi/ -mindepth 1 | grep -Po "multi_[a-z]*\.\K.*(?=.conf)"));
@@ -222,13 +232,13 @@ _checkservices () {
 
     redis_instances=$(lsof -U -ap"$(echo "$TESTINGTHIS" | awk 'BEGIN{ORS=",";} /redis-server/ {print $2}')" -Fn)
 
-		for x in ${configured_redis[*]}; do
+    for x in ${configured_redis[*]}; do
 
-			if ! echo "$redis_instances" | grep -q "$x"; then
-				echo "Redis instance $x is DOWN";
+      if ! echo "$redis_instances" | grep -q "$x"; then
+        echo "Redis instance $x is DOWN";
       fi
 
-		done
+    done
   fi
 
   configured_mysqld=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kmysqld'));
