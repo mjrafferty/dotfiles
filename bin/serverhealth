@@ -201,7 +201,7 @@ _checkservices () {
     echo "Apache is DOWN";
   fi
 
-  configured_memcached=($(find /etc/sysconfig/ -mindepth 1 -name "memcached.*"));
+  configured_memcached=($(find /etc/sysconfig -mindepth 1 | grep -Po "/etc/sysconfig/memcached\.\K\S*"));
   running_memcached=($(echo "$TESTINGTHIS" | grep -Po "memcached\..*\.pid"));
 
   if [[ "${#configured_memcached[@]}" != "${#running_memcached[@]}" ]]; then
