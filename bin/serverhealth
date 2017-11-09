@@ -218,7 +218,7 @@ _checkservices () {
   if [[ "${#configured_redis[@]}" != "${#running_redis[@]}" ]]; then
     redis_instances=$(lsof -U -ap"$(echo "$TESTINGTHIS" | awk 'BEGIN{ORS=",";} /redis-server/ {print $2}')" -Fn)
 		for x in ${configured_redis[*]}; do
-			if echo "$redis_instances" | grep -q "$x"; then
+			if ! echo "$redis_instances" | grep -q "$x"; then
 				echo "Redis instance $x is DOWN";
 			fi
 		done
