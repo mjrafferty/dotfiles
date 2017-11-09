@@ -185,10 +185,10 @@ _checkservices () {
 
   local TESTINGTHIS;
 
-  TESTINGTHIS=$(ps -C redis-server,memcached,php-fpm,mysqld,httpd -o user,cmd);
+  TESTINGTHIS=$(ps -C redis-server,memcached,php-fpm,mysqld,httpd -o user,pid,cmd);
 
   configured_phps=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kphp.*fpm'));
-  running_phps=($(echo "$TESTINGTHIS" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$5); print $5}'));
+  running_phps=($(echo "$TESTINGTHIS" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$6); print $6}'));
 
   if [[ "${#configured_phps[@]}" != "${#running_phps[@]}" ]]; then
     echo "php dead";
@@ -198,23 +198,28 @@ _checkservices () {
   running_httpd=($(echo "$TESTINGTHIS" | grep -Po "^root.*\Khttpd"));
 
   if [[ "${#configured_httpd[@]}" != "${#running_httpd[@]}" ]]; then
-    echo "httpd dead";
+    echo "Apache is DOWN";
   fi
 
   configured_memcached=($(find /etc/sysconfig/ -mindepth 1 -name "memcached.*"));
   running_memcached=($(echo "$TESTINGTHIS" | grep -Po "memcached\..*\.pid"));
 
   if [[ "${#configured_memcached[@]}" != "${#running_memcached[@]}" ]]; then
-    echo "memcached dead";
+    for x in ${configured_memcached[*]}; do
+			if ! lsof -U -ac redis | grep -q "$x"; then
+				echo "Memcached instance $x is DOWN";
+			fi
+		done
   fi
 
   configured_redis=($(find /etc/redis-multi/ -mindepth 1 | grep -Po "multi_[a-z]*\.\K.*(?=.conf)"));
   running_redis=($(echo "$TESTINGTHIS" | grep -Po "^\S*(?=.*redis-server)" ));
 
   if [[ "${#configured_redis[@]}" != "${#running_redis[@]}" ]]; then
+    redis_instances=$(lsof -U -ap"$(echo "$TESTINGTHIS" | awk 'BEGIN{ORS=",";} /redis-server/ {print $2}')" -Fn)
 		for x in ${configured_redis[*]}; do
-			if ! lsof -U -ac redis | grep -q "$x"; then
-				echo "Redis instance $x is down";
+			if echo "$redis_instances" | grep -q "$x"; then
+				echo "Redis instance $x is DOWN";
 			fi
 		done
   fi
@@ -223,7 +228,7 @@ _checkservices () {
   running_mysqld=($(echo "$TESTINGTHIS" | grep -Po "\S*mysqld "));
 
   if [[ "${#configured_mysqld[@]}" != "${#running_mysqld[@]}" ]]; then
-    echo "mysqld dead";
+    echo "MySQLd service is DOWN";
   fi
 
 }
