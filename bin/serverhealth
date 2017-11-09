@@ -208,11 +208,15 @@ _checkservices () {
     echo "memcached dead";
   fi
 
-  configured_redis=($(find /etc/redis-multi/ -mindepth 1 -name "redis-multi*"));
+  configured_redis=($(find /etc/redis-multi/ -mindepth 1 | grep -Po "multi_[a-z]*\.\K.*(?=.conf)"));
   running_redis=($(echo "$TESTINGTHIS" | grep -Po "^\S*(?=.*redis-server)" ));
 
   if [[ "${#configured_redis[@]}" != "${#running_redis[@]}" ]]; then
-    echo "redis dead";
+		for x in ${configured_redis[*]}; do
+			if ! lsof -U -ac redis | grep -q "$x"; then
+				echo "Redis instance $x is down";
+			fi
+		done
   fi
 
   configured_mysqld=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kmysqld'));
