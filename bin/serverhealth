@@ -257,7 +257,7 @@ main () {
         _partitioncheck;
         exit 0;
         ;;
-      d)
+      s)
         _checkservices;
         exit 0;
         ;;
