@@ -20,6 +20,7 @@ main () {
   find . \
     -mindepth 1 \
     -maxdepth 4 \
+    -path ./var -prune -o \
     -type d \
     -group "$(getusr)" \
     -exec parallel du -sh -- {} + | sort -hr | head -20
