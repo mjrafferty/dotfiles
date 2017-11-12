@@ -45,6 +45,8 @@ _mailboxes () {
 
 main () {
 
+  local files directories mailboxes;
+
   export -f _files;
   export -f _directories;
   export -f _mailboxes;
@@ -52,11 +54,11 @@ main () {
   cd /home/"$(getusr)" || return;
 
   parallel -- \
-    _files \
-    _directories \
-    _mailboxes;
+    files="$(_files)" \
+    directories="$(_directories)" \
+    mailboxes="$(_mailboxes)";
 
-  echo;
+	printf "%s\n\n%s\n\n%s\n" "$files" "$directories" "$mailboxes";
 
 }
 
