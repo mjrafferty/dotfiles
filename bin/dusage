@@ -10,6 +10,7 @@ _files () {
 
   find . \
     -mindepth 1 \
+    -path ./var/mail -prune -o \
     -size +100M \
     -group "$(getusr)" \
     -exec parallel du -sh -- {} + | sort -hr | head -20
@@ -53,12 +54,11 @@ main () {
 
   cd /home/"$(getusr)" || return;
 
-  parallel -- \
-    files="$(_files)" \
-    directories="$(_directories)" \
+    files="$(_files)";
+    directories="$(_directories)";
     mailboxes="$(_mailboxes)";
 
-	printf "%s\n\n%s\n\n%s\n" "$files" "$directories" "$mailboxes";
+	printf "%s\n%s\n%s\n\n" "$files" "$directories" "$mailboxes";
 
 }
 
