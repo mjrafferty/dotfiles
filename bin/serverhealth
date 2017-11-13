@@ -300,6 +300,7 @@ main () {
   export -f _loadavgchk;
   export -f _partitioncheck;
   export -f _checkservices;
+  export -f _m;
 
   echo;
 
