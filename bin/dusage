@@ -3,27 +3,35 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-main () {
 
-  cd /home/"$(getusr)" || return;
+_files () {
 
   printf "\n----- Large Files ------\n";
 
   find . \
     -mindepth 1 \
+    -path ./var/mail -prune -o \
     -size +100M \
     -group "$(getusr)" \
     -exec parallel du -sh -- {} + | sort -hr | head -20
+
+}
+
+_directories () {
 
   printf "\n----- Large Directories ------\n";
 
   find . \
     -mindepth 1 \
     -maxdepth 4 \
-    -path ./var -prune -o \
+    -path ./var/mail -prune -o \
     -type d \
     -group "$(getusr)" \
     -exec parallel du -sh -- {} + | sort -hr | head -20
+
+}
+
+_mailboxes () {
 
   printf "\n----- Large Mailboxes ------\n";
 
@@ -34,8 +42,23 @@ main () {
     -type d \
     -group "$(getusr)"\
     -exec parallel du -sh -- {} + | sort -hr | head -10
+}
 
-  echo;
+main () {
+
+  local files directories mailboxes;
+
+  export -f _files;
+  export -f _directories;
+  export -f _mailboxes;
+
+  cd /home/"$(getusr)" || return;
+
+    files="$(_files)";
+    directories="$(_directories)";
+    mailboxes="$(_mailboxes)";
+
+	printf "%s\n%s\n%s\n\n" "$files" "$directories" "$mailboxes";
 
 }
 
