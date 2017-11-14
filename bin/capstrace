@@ -256,6 +256,11 @@ main () {
     fi
   fi
 
+  if [[ -L "$file" ]]; then
+    echo "$file is a symbolic link";
+    exit;
+  fi
+
   if [[ -z "$address" ]]; then
     address="$DEFAULT_IP";
   fi
