@@ -118,9 +118,7 @@ ipsbymb () {
 # Show top user agents by bandwidth usage
 uabymb () {
   zless -f "$@" \
-    | cut -d\  -f10- \
-    | grep -v "^-" \
-    | sed 's_^\([0-9]*\).*" "\(.*\)"$_\1\t\2_' \
+    | sed -nr 's|.* [0-9]{3} ([0-9]*) \"[^\"]*\" \"([^\"]*)\".*|\1\t\2|p' \
     | awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
     | sort -hr \
     | head -n 20;
@@ -129,8 +127,7 @@ uabymb () {
 # Show top referers by bandwidth usage
 refbymb () {
   zless -f "$@" \
-    | cut -d\  -f10,11 \
-    | grep -v "^-" \
+    | sed -nr 's|.* [0-9]{3} ([0-9]*) \"([^\"]*)\" \"[^\"]*\".*|\1\t\2|p' \
     | awk '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
     | sort -hr \
     | head -n 20;
@@ -139,9 +136,7 @@ refbymb () {
 # Show top uris by bandwidth usage
 uribymb () {
   zless -f "$@" \
-    | cut -d\  -f7,10 \
-    | grep -v "\-$" \
-    | sed 's/?.* /? /' \
+		| sed -nr 's|.*\] \"\S* ([^?, ]*) [^\"]*\" [0-9]{3} ([0-9]*) .*|\1\t\2|p' \
     | awk '{tx[$1]+=$2} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
     | sort -hr \
     | head -n 20;
@@ -167,10 +162,10 @@ topips () {
 # Show top user agents by number of hits
 topuseragents () {
   zless -f "$@" \
-    | cut -d\  -f12- \
+    | grep -Po '" "\K[^"]*' \
     | sort \
     | uniq -c \
-    | sort -rn \
+    | sort -hr \
     | head -20;
 }
 
