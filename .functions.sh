@@ -109,7 +109,7 @@ cdlogs () {
 # Show top IP addresses by bandwidth usage
 ipsbymb () {
   zless -f "$@" \
-    | awk '{tx[$1]+=$10} END {for (x in tx) {print x, "\t", tx[x]/1048576, "M"}}' \
+    | awk '{tx[$1]+=$10} END {for (x in tx) {printf "%10.2fM\t%s\n",tx[x]/1048576,x}}' \
     | sort -k2nr \
     | head -n20 \
     | column -t;
@@ -119,7 +119,7 @@ ipsbymb () {
 uabymb () {
   zless -f "$@" \
     | sed -nr 's|.* [0-9]{3} ([0-9]*) \"[^\"]*\" \"([^\"]*)\".*|\1\t\2|p' \
-    | awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
+    | awk -F "\t" '{tx[$2]+=$1} END {for (x in tx) {printf "%10.2fM\t%s\n",tx[x]/1048576,x}}' \
     | sort -hr \
     | head -n 20;
 }
@@ -128,7 +128,7 @@ uabymb () {
 refbymb () {
   zless -f "$@" \
     | sed -nr 's|.* [0-9]{3} ([0-9]*) \"([^\"]*)\" \"[^\"]*\".*|\1\t\2|p' \
-    | awk '{tx[$2]+=$1} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
+    | awk '{tx[$2]+=$1} END {for (x in tx) {printf "%10.2fM\t%s\n",tx[x]/1048576,x}}' \
     | sort -hr \
     | head -n 20;
 }
@@ -137,7 +137,7 @@ refbymb () {
 uribymb () {
   zless -f "$@" \
 		| sed -nr 's|.*\] \"\S* ([^?, ]*) [^\"]*\" [0-9]{3} ([0-9]*) .*|\1\t\2|p' \
-    | awk '{tx[$1]+=$2} END {for (x in tx) {print tx[x]/1048576, "M","\t",x}}' \
+    | awk '{tx[$1]+=$2} END {for (x in tx) {printf "%10.2fM\t%s\n",tx[x]/1048576,x}}' \
     | sort -hr \
     | head -n 20;
 }
