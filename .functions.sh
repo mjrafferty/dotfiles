@@ -110,7 +110,7 @@ cdlogs () {
 ipsbymb () {
   zless -f "$@" \
     | awk '{tx[$1]+=$10} END {for (x in tx) {printf "%10.2fM\t%s\n",tx[x]/1048576,x}}' \
-    | sort -k2nr \
+    | sort -k1nr \
     | head -n20 \
     | column -t;
 }
