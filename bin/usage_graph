@@ -1,0 +1,31 @@
+#! /bin/awk
+
+BEGIN
+{
+  inc=0;
+  max=0
+}
+
+{
+  time[inc]=$1;
+  hits[inc]=$2;
+
+  if ($2>max)
+  {
+    max=$2
+  }
+  inc++
+}
+
+END
+{
+  for (x=0;x<=inc;x++)
+  {
+    printf "%s\t",time[x];
+    for (i=0; i<(hits[x] * 100 / max);i++)
+    {
+      printf "*"
+    }
+    printf "\n"
+  }
+}
