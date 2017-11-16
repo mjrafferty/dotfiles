@@ -1,6 +1,6 @@
-#! /bin/awk
+#! /bin/awk -f
 
-BEGIN{
+BEGIN {
 
   inc=0;
   max=0;
@@ -17,7 +17,7 @@ BEGIN{
   inc++
 }
 
-END{
+END {
 
   for (x=0;x<=inc;x++)
   {
