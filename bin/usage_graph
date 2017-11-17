@@ -1,11 +1,5 @@
 #! /bin/awk -f
 
-RED="\033[1;31m"
-GREEN="\033[1;32m"
-YELLOW="\033[1;33m"
-BLUE="\033[1;34m"
-RESET="\033[0m "
-
 BEGIN {
 
   inc=0;
@@ -25,12 +19,19 @@ BEGIN {
 
 END {
 
+  RED="\033[1;31m"
+  GREEN="\033[1;32m"
+  YELLOW="\033[1;33m"
+  BLUE="\033[1;34m"
+  RESET="\033[0m "
+
+  printf "\n";
   for (x=0;x<=inc;x++)
   {
-    printf "%s\t%s\t",BLUE time[x],YELLOW hits[x];
+    printf "%s\t%s\t",$(BLUE)time[x],$(YELLOW)hits[x];
     for (i=0; i<(hits[x] * 100 / max);i++)
     {
-      printf "%s",GREEN*;
+      printf "%s",$(GREEN)"*";
     }
     printf "\n"
   }
