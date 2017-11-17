@@ -12,30 +12,25 @@ BEGIN {
 {
   start = match($0,REGEX) + 5
 
-  switch (interval) {
 
-    case 1:
+  if (interval == 1){
     stop = 5
     timestamp = substr($0,start,stop)
-    break
-
-    case 5:
-    stop = 5
-    temp = substr($0,start,stop)
-    break
-
-    case 10:
-    stop = 4
-    timestamp = substr($0,start,stop)"0"
-    break
-
-    default:
-    stop = 3
-    timestamp = substr($0,start,stop)"00"
-    break
   }
+  else if(interval == 5){
+    stop = 5
+  temp = substr($0,start,stop)
+}
+else if(interval == 10) {
+  stop = 4
+timestamp = substr($0,start,stop)"0"
+  }
+  else {
+    stop = 3
+  timestamp = substr($0,start,stop)"00"
+}
 
-  hits[timestamp]++
+hits[timestamp]++
 
 }
 
