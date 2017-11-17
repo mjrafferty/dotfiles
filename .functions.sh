@@ -209,7 +209,8 @@ hitsperhour () {
     | sed 's_.*../.*/....:\(..\).*_\1_' \
     | sort -h \
     | uniq -c \
-    | sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_'
+    | sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_' \
+    | usage_graph
 }
 
 # Show number of hits per five minute
@@ -219,7 +220,8 @@ hitsperfive () {
     | awk -F: '{printf "%02d:%02d\n",$1,int($2 / 5) * 5 }' \
     | sort \
     | uniq -c \
-    | awk '{print $2"\t"$1}';
+    | awk '{print $2"\t"$1}' \
+    | usage_graph
 }
 
 # Show number of hits received on every site in the last hour
