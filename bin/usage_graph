@@ -28,10 +28,10 @@ END {
   printf "\n";
   for (x=0;x<=inc;x++)
   {
-    printf "%s\t%s\t",$(BLUE)time[x],$(YELLOW)hits[x];
+    printf "%s\t%s\t",BLUE time[x],YELLOW hits[x];
     for (i=0; i<(hits[x] * 100 / max);i++)
     {
-      printf "%s",$(GREEN)"*";
+      printf "%s",GREEN"*";
     }
     printf "\n"
   }
