@@ -209,10 +209,9 @@ _monitor () {
 
   # Handle user exiting capstrace
   trap 'return' INT QUIT TERM;
-  if read -r; then
-     { kill "$child" && wait "$child"; } 2>/dev/null
+  read -r;
+  { kill "$child" && wait "$child"; } 2>/dev/null
     return;
-  fi
 }
 
 main () {
