@@ -1,0 +1,89 @@
+# Snippets for code blocks used oftenly in Apache files.
+# <Alias>
+snippet ali
+	Alias ${1:some text} ${0:more text}
+endsnippet
+# <AliasMatch>
+snippet alima
+	AliasMatch ${1:regex} ${0:more text}
+endsnippet
+# <Redirect>
+snippet red
+	Redirect ${1:type} ${2:old location} ${0:new location}
+endsnippet
+# <RedirectMatch>
+snippet redma
+	RedirectMatch ${1:type} ${2:old location} ${0:new location}
+endsnippet
+# <FilterbyType>
+snippet filterbytype
+	AddOutputFilterByType ${1:filter} ${0:mime type}
+endsnippet
+# <DirectoryMatch>
+snippet dirma
+	<DirectoryMatch ${1:regex}>
+		${0:${VISUAL}}
+	</DirectoryMatch>
+endsnippet
+# <Files>
+snippet files
+	<Files "${1:files}">
+		${0:${VISUAL}}
+	</Files>
+endsnippet
+# <Location>
+snippet loc
+	<Location /status>
+		${0:${VISUAL}}
+	</Location>
+endsnippet
+# <LocationMatch>
+snippet locma
+	<LocationMatch /status>
+		SetHandler server-status
+	</LocationMatch>
+endsnippet
+# <Header>
+snippet hea
+	Header
+endsnippet
+# <RequestHeader>
+snippet reqhe
+	RequestHeader
+endsnippet
+# <RewriteBase>
+snippet rebas
+	RewriteBase
+endsnippet
+# <RewriteCond>
+snippet recon
+	RewriteCond
+endsnippet
+# <RewriteEngine>
+snippet reeng
+	RewriteEngine
+endsnippet
+# <RewriteRule>
+snippet rerul
+	RewriteRule
+endsnippet
+# <BrowserMatchNoCase>
+snippet broma
+	BrowserMatchNoCase Robot is_a_robot
+endsnippet
+# <SetEnfIf>
+snippet seten
+	SetEnvIf Request_URI "\.gif$" object_is_image=gif
+endsnippet
+# <ExpiresActive>
+snippet expac
+	ExpiresActive
+endsnippet
+# <ExpiresDefault>
+snippet expde
+	ExpiresDefault
+endsnippet
+# <ExpiresByType>
+snippet expby
+	ExpiresByType
+endsnippet
