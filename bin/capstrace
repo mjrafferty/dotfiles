@@ -205,13 +205,12 @@ _monitor () {
 
   done <"$PIPE_NAME"; ) &
 
-  child="$!"
-
   # Handle user exiting capstrace
   trap 'return' INT QUIT TERM;
+
   read -r;
-  { kill "$child" && wait "$child"; } 2>/dev/null
-    return;
+
+  return;
 }
 
 main () {
@@ -288,6 +287,7 @@ main () {
   dd if="$PIPE_NAME" iflag=nonblock of=/dev/null &> /dev/null
 
   rm -f "$PIPE_NAME";
+  pkill -P $$ 2> /dev/null;
 
 }
 
