@@ -145,3 +145,6 @@
 [submodule ".vim/bundle/supertab"]
 	path = .vim/bundle/supertab
 	url = https://github.com/ervandew/supertab
+[submodule ".vim/bundle/gruvbox"]
+	path = .vim/bundle/gruvbox
+	url = https://github.com/morhetz/gruvbox
