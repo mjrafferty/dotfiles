@@ -54,21 +54,7 @@ alias grepphp='grep -hEiv ".otf|.txt|.jpeg|.ico|.svg|.jpg|.css|.js|.gif|.png|pub
 ##### Functions #####
 [ -r ~/.functions.sh ] && source ~/.functions.sh
 
-
-
 HISTFILE="$HOME/.zsh_history"
-
-zstyle ':completion:*' verbose yes
-zstyle ':completion:*:descriptions' format '%B%d%b'
-zstyle ':completion:*:messages' format '%d'
-zstyle ':completion:*:warnings' format 'No matches for: %d'
-zstyle ':completion:*' group-name ”
-zstyle ':completion:*' completer _expand _complete _ignored _match _correct _approximate _prefix
-zstyle ':completion:*' max-errors 2 numeric
-zstyle :compinstall filename '~/.zshrc'
-
-autoload -Uz compinit
-compinit -u
 
 ZSH_HIGHLIGHT_STYLES[line]='bold'
 
