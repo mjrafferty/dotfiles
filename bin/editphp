@@ -1,0 +1,16 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+main () {
+
+	local conf_file;
+
+	conf_file="$(find {/opt/nexcess/php*/root,}/etc/php-fpm.d/ -name "$(pwd | grep -Po "home/\K[^\/]*").conf" | head -n1)";
+
+	vim "$conf_file";
+
+}
+
+main;
