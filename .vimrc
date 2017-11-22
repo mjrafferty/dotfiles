@@ -117,10 +117,6 @@ set background=dark
 :highlight PmenuSbar ctermbg=cyan ctermfg=green
 :highlight PmenuThumb ctermbg=white ctermfg=red
 
-" This is what sets vim to use 24-bit colors. It will also work for any version of neovim
-" newer than 0.1.4.
-set termguicolors
-
 "set dictionary+=/usr/share/dict/words
 
 set tags+=~/.vim/systags
