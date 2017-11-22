@@ -21,7 +21,7 @@ export PAGER=/usr/bin/less
 export EDITOR=/usr/bin/vim
 export VISUAL=/usr/bin/vim
 
-if [[ $TMUX  ]]; then
+if [[ -n $TMUX ]]; then
   TERM="screen-256color"
 else
   TERM="xterm-256color"
