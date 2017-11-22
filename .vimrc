@@ -35,7 +35,6 @@ call vundle#end()            " required
 " Misc settings
 set backspace=indent,eol,start
 set hidden
-set autowrite
 set history=50    " keep 50 lines of command line history
 set ruler   " show the cursor position all the time
 set showcmd   " display incomplete commands
@@ -117,6 +116,10 @@ set background=dark
 :highlight PmenuSel ctermbg=cyan ctermfg=red
 :highlight PmenuSbar ctermbg=cyan ctermfg=green
 :highlight PmenuThumb ctermbg=white ctermfg=red
+
+" This is what sets vim to use 24-bit colors. It will also work for any version of neovim
+" newer than 0.1.4.
+set termguicolors
 
 "set dictionary+=/usr/share/dict/words
 
