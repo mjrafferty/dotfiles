@@ -146,8 +146,7 @@ au FileType c,cpp,java set mps+==:;
 
 " NERDTree plugin settings
 " Closes Vim if NerdTree plugin is the only remaining buffer open
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
-
+autocmd bufenter * if winnr("$") == 1 && (exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 
 " ale plugin settings
 let g:ale_open_list = 1
@@ -223,4 +222,3 @@ endfunction
 
 au InsertEnter * exec "inoremap <silent> " . g:UltiSnipsExpandTrigger     . " <C-R>=g:UltiSnips_Complete()<cr>"
 au InsertEnter * exec "inoremap <silent> " . g:UltiSnipsJumpBackwardTrigger . " <C-R>=g:UltiSnips_Reverse()<cr>"
-
