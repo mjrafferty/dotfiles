@@ -28,7 +28,6 @@ Plugin 'airblade/vim-gitgutter'
 Plugin 'tpope/vim-fugitive'
 Plugin 'itchyny/lightline.vim'
 Plugin 'junegunn/rainbow_parentheses.vim'
-Plugin 'ervandew/supertab'
 Plugin 'morhetz/gruvbox'
 call vundle#end()            " required
 
@@ -185,6 +184,8 @@ let g:UltiSnipsSnippetDirectories=["UltiSnips", "mysnippets"]
 let delimitMate_expand_space = 1
 let delimitMate_expand_cr= 1
 
+
+" Everything below this line is for tab key behavior
 function! g:UltiSnips_Complete()
   call UltiSnips#ExpandSnippet()
   if g:ulti_expand_res == 0
