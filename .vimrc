@@ -43,12 +43,6 @@ set cursorline    " underlines current line
 set scrolloff=3   " keeps cursor away from top and bottom edges
 set wildmenu
 set wildmode=full
-set undofile
-set undodir=$HOME/.vimfiles/undo// " where to save undo histories
-set undolevels=1000 " How many undos
-set undoreload=10000 " number of lines to save for undo "
-set backupdir=$HOME/.vimfiles/backup//
-set directory=$HOME/.vimfiles/swp//
 set gdefault
 set showmatch   " Show matching brackets.
 set ignorecase    " Do case insensitive matching
@@ -56,6 +50,16 @@ set smartcase   " Do smart case matching
 set nowrap    " Do not wrap code
 set autowrite   " Automatically save before commands like :next and :make
 set colorcolumn=120
+
+" Undo settings
+set undofile
+set undolevels=1000 " How many undos
+set undoreload=10000 " number of lines to save for undo "
+
+" Vim file locations
+set undodir=$HOME/.vimfiles/undo// " where to save undo histories
+set backupdir=$HOME/.vimfiles/backup//
+set directory=$HOME/.vimfiles/swp//
 
 " Mouse support
 if has('mouse')
@@ -153,6 +157,8 @@ let g:ale_sh_shellcheck_options = '-s bash'
 
 " easytags plugin settings
 let g:easytags_suppress_ctags_warning = 1
+let g:easytags_async=1
+let g:easytags_python_enabled=1
 
 
 " YouCompleteMe plugin settings
@@ -183,6 +189,9 @@ let g:UltiSnipsSnippetDirectories=["UltiSnips", "mysnippets"]
 " delimitMate plugin settings
 let delimitMate_expand_space = 1
 let delimitMate_expand_cr= 1
+
+" Lightline plugin settings
+set laststatus=2
 
 
 " Everything below this line is for tab key behavior
