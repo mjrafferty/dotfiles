@@ -21,7 +21,9 @@ main () {
     -e 's_app/code/local/\([^/]*/[^/]*\)/.*_\1_p' \
     -e 's_app/code/community/\([^/]*/[^/]*\)/.*_\1_p' \
     -e 's_wp-content/plugins/\([^/]*\)/.*_\1_p' \
-    | sort -u
+    | sort \
+    | uniq -c \
+    | sort -hr
 
 
 }
