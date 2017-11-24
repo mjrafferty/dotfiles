@@ -180,7 +180,7 @@ _strace () {
 # Monitor for incoming requests
 _monitor () {
 
-  local pid persist parent child
+  local pid persist parent
 
   persist="$1";
 

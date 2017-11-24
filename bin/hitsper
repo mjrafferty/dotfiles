@@ -1,0 +1,58 @@
+#! /bin/awk -f
+
+BEGIN {
+
+  YEAR=strftime("%Y");
+  REGEX=YEAR":..:.."
+
+  max=0;
+
+  if(length(interval)==0){
+    interval=60
+  }
+
+}
+
+{
+  start = match($0,REGEX) + 5
+  stop = 5
+
+  split(substr($0,start,stop),temp,":");
+
+  timestamp=sprintf("%02s:%02s",temp[1],(int(temp[2] / interval) * interval))
+
+  hits[timestamp]++
+}
+
+END {
+
+  WHITE="\033[1;37m"
+  BLUE="\033[1;34m"
+  GREEN="\033[1;32m"
+
+  # Find highest number of hits
+  for(x in hits){
+    if(hits[x]>max){
+      max=hits[x]
+    }
+  }
+
+  # Sort the array because awk
+  n=asorti(hits,hits2)
+
+  printf "\n";
+
+  # Print the graph
+  for (x=1;x<=n;x++){
+    printf "%s\t%s\t",WHITE hits2[x],BLUE hits[hits2[x]];
+
+    # Print the dots
+    for (i=0; i<(hits[hits2[x]] * 100 / max);i++)
+    {
+      printf "%s",GREEN"*";
+    }
+
+    printf "\n"
+  }
+  printf "\n"
+}

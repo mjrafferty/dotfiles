@@ -226,7 +226,6 @@ _checkservices () {
     done
   fi
 
-  #configured_redis=($(find /etc/redis-multi/ -mindepth 1 -exec grep -H "^port" {} \; | sed 's|/etc/redis-multi/redis-multi_\(.*\).conf:port \([0-9]*\)|\1:\2|'))
   configured_redis=($(find /etc/redis-multi/ -mindepth 1 | grep -Po "multi_[a-z]*\.\K.*(?=.conf)"));
   running_redis=($(echo "$process_data" | grep -Po "^\S*(?=.*redis-server)" ));
 
