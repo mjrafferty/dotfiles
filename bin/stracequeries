@@ -16,9 +16,9 @@ main () {
 		return 0;
 	fi
 
-  file_desc=$(grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))' "${ARGA[0]}");
+  file_desc=($(grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))' "${ARGA[0]}" | tr ':' ' '));
 
-	grep -Pioh '(write\(|sendto\()'"$file_desc"', "[^s,i,u,d,\(]*\K(select .*from|insert .*into|update .*set|delete .*from)[^"]*"' "${ARGA[0]}" \
+	grep -Pioh '(write\(|sendto\()'"${file_desc[1]}"', "[^s,i,u,d,\(]*\K(select .*from|insert .*into|update .*set|delete .*from)[^"]*"' "${ARGA[0]}" \
 		| sed -e 's_"$_;_' -e 's/\\n//g' \
 		| less -S
 
