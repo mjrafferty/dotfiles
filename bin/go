@@ -3,7 +3,7 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-readonly TICKET_CACHE_DIR="$HOME"/.ticket_cache
+readonly TICKET_CACHE_FILE="$HOME"/.ticket_cache
 
 _usage () {
   cat <<- EOF
@@ -162,12 +162,11 @@ _setAction () {
 
 _setEnv () {
 
-   > ~/dotfiles/.environment.sh;
+  > ~/dotfiles/.environment.sh;
 
-   echo "TICKET=${ticket}" >> ~/dotfiles/.environment.sh
+  echo "TICKET=${ticket}" >> ~/dotfiles/.environment.sh
 
-  }
-
+}
 
 main () {
 
@@ -238,6 +237,8 @@ main () {
 
     fi
   fi
+
+  [[ -n "$ticket" ]] && echo "${ticket}\t${domain}\t${destination}" >> "$TICKET_CACHE_FILE";
 
   _login "$destination";
 
