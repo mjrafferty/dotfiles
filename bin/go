@@ -180,15 +180,20 @@ main () {
 
   # Trim any fat off the domain name
   domain=$(echo "${ARGA[0]}" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]");
-  ticket=$(echo "$ARGS" | grep -Po "[a-z,A-z]{4}-[0-9]{4}");
+  ticket=$(echo "$ARGS" | grep -Po "[a-z,A-z]{4}-[0-9]{4}" | tr "[:upper:]" "[:lower:]");
 
   _setAction;
   _setEnv;
 
-  if [[ "$ticket" == "$domain" ]]; then
-    echo "works";
-    exit;
-  fi
+	if [[ "$ticket" == "$domain" ]]; then
+
+		destination=$(grep "$ticket" "$TICKET_CACHE_FILE" | tail -n1 | awk '{print $3}')
+
+		if [[ -n "$destination" ]]; then
+			_login "$destination";
+			exit;
+		fi
+	fi
 
   # Determine query type and take appopriate action
   if [[ "$domain" != *.* ]]; then
@@ -238,7 +243,7 @@ main () {
     fi
   fi
 
-  [[ -n "$ticket" ]] && echo "${ticket}\t${domain}\t${destination}" >> "$TICKET_CACHE_FILE";
+  [[ -n "$ticket" ]] && echo -e "${ticket}\t${domain}\t${destination}" >> "$TICKET_CACHE_FILE";
 
   _login "$destination";
 
