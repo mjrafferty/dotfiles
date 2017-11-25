@@ -75,7 +75,6 @@ _login () {
       --exclude '.zsh_history' \
       --exclude '.ssh' \
       --exclude 'clients' \
-      --exclude '.zcomp*' \
       --exclude '.mytop' \
       --exclude '.git' \
       --exclude 'YouCompleteMe' \
