@@ -49,7 +49,6 @@ set ignorecase                          " Do case insensitive matching
 set smartcase                           " Do smart case matching
 set nowrap                              " Do not wrap code
 set autowrite                           " Automatically save before commands like :next and :make
-set colorcolumn=120                     " Adds line as a hint to prevent long lines
 set hlsearch
 set laststatus=2
 set smartindent
