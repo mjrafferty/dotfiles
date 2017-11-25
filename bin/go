@@ -166,7 +166,7 @@ main () {
   local ip_addr whoisinfo host rdns viewwhois keepgoing domain destination;
 
   # Trim any fat off the domain name
-  domain=$(echo "${ARGA[0]}" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
+  domain=$(echo "${ARGA[0]}" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]");
 
   _setAction;
 
