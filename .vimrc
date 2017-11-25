@@ -3,7 +3,7 @@
 set nocompatible
 
 " set the runtime path to include Vundle and initialize
-filetype off                  " required
+filetype off                            " required
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
@@ -29,35 +29,40 @@ Plugin 'tpope/vim-fugitive'
 Plugin 'itchyny/lightline.vim'
 Plugin 'junegunn/rainbow_parentheses.vim'
 Plugin 'morhetz/gruvbox'
-call vundle#end()            " required
+call vundle#end()                       " required
 
 " Misc settings
-set backspace=indent,eol,start
+set backspace=2                         " Controls backspace behavior
 set hidden
-set history=50    " keep 50 lines of command line history
-set ruler   " show the cursor position all the time
-set showcmd   " display incomplete commands
-set incsearch   " do incremental searching
-set relativenumber  " add line numbers
-set cursorline    " underlines current line
-set scrolloff=3   " keeps cursor away from top and bottom edges
+set history=50                          " keep 50 lines of command line history
+set ruler                               " show the cursor position all the time
+set showcmd                             " display incomplete commands
+set incsearch                           " do incremental searching
+set relativenumber                      " add line numbers
+set cursorline                          " underlines current line
+set scrolloff=3                         " keeps cursor away from top and bottom edges
 set wildmenu
 set wildmode=full
 set gdefault
-set showmatch   " Show matching brackets.
-set ignorecase    " Do case insensitive matching
-set smartcase   " Do smart case matching
-set nowrap    " Do not wrap code
-set autowrite   " Automatically save before commands like :next and :make
-set colorcolumn=120
+set showmatch                           " Show matching brackets.
+set ignorecase                          " Do case insensitive matching
+set smartcase                           " Do smart case matching
+set nowrap                              " Do not wrap code
+set autowrite                           " Automatically save before commands like :next and :make
+set colorcolumn=120                     " Adds line as a hint to prevent long lines
+set hlsearch
+set laststatus=2
+set smartindent
+set smarttab
+set clipboard=autoselect
 
 " Undo settings
 set undofile
-set undolevels=1000 " How many undos
-set undoreload=10000 " number of lines to save for undo "
+set undolevels=1000                     " How many undos
+set undoreload=10000                    " number of lines to save for undo "
 
 " Vim file locations
-set undodir=$HOME/.vimfiles/undo// " where to save undo histories
+set undodir=$HOME/.vimfiles/undo//      " where to save undo histories
 set backupdir=$HOME/.vimfiles/backup//
 set directory=$HOME/.vimfiles/swp//
 
@@ -79,38 +84,17 @@ set foldenable
 " Remove trailing whitespace on save
 autocmd BufWritePre * :%s/\s\+$//e
 
-" Switch syntax highlighting on, when the terminal has colors
-" Also switch on highlighting the last used search pattern.
-if &t_Co > 2 || has("gui_running")
-  syntax on
-  set hlsearch
-endif
+syntax on
+filetype plugin indent on
+set omnifunc=syntaxcomplete#Complete
 
-if has("autocmd")
+" When editing a file, always jump to the last known cursor position.
+autocmd BufReadPost *
+      \ if line("'\"") > 1 && line("'\"") <= line("$") |
+      \   exe "normal! g`\"" |
+      \ endif
 
-  filetype plugin indent on
-  set omnifunc=syntaxcomplete#Complete
 
-  " Put these in an autocmd group, so that we can delete them easily.
-  augroup vimrcEx
-    au!
-
-    " For all text files set 'textwidth' to 78 characters.
-    autocmd FileType text setlocal textwidth=78
-
-    " When editing a file, always jump to the last known cursor position.
-    autocmd BufReadPost *
-          \ if line("'\"") > 1 && line("'\"") <= line("$") |
-          \   exe "normal! g`\"" |
-          \ endif
-
-  augroup END
-
-else
-
-  set autoindent
-
-endif
 
 " Color scheme
 colorscheme gruvbox
@@ -146,7 +130,10 @@ au FileType c,cpp,java set mps+==:;
 
 " NERDTree plugin settings
 " Closes Vim if NerdTree plugin is the only remaining buffer open
-autocmd bufenter * if winnr("$") == 1 && (exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
+autocmd bufenter *
+      \ if winnr("$") == 1 && (exists("b:NERDTree") && b:NERDTree.isTabTree()) |
+      \   q |
+      \ endif
 
 " ale plugin settings
 let g:ale_open_list = 1
@@ -186,9 +173,6 @@ let g:UltiSnipsSnippetDirectories=["UltiSnips", "mysnippets"]
 " delimitMate plugin settings
 let delimitMate_expand_space = 1
 let delimitMate_expand_cr= 1
-
-" Lightline plugin settings
-set laststatus=2
 
 
 " Everything below this line is for tab key behavior
