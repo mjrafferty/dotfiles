@@ -164,7 +164,7 @@ _setEnv () {
 
   > ~/dotfiles/.environment.sh;
 
-  echo "TICKET=${ticket}" | tr "[:lower:]" "[:upper:]" >> ~/dotfiles/.environment.sh
+  echo "export TICKET=$(echo ${ticket} | tr "[:lower:]" "[:upper:]")" >> ~/dotfiles/.environment.sh
 
 }
 
