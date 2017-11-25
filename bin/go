@@ -180,7 +180,7 @@ main () {
 
   # Trim any fat off the domain name
   domain=$(echo "${ARGA[0]}" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]");
-  ticket=$(echo "$ARGS" | grep -Po "[a-z,A-z]{4}-[0-9]{4}");
+  ticket=$(echo "$ARGS" | grep -Po "[a-z,A-z]{4}-[0-9]{4}" | tr "[:upper:]" "[:lower:]");
 
   _setAction;
   _setEnv;
