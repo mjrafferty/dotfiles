@@ -32,6 +32,7 @@ mkdir -p ~/.vimfiles/{backup,swp,undo}
 
 [ -r /opt/nexcess/php56u/enable ] && source /opt/nexcess/php56u/enable;
 
+[ -r ~/action.sh ] && source ~/.environment.sh;
 [ -r ~/action.sh ] && source ~/action.sh;
 
 # Server health check

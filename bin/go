@@ -3,6 +3,7 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly TICKET_CACHE_DIR="$HOME"/.ticket_cache
 
 _usage () {
   cat <<- EOF
@@ -87,6 +88,7 @@ _login () {
   fi;
 
   rm -f ~/dotfiles/action.sh
+  rm -f ~/dotfiles/enviornment.sh
 
   ssh -i "${ident_file}" \
     -o UserKnownHostsFile=/dev/null \
@@ -140,20 +142,32 @@ _findSiteLogin () {
 }
 
 _setAction () {
+
+  echo "rm ~/action.sh" > ~/dotfiles/action.sh;
+
   if [[ "${ARGA[1]}" ]]; then
     case "${ARGA[1]}" in
       "cdd") # Go to domain's docroot
-        echo "rm ~/action.sh; cdd ${domain}" > ~/dotfiles/action.sh;
+        echo "cdd ${domain}" >> ~/dotfiles/action.sh;
         ;;
       "htacc") # Edit .htaccess
-        echo "rm ~/action.sh; cdd ${domain} && vim .htaccess" > ~/dotfiles/action.sh;
+        echo "cdd ${domain} && vim .htaccess" >> ~/dotfiles/action.sh;
         ;;
       "logs") # Go to domain's log directory
-        echo "rm ~/action.sh; cdlogs ${domain}" > ~/dotfiles/action.sh;
+        echo "cdlogs ${domain}" >> ~/dotfiles/action.sh;
         ;;
     esac
   fi
 }
+
+_setEnv () {
+
+   > ~/dotfiles/.environment.sh;
+
+   echo "TICKET=${ticket}" >> ~/dotfiles/.environment.sh
+
+  }
+
 
 main () {
 
@@ -167,17 +181,18 @@ main () {
 
   # Trim any fat off the domain name
   domain=$(echo "${ARGA[0]}" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]");
+  ticket=$(echo "$ARGS" | grep -Po "[a-z,A-z]{4}-[0-9]{4}");
 
   _setAction;
+  _setEnv;
+
+  if [[ "$ticket" == "$domain" ]]; then
+    echo "works";
+    exit;
+  fi
 
   # Determine query type and take appopriate action
-  if [[ "$domain" =~  [a-z]{4}-[0-9]{4} ]]; then
-
-    if [ ! -d "$T" ]; then mkdir -p "$T"; echo yes; fi
-    echo "Is ticket";
-    return;
-
-  elif [[ "$domain" != *.* ]]; then
+  if [[ "$domain" != *.* ]]; then
 
     destination="${domain}"
 
