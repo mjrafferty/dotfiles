@@ -162,9 +162,9 @@ _setAction () {
 
 _setEnv () {
 
-  > ~/dotfiles/.environment.sh;
+  true > ~/dotfiles/.environment.sh;
 
-  echo "export TICKET=$(echo ${ticket} | tr "[:lower:]" "[:upper:]")" >> ~/dotfiles/.environment.sh
+  echo "export TICKET=$(echo "${ticket}" | tr "[:lower:]" "[:upper:]")" >> ~/dotfiles/.environment.sh
 
 }
 
@@ -178,7 +178,6 @@ main () {
 
   local ip_addr whoisinfo host rdns viewwhois keepgoing domain destination;
 
-  # Trim any fat off the domain name
   domain=$(echo "${ARGA[0]}" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]");
   ticket=$(echo "$ARGS" | grep -Po "[a-z,A-z]{4}-[0-9]{4}" | tr "[:upper:]" "[:lower:]");
 
@@ -243,7 +242,7 @@ main () {
     fi
   fi
 
-  [[ -n "$ticket" ]] && echo -e "${ticket}\t${domain}\t${destination}" >> "$TICKET_CACHE_FILE";
+  [[ -n "$ticket" ]] && echo -e "${ticket}\t${domain}\t${destination}\t$(date "+%s")" >> "$TICKET_CACHE_FILE";
 
   _login "$destination";
 

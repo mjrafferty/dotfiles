@@ -46,8 +46,8 @@ alias mountrw="mount -o rw,remount /usr; mount -o rw,remount /boot; mount -o rw,
 
 alias diff=colordiff
 
-alias login='ssh -p 22005 -i ~/.ssh/nexcess -X mrafferty@login.tmr.nexcess.net'
-alias login2='ssh -p 22005 -i ~/.ssh/nexcess -X mrafferty@login.otr.nexcess.net'
+alias login='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@login.tmr.nexcess.net'
+alias login2='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@login.otr.nexcess.net'
 
 alias dotpush="cd ~/dotfiles; git add .; git commit -a -m updates; git push; cd -;"
 
