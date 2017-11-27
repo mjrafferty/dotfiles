@@ -2,6 +2,9 @@
 " This must be first, because it changes other options as a side effect.
 set nocompatible
 
+
+"     Begin Plugin load
+
 " set the runtime path to include Vundle and initialize
 filetype off                            " required
 set rtp+=~/.vim/bundle/Vundle.vim
@@ -30,6 +33,11 @@ Plugin 'itchyny/lightline.vim'
 Plugin 'junegunn/rainbow_parentheses.vim'
 Plugin 'morhetz/gruvbox'
 call vundle#end()                       " required
+
+"     End Plugin load
+
+
+"     Begin Vim Settings
 
 " Misc settings
 set backspace=2                         " Controls backspace behavior
@@ -80,20 +88,9 @@ au FileType sh let g:sh_fold_enabled=5
 set foldmethod=syntax
 set foldenable
 
-" Remove trailing whitespace on save
-autocmd BufWritePre * :%s/\s\+$//e
-
 syntax on
 filetype plugin indent on
 set omnifunc=syntaxcomplete#Complete
-
-" When editing a file, always jump to the last known cursor position.
-autocmd BufReadPost *
-      \ if line("'\"") > 1 && line("'\"") <= line("$") |
-      \   exe "normal! g`\"" |
-      \ endif
-
-
 
 " Color scheme
 colorscheme gruvbox
@@ -114,37 +111,27 @@ set complete=.,w,b,u,k,kspell,s,i,d,]
 "Changes the leader key to <Spacebar> for custom shortcuts
 let mapleader=" "
 
-
 set formatoptions=coql  " Text formating options
-
 
 " Toggle Paste Mode to save indentation
 nnoremap <F2> :set invpaste paste?<CR>
 set pastetoggle=<F2>
 set showmode
 
+"     End Vim Settings
 
-au FileType c,cpp,java set mps+==:;
 
-
-" NERDTree plugin settings
-" Closes Vim if NerdTree plugin is the only remaining buffer open
-autocmd bufenter *
-      \ if winnr("$") == 1 && (exists("b:NERDTree") && b:NERDTree.isTabTree()) |
-      \   q |
-      \ endif
+"     Begin Plugin Settings
 
 " ale plugin settings
 let g:ale_open_list = 1
 let g:ale_lint_delay = 1000
 let g:ale_sh_shellcheck_options = '-s bash'
 
-
 " easytags plugin settings
 let g:easytags_suppress_ctags_warning = 1
 let g:easytags_async=1
 let g:easytags_python_enabled=1
-
 
 " YouCompleteMe plugin settings
 let g:ycm_always_populate_location_list = 1
@@ -156,12 +143,10 @@ let g:ycm_autoclose_preview_window_after_completion = 1
 let g:ycm_global_ycm_extra_conf = '~/dotfiles/.vim/.ycm_extra_conf.py'
 let g:ycm_confirm_extra_conf = 0
 
-
 " RainbowParentheses plugin settings
 au VimEnter * RainbowParentheses
 let g:rainbow#blacklist = ['grey40']
 let g:rainbow#pairs = [['(', ')'], ['[', ']'],['{', '}']]
-
 
 " better key bindings for UltiSnipsExpandTrigger
 let g:UltiSnipsExpandTrigger = "<tab>"
@@ -173,8 +158,12 @@ let g:UltiSnipsSnippetDirectories=["UltiSnips", "mysnippets"]
 let delimitMate_expand_space = 1
 let delimitMate_expand_cr= 1
 
+"     End Plugin Settings
 
-" Everything below this line is for tab key behavior
+
+"     Begin Functions
+
+" Balances tab key functionality between plugins
 function! g:UltiSnips_Complete()
   call UltiSnips#ExpandSnippet()
   if g:ulti_expand_res == 0
@@ -193,6 +182,7 @@ function! g:UltiSnips_Complete()
   return ""
 endfunction
 
+" Same as above but for Shift-Tab
 function! g:UltiSnips_Reverse()
   call UltiSnips#JumpBackwards()
   if g:ulti_jump_backwards_res == 0
@@ -201,5 +191,31 @@ function! g:UltiSnips_Reverse()
   return ""
 endfunction
 
+"     End Functions
+
+
+"     Begin Autocmds
+
+" Calls Tab key functions when Tab or Shift-Tab is pressed
 au InsertEnter * exec "inoremap <silent> " . g:UltiSnipsExpandTrigger     . " <C-R>=g:UltiSnips_Complete()<cr>"
 au InsertEnter * exec "inoremap <silent> " . g:UltiSnipsJumpBackwardTrigger . " <C-R>=g:UltiSnips_Reverse()<cr>"
+
+" Remove trailing whitespace on save
+au BufWritePre * :%s/\s\+$//e
+
+au FileType c,cpp,java set mps+==:;
+
+" NERDTree plugin settings
+" Closes Vim if NerdTree plugin is the only remaining buffer open
+au bufenter *
+      \ if winnr("$") == 1 && (exists("b:NERDTree") && b:NERDTree.isTabTree()) |
+      \   q |
+      \ endif
+
+" When editing a file, always jump to the last known cursor position.
+au BufReadPost *
+      \ if line("'\"") > 1 && line("'\"") <= line("$") |
+      \   exe "normal! g`\"" |
+      \ endif
+
+"     End Autocmds
