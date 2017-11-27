@@ -2,8 +2,9 @@
 " This must be first, because it changes other options as a side effect.
 set nocompatible
 
-
-"     Begin Plugin load
+"""""""""""""""""""""""""""""
+"     Begin Plugin load     "
+"""""""""""""""""""""""""""""
 
 " set the runtime path to include Vundle and initialize
 filetype off                            " required
@@ -34,10 +35,13 @@ Plugin 'junegunn/rainbow_parentheses.vim'
 Plugin 'morhetz/gruvbox'
 call vundle#end()                       " required
 
-"     End Plugin load
+"-------------------------
+"----- End Plugin load ---
+"-------------------------
 
-
-"     Begin Vim Settings
+"""""""""""""""""""""""""""""
+"     Begin Vim Settings    "
+"""""""""""""""""""""""""""""
 
 " Misc settings
 set backspace=2                         " Controls backspace behavior
@@ -117,11 +121,13 @@ set formatoptions=coql  " Text formating options
 nnoremap <F2> :set invpaste paste?<CR>
 set pastetoggle=<F2>
 set showmode
+"-------------------------------
+"------ End Vim Settings -------
+"-------------------------------
 
-"     End Vim Settings
-
-
-"     Begin Plugin Settings
+"""""""""""""""""""""""""""""""""
+"     Begin Plugin Settings     "
+"""""""""""""""""""""""""""""""""
 
 " ale plugin settings
 let g:ale_open_list = 1
@@ -158,10 +164,13 @@ let g:UltiSnipsSnippetDirectories=["UltiSnips", "mysnippets"]
 let delimitMate_expand_space = 1
 let delimitMate_expand_cr= 1
 
-"     End Plugin Settings
+"----------------------------
+"---- End Plugin Settings ---
+"----------------------------
 
-
-"     Begin Functions
+"""""""""""""""""""""""""""""
+"     Begin Functions       "
+"""""""""""""""""""""""""""""
 
 " Balances tab key functionality between plugins
 function! g:UltiSnips_Complete()
@@ -191,10 +200,13 @@ function! g:UltiSnips_Reverse()
   return ""
 endfunction
 
-"     End Functions
+"-------------------------
+"----- End Functions -----
+"-------------------------
 
-
-"     Begin Autocmds
+"""""""""""""""""""""""""
+"     Begin Autocmds    "
+"""""""""""""""""""""""""
 
 " Calls Tab key functions when Tab or Shift-Tab is pressed
 au InsertEnter * exec "inoremap <silent> " . g:UltiSnipsExpandTrigger     . " <C-R>=g:UltiSnips_Complete()<cr>"
@@ -218,4 +230,6 @@ au BufReadPost *
       \   exe "normal! g`\"" |
       \ endif
 
-"     End Autocmds
+"-------------------------
+"----- End Autocmds ------
+"-------------------------
