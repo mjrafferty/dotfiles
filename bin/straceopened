@@ -4,9 +4,9 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 _usage() {
-	cat <<- EOF
-    This is the usage
-	EOF
+  cat <<- EOF
+  This is the usage
+EOF
 }
 
 main () {
@@ -17,7 +17,8 @@ main () {
   fi
 
 
-  grep -Poh 'open\(\"/chroot/home/[^/]*/[^/]*/[^/]*/\K[^"]*' ${ARGA[*]} \
+  zless ${ARGA[*]} \
+    | grep -Poh 'open\(\"/chroot/home/[^/]*/[^/]*/[^/]*/\K[^"]*' \
     | sort -u
 
 }

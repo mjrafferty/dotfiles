@@ -4,26 +4,27 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 _usage() {
-	cat <<- EOF
-	This is the usage
-	EOF
+  cat <<- EOF
+  This is the usage
+EOF
 }
 
 main () {
 
-	if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-		_usage;
-		return 0;
-	fi
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
 
-	file_desc=($(grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))' "${ARGA[0]}" | tr ':' ' '));
+  file_desc=($(grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))' "${ARGA[0]}" | tr ':' ' '));
 
-	grep -Pioh '(write\(|sendto\()'"${file_desc[1]}"', "[^s,i,u,d,\(]*\K(select .*from|insert .*into|update .*set|delete .*from)[^"]*"' "${ARGA[0]}" \
-		| sed -e 's_"$_;_' -e 's/\\n//g' \
-		| less -S
+  zless ${ARGA[0]} \
+    | grep -Pioh '(write\(|sendto\()'"${file_desc[1]}"', "[^s,i,u,d,\(]*\K(select .*from|insert .*into|update .*set|delete .*from)[^"]*"' \
+    | sed -e 's_"$_;_' -e 's/\\n//g' \
+    | less -S
 
-	#tail -n +"${file_desc[0]}" "${ARGA[0]}" \
-	 # | grep -Po "(write|sendto)\(${file_desc[1]}, \"\K[^\"]*";
+  #tail -n +"${file_desc[0]}" "${ARGA[0]}" \
+    # | grep -Po "(write|sendto)\(${file_desc[1]}, \"\K[^\"]*";
 }
 
 main;

@@ -4,25 +4,26 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 _usage() {
-	cat <<- EOF
-	This is the usage
+  cat <<- EOF
+  This is the usage
 EOF
 }
 
 main () {
 
-	if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-		_usage;
-		return 0;
-	fi
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
 
-	echo;
-	(printf "syscall\ttime\tquantity\n%s\t%s\t%s\n" "$(dashes 10)" "$(dashes 10)" "$(dashes 10)"
-	awk '{ gsub(/<|>/,"",$(NF)); syscall = gensub(/(\(..).*/,"\\1","G",$3); time[syscall]+=$(NF); numcalls[syscall]++} END { for (x in time) {printf "%s\t%10.4f\t%s\n",x,time[x],numcalls[x] }}' ${ARGA[*]} \
-		| sort -k2nr) \
-		| column -t
+  echo;
+  (printf "syscall\ttime\tquantity\n%s\t%s\t%s\n" "$(dashes 10)" "$(dashes 10)" "$(dashes 10)"
+  zless ${ARGA[*]} \
+    | awk '{ gsub(/<|>/,"",$(NF)); syscall = gensub(/(\(..).*/,"\\1","G",$3); time[syscall]+=$(NF); numcalls[syscall]++} END { for (x in time) {printf "%s\t%10.4f\t%s\n",x,time[x],numcalls[x] }}'  \
+    | sort -k2nr) \
+    | column -t
 
-	echo;
+  echo;
 
 }
 
