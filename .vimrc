@@ -88,7 +88,7 @@ au FileType sh let g:sh_fold_enabled=5
 set foldmethod=syntax
 set foldenable
 
-syntax on
+syntax enable
 filetype plugin indent on
 set omnifunc=syntaxcomplete#Complete
 
