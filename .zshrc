@@ -1,3 +1,4 @@
+
 if [ "$(id -u)" != "0" ]; then
 
   /usr/bin/sudo HOME=$HOME SSH_TTY=$SSH_TTY /bin/zsh
@@ -13,7 +14,6 @@ if [ "$(id -u)" != "0" ]; then
     -path "*/*history" -o \
     -path "*/*SNAPS*" -o \
     -path "*/.ssh" -o \
-    -path "*/.zcomp*" -o \
     -path "*/.zlogin*" -o \
     -path "*/.zpr*" -o \
     -path "*/.vim*" -o \
@@ -34,7 +34,8 @@ mkdir -p ~/.vimfiles/{backup,swp,undo}
 
 [ -r ~/action.sh ] && source ~/.environment.sh;
 
-mkdir -p ~/clients/"$TICKET";
+mkdir -p "$HOME"/clients/"$TICKET";
+export TICKETDIR="${HOME}/clients/${TICKET}";
 
 [ -r ~/action.sh ] && source ~/action.sh;
 

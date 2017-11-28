@@ -5,10 +5,6 @@ readonly ARGA=("$@")
 
 readonly TICKET_CACHE_FILE="$HOME"/.ticket_cache
 
-ticket="";
-domain="";
-destination="";
-
 _usage () {
   cat <<- EOF
 
@@ -107,6 +103,8 @@ _findSiteLogin () {
   local findsitelist selection find_servers domain destination;
   declare -a find_servers
 
+  domain="$1"
+
   # If site not pointed at nexcess
   findsitelist=$(_findsite "$domain");
 
@@ -116,6 +114,7 @@ _findSiteLogin () {
   if [ -z "${find_servers[0]}" ]; then
 
     echo "Domain not found";
+    return 1;
 
   elif [ "${find_servers[1]}" ]; then
 
@@ -137,6 +136,8 @@ _findSiteLogin () {
     destination=${find_servers[0]};
 
   fi;
+
+  _login "$destination";
 
 }
 
@@ -167,75 +168,6 @@ _setEnv () {
 
 }
 
-_login1() {
-
-  if [[ "$ticket" == "$domain" ]]; then
-
-    destination=$(grep "$ticket" "$TICKET_CACHE_FILE" | tail -n1 | awk '{print $3}')
-
-  fi
-
-}
-
-_login2() {
-
-  if [[ "$domain" != *.* ]]; then
-
-    destination="${domain}"
-
-  fi
-
-}
-
-_login3() {
-
-  local host rdns;
-
-  host="$1";
-  rdns="$2";
-
-  if [ "$host" == "nexcess" ] || [ "$rdns" == "nexcess" ]; then
-
-    destination="${domain}";
-
-  fi
-
-}
-
-_login4() {
-
-  local host whoisinfo viewwhois keepgoing;
-
-  host="$1";
-  whoisinfo="$2";
-
-  # Print warning if domain behind proxy.
-  if [[ $host ]]; then
-    printf "Domain pointed to %s\n" "$host";
-    read -rep "Press enter to continue";
-
-  else
-
-    printf "Domain pointed to an unknown host/proxy\n";
-    read -rep "View WHOIS? N/y : " viewwhois;
-
-    if [ "$viewwhois" == "y" ]; then
-      echo "$whoisinfo";
-    fi
-
-    echo;
-    read -rep "Continue? Y/n : " keepgoing;
-
-    if [ "$keepgoing" == "n" ]; then
-      return 0;
-    fi
-
-  fi
-
-  _findSiteLogin;
-
-}
-
 main () {
 
   # Show help
@@ -244,44 +176,75 @@ main () {
     return 0;
   fi
 
-  local ip_addr whoisinfo host rdns ;
+  local ip_addr whoisinfo host rdns viewwhois keepgoing domain destination;
 
   domain=$(echo "${ARGA[0]}" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]");
   ticket=$(echo "$ARGS" | grep -Po "[a-z,A-z]{4}-[0-9]{4}" | tr "[:upper:]" "[:lower:]");
 
-  _login1;
+  _setAction;
+  _setEnv;
 
+	if [[ "$ticket" == "$domain" ]]; then
 
-  [[ -z "$destination" ]] && _login2;
+		destination=$(grep "$ticket" "$TICKET_CACHE_FILE" | tail -n1 | awk '{print $3}')
 
+		if [[ -n "$destination" ]]; then
+			_login "$destination";
+			exit;
+		fi
+	fi
 
-  if [[ -z "$destination" ]]; then
+  # Determine query type and take appopriate action
+  if [[ "$domain" != *.* ]]; then
+
+    destination="${domain}"
+
+  else
 
     ip_addr="$(dig +short "$domain" | sort | head -n1)";
     whoisinfo="$(whois "$ip_addr")";
     host=$(echo "$whoisinfo"  | grep -m1 -ioE "nexcess|sucuri|cloudflare" | tr '[:upper:]' '[:lower:]');
     rdns="$(dig +short -x "$ip_addr" | grep -o "nexcess")";
 
-    _login3 "$host" "$rdns";
+    # Try to identify if domain is hosted at Nexcess. Rely on findsite if unsure
+    if [ "$host" == "nexcess" ] || [ "$rdns" == "nexcess" ]; then
 
+      destination="${domain}";
+
+    else
+
+      # Print waring if domain behind proxy.
+      if [[ $host ]]; then
+        printf "Domain pointed to %s\n" "$host";
+        read -rep "Press enter to continue";
+
+      else
+
+        printf "Domain pointed to an unknown host/proxy\n";
+        read -rep "View WHOIS? N/y : " viewwhois;
+
+        if [ "$viewwhois" == "y" ]; then
+          echo "$whoisinfo";
+        fi
+
+        echo;
+        read -rep "Continue? Y/n : " keepgoing;
+
+        if [ "$keepgoing" == "n" ]; then
+          return 0;
+        fi
+
+      fi
+
+      _findSiteLogin "$domain" || return 1;
+      return 0;
+
+    fi
   fi
 
+  [[ -n "$ticket" ]] && echo -e "${ticket}\t${domain}\t${destination}\t$(date "+%s")" >> "$TICKET_CACHE_FILE";
 
-  [[ -z "$destination" ]] && _login4 "$host" "$whoisinfo";
-
-
-  if [[ -n "$destination" ]]; then
-
-    # Add to cache
-    [[ -n "$ticket" ]] && echo -e "${ticket}\t${domain}\t${destination}\t$(date "+%s")" >> "$TICKET_CACHE_FILE";
-
-    # Setup environment variables and actions to run on destination
-    _setAction;
-    _setEnv;
-
-    _login "$destination";
-
-  fi
+  _login "$destination";
 
   return 0;
 
