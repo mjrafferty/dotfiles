@@ -283,7 +283,9 @@ main () {
 
   fi
 
-  return 0;
+  unset ticket;
+  unset destination;
+  unset domain;
 
 };
 
