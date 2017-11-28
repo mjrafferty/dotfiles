@@ -104,7 +104,7 @@ _login () {
 
 _findSiteLogin () {
 
-  local findsitelist selection find_servers domain destination;
+  local findsitelist selection find_servers destination;
   declare -a find_servers
 
   # If site not pointed at nexcess
