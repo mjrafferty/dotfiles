@@ -144,7 +144,7 @@ _findDestination () {
 
 _setAction () {
 
-  echo "rm \"$HOME\"/action.sh" > "$HOME"/dotfiles/action.sh;
+  echo 'rm "$HOME"/action.sh' > "$HOME"/dotfiles/action.sh;
 
   if [[ "${ARGA[1]}" ]]; then
     case "${ARGA[1]}" in
