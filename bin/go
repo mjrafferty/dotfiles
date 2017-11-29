@@ -4,6 +4,7 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly TICKET_CACHE_FILE="$HOME"/.ticket_cache
+readonly IP_REGEX='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
 
 ticket="NULL";
 domain="NULL";
@@ -181,7 +182,7 @@ _getCache() {
 
 _abbrevDest() {
 
-  if [[ "$domain" != *.* ]]; then
+  if [[ "$domain" != *.* || "$domain" =~ $IP_REGEX ]]; then
 
     destination="${domain}"
 
