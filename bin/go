@@ -98,8 +98,7 @@ _login () {
     -o UserKnownHostsFile=/dev/null \
     -o StrictHostKeyChecking=no \
     -o PasswordAuthentication=no \
-    "nex$(whoami)@$destination";
-  echo -e "\ek$(hostname)\e\\" || return 1;
+    "nex$(whoami)@$destination" || return 1;
 }
 
 _findDestination () {
