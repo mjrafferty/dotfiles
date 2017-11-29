@@ -5,9 +5,9 @@ readonly ARGA=("$@")
 
 readonly TICKET_CACHE_FILE="$HOME"/.ticket_cache
 
-ticket="";
-domain="";
-destination="";
+ticket="NULL";
+domain="NULL";
+destination="NULL";
 
 _usage () {
   cat <<- EOF
@@ -102,7 +102,7 @@ _login () {
   echo -e "\ek$(hostname)\e\\";
 }
 
-_findSiteLogin () {
+_findDestination () {
 
   local findsitelist selection find_servers;
   declare -a find_servers
@@ -167,7 +167,7 @@ _setEnv () {
 
 }
 
-_login1() {
+_getCache() {
 
   if [[ "$ticket" == "$domain" ]]; then
 
@@ -177,7 +177,7 @@ _login1() {
 
 }
 
-_login2() {
+_abbrevDest() {
 
   if [[ "$domain" != *.* ]]; then
 
@@ -187,7 +187,7 @@ _login2() {
 
 }
 
-_login3() {
+_didWeFindIt() {
 
   local host rdns;
 
@@ -202,7 +202,7 @@ _login3() {
 
 }
 
-_login4() {
+_theHardWay() {
 
   local host whoisinfo viewwhois keepgoing;
 
@@ -232,7 +232,7 @@ _login4() {
 
   fi
 
-  _findSiteLogin;
+  _findDestination;
 
 }
 
@@ -249,28 +249,28 @@ main () {
   domain=$(echo "${ARGA[0]}" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]");
   ticket=$(echo "$ARGS" | grep -Po "[a-z,A-z]{4}-[0-9]{4}" | tr "[:upper:]" "[:lower:]");
 
-  _login1;
+  _getCache;
 
 
-  [[ -z "$destination" ]] && _login2;
+  [[ "$destination" == "NULL" ]] && _abbrevDest;
 
 
-  if [[ -z "$destination" ]]; then
+  if [[ "$destination" == "NULL" ]]; then
 
     ip_addr="$(dig +short "$domain" | sort | head -n1)";
     whoisinfo="$(whois "$ip_addr")";
     host=$(echo "$whoisinfo"  | grep -m1 -ioE "nexcess|sucuri|cloudflare" | tr '[:upper:]' '[:lower:]');
     rdns="$(dig +short -x "$ip_addr" | grep -o "nexcess")";
 
-    _login3 "$host" "$rdns";
+    _didWeFindIt "$host" "$rdns";
 
   fi
 
 
-  [[ -z "$destination" ]] && _login4 "$host" "$whoisinfo";
+  [[ "$destination" == "NULL" ]] && _theHardWay "$host" "$whoisinfo";
 
 
-  if [[ -n "$destination" ]]; then
+  if [[ "$destination" != "NULL" ]]; then
 
     # Add to cache
     [[ -n "$ticket" ]] && echo -e "${ticket}\t${domain}\t${destination}\t$(date "+%s")" >> "$TICKET_CACHE_FILE";
