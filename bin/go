@@ -88,7 +88,7 @@ _login () {
       --exclude '*SNAPS*' \
       ~/dotfiles/ \
       -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-      "nex$(whoami)@$destination":~/ 2> /dev/null
+      "nex$(whoami)@$destination":~/ 2> /dev/null || echo "rsync failed";
   fi;
 
   rm -f ~/dotfiles/action.sh
@@ -99,7 +99,7 @@ _login () {
     -o StrictHostKeyChecking=no \
     -o PasswordAuthentication=no \
     "nex$(whoami)@$destination";
-  echo -e "\ek$(hostname)\e\\";
+  echo -e "\ek$(hostname)\e\\" || return 1;
 }
 
 _findDestination () {
@@ -280,6 +280,7 @@ main () {
     _setEnv;
 
     _login "$destination";
+
 
   fi
 
