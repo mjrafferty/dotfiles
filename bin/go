@@ -70,10 +70,12 @@ _login () {
 
   ident_file=${HOME}/.ssh/nex$(whoami).id_rsa;
 
-  if [[ -d ~/dotfiles/ ]]; then
+  if [[ -d "$HOME"/dotfiles/ ]]; then
+
     if [[ $(stat -c '%a' ~/dotfiles/) -ne 700 ]]; then
       chmod 700 ~/dotfiles;
-    fi;
+    fi
+
     rsync -ql --force --delete --chmod=o-rwx -rpt \
       --exclude '.mysql_history' \
       --exclude '.rediscli_history' \
@@ -89,10 +91,11 @@ _login () {
       ~/dotfiles/ \
       -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
       "nex$(whoami)@$destination":~/ 2> /dev/null || echo "rsync failed";
+
   fi;
 
-  rm -f ~/dotfiles/action.sh
-  rm -f ~/dotfiles/enviornment.sh
+  rm -f "$HOME"/dotfiles/action.sh
+  rm -f "$HOME"/dotfiles/.enviornment.sh
 
   ssh -i "${ident_file}" \
     -o UserKnownHostsFile=/dev/null \
@@ -141,18 +144,18 @@ _findDestination () {
 
 _setAction () {
 
-  echo "rm ~/action.sh" > ~/dotfiles/action.sh;
+  echo "rm \"$HOME\"/action.sh" > "$HOME"/dotfiles/action.sh;
 
   if [[ "${ARGA[1]}" ]]; then
     case "${ARGA[1]}" in
       "cdd") # Go to domain's docroot
-        echo "cdd ${domain}" >> ~/dotfiles/action.sh;
+        echo "cdd ${domain}" >> "$HOME"/dotfiles/action.sh;
         ;;
       "htacc") # Edit .htaccess
-        echo "cdd ${domain} && vim .htaccess" >> ~/dotfiles/action.sh;
+        echo "cdd ${domain} && vim .htaccess" >> "$HOME"/dotfiles/action.sh;
         ;;
       "logs") # Go to domain's log directory
-        echo "cdlogs ${domain}" >> ~/dotfiles/action.sh;
+        echo "cdlogs ${domain}" >> "$HOME"/dotfiles/action.sh;
         ;;
     esac
   fi
@@ -160,9 +163,9 @@ _setAction () {
 
 _setEnv () {
 
-  true > ~/dotfiles/.environment.sh;
+  true > "$HOME"/dotfiles/.environment.sh;
 
-  echo "export TICKET=$(echo "${ticket}" | tr "[:lower:]" "[:upper:]")" >> ~/dotfiles/.environment.sh
+  echo "export TICKET=$(echo "${ticket}" | tr "[:lower:]" "[:upper:]")" >> "$HOME"/dotfiles/.environment.sh
 
 }
 
@@ -271,14 +274,14 @@ main () {
 
   if [[ "$destination" != "NULL" ]]; then
 
-    # Add to cache
-    [[ -n "$ticket" ]] && echo -e "${ticket}\t${domain}\t${destination}\t$(date "+%s")" >> "$TICKET_CACHE_FILE";
-
     # Setup environment variables and actions to run on destination
     _setAction;
     _setEnv;
 
-    _login "$destination";
+    _login "$destination" || return 1;
+
+    # Add to cache
+    echo -e "${ticket}\t${domain}\t${destination}\t$(date "+%s")" >> "$TICKET_CACHE_FILE";
 
 
   fi
