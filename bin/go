@@ -3,7 +3,7 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-readonly TICKET_CACHE_FILE="$HOME"/.ticket_cache
+readonly DOMAIN_CACHE_FILE="$HOME"/.domain_cache
 readonly IP_REGEX='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
 
 ticket="";
@@ -173,7 +173,7 @@ _setEnv () {
 
 _getCache() {
 
-    QUERY=$(printf "SELECT destination FROM CACHE WHERE domain='%s' ORDER BY timestamp desc limit 1;" "${domain}");
+    QUERY=$(printf "SELECT destination FROM LOCATIONS WHERE domain='%s' ORDER BY timestamp desc limit 1;" "${domain}");
     destination=$(sqlite3 "$TICKET_CACHE_FILE" "$QUERY")
 
 }
@@ -280,8 +280,8 @@ main () {
     _login "$destination" || return 1;
 
     # Add to cache
-    QUERY=$(printf "INSERT INTO CACHE VALUES ('%s','%s','%s','%s');" "${ticket}" "${domain}" "${destination}" "$(date "+%s")")
-    sqlite3 "$TICKET_CACHE_FILE" "$QUERY";
+    QUERY=$(printf "INSERT INTO LOCATIONS VALUES ('%s','%s','%s');" "${domain}" "${destination}" "$(date "+%s")")
+    sqlite3 "$DOMAIN_CACHE_FILE" "$QUERY";
 
 
   fi
