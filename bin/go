@@ -283,8 +283,8 @@ main () {
     _login "$destination" || return 1;
 
     # Add to cache
-    QUERY=$(printf "INSERT INTO CACHE VALUES \(%s,%s,%s,%s\);" "${ticket}" "${domain}" "${destination}" "$(date "+%s")")
-    sqlite3 "$TICKET_CACHE_FILE" \""$QUERY"\";
+    QUERY=$(printf "INSERT INTO CACHE VALUES ('%s','%s','%s','%s');" "${ticket}" "${domain}" "${destination}" "$(date "+%s")")
+    sqlite3 "$TICKET_CACHE_FILE" "$QUERY";
 
 
   fi
