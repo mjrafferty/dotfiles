@@ -81,6 +81,7 @@ _login () {
       --exclude '.mysql_history' \
       --exclude '.rediscli_history' \
       --exclude '.zsh_history' \
+      --exclude '.bash_history' \
       --exclude '.ssh' \
       --exclude 'clients' \
       --exclude '.mytop' \
@@ -282,7 +283,8 @@ main () {
     _login "$destination" || return 1;
 
     # Add to cache
-    echo -e "${ticket}\t${domain}\t${destination}\t$(date "+%s")" >> "$TICKET_CACHE_FILE";
+    QUERY=$(printf "INSERT INTO CACHE VALUES \(%s,%s,%s,%s\);" "${ticket}" "${domain}" "${destination}" "$(date "+%s")")
+    sqlite3 "$TICKET_CACHE_FILE" \""$QUERY"\";
 
 
   fi
