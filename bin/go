@@ -285,6 +285,16 @@ main () {
     query=$(printf "INSERT INTO LOCATIONS VALUES ('%s','%s','%s');" "${domain}" "${destination}" "$(date "+%s")")
     sqlite3 "$DOMAIN_CACHE_FILE" "$query";
 
+#    -- Try to update any existing row
+#UPDATE players
+#SET user_name='steven', age=32
+#WHERE user_name='steven';
+
+#-- If no update happened (i.e. the row didn't exist) then insert one
+#INSERT INTO players (user_name, age)
+#SELECT 'steven', 32
+#WHERE (Select Changes() = 0);
+
 
   fi
 
