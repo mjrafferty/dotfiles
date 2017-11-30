@@ -173,11 +173,8 @@ _setEnv () {
 
 _getCache() {
 
-  if [[ -n "$ticket" ]]; then
-
-    destination=$(grep "$ticket" "$TICKET_CACHE_FILE" | tail -n1 | awk '{print $3}')
-
-  fi
+    QUERY=$(printf "SELECT destination FROM CACHE WHERE domain='%s' ORDER BY timestamp desc limit 1;" "${domain}");
+    destination=$(sqlite3 "$TICKET_CACHE_FILE" "$QUERY")
 
 }
 
