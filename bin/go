@@ -282,25 +282,8 @@ main () {
     _login "$destination" || return 1;
 
     # Add to cache
-    query=$(printf "INSERT INTO LOCATIONS VALUES ('%s','%s','%s');" "${domain}" "${destination}" "$(date "+%s")")
+    query=$(printf "INSERT OR REPLACE INTO LOCATIONS VALUES ('%s','%s','%s');" "${domain}" "${destination}" "$(date "+%s")")
     sqlite3 "$DOMAIN_CACHE_FILE" "$query";
-
-#    -- Try to update any existing row
-#UPDATE players
-#SET user_name='steven', age=32
-#WHERE user_name='steven';
-
-#-- If no update happened (i.e. the row didn't exist) then insert one
-#INSERT INTO players (user_name, age)
-#SELECT 'steven', 32
-#WHERE (Select Changes() = 0);
-
-#insert or replace into Book (ID, Name, TypeID, Level, Seen) values (
-   #(select ID from Book where Name = "SearchName"),
-   #"SearchName",
-    #5,
-    #6,
-    #(select Seen from Book where Name = "SearchName"));
 
   fi
 
