@@ -173,8 +173,10 @@ _setEnv () {
 
 _getCache() {
 
-    QUERY=$(printf "SELECT destination FROM LOCATIONS WHERE domain='%s' ORDER BY timestamp desc limit 1;" "${domain}");
-    destination=$(sqlite3 "$TICKET_CACHE_FILE" "$QUERY")
+    local query;
+
+    query=$(printf "SELECT destination FROM LOCATIONS WHERE domain='%s' ORDER BY timestamp desc limit 1;" "${domain}");
+    destination=$(sqlite3 "$DOMAIN_CACHE_FILE" "$query")
 
 }
 
@@ -245,7 +247,7 @@ main () {
     return 0;
   fi
 
-  local ip_addr whoisinfo host rdns ;
+  local ip_addr whoisinfo host rdns query;
 
   domain=$(echo "${ARGA[0]}" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]");
   ticket=$(echo "$ARGS" | grep -Po "[a-z,A-z]{4}-[0-9]{4}" | tr "[:upper:]" "[:lower:]");
@@ -280,8 +282,8 @@ main () {
     _login "$destination" || return 1;
 
     # Add to cache
-    QUERY=$(printf "INSERT INTO LOCATIONS VALUES ('%s','%s','%s');" "${domain}" "${destination}" "$(date "+%s")")
-    sqlite3 "$DOMAIN_CACHE_FILE" "$QUERY";
+    query=$(printf "INSERT INTO LOCATIONS VALUES ('%s','%s','%s');" "${domain}" "${destination}" "$(date "+%s")")
+    sqlite3 "$DOMAIN_CACHE_FILE" "$query";
 
 
   fi
