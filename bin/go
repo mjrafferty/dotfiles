@@ -6,9 +6,9 @@ readonly ARGA=("$@")
 readonly TICKET_CACHE_FILE="$HOME"/.ticket_cache
 readonly IP_REGEX='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
 
-ticket="NULL";
-domain="NULL";
-destination="NULL";
+ticket="";
+domain="";
+destination="";
 
 _usage () {
   cat <<- EOF
@@ -172,7 +172,7 @@ _setEnv () {
 
 _getCache() {
 
-  if [[ "$ticket" != "NULL" ]]; then
+  if [[ -n "$ticket" ]]; then
 
     destination=$(grep "$ticket" "$TICKET_CACHE_FILE" | tail -n1 | awk '{print $3}')
 
@@ -251,15 +251,14 @@ main () {
 
   domain=$(echo "${ARGA[0]}" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]");
   ticket=$(echo "$ARGS" | grep -Po "[a-z,A-z]{4}-[0-9]{4}" | tr "[:upper:]" "[:lower:]");
-  [[ -z "$ticket" ]] && ticket="NULL";
 
   _getCache;
 
 
-  [[ "$destination" == "NULL" ]] && _abbrevDest;
+  [[ -z "$destination" ]] && _abbrevDest;
 
 
-  if [[ "$destination" == "NULL" ]]; then
+  if [[ -z "$destination" ]]; then
 
     ip_addr="$(dig +short "$domain" | sort | head -n1)";
     whoisinfo="$(whois "$ip_addr")";
@@ -271,10 +270,10 @@ main () {
   fi
 
 
-  [[ "$destination" == "NULL" ]] && _theHardWay "$host" "$whoisinfo";
+  [[ -z "$destination" ]] && _theHardWay "$host" "$whoisinfo";
 
 
-  if [[ "$destination" != "NULL" ]]; then
+  if [[ -n "$destination" ]]; then
 
     # Setup environment variables and actions to run on destination
     _setAction;
