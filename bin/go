@@ -295,6 +295,12 @@ main () {
 #SELECT 'steven', 32
 #WHERE (Select Changes() = 0);
 
+#insert or replace into Book (ID, Name, TypeID, Level, Seen) values (
+   #(select ID from Book where Name = "SearchName"),
+   #"SearchName",
+    #5,
+    #6,
+    #(select Seen from Book where Name = "SearchName"));
 
   fi
 
