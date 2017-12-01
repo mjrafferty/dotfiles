@@ -175,8 +175,15 @@ _getCache() {
 
     local query;
 
-    query=$(printf "SELECT destination FROM LOCATIONS WHERE domain='%s' ORDER BY timestamp desc limit 1;" "${domain}");
-    destination=$(sqlite3 "$DOMAIN_CACHE_FILE" "$query")
+    if [[ -n $ticket ]]; then
+      query=$(printf "SELECT destination FROM LOCATIONS WHERE domain=(SELECT domain FROM TICKETS WHERE ticket_id='%s');" "${ticket}");
+      destination=$(sqlite3 "$DOMAIN_CACHE_FILE" "$query");
+    fi
+
+    if [[ -z $destination ]]; then
+      query=$(printf "SELECT destination FROM LOCATIONS WHERE domain='%s' ORDER BY timestamp desc limit 1;" "${domain}");
+      destination=$(sqlite3 "$DOMAIN_CACHE_FILE" "$query")
+    fi
 
 }
 
