@@ -285,6 +285,11 @@ main () {
     query=$(printf "INSERT OR REPLACE INTO LOCATIONS VALUES ('%s','%s','%s');" "${domain}" "${destination}" "$(date "+%s")")
     sqlite3 "$DOMAIN_CACHE_FILE" "$query";
 
+    if [[ -n $ticket ]]; then
+      query=$(printf "INSERT OR REPLACE INTO TICKETS VALUES ('%s','%s');" "${ticket}" "${domain}");
+      sqlite3 "$DOMAIN_CACHE_FILE" "$query";
+    fi
+
   fi
 
   unset ticket;
