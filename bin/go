@@ -4,6 +4,9 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly DOMAIN_CACHE_FILE="$HOME"/.domain_cache
+readonly DOMAIN_CACHE_CREATE="CREATE TABLE IF NOT EXISTS LOCATIONS ( domain PRIMARY KEY,destination NOT NULL,timestamp NOT NULL); \
+  CREATE TABLE IF NOT EXISTS TICKETS (ticket_id NOT NULL,domain NOT NULL,PRIMARY KEY (ticket_id,domain),FOREIGN KEY (domain) REFERENCES LOCATIONS(domain));"
+
 readonly IP_REGEX='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
 
 ticket="";
@@ -163,6 +166,12 @@ _setAction () {
   fi
 }
 
+_checkDB() {
+
+  sqlite3 "$DOMAIN_CACHE_FILE" "$DOMAIN_CACHE_CREATE";
+
+}
+
 _setEnv () {
 
   true > "$HOME"/dotfiles/.environment.sh;
@@ -177,12 +186,12 @@ _getCache() {
 
     if [[ -n $ticket ]]; then
       query=$(printf "SELECT destination FROM LOCATIONS WHERE domain=(SELECT domain FROM TICKETS WHERE ticket_id='%s');" "${ticket}");
-      destination=$(sqlite3 "$DOMAIN_CACHE_FILE" "$query");
+      destination=$(sqlite3 "$DOMAIN_CACHE_FILE" "$query" || _checkDB);
     fi
 
     if [[ -z $destination ]]; then
       query=$(printf "SELECT destination FROM LOCATIONS WHERE domain='%s' ORDER BY timestamp desc limit 1;" "${domain}");
-      destination=$(sqlite3 "$DOMAIN_CACHE_FILE" "$query")
+      destination=$(sqlite3 "$DOMAIN_CACHE_FILE" "$query" || _checkDB)
     fi
 
 }
@@ -290,11 +299,11 @@ main () {
 
     # Add to cache
     query=$(printf "INSERT OR REPLACE INTO LOCATIONS VALUES ('%s','%s','%s');" "${domain}" "${destination}" "$(date "+%s")")
-    sqlite3 "$DOMAIN_CACHE_FILE" "$query";
+    sqlite3 "$DOMAIN_CACHE_FILE" "$query" || _checkDB;
 
     if [[ -n $ticket ]]; then
       query=$(printf "INSERT OR REPLACE INTO TICKETS VALUES ('%s','%s');" "${ticket}" "${domain}");
-      sqlite3 "$DOMAIN_CACHE_FILE" "$query";
+      sqlite3 "$DOMAIN_CACHE_FILE" "$query" || _checkDB;
     fi
 
   fi
