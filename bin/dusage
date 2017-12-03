@@ -8,7 +8,7 @@ _files () {
 
   printf "\n----- Large Files ------\n";
 
-  find  \
+  find . \
     -mindepth 1 \
     -path "./var/*/mail" -prune -o \
     -size +100M \
@@ -21,7 +21,7 @@ _directories () {
 
   printf "\n----- Large Directories ------\n";
 
-  find  \
+  find . \
     -mindepth 1 \
     -maxdepth 4 \
     -path "./var/*/mail" -prune -o \
@@ -37,7 +37,7 @@ _mailboxes () {
 
   cd var || return 1;
 
-  find */mail/* \
+  find ./*/mail/* \
     -maxdepth 0 \
     -type d \
     -group "$(getusr)"\
