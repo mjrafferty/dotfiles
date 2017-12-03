@@ -45,6 +45,8 @@ _uuid2ip () {
 
 _findsite () {
 
+  local query servers uuid;
+
   query="[\"and\", [\"=\", \"name\", \"domains\" ], [\"=\", \"value\", \"$1\"]]"
 
   servers=$(curl -sG 'http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/fact-contents' \
@@ -68,9 +70,7 @@ _findsite () {
 
 _login () {
 
-  local ident_file destination;
-
-  destination="$1"
+  local ident_file;
 
   ident_file=${HOME}/.ssh/nex$(whoami).id_rsa;
 
@@ -150,26 +150,30 @@ _findDestination () {
 _setAction () {
 
   echo 'rm "$HOME"/action.sh' > "$HOME"/dotfiles/action.sh;
+  echo "cdd ${domain}" >> "$HOME"/dotfiles/action.sh;
 
   if [[ "${ARGA[1]}" ]]; then
     case "${ARGA[1]}" in
-      "cdd") # Go to domain's docroot
-        echo "cdd ${domain}" >> "$HOME"/dotfiles/action.sh;
-        ;;
+  #    "cdd") # Go to domain's docroot
+        #echo "cdd ${domain}" >> "$HOME"/dotfiles/action.sh;
+  #      ;;
       "htacc") # Edit .htaccess
-        echo "cdd ${domain} && vim .htaccess" >> "$HOME"/dotfiles/action.sh;
+        echo "vim .htaccess" >> "$HOME"/dotfiles/action.sh;
         ;;
-      "logs") # Go to domain's log directory
+      "cdlogs") # Go to domain's log directory
         echo "cdlogs ${domain}" >> "$HOME"/dotfiles/action.sh;
+        ;;
+      "editphp") # Go to domain's log directory
+        echo "editphp" >> "$HOME"/dotfiles/action.sh;
+        ;;
+      "vhost") # Go to domain's log directory
+        echo "vhost" >> "$HOME"/dotfiles/action.sh;
+        ;;
+      "exit") # Go to domain's log directory
+        echo "exit" >> "$HOME"/dotfiles/action.sh;
         ;;
     esac
   fi
-}
-
-_checkDB() {
-
-  sqlite3 "$DOMAIN_CACHE_FILE" "$DOMAIN_CACHE_CREATE";
-
 }
 
 _setEnv () {
@@ -180,12 +184,18 @@ _setEnv () {
 
 }
 
+_checkDB() {
+
+  sqlite3 "$DOMAIN_CACHE_FILE" "$DOMAIN_CACHE_CREATE";
+
+}
+
 _getCache() {
 
     local query;
 
     if [[ -n $ticket ]]; then
-      query=$(printf "SELECT destination FROM LOCATIONS WHERE domain=(SELECT domain FROM TICKETS WHERE ticket_id='%s');" "${ticket}");
+      query=$(printf "SELECT destination FROM LOCATIONS WHERE domain=(SELECT domain FROM TICKETS WHERE ticket_id='%s' limit 1);" "${ticket}");
       destination=$(sqlite3 "$DOMAIN_CACHE_FILE" "$query") || _checkDB;
     fi
 
@@ -295,7 +305,7 @@ main () {
     _setAction;
     _setEnv;
 
-    _login "$destination" || return 1;
+    _login || return 1;
 
     # Add to cache
     query=$(printf "INSERT OR REPLACE INTO LOCATIONS VALUES ('%s','%s','%s');" "${domain}" "${destination}" "$(date "+%s")")
