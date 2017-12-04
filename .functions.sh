@@ -136,7 +136,7 @@ refbymb () {
 # Show top uris by bandwidth usage
 uribymb () {
   zless -f "$@" \
-		| sed -nr 's|.*\] \"\S* ([^?, ]*) [^\"]*\"[0-9]{3} ([0-9]*) .*|\1\t\2|p' \
+		| sed -nr 's|.*\] \"\S* ([^?, ]*\??)[^\"]*\" [0-9]{3} ([0-9]*) .*|\1\t\2|p' \
     | awk '{tx[$1]+=$2} END {for (x in tx) {printf "%10.2fM\t%s\n",tx[x]/1048576,x}}' \
     | sort -hr \
     | head -n 20;
