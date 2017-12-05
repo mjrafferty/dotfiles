@@ -152,11 +152,8 @@ _setAction () {
   echo 'rm "$HOME"/action.sh' > "$HOME"/dotfiles/action.sh;
   echo "cdd ${domain}" >> "$HOME"/dotfiles/action.sh;
 
-  if [[ "${ARGA[1]}" ]]; then
-    case "${ARGA[1]}" in
-  #    "cdd") # Go to domain's docroot
-        #echo "cdd ${domain}" >> "$HOME"/dotfiles/action.sh;
-  #      ;;
+  for x in ${ARGA[*]}; do
+    case "$x" in
       "htacc") # Edit .htaccess
         echo "vim .htaccess" >> "$HOME"/dotfiles/action.sh;
         ;;
@@ -173,7 +170,7 @@ _setAction () {
         echo "exit" >> "$HOME"/dotfiles/action.sh;
         ;;
     esac
-  fi
+  done
 }
 
 _setEnv () {
