@@ -77,7 +77,8 @@ function prompt_sorin_setup {
 
   # Define prompts.
   PROMPT='%B${SSH_TTY:+"%F{3}%m%f "}%F{4}%~%(!. %B%F{1}#%f%b.)${editor_info[keymap]} '
-  RPROMPT='${editor_info[overwrite]}${_quota}'
+  RPROMPT='${editor_info[overwrite]}'
+  RPROMPT+='%F{9}${_quota}%f'
   RPROMPT+='%(?:: %F{1}${show_return}%f)'
   SPROMPT='zsh: correct %F{1}%R%f to %F{2}%r%f [nyae]? '
 }
