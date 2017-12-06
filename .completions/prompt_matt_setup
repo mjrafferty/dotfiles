@@ -27,6 +27,7 @@ function prompt_sorin_precmd {
   setopt LOCAL_OPTIONS
   unsetopt XTRACE KSH_ARRAYS
 
+  _quota=$(quota -qg $(pwd | grep -Po "/home/\K[^/]*") | grep -Po "grace|limit")
 
   }
 
@@ -72,12 +73,12 @@ function prompt_sorin_setup {
     show_return+='%? '
   fi
 
-  _prompt_sorin_pwd=''
+  _quota=""
 
   # Define prompts.
   PROMPT='%B${SSH_TTY:+"%F{3}%m%f "}%F{4}%~%(!. %B%F{1}#%f%b.)${editor_info[keymap]} '
   RPROMPT='${editor_info[overwrite]}%(?:: %F{1}'
-  RPROMPT+='${show_return}'
+  RPROMPT+='${_quota}${show_return}'
   RPROMPT+='%f)${VIM:+" %B%F{6}V%f%b"}'
   SPROMPT='zsh: correct %F{1}%R%f to %F{2}%r%f [nyae]? '
 }
