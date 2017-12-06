@@ -30,18 +30,7 @@ function prompt_sorin_precmd {
   # Format PWD.
   _prompt_sorin_pwd=$(prompt-pwd)
 
-  # Handle updating git data. We also clear the git prompt data if we're in a
-  # different git root now.
-  if (( $+functions[git-dir] )); then
-    local new_git_root="$(git-dir 2> /dev/null)"
-    if [[ $new_git_root != $_sorin_cur_git_root ]]; then
-      _prompt_sorin_git=''
-      _sorin_cur_git_root=$new_git_root
-    fi
-  fi
-
-  prompt_sorin_async_git
-}
+  }
 
 function prompt_sorin_setup {
   setopt LOCAL_OPTIONS
