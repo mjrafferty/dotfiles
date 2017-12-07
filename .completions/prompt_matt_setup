@@ -23,7 +23,7 @@
 # Load dependencies.
 pmodload 'helper'
 
-function prompt_sorin_precmd {
+function prompt_matt_precmd {
   setopt LOCAL_OPTIONS
   unsetopt XTRACE KSH_ARRAYS
 
@@ -31,7 +31,7 @@ function prompt_sorin_precmd {
 
   }
 
-function prompt_sorin_setup {
+function prompt_matt_setup {
   setopt LOCAL_OPTIONS
   unsetopt XTRACE KSH_ARRAYS
   prompt_opts=(cr percent sp subst)
@@ -40,7 +40,7 @@ function prompt_sorin_setup {
   autoload -Uz add-zsh-hook
 
   # Add hook for calling git-info before each command.
-  add-zsh-hook precmd prompt_sorin_precmd
+  add-zsh-hook precmd prompt_matt_precmd
 
   # Set editor-info parameters.
   zstyle ':prezto:module:editor:info:completing' format '%B%F{7}...%f%b'
@@ -79,8 +79,8 @@ function prompt_sorin_setup {
   PROMPT='%B${SSH_TTY:+"%F{3}%m%f "}%F{4}%~%(!. %B%F{1}#%f%b.)${editor_info[keymap]} '
   RPROMPT='${editor_info[overwrite]}'
   RPROMPT+='%F{9}${_quota}%f'
-  RPROMPT+='%(?:: %F{1}${show_return}%f)'
+  RPROMPT+='%(?:: %F{1}'${show_return}'%f)'
   SPROMPT='zsh: correct %F{1}%R%f to %F{2}%r%f [nyae]? '
 }
 
-prompt_sorin_setup "$@"
+prompt_matt_setup "$@"
