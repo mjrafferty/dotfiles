@@ -14,7 +14,7 @@ cdd () {
     query="$(pwd | sed -e 's_.*home/[^/]*/\([^/]*\)/html.*_\1_' -e 's_.*home/[^/]*/var/\([^/]*\)/.*_\1_')";
   fi
   # Gather relevant domain information
-  domains=$(grep -EH "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_* \
+  domains=$(grep -EH "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*.conf \
     | sed -r 's/.*vhost_(.*).conf:.* ('"$query"'[^ ]*).*/\1\t\2/' \
     | sort -u);
 
@@ -75,7 +75,7 @@ cdlogs () {
   fi
 
   # Gather relevant domain information
-  vhosts=($(grep -El "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*));
+  vhosts=($(grep -El "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*.conf));
 
   for (( i=1; i<=${#vhosts[@]}; i++ )); do
     logsdir[$i]=($(sed -nr 's_[^#]*ErrorLog (.*)/error.log_\1_p' "${vhosts[$i]}" \
