@@ -3,63 +3,179 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly LOGFILE=$HOME/dusage_log
+
+export LC_COLLATE=C
+
+iteration=0;
+declare -a sizes;
+declare -a direcs;
 
 _files () {
 
-  printf "\n----- Large Files ------\n";
+	printf "\n----- Large Files ------\n";
 
-  find . \
-    -mindepth 1 \
-    -path "./var/*/mail" -prune -o \
-    -size +100M \
-    -group "$(getusr)" \
-    -exec parallel du -sh -- {} + | sort -hr | head -20
+	find . \
+		-mindepth 1 \
+		-path "./var/*/mail" -prune -o \
+		-size +100M \
+		-group "$(getusr)" \
+		-exec parallel du -sh -- {} + | sort -hr | head -20
 
 }
 
 _directories () {
 
-  printf "\n----- Large Directories ------\n";
+	local directories;
 
-  find . \
-    -mindepth 1 \
-    -maxdepth 4 \
-    -path "./var/*/mail" -prune -o \
-    -type d \
-    -group "$(getusr)" \
-    -exec parallel du -sh -- {} + | sort -hr | head -20
+	directories=$(find . \
+		-mindepth 1 \
+		-maxdepth 4 \
+		-path "./var/*/mail" -prune -o \
+		-type d \
+		-group "$(getusr)" \
+		-exec parallel du -s -- {} + | sort -k2);
+
+
+	[[ -n "$debug" ]] && echo "$directories" > "$HOME"/dusage_directories.txt
+
+	sizes=($(echo "$directories" | awk '{print $1}'))
+	direcs=($(echo "$directories" | awk '{print $2}'))
+
+	max="${#direcs[@]}";
+	_recursedirs "0" "0";
+
+
+	printf "\n----- Large Directories ------\n";
+	for ((x=0; x < "${#direcs[@]}"; x++)); do
+		printf "%s\t%s\n" "${sizes[$x]}" "${direcs[$x]}";
+	done \
+		| sort -hr \
+		| head -n20 \
+		| awk '{ H=$1; if ( H > 1048576 ){ H=H/1024/1024;printf "%.1fG\t%s\n",H,$2 }else{ H=H/1024;printf "%.0fM\t%s\n",H,$2}}'
+
+
+
+}
+
+_recursedirs () {
+
+	local current next last_top depth;
+	depth="$1"
+	last_top="$2";
+
+	while (( "$iteration" < "$max" )); do
+
+		current="$iteration";
+		next="$((iteration+1))";
+
+		if [[ ${direcs[next]} =~ ${direcs[current]} ]]; then
+
+			if [[ -n "$debug" ]]; then
+				echo "$current ${direcs[next]} matches current"
+				echo -e "\tDepth: $depth"
+				echo -e "\t${sizes[current]}\t${direcs[current]}"
+				echo -e "\t${sizes[next]}\t${direcs[next]}"
+				echo -e "\t$((sizes[current] - sizes[next]))\n"
+			fi >> "$LOGFILE"
+
+			sizes[$current]=$((sizes[current] - sizes[next]));
+
+			iteration="$next"
+			_recursedirs "$((depth + 1 ))" "$current";
+
+		elif [[ ${direcs[next]} =~ ${direcs[last_top]} ]]; then
+
+			if [[ -n "$debug" ]]; then
+				echo "$current ${direcs[current]} matches last_top"
+				echo -e "\tDepth: $depth"
+				echo -e "\t${sizes[last_top]}\t${direcs[last_top]}"
+				echo -e "\t${sizes[next]}\t${direcs[next]}"
+				echo -e "\t$((sizes[last_top] - sizes[next]))\n"
+			fi >> "$LOGFILE"
+
+			sizes[$last_top]=$((sizes[last_top] - sizes[next]));
+
+			iteration="$next"
+
+		else
+
+			if [[ -n "$debug" ]]; then
+				echo "$current No Matches"
+				echo -e "\tDepth: $depth"
+				echo -e "\tlast_top = ${direcs[last_top]}"
+				echo -e "\t current = ${direcs[current]}"
+				echo -e "\t    next = ${direcs[next]}\n"
+			fi >> "$LOGFILE"
+
+			if (( depth > 1 )); then
+				return;
+			else
+				iteration="$next";
+			fi
+
+		fi
+
+	done
 
 }
 
 _mailboxes () {
 
-  printf "\n----- Large Mailboxes ------\n";
+	printf "\n----- Large Mailboxes ------\n";
 
-  cd var || return 1;
+	cd var || return 1;
 
-  find ./*/mail/* \
-    -maxdepth 0 \
-    -type d \
-    -group "$(getusr)"\
-    -exec parallel du -sh -- {} + | sort -hr | head -10
+	find ./*/mail/* \
+		-maxdepth 0 \
+		-type d \
+		-group "$(getusr)"\
+		-exec parallel du -sh -- {} + | sort -hr | head -10
+}
+
+_extraStuff() {
+
+	printf "\n----- Extra Stuff ------\n";
+
+	find /home/{tmp,nex*} -maxdepth 3 -group "$(pwd | grep -Po "/home/\K[^/]*")" -exec du -sh {} + \
+		| sort -hr \
+		| head -n2
+}
+
+_deletedFiles() {
+
+	printf "\n----- Deleted Files ------\n";
+
+	lsof -u "$(getusr)" \
+		| awk '/deleted/ {print $7,$9,$1,$2}' \
+		| sort -hr \
+		| column -t
 }
 
 main () {
 
-  local files directories mailboxes;
+	local files bigdirs mailboxes extra deleted;
 
-  export -f _files;
-  export -f _directories;
-  export -f _mailboxes;
+	cd /home/"$(getusr)" || return 1;
 
-  cd /home/"$(getusr)" || return;
+	debug=$(echo "$ARGS" | grep -o "debug");
 
-    files="$(_files)";
-    directories="$(_directories)";
-    mailboxes="$(_mailboxes)";
 
-	printf "%s\n%s\n%s\n\n" "$files" "$directories" "$mailboxes";
+	export -f _files;
+	export -f _directories;
+	export -f _mailboxes;
+	export -f _extraStuff;
+	export -f _deletedFiles;
+
+	files="$(_files)";
+	bigdirs="$(_directories)";
+	mailboxes="$(_mailboxes)";
+	extra="$(_extraStuff)";
+	deleted="$(_deletedFiles)";
+
+	printf "%s\n%s\n%s\n%s\n%s\n\n" "$files" "$bigdirs" "$mailboxes" "$extra" "$deleted";
 
 }
 
 main;
+
