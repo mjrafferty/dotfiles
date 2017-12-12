@@ -160,20 +160,54 @@ main () {
 
 	debug=$(echo "$ARGS" | grep -o "debug");
 
+  large_files_tmp=$(mktemp);
+  large_dirs_tmp=$(mktemp);
+  large_mail_tmp=$(mktemp);
+  extras_tmp=$(mktemp);
+  deleted_tmp=$(mktemp);
 
-	export -f _files;
-	export -f _directories;
-	export -f _mailboxes;
-	export -f _extraStuff;
-	export -f _deletedFiles;
+  _files > "$large_files_tmp" &
+  filespid=!$;
 
-	files="$(_files)";
-	bigdirs="$(_directories)";
-	mailboxes="$(_mailboxes)";
-	extra="$(_extraStuff)";
-	deleted="$(_deletedFiles)";
+  _directories > "$large_dirs_tmp" &
+  dirspid=!$;
 
-	printf "%s\n%s\n%s\n%s\n%s\n\n" "$files" "$bigdirs" "$mailboxes" "$extra" "$deleted";
+  _mailboxes > "$large_mail_tmp" &
+  mailpid=!$;
+
+  _extraStuff > "$extras_tmp" &
+  extraspid=!$;
+
+  _deletedFiles > "$deleted_tmp" &
+  deletedpid=!$;
+
+  while [[ -d /proc/"$filespid" ]]; do
+    sleep 0.1;
+  done
+  cat "$large_files_tmp";
+
+  while [[ -d /proc/"$dirspid" ]]; do
+    sleep 0.1;
+  done
+  cat "$large_dirs_tmp";
+
+  while [[ -d /proc/"$mailpid" ]]; do
+    sleep 0.1;
+  done
+  cat "$large_mail_tmp";
+
+  while [[ -d /proc/"$extraspid" ]]; do
+    sleep 0.1;
+  done
+  cat "$extras_tmp";
+
+  while [[ -d /proc/"$deletedpid" ]]; do
+    sleep 0.1;
+  done
+  cat "$deleted_tmp";
+
+  rm "$large_files_tmp" "$large_dirs_tmp" "$large_mail_tmp" "$extras_tmp" "$deleted_tmp";
+	#printf "%s\n%s\n%s\n%s\n%s\n\n" "$files" "$bigdirs" "$mailboxes" "$extra" "$deleted";
 
 }
 
