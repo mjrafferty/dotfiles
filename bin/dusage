@@ -154,8 +154,6 @@ _deletedFiles() {
 
 main () {
 
-	local files bigdirs mailboxes extra deleted;
-
 	cd /home/"$(getusr)" || return 1;
 
 	debug=$(echo "$ARGS" | grep -o "debug");
@@ -167,19 +165,19 @@ main () {
   deleted_tmp=$(mktemp);
 
   _files > "$large_files_tmp" &
-  filespid=!$;
+  filespid=$!;
 
   _directories > "$large_dirs_tmp" &
-  dirspid=!$;
+  dirspid=$!;
 
   _mailboxes > "$large_mail_tmp" &
-  mailpid=!$;
+  mailpid=$!;
 
   _extraStuff > "$extras_tmp" &
-  extraspid=!$;
+  extraspid=$!;
 
   _deletedFiles > "$deleted_tmp" &
-  deletedpid=!$;
+  deletedpid=$!;
 
   while [[ -d /proc/"$filespid" ]]; do
     sleep 0.1;
