@@ -204,6 +204,8 @@ main () {
   done
   cat "$deleted_tmp";
 
+  echo;
+
   rm "$large_files_tmp" "$large_dirs_tmp" "$large_mail_tmp" "$extras_tmp" "$deleted_tmp";
 	#printf "%s\n%s\n%s\n%s\n%s\n\n" "$files" "$bigdirs" "$mailboxes" "$extra" "$deleted";
 
