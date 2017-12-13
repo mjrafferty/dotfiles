@@ -21,17 +21,19 @@ _directories () {
   local temp_list directories;
 
   temp_list=$(mktemp);
+
   find . -mindepth 4 -maxdepth 4 -type d -group "$(getusr)" -exec du -s {} + >> "$temp_list" &
 
-  directories=($(find . \
+  directories=$(find . \
     -mindepth 1 \
     -maxdepth 3 \
     -path "./var/*/mail" -prune -o \
-    -type d ));
+    -type d );
 
   printf "\n----- Large Directories ------\n";
 
-  for x in ${directories[*]}; do
+  IFS=$'\n'
+  for x in $directories; do
     find "$x" -mindepth 1 -maxdepth 1 -group "$(getusr)" -type f -exec du -s {} + \
       | awk '{sum += $1} END {print sum,dirname}' dirname="$x" >> "$temp_list" &
   done;
@@ -40,7 +42,7 @@ _directories () {
 
   sort -k1nr "$temp_list" \
     | head -n20 \
-    | awk '{ H=$1; if ( H > 1048576  ){ H=H/1024/1024;printf "%.1fG\t%s\n",H,$2  }else{ H=H/1024;printf "%.0fM\t%s\n",H,$2 } }';
+    | awk '{ H=$1; $1=""; if ( H > 1048576  ){ H=H/1024/1024;printf "%.1fG\t%s\n",H,$2  }else{ H=H/1024;printf "%.0fM\t%s\n",H,$0 } }';
 
   rm "$temp_list"
 
@@ -82,37 +84,26 @@ main () {
 
   cd /home/"$(getusr)" || return 1;
 
-  large_files_tmp=$(mktemp);
-  large_dirs_tmp=$(mktemp);
-  large_mail_tmp=$(mktemp);
-  extras_tmp=$(mktemp);
-  deleted_tmp=$(mktemp);
+  local func_list tmp_list x;
 
-  _files > "$large_files_tmp" &
+  declare -a func_list;
+  declare -a tmp_list;
 
-  _directories > "$large_dirs_tmp" &
+  func_list=(_files _directories _mailboxes _extraStuff _deletedFiles);
 
-  _mailboxes > "$large_mail_tmp" &
-
-  _extraStuff > "$extras_tmp" &
-
-  _deletedFiles > "$deleted_tmp" &
+  for ((x=0;x<${#func_list[@]};x++)); do
+    tmp_list[x]="$(mktemp)";
+    "${func_list[x]}" 2> /dev/null > "${tmp_list[x]}" &
+  done
 
   wait;
 
-  cat "$large_files_tmp";
-
-  cat "$large_dirs_tmp";
-
-  cat "$large_mail_tmp";
-
-  cat "$extras_tmp";
-
-  cat "$deleted_tmp";
+  for ((x=0;x<${#tmp_list[@]};x++)); do
+    cat "${tmp_list[x]}";
+    rm "${tmp_list[x]}";
+  done
 
   echo;
-
-  rm "$large_files_tmp" "$large_dirs_tmp" "$large_mail_tmp" "$extras_tmp" "$deleted_tmp";
 
 }
 
