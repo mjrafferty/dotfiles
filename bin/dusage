@@ -3,6 +3,22 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+_humanReadable() {
+  awk '{ H=$1;
+  $1="";
+  if ( H > 1048576  )
+    {
+      H=H/1024/1024;
+      printf "%.1fG\t%s\n",H,$0
+    }
+  else
+    {
+      H=H/1024;
+      printf "%.0fM\t%s\n",H,$0
+    }
+  }';
+}
+
 _files () {
 
   printf "\n----- Large Files ------\n";
@@ -42,7 +58,7 @@ _directories () {
 
   sort -k1nr "$temp_list" \
     | head -n20 \
-    | awk '{ H=$1; $1=""; if ( H > 1048576  ){ H=H/1024/1024;printf "%.1fG\t%s\n",H,$2  }else{ H=H/1024;printf "%.0fM\t%s\n",H,$0 } }';
+    | _humanReadable;
 
   rm "$temp_list"
 
@@ -77,6 +93,7 @@ _deletedFiles() {
   lsof -u "$(getusr)" \
     | awk '/deleted/ {print $7,$9,$1,$2}' \
     | sort -hr \
+    | _humanReadable \
     | column -t
 }
 
