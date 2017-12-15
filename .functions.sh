@@ -530,7 +530,7 @@ sysusage () {
 
 ## Quick summary of domain DNS info
 ddns () {
-  local D;
+  local D NS;
   if [[ -z "$*" ]]; then
     vared -p "Domain Name: " -c D;
   else
@@ -541,8 +541,11 @@ ddns () {
     for y in a aaaa ns mx txt soa; do
       dig +time=2 +tries=2 +short $y "$x" +noshort;
       if [[ $y == 'ns' ]]; then
-        dig +time=2 +tries=2 +short "$(dig +short ns "$x")" +noshort \
-          | grep -v root;
+        NS="$(dig +short ns "$x")";
+        if [[ -n "$NS" ]]; then
+          dig +time=2 +tries=2 +short "$NS" +noshort \
+            | grep -v root;
+        fi
       fi;
     done;
     dig +short -x "$(dig +time=2 +tries=2 +short "$x")" +noshort;
