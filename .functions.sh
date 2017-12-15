@@ -548,6 +548,11 @@ ddns () {
         fi
       fi;
     done;
+    echo;
+    dig +short txt _domainkey."$x" +noshort;
+    echo;
+    dig +short txt default._domainkey."$x" +noshort;
+    echo;
     dig +short -x "$(dig +time=2 +tries=2 +short "$x")" +noshort;
     echo;
   done
