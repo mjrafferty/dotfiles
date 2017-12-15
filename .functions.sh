@@ -536,7 +536,7 @@ ddns () {
   else
     D="$*";
   fi
-  for x in $(echo "$D" | sed 's/\// /g'); do
+  for x in $(echo "$D" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]"); do
     echo -e "\nDNS Summary: $x\n$(dashes 79)";
     for y in a aaaa ns mx txt soa; do
       dig +time=2 +tries=2 +short $y "$x" +noshort;
