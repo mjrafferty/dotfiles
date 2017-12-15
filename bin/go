@@ -90,6 +90,7 @@ _login () {
       --exclude '.mytop' \
       --exclude '.git' \
       --exclude 'YouCompleteMe' \
+      --exclude 'vim-autoformat' \
       --exclude 'no-rsync' \
       --exclude '.vimfiles' \
       --exclude '*SNAPS*' \
