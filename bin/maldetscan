@@ -59,7 +59,7 @@ _humanReadable() {
 
 main () {
 
-	local maldetpid scanpid scanlist filecount clamdpid;
+	local scanpid scanlist filecount clamdpid;
 
 	while getopts "hxt:c:" OPTION "$(_cmdline)"; do
 
@@ -77,14 +77,10 @@ main () {
 
 	maldet -a "$filepath" >/dev/null &
 
-	maldetpid=$!;
-	echo "nksirpid = $maldetpid";
+	scanpid=$!;
+	echo "scanpid = $scanpid";
 
 	sleep 1;
-
-	pgrep -fln "maldet \-a.*$filepath";
-	scanpid=$(pgrep -fn "maldet \-a.*$filepath");
-	echo "scanpid= $scanpid";
 
 	scanlist="/usr/local/maldetect/tmp/.find.$scanpid"
 	echo "scanlist = $scanlist";
@@ -94,6 +90,7 @@ main () {
 	echo "filecount = $filecount";
 
 	totalsize="$(xargs du -sb < "$scanlist" | awk '{sum +=$1} END {print sum}')";
+  echo "$totalsize"
 	_humanReadable "$totalsize";
 
 	sleep 1;
