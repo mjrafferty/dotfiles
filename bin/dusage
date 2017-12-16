@@ -6,15 +6,24 @@ readonly ARGA=("$@")
 _humanReadable() {
   awk '{ H=$1;
   $1="";
-  if ( H > 1048576  )
+  if ( H >= 1073741824  )
+    {
+      H=H/1024/1024/1024;
+      printf "%.1fG\t%s\n",H,$0
+    }
+  else if ( H >= 1048576  )
     {
       H=H/1024/1024;
-      printf "%.1fG\t%s\n",H,$0
+      printf "%.1fM\t%s\n",H,$0
+    }
+  else if ( H >= 1024  )
+    {
+      H=H/1024;
+      printf "%.1fK\t%s\n",H,$0
     }
   else
     {
-      H=H/1024;
-      printf "%.0fM\t%s\n",H,$0
+      printf "%.0fB\t%s\n",H,$0
     }
   }';
 }
@@ -38,7 +47,7 @@ _directories () {
 
   temp_list=$(mktemp);
 
-  find . -mindepth 4 -maxdepth 4 -type d -group "$(getusr)" -exec du -s {} + >> "$temp_list" &
+  find . -mindepth 4 -maxdepth 4 -type d -group "$(getusr)" -exec du -sb {} + >> "$temp_list" &
 
   directories=$(find . \
     -mindepth 1 \
@@ -50,7 +59,7 @@ _directories () {
 
   IFS=$'\n'
   for x in $directories; do
-    find "$x" -mindepth 1 -maxdepth 1 -group "$(getusr)" -type f -exec du -s {} + \
+    find "$x" -mindepth 1 -maxdepth 1 -group "$(getusr)" -type f -exec du -sb {} + \
       | awk '{sum += $1} END {print sum,dirname}' dirname="$x" >> "$temp_list" &
   done;
 
@@ -91,7 +100,7 @@ _deletedFiles() {
   printf "\n----- Deleted Files ------\n";
 
   lsof -u "$(getusr)" \
-    | awk '/deleted/ {SIZE=$9/1024; print SIZE,$9,$1,$2}' \
+    | awk '/deleted/ {print $7,$9,$1,$2}' \
     | sort -hr \
     | _humanReadable \
     | column -t
