@@ -36,7 +36,7 @@ _files () {
     -path './var/*/mail' -prune -o \
     -size +100M \
     -group "$(getusr)" \
-    -type f
+    -type f \
     -exec du -sh {} + | sort -hr | head -20
 
 }
