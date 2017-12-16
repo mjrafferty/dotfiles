@@ -91,7 +91,7 @@ _deletedFiles() {
   printf "\n----- Deleted Files ------\n";
 
   lsof -u "$(getusr)" \
-    | awk '/deleted/ {SIZE=$9*1024; print SIZE,$9,$1,$2}' \
+    | awk '/deleted/ {SIZE=$9/1024; print SIZE,$9,$1,$2}' \
     | sort -hr \
     | _humanReadable \
     | column -t
