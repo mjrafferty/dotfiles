@@ -33,7 +33,7 @@ _files () {
   printf "\n----- Large Files ------\n";
 
   find . \
-    -path './var/*/mail'
+    -path './var/*/mail' -prune -o \
     -size +100M \
     -group "$(getusr)" \
     -type f
