@@ -34,9 +34,9 @@ _files () {
 
   find . \
     -mindepth 1 \
-    -path "./var/*/mail" -prune -o \
     -size +100M \
     -group "$(getusr)" \
+    -not -path "./var/*/mail/*" \
     -exec du -sh {} + | sort -hr | head -20
 
 }
@@ -47,13 +47,20 @@ _directories () {
 
   temp_list=$(mktemp);
 
-  find . -mindepth 4 -maxdepth 4 -type d -group "$(getusr)" -exec du -sb {} + >> "$temp_list" &
+  find . \
+    -mindepth 4 \
+    -maxdepth 4 \
+    -type d \
+    -group "$(getusr)" \
+    -not -path "./var/*/mail/*" \
+    -exec du -sb {} + >> "$temp_list" &
 
   directories=$(find . \
     -mindepth 1 \
     -maxdepth 3 \
     -path "./var/*/mail" -prune -o \
-    -type d );
+    -type d \
+    -not -path "./var/*/mail/*");
 
   printf "\n----- Large Directories ------\n";
 
