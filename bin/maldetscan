@@ -4,87 +4,117 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 _usage() {
-  cat <<- EOF
-  This is the usage
+	cat <<- EOF
+	This is the usage
 EOF
 }
 
 _cmdline() {
 
-  local x;
+	local x;
 
-  for x in ${ARGA[*]}; do
+	for x in ${ARGA[*]}; do
 
-    local delim=""
+		local delim=""
 
-    case "$x" in
-      "--help"|"-h")
-        args="${args}-h "
-        ;;
-      *) [[ "${x:0:1}" == "-" ]] || delim="\"";
-        args="${args}${delim}${x}${delim} "
-        ;;
-    esac
+		case "$x" in
+			"--help"|"-h")
+				args="${args}-h "
+				;;
+			*) [[ "${x:0:1}" == "-" ]] || delim="\"";
+				args="${args}${delim}${x}${delim} "
+				;;
+		esac
 
-  done
+	done
 
 
-  echo "$args";
+	echo "$args";
+}
+
+_humanReadable() {
+	awk '{ H=$1;
+	$1="";
+	if ( H >= 1073741824  )
+		{
+			H=H/1024/1024/1024;
+			printf "%.1fG\t%s\n",H,$0
+		}
+	else if ( H >= 1048576  )
+		{
+			H=H/1024/1024;
+			printf "%.1fM\t%s\n",H,$0
+		}
+	else if ( H >= 1024  )
+		{
+			H=H/1024;
+			printf "%.1fK\t%s\n",H,$0
+		}
+	else
+		{
+			printf "%.0fB\t%s\n",H,$0
+		}
+	}';
 }
 
 main () {
 
-  local nksirpid scanpid scanlist filecount clamdpid;
+	local maldetpid scanpid scanlist filecount clamdpid;
 
-  while getopts "hxt:c:" OPTION "$(_cmdline)"; do
+	while getopts "hxt:c:" OPTION "$(_cmdline)"; do
 
-    case $OPTION in
-      h)
-        _usage;
-        exit 0;
-        ;;
-    esac
+		case $OPTION in
+			h)
+				_usage;
+				exit 0;
+				;;
+		esac
 
-  done
+	done
 
-  #nksir case -n | grep -Po ": \K.*"
+	filepath="${ARGA[0]}";
+  echo "$filepath";
 
-  filepath="${ARGA[0]}";
+	maldet -a "$filepath" >/dev/null &
 
-  #(nksir maldet "$filepath" >/dev/null) &
-  (maldet -a "$filepath" >/dev/null) &
+	maldetpid=$!;
+	echo "nksirpid = $maldetpid";
 
-  nksirpid=$!;
-  echo "nksirpid = $nksirpid";
+	sleep 1;
 
-  sleep 1;
+	pgrep -fln "maldet \-a.*$filepath";
+	scanpid=$(pgrep -fn "maldet \-a.*$filepath");
+	echo "scanpid= $scanpid";
 
-  scanpid=$(pgrep -f maldet.*"$filepath");
-  echo "scanpid= $scanpid";
-  scanlist="/usr/local/maldetect/tmp/.find.$scanpid"
-  echo "scanlist = $scanlist";
-  filecount=$(grep -c "$filepath" "$scanlist");
-  echo "filecount = $filecount";
+	scanlist="/usr/local/maldetect/tmp/.find.$scanpid"
+	echo "scanlist = $scanlist";
+	cp "$scanlist" ~/scanlist
 
-  sleep 1;
+	filecount=$(grep -c "$filepath" "$scanlist");
+	echo "filecount = $filecount";
 
-  clamdpid=$(pgrep -u clamav clamd);
-  echo "clamdpid = $clamdpid";
+	totalsize="$(xargs du -sb < "$scanlist" | awk '{sum +=$1} END {print sum}')";
+	_humanReadable "$totalsize";
 
-  while [ -d /proc/"$scanpid" ]; do
+	sleep 1;
 
-    local currentfile currentfilenumber;
+	clamdpid=$(pgrep -u clamav clamd);
+	echo "clamdpid = $clamdpid";
 
-    currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*"| tail -n1);
-    echo "curentfile = $currentfile";
-    currentfilenumber=$(grep -n "${currentfile}$" "$scanlist" | cut -d: -f1)
-    echo "currentfilenumber = $currentfilenumber";
+	while [ -d /proc/"$scanpid" ]; do
 
-    printf "%s" $((100 * currentfilenumber/filecount));
-    sleep 1;
+		local currentfile currentfilenumber;
 
-  done
+		currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*"| tail -n1);
+		echo -e "\tcurentfile = $currentfile";
 
+		[[ -n "$currentfile" ]] && currentfilenumber=$(grep -n "${currentfile}$" "$scanlist" | cut -d: -f1)
+		echo -e "\tcurrentfilenumber = $currentfilenumber";
+
+		printf "%s\n\n" $((100 * currentfilenumber/filecount));
+		sleep 1;
+
+	done
 
 }
 
