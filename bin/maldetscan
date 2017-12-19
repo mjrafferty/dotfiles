@@ -118,7 +118,7 @@ main () {
 
   done
 
-  echo "$maldetoutput";
+  cat "$maldetoutput";
 
   rm "$maldetoutput"
 
