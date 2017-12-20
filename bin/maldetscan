@@ -38,21 +38,21 @@ _humanReadable() {
 	if ( H >= 1073741824  )
 		{
 			H=H/1024/1024/1024;
-			printf "%.1fG\t%s\n",H,$0
+			printf "%.1fG",H
 		}
 	else if ( H >= 1048576  )
 		{
 			H=H/1024/1024;
-			printf "%.1fM\t%s\n",H,$0
+			printf "%.1fM",H
 		}
 	else if ( H >= 1024  )
 		{
 			H=H/1024;
-			printf "%.1fK\t%s\n",H,$0
+			printf "%.1fK",H
 		}
 	else
 		{
-			printf "%.0fB\t%s\n",H,$0
+			printf "%.0fB",H
 		}
 	}';
 }
