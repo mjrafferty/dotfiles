@@ -92,7 +92,7 @@ main () {
 		sleep 0.1;
 	done
 
-	data_list=$(xargs du -sb < "$scanlist" | awk '{print (sum += $1)"\t"$0}' | cat -n)
+	data_list=$(xargs --delimiter="\n" du -sb < "$scanlist" | awk '{print (sum += $1)"\t"$0}' | cat -n)
 
 	totals=($(echo "$data_list" | tail -n1 | awk '{print $1,$2}'))
 
