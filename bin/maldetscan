@@ -134,6 +134,7 @@ main () {
 	cat "$maldetoutput";
 
 	rm "$maldetoutput"
+	rm "$data_list"
 
 }
 
