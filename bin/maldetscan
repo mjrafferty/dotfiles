@@ -103,7 +103,7 @@ main () {
 	clamdpid=$(pgrep -u clamav clamd);
 
 	start_time=$(date '+%s')
-	echo -e "\n\n\n\n\n\n";
+
 	while [ -d /proc/"$scanpid" ]; do
 
 		# Check what is being currently scanned
@@ -119,9 +119,7 @@ main () {
       done
     fi
 
-		for (( i = 0; i < 7; i++ )); do
-			tput cuu 1 && tput el;
-		done
+    tput clear;
 
 		elapsed_time=$(($(date '+%s') - start_time));
 
