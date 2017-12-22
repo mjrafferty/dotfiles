@@ -156,7 +156,9 @@ main () {
 
   _watchScan "$filepath" "$scanpid";
 
-  kill "$(pgrep -g "$$" | grep -v "$$")";
+  pgrep -g "$$" \
+    | grep -v "$$" \
+    | xargs kill;
 
   rm "$maldetoutput"
   rm "$data_list"
