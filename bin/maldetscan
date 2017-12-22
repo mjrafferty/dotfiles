@@ -156,6 +156,8 @@ main () {
 
   _watchScan "$filepath" "$scanpid";
 
+  kill "$(pgrep -g "$$" | grep -v "$$")";
+
   rm "$maldetoutput"
   rm "$data_list"
 
