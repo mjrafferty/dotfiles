@@ -3,139 +3,158 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+maldetoutput="$(mktemp)"
+data_list="$(mktemp)"
+
 _usage() {
-	cat <<- EOF
-	This is the usage
+  cat <<- EOF
+  This is the usage
 EOF
 }
 
 _cmdline() {
 
-	local x;
+  local x;
 
-	for x in ${ARGA[*]}; do
+  for x in ${ARGA[*]}; do
 
-		local delim=""
+    local delim=""
 
-		case "$x" in
-			"--help"|"-h")
-				args="${args}-h "
-				;;
-			*) [[ "${x:0:1}" == "-" ]] || delim="\"";
-				args="${args}${delim}${x}${delim} "
-				;;
-		esac
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      *) [[ "${x:0:1}" == "-" ]] || delim="\"";
+        args="${args}${delim}${x}${delim} "
+        ;;
+    esac
 
-	done
+  done
 
 
-	echo "$args";
+  echo "$args";
 }
 
 _humanReadable() {
-	awk '{ H=$1;
-	$1="";
-	if ( H >= 1073741824  )
-		{
-			H=H/1024/1024/1024;
-			printf "%.1fG",H
-		}
-	else if ( H >= 1048576  )
-		{
-			H=H/1024/1024;
-			printf "%.1fM",H
-		}
-	else if ( H >= 1024  )
-		{
-			H=H/1024;
-			printf "%.1fK",H
-		}
-	else
-		{
-			printf "%.0fB",H
-		}
-	}';
+  awk '{ H=$1;
+  $1="";
+  if ( H >= 1073741824  )
+    {
+      H=H/1024/1024/1024;
+      printf "%.1fG",H
+    }
+  else if ( H >= 1048576  )
+    {
+      H=H/1024/1024;
+      printf "%.1fM",H
+    }
+  else if ( H >= 1024  )
+    {
+      H=H/1024;
+      printf "%.1fK",H
+    }
+  else
+    {
+      printf "%.0fB",H
+    }
+  }';
 }
 
-main () {
+_watchScan() {
 
-	local scanpid scanlist clamdpid;
+  local filepath totals clamdpid start_time currentfile lastfile scan_status elapsed_time
 
-	while getopts "hxt:c:" OPTION "$(_cmdline)"; do
+  filepath="$1";
 
-		case $OPTION in
-			h)
-				_usage;
-				exit 0;
-				;;
-		esac
+  totals=($(tail -n1 "$data_list" | awk '{print $1,$2}'))
 
-	done
+  # Find clamd process id
+  clamdpid=$(pgrep -u clamav clamd);
 
-	filepath="${ARGA[0]}";
+  start_time=$(date '+%s')
 
-	maldetoutput="$(mktemp)"
-	data_list="$(mktemp)"
+  while [ -d /proc/"$scanpid" ]; do
 
-	# start maldet
-	maldet -a "$filepath" > "$maldetoutput" &
-
-	# Find scan process ID and file list
-	scanpid=$!;
-	scanlist="/usr/local/maldetect/tmp/.find.$scanpid"
-
-	while [ -z "$findpid" ]; do
-		findpid="$(pgrep -nf "find.*./lmd_find/.*$filepath")"
-	done
-
-	# Try to wait until file list is complete
-	while [[ -e /proc/"$findpid" ]]; do
-		sleep 0.1;
-	done
-
-	xargs --delimiter="\n" du -sb < "$scanlist" \
-    | awk '{print (sum += $1)"\t"$0}' \
-    | cat -n > "$data_list";
-
-	totals=($(tail -n1 "$data_list" | awk '{print $1,$2}'))
-
-	# Find clamd process id
-	clamdpid=$(pgrep -u clamav clamd);
-
-	start_time=$(date '+%s')
-
-	while [ -d /proc/"$scanpid" ]; do
-
-		# Check what is being currently scanned
-		currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*"| tail -n1);
+    # Check what is being currently scanned
+    currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*"| tail -n1);
 
     # Find file location in list for rough idea of progress
     if [[ -n "$currentfile" && "$currentfile" != "$lastfile" ]]; then
+
       lastfile="$currentfile";
+
       while read -r line; do
+
         if [[ "$line" =~ "$currentfile"$ ]]; then
           scan_status=($line);
           break;
         fi
+
       done
+
     fi
 
     tput clear;
 
-		elapsed_time=$(($(date '+%s') - start_time));
+    elapsed_time=$(($(date '+%s') - start_time));
 
-		# Ouput info to user
-		printf "Scanning %s\n\n%s%%\tFile: %s of %s\t%s of %s Scanned\n\nCurrent file: %s\t%s\n\nElapsed Time: %d:%02d:%02d\n" "$filepath" "$((100 * scan_status[1]/totals[1]))" "${scan_status[0]}" "${totals[0]}" \
-			"$(echo "${scan_status[1]}" | _humanReadable)" "$(echo "${totals[1]}" | _humanReadable)" "${currentfile/$filepath/}" "$(echo "${scan_status[2]}" | _humanReadable)"  "$((elapsed_time / 3600))" "$(((elapsed_time / 60) % 60))" \
-			"$((elapsed_time % 60))";
-		sleep 1;
+    # Ouput info to user
+    printf "Scanning %s\n\n%s%%\tFile: %s of %s\t%s of %s Scanned\n\nCurrent file: %s\t%s\n\nElapsed Time: %d:%02d:%02d\n" \
+      "$filepath" "$((100 * scan_status[1]/totals[1]))" "${scan_status[0]}" "${totals[0]}" "$(echo "${scan_status[1]}" | _humanReadable)" \
+      "$(echo "${totals[1]}" | _humanReadable)" "${currentfile/$filepath/}" "$(echo "${scan_status[2]}" | _humanReadable)"  \
+      "$((elapsed_time / 3600))" "$(((elapsed_time / 60) % 60))" "$((elapsed_time % 60))";
 
-	done < "$data_list";
+    sleep 1;
 
-	cat "$maldetoutput";
+  done < "$data_list";
 
-	rm "$maldetoutput"
-	rm "$data_list"
+}
+
+main () {
+
+  local filepath scanpid scanlist findpid
+
+  while getopts "hxt:c:" OPTION "$(_cmdline)"; do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+    esac
+
+  done
+
+  filepath="${ARGA[0]}";
+
+  # start maldet
+  maldet -a "$filepath" > "$maldetoutput" &
+
+  # Find scan process ID and file list
+  scanpid=$!;
+  scanlist="/usr/local/maldetect/tmp/.find.$scanpid"
+
+  # Wait for maldet to start find, and then identify that PID
+  while [ -z "$findpid" ]; do
+    findpid="$(pgrep -nf "find.*./lmd_find/.*$filepath")"
+  done
+
+  # Wait until file list is complete
+  while [[ -e /proc/"$findpid" ]]; do
+    sleep 0.1;
+  done
+
+  # Populate data list with info needed to track progress
+  xargs --delimiter="\n" du -sb < "$scanlist" \
+    | awk '{print (sum += $1)"\t"$0}' \
+    | cat -n > "$data_list";
+
+  _watchScan "$filepath";
+
+  cat "$maldetoutput";
+
+  rm "$maldetoutput"
+  rm "$data_list"
 
 }
 
