@@ -110,7 +110,8 @@ main () {
 		currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*"| tail -n1);
 
     # Find file location in list for rough idea of progress
-    if [[ -n "$currentfile" ]]; then
+    if [[ -n "$currentfile" && "$currentfile" != "$lastfile" ]]; then
+      lastfile="$currentfile";
       while read -r line; do
         if [[ "$line" =~ "$currentfile"$ ]]; then
           scan_status=($line);
