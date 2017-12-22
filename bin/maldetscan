@@ -62,9 +62,10 @@ _humanReadable() {
 
 _watchScan() {
 
-  local filepath totals clamdpid start_time currentfile lastfile scan_status elapsed_time
+  local filepath scanpid totals clamdpid start_time currentfile lastfile scan_status elapsed_time
 
   filepath="$1";
+  scanpid="$2";
 
   totals=($(tail -n1 "$data_list" | awk '{print $1,$2}'))
 
@@ -149,7 +150,7 @@ main () {
     | awk '{print (sum += $1)"\t"$0}' \
     | cat -n > "$data_list";
 
-  _watchScan "$filepath";
+  _watchScan "$filepath" "$scanpid";
 
   cat "$maldetoutput";
 
