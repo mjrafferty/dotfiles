@@ -158,7 +158,7 @@ main () {
 
   pgrep -g "$$" \
     | grep -v "$$" \
-    | xargs kill;
+    | xargs kill 2> /dev/null
 
   rm "$maldetoutput"
   rm "$data_list"
