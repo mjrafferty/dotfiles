@@ -173,8 +173,7 @@ topuseragents () {
 topuri () {
   zless -f "$@" \
     | grep -hv " 403 " \
-    | cut -d\  -f7 \
-    | sed 's/?.*/?/' \
+    | grep -Po "\] \"\S* \K[^?, ]*\??" \
     | sort \
     | uniq -c \
     | sort -hr \
@@ -195,8 +194,8 @@ topquery () {
 # Show top referers by number of hits
 topref () {
   zless -f "$@" \
-    | grep -hv " 403 " \
-    | cut -d\  -f11 \
+    | grep -v " 403 " \
+    | grep -Po "[0-9]{3} ([0-9]*|-) \K\"[^\"]*\"" \
     | sort \
     | uniq -c \
     | sort -hr \
