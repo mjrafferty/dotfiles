@@ -64,6 +64,8 @@ _watchScan() {
 
   local filepath scanpid totals clamdpid start_time currentfile lastfile scan_status elapsed_time
 
+  trap 'return' INT QUIT TERM;
+
   filepath="$1";
   scanpid="$2";
 
@@ -109,6 +111,8 @@ _watchScan() {
 
   done < "$data_list";
 
+  cat "$maldetoutput";
+
 }
 
 main () {
@@ -151,8 +155,6 @@ main () {
     | cat -n > "$data_list";
 
   _watchScan "$filepath" "$scanpid";
-
-  cat "$maldetoutput";
 
   rm "$maldetoutput"
   rm "$data_list"
