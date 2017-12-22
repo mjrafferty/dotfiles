@@ -125,8 +125,8 @@ main () {
 		elapsed_time=$(($(date '+%s') - start_time));
 
 		# Ouput info to user
-		printf "Scanning %s\n\n%s%%\tFile: %s of %s\t%s of %s Scanned\n\nCurrent file: %s\t%s\n\nElapsed Time: %d:%02d:%02d\n" "$filepath" "$((100 * scan_status[0]/totals[0]))" "${scan_status[0]}" "${totals[0]}" \
-			"$(echo "${scan_status[1]}" | _humanReadable)" "$(echo "${totals[1]}" | _humanReadable)" "$currentfile" "$(echo "${scan_status[2]}" | _humanReadable)"  "$((elapsed_time / 3600))" "$(((elapsed_time / 60) % 60))" \
+		printf "Scanning %s\n\n%s%%\tFile: %s of %s\t%s of %s Scanned\n\nCurrent file: %s\t%s\n\nElapsed Time: %d:%02d:%02d\n" "$filepath" "$((100 * scan_status[1]/totals[1]))" "${scan_status[0]}" "${totals[0]}" \
+			"$(echo "${scan_status[1]}" | _humanReadable)" "$(echo "${totals[1]}" | _humanReadable)" "${currentfile/$filepath/}" "$(echo "${scan_status[2]}" | _humanReadable)"  "$((elapsed_time / 3600))" "$(((elapsed_time / 60) % 60))" \
 			"$((elapsed_time % 60))";
 		sleep 1;
 
