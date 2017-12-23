@@ -149,9 +149,9 @@ _watchScan() {
 
     fi
 
+    # The +1's are to prevent divide by zero errors on small scans
     elapsed_time=$(($(date '+%s') - start_time + 1));
-
-    rate="$((scan_status[1] / elapsed_time))"
+    rate="$(((scan_status[1] / elapsed_time) + 1))"
     rate_human="$(echo "$rate" | _humanReadable)"
 
     remaining_time=$(((totals[1] - scan_status[1]) / rate ));
