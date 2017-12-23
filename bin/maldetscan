@@ -149,8 +149,6 @@ _showResults () {
 
   local bad_files report_id hits_file;
 
-  tee "$OUTPUT_FILE" < "$maldetoutput";
-
   report_id="$(grep -Po "report \K[0-9,\-,.]*" "$maldetoutput")"
   hits_file="/usr/local/maldetect/sess/session.hits.$report_id"
 
@@ -168,7 +166,7 @@ _showResults () {
 
     echo "No malware found!"
 
-  fi >> "$OUTPUT_FILE";
+  fi > "$OUTPUT_FILE";
 
 }
 
