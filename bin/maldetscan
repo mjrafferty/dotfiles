@@ -101,6 +101,7 @@ _watchScan() {
   scanpid="$2";
 
   totals=($(tail -n1 "$data_list" | awk '{print $1,$2}'))
+  data_total_human="$(echo "${totals[1]}" | _humanReadable)"
 
   # Find clamd process id
   clamdpid=$(pgrep -u clamav clamd);
@@ -134,26 +135,33 @@ _watchScan() {
     elapsed_hours="$((elapsed_time / 3600))"
     elapsed_minutes="$(((elapsed_time / 60) % 60))"
     elapsed_seconds="$((elapsed_time % 60))"
+    elapsed_time_human=$(printf "%02d:%02d:%02d" "$elapsed_hours" "$elapsed_minutes" "$elapsed_seconds")
 
     scan_percentage="$((100 * scan_status[1]/totals[1]))"
     data_scanned_human="$(echo "${scan_status[1]}" | _humanReadable)"
-    data_total_human="$(echo "${totals[1]}" | _humanReadable)"
 
     current_file_size_human="$(echo "${scan_status[2]}" | _humanReadable)"
 
     rate="$((scan_status[1] / elapsed_time))"
     rate_human="$(echo "$rate" | _humanReadable)"
 
+    remaining_time=$(((totals[1] - scan_status[1]) / rate ));
+    remaining_hours="$((remaining_time / 3600))"
+    remaining_minutes="$(((remaining_time / 60) % 60))"
+    remaining_seconds="$((remaining_time % 60))"
+    remaining_time_human=$(printf "%02d:%02d:%02d" "$remaining_hours" "$remaining_minutes" "$remaining_seconds")
+
     tput clear;
 
     tee "$OUTPUT_FILE" <<- EOF
-Scanning $filepath
 
-${scan_percentage}%  File: ${scan_status[0]} of ${totals[0]}  $data_scanned_human of $data_total_human Scanned
+    Scanning $filepath
 
-Current file: ${currentfile/$filepath/}  $current_file_size_human
+    ${scan_percentage}%  File: ${scan_status[0]} of ${totals[0]}  $data_scanned_human of $data_total_human Scanned
 
-Elapsed Time: ${elapsed_hours}:${elapsed_minutes}:${elapsed_seconds}  Rate: ${rate_human}/s
+    Current file: ${currentfile/$filepath/}  $current_file_size_human
+
+    Elapsed Time: ${elapsed_time_human}  Rate: ${rate_human}/s  Remaining Time: $remaining_time_human
 
 EOF
 
