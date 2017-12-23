@@ -62,6 +62,35 @@ _humanReadable() {
   }';
 }
 
+_waitForList () {
+
+  local findpid
+
+  # Wait for maldet to start find, and then identify that PID
+  while [ -z "$findpid" ]; do
+    findpid="$(pgrep -nf "find.*./lmd_find/.*$1")"
+  done
+
+  # Wait until file list is complete
+  while [[ -e /proc/"$findpid" ]]; do
+    sleep 0.1;
+  done
+
+}
+
+_evaluateList () {
+
+  local scanlist
+
+  scanlist="/usr/local/maldetect/tmp/.find.$1"
+
+ # Populate data list with info needed to track progress
+  xargs --delimiter="\n" du -sb < "$scanlist" \
+    | awk '{print (sum += $1)"\t"$0}' \
+    | cat -n > "$data_list";
+
+}
+
 _watchScan() {
 
   local filepath scanpid totals clamdpid start_time currentfile lastfile scan_status elapsed_time
@@ -114,13 +143,51 @@ _watchScan() {
 
   done < "$data_list";
 
-  cat "$maldetoutput";
+}
+
+_showResults () {
+
+  local bad_files report_id hits_file;
+
+  tee "$OUTPUT_FILE" < "$maldetoutput";
+
+  report_id="$(grep -Po "report \K[0-9,\-,.]*" "$maldetoutput")"
+  hits_file="/usr/local/maldetect/sess/session.hits.$report_id"
+
+  if [[ -s "$hits_file" ]]; then
+
+    cat "$hits_file";
+
+    bad_files=($(awk '{print $3}' "$hits_file"));
+
+    for (( x=0; x<=${#bad_files[@]}; x++ )); do
+      stat "${bad_files[$x]}";
+    done
+
+  else
+
+    echo "No malware found!"
+
+  fi >> "$OUTPUT_FILE";
+
+}
+
+_cleanUp () {
+
+# Kill any processes that are still running
+  pgrep -g "$$" \
+    | grep -v "$$" \
+    | xargs kill &> /dev/null
+
+  # Clean up temp files
+  rm "$maldetoutput"
+  rm "$data_list"
 
 }
 
 main () {
 
-  local filepath scanpid scanlist findpid
+  local filepath scanpid
 
   while getopts "hxt:c:" OPTION "$(_cmdline)"; do
 
@@ -140,34 +207,17 @@ main () {
 
   # Find scan process ID and file list
   scanpid=$!;
-  scanlist="/usr/local/maldetect/tmp/.find.$scanpid"
 
-  # Wait for maldet to start find, and then identify that PID
-  while [ -z "$findpid" ]; do
-    findpid="$(pgrep -nf "find.*./lmd_find/.*$filepath")"
-  done
+  _waitForList "$filepath";
 
-  # Wait until file list is complete
-  while [[ -e /proc/"$findpid" ]]; do
-    sleep 0.1;
-  done
-
-  # Populate data list with info needed to track progress
-  xargs --delimiter="\n" du -sb < "$scanlist" \
-    | awk '{print (sum += $1)"\t"$0}' \
-    | cat -n > "$data_list";
+  _evaluateList "$scanpid";
 
   _watchScan "$filepath" "$scanpid";
 
-  # Kill any processes that are still running
-  pgrep -g "$$" \
-    | grep -v "$$" \
-    | xargs kill &> /dev/null
+  _showResults;
 
-  # Clean up temp files
-  rm "$maldetoutput"
-  rm "$data_list"
+  _cleanUp;
 
-}
+  }
 
 main;
