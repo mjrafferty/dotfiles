@@ -157,6 +157,8 @@ main () {
     | awk '{print (sum += $1)"\t"$0}' \
     | cat -n > "$data_list";
 
+  touch "$OUTPUT_FILE";
+
   _watchScan "$filepath" "$scanpid";
 
   # Kill any processes that are still running
