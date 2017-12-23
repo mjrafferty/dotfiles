@@ -62,6 +62,19 @@ _humanReadable() {
   }';
 }
 
+_convertTime() {
+
+  local time
+
+  time="$1"
+
+  hours="$((time / 3600))"
+  minutes="$(((time / 60) % 60))"
+  seconds="$((time % 60))"
+  printf "%02d:%02d:%02d" "$hours" "$minutes" "$seconds";
+
+}
+
 _waitForList () {
 
   local findpid
@@ -130,14 +143,10 @@ _watchScan() {
 
     fi
 
-
     elapsed_time=$(($(date '+%s') - start_time));
-    elapsed_hours="$((elapsed_time / 3600))"
-    elapsed_minutes="$(((elapsed_time / 60) % 60))"
-    elapsed_seconds="$((elapsed_time % 60))"
-    elapsed_time_human=$(printf "%02d:%02d:%02d" "$elapsed_hours" "$elapsed_minutes" "$elapsed_seconds")
 
     scan_percentage="$((100 * scan_status[1]/totals[1]))"
+
     data_scanned_human="$(echo "${scan_status[1]}" | _humanReadable)"
 
     current_file_size_human="$(echo "${scan_status[2]}" | _humanReadable)"
@@ -146,22 +155,18 @@ _watchScan() {
     rate_human="$(echo "$rate" | _humanReadable)"
 
     remaining_time=$(((totals[1] - scan_status[1]) / rate ));
-    remaining_hours="$((remaining_time / 3600))"
-    remaining_minutes="$(((remaining_time / 60) % 60))"
-    remaining_seconds="$((remaining_time % 60))"
-    remaining_time_human=$(printf "%02d:%02d:%02d" "$remaining_hours" "$remaining_minutes" "$remaining_seconds")
 
     tput clear;
 
     tee "$OUTPUT_FILE" <<- EOF
 
-    Scanning $filepath
+Scanning $filepath
 
-    ${scan_percentage}%  File: ${scan_status[0]} of ${totals[0]}  $data_scanned_human of $data_total_human Scanned
+${scan_percentage}%  File: ${scan_status[0]} of ${totals[0]}  $data_scanned_human of $data_total_human Scanned
 
-    Current file: ${currentfile/$filepath/}  $current_file_size_human
+Current file: ${currentfile/$filepath/}  $current_file_size_human
 
-    Elapsed Time: ${elapsed_time_human}  Rate: ${rate_human}/s  Remaining Time: $remaining_time_human
+Elapsed Time: $(_convertTime $elapsed_time)  Rate: ${rate_human}/s  Remaining Time: $(_convertTime $remaining_time)
 
 EOF
 
