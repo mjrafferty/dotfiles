@@ -131,12 +131,25 @@ _watchScan() {
     tput clear;
 
     elapsed_time=$(($(date '+%s') - start_time));
+    elapsed_hours="$((elapsed_time / 3600))"
+    elapsed_minutes="$(((elapsed_time / 60) % 60))"
+    elapsed_seconds="$((elapsed_time % 60))"
+
+    scan_percentage="$((100 * scan_status[1]/totals[1]))"
+    data_scanned_human="$(echo "${scan_status[1]}" | _humanReadable)"
+    data_total_human="$(echo "${totals[1]}" | _humanReadable)"
+
+    current_file_size_human="$(echo "${scan_status[2]}" | _humanReadable)"
+
+    rate="$((scan_status[1] / elapsed_time))"
+    rate_human="$(echo "$rate" | _humanReadable)"
 
     # Ouput info to user
     printf "Scanning %s\n\n%s%%\tFile: %s of %s\t%s of %s Scanned\n\nCurrent file: %s\t%s\n\nElapsed Time: %d:%02d:%02d\tRate: %s/s\n" \
-      "$filepath" "$((100 * scan_status[1]/totals[1]))" "${scan_status[0]}" "${totals[0]}" "$(echo "${scan_status[1]}" | _humanReadable)" \
-      "$(echo "${totals[1]}" | _humanReadable)" "${currentfile/$filepath/}" "$(echo "${scan_status[2]}" | _humanReadable)"  \
-      "$((elapsed_time / 3600))" "$(((elapsed_time / 60) % 60))" "$((elapsed_time % 60))" "$(echo $((scan_status[1] / elapsed_time)) | _humanReadable)" \
+      "$filepath" \
+      "$scan_percentage" "${scan_status[0]}" "${totals[0]}" "$data_scanned_human" "$data_total_human" \
+      "${currentfile/$filepath/}" "$current_file_size_human"  \
+      "$elapsed_hours" "$elapsed_minutes" "$elapsed_seconds" "$rate_human" \
       | tee "$OUTPUT_FILE";
 
     sleep 1;
