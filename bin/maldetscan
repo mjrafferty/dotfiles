@@ -106,7 +106,9 @@ _evaluateList () {
 
 _watchScan() {
 
-  local filepath scanpid totals clamdpid start_time currentfile lastfile scan_status elapsed_time
+  local filepath scanpid totals data_total_human clamdpid start_time elapsed_time
+  local currentfile lastfile scan_status scan_percentage data_scanned_human
+  local current_file_size_human rate rate_human remaining_time
 
   trap 'return' INT QUIT TERM;
 
@@ -136,6 +138,11 @@ _watchScan() {
 
         if [[ "$line" =~ "$currentfile"$ ]]; then
           scan_status=($line);
+
+          scan_percentage="$((100 * scan_status[1]/totals[1]))"
+          data_scanned_human="$(echo "${scan_status[1]}" | _humanReadable)"
+          current_file_size_human="$(echo "${scan_status[2]}" | _humanReadable)"
+
           break;
         fi
 
@@ -144,12 +151,6 @@ _watchScan() {
     fi
 
     elapsed_time=$(($(date '+%s') - start_time));
-
-    scan_percentage="$((100 * scan_status[1]/totals[1]))"
-
-    data_scanned_human="$(echo "${scan_status[1]}" | _humanReadable)"
-
-    current_file_size_human="$(echo "${scan_status[2]}" | _humanReadable)"
 
     rate="$((scan_status[1] / elapsed_time))"
     rate_human="$(echo "$rate" | _humanReadable)"
