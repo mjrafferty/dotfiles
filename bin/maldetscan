@@ -3,7 +3,7 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-readonly OUTPUT_FILE="${TICKETDIR}${0}_$(date "+%F-%T")"
+readonly OUTPUT_FILE="${TICKETDIR}maldetscan_$(date "+%F-%T")"
 
 maldetoutput="$(mktemp)"
 data_list="$(mktemp)"
@@ -157,7 +157,7 @@ main () {
     | awk '{print (sum += $1)"\t"$0}' \
     | cat -n > "$data_list";
 
-  touch "$OUTPUT_FILE";
+  touch "$OU"
 
   _watchScan "$filepath" "$scanpid";
 
