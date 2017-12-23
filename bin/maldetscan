@@ -122,7 +122,6 @@ _watchScan() {
   clamdpid=$(pgrep -u clamav clamd);
 
   start_time=$(date '+%s')
-  elapsed_time=$((start_time +1));
 
   while [ -d /proc/"$scanpid" ]; do
 
@@ -150,7 +149,7 @@ _watchScan() {
 
     fi
 
-    elapsed_time=$(($(date '+%s') - start_time));
+    elapsed_time=$(($(date '+%s') - start_time + 1));
 
     rate="$((scan_status[1] / elapsed_time))"
     rate_human="$(echo "$rate" | _humanReadable)"
@@ -160,7 +159,6 @@ _watchScan() {
     tput clear;
 
     tee "$OUTPUT_FILE" <<- EOF
-
 Scanning $filepath
 
 ${scan_percentage}%  File: ${scan_status[0]} of ${totals[0]}  $data_scanned_human of $data_total_human Scanned
