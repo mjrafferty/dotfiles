@@ -106,6 +106,7 @@ _watchScan() {
   clamdpid=$(pgrep -u clamav clamd);
 
   start_time=$(date '+%s')
+  elapsed_time=$((start_time +1));
 
   while [ -d /proc/"$scanpid" ]; do
 
