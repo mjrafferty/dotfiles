@@ -4,6 +4,7 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 _humanReadable() {
+
   awk '{ H=$1;
   $1="";
   if ( H >= 1073741824  )
@@ -26,6 +27,7 @@ _humanReadable() {
       printf "%.0fB\t%s\n",H,$0
     }
   }';
+
 }
 
 _files () {
@@ -37,7 +39,9 @@ _files () {
     -size +100M \
     -group "$(getusr)" \
     -type f \
-    -exec du -sh {} + | sort -hr | head -20
+    -exec du -sh {} + \
+    | sort -hr \
+    | head -20
 
 }
 
@@ -51,7 +55,7 @@ _directories () {
     -mindepth 4 \
     -maxdepth 4 \
     -path '*/var/*/mail/*' -prune -o
-    -type d \
+  -type d \
     -group "$(getusr)" \
     -exec du -sb {} + >> "$temp_list" &
 
@@ -89,7 +93,10 @@ _mailboxes () {
     -maxdepth 0 \
     -type d \
     -group "$(getusr)"\
-    -exec du -sh {} + | sort -hr | head -10
+    -exec du -sh {} + \
+    | sort -hr \
+    | head -10
+
 }
 
 _extraStuff() {
@@ -99,6 +106,7 @@ _extraStuff() {
   find /home/{tmp,nex*} -maxdepth 3 -group "$(pwd | grep -Po "/home/\K[^/]*")" -exec du -sh {} + \
     | sort -hr \
     | head -n2
+
 }
 
 _deletedFiles() {
@@ -110,6 +118,7 @@ _deletedFiles() {
     | sort -hr \
     | _humanReadable \
     | column -t
+
 }
 
 main () {
