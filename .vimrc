@@ -103,6 +103,7 @@ set background=dark
 :highlight PmenuSel ctermbg=cyan ctermfg=red
 :highlight PmenuSbar ctermbg=cyan ctermfg=green
 :highlight PmenuThumb ctermbg=white ctermfg=red
+:highlight Normal ctermbg=none
 
 "set dictionary+=/usr/share/dict/words
 
@@ -121,6 +122,10 @@ set formatoptions=coql  " Text formating options
 nnoremap <F2> :set invpaste paste?<CR>
 set pastetoggle=<F2>
 set showmode
+
+" Clear search highlighting by pressing Enter
+nnoremap <cr> :noh<CR><CR>:<backspace>
+
 "-------------------------------
 "------ End Vim Settings -------
 "-------------------------------
