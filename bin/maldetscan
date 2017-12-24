@@ -99,8 +99,7 @@ _evaluateList () {
 
   # Populate data list with info needed to track progress
   xargs --delimiter="\n" du -sb < "$scanlist" \
-    | awk '{print (sum += $1)"\t"$0}' \
-    | cat -n > "$data_list";
+    | awk '{print $NR,(sum += $1),$0}' > "$data_list";
 
 }
 
@@ -109,8 +108,6 @@ _watchScan() {
   local filepath scanpid totals data_total_human clamdpid start_time elapsed_time
   local currentfile lastfile scan_status scan_percentage data_scanned_human
   local current_file_size_human rate rate_human remaining_time
-
-  trap 'return' INT QUIT TERM;
 
   filepath="$1";
   scanpid="$2";
@@ -216,6 +213,8 @@ _cleanUp () {
 main () {
 
   local filepath scanpid
+
+  trap '_cleanUp && exit' INT QUIT TERM;
 
   while getopts "hxt:c:" OPTION "$(_cmdline)"; do
 
