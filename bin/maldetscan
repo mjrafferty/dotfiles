@@ -99,7 +99,7 @@ _evaluateList () {
 
   # Populate data list with info needed to track progress
   xargs --delimiter="\n" du -sb < "$scanlist" \
-    | awk '{print $NR,(sum += $1),$0}' > "$data_list";
+    | awk '{print NR,(sum += $1),$0}' > "$data_list";
 
 }
 
@@ -160,7 +160,7 @@ Scanning $filepath
 
 ${scan_percentage}%  File: ${scan_status[0]} of ${totals[0]}  $data_scanned_human of $data_total_human Scanned
 
-Current file: ${currentfile/$filepath/}  $current_file_size_human
+Current file: ${currentfile/$filepath\//}  $current_file_size_human
 
 Elapsed Time: $(_convertTime $elapsed_time)  Rate: ${rate_human}/s  Remaining Time: $(_convertTime $remaining_time)
 
