@@ -8,12 +8,14 @@ readonly OUTPUT_FILE="${TICKETDIR}maldetscan_$(date "+%F-%T")"
 maldetoutput="$(mktemp)"
 data_list="$(mktemp)"
 
+# Print usage info
 _usage() {
   cat <<- EOF
   This is the usage
 EOF
 }
 
+# Convert long command line options to short
 _cmdline() {
 
   local x;
@@ -37,6 +39,7 @@ _cmdline() {
   echo "$args";
 }
 
+# Print human readable sizes
 _humanReadable() {
   awk '{ H=$1;
   $1="";
@@ -62,6 +65,7 @@ _humanReadable() {
   }';
 }
 
+# Convert unix timestamps to human timestamps
 _convertTime() {
 
   local time
@@ -75,6 +79,7 @@ _convertTime() {
 
 }
 
+# Wait for file list to be completed
 _waitForList () {
 
   local findpid
@@ -91,6 +96,7 @@ _waitForList () {
 
 }
 
+# Gather statistics about file list
 _evaluateList () {
 
   local scanlist
@@ -103,6 +109,7 @@ _evaluateList () {
 
 }
 
+# Follow scan and output live data
 _watchScan() {
 
   local filepath scanpid totals data_total_human clamdpid start_time elapsed_time
@@ -172,6 +179,7 @@ sleep 1;
 
 }
 
+# Ouput finished scan results
 _showResults () {
 
   local bad_files report_id hits_file;
@@ -197,6 +205,7 @@ _showResults () {
 
 }
 
+# Kill off child processes and remove temp files
 _cleanUp () {
 
   # Kill any processes that are still running
@@ -210,6 +219,7 @@ _cleanUp () {
 
 }
 
+# Main
 main () {
 
   local filepath scanpid
