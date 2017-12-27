@@ -34,6 +34,9 @@ _cmdline() {
       "--check"|"-c")
         args="${args}-c "
         ;;
+      "--path"|"-p")
+        args="${args}-p "
+        ;;
       *) [[ "${x:0:1}" == "-" ]] || delim="\"";
         args="${args}${delim}${x}${delim} "
         ;;
@@ -236,7 +239,7 @@ main () {
 
   trap '_cleanUp && exit' INT QUIT TERM;
 
-  while getopts "he:c:" OPTION "$(_cmdline)"; do
+  while getopts "he:c:p:" OPTION "$(_cmdline)"; do
 
     case $OPTION in
       h)
@@ -255,13 +258,16 @@ main () {
         fi
         filepath=$(ps -p "$scanpid" -o command | grep -Po "\-a \K.*")
         ;;
+      e)
+        filepath="$OPTARGS";
+        ;;
     esac
 
   done
 
   if [[ -z "$scanpid" ]]; then
 
-    filepath="${ARGA[0]}";
+    [[ -n "$filepath" ]] || filepath="$(pwd)";
 
     # start maldet
     maldet -a "$filepath" > "$maldetoutput" &
