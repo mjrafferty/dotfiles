@@ -236,7 +236,7 @@ main () {
 
   trap '_cleanUp && exit' INT QUIT TERM;
 
-  while getopts "hxt:c:" OPTION "$(_cmdline)"; do
+  while getopts "he:c:" OPTION "$(_cmdline)"; do
 
     case $OPTION in
       h)
