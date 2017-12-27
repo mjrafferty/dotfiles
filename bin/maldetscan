@@ -272,7 +272,7 @@ main () {
         ;;
       e)
         addr="${OPTARGS-"$DEFAULT_EMAIL"}";
-        [[ -n "$TICKET" ]] || read -r TICKET -p "Ticket: ";
+        [[ -n "$TICKET" ]] || read -rp "Ticket: " TICKET;
         ;;
       c)
         scanpid=$(pgrep -nf "maldet -a .*$OPTARGS");
