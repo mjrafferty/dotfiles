@@ -6,6 +6,28 @@ readonly ARGA=("$@")
 readonly OUTPUT_FILE="${TICKETDIR-$HOME}maldetscan_$(date "+%F-%T")"
 readonly DEFAULT_EMAIL="mrafferty@nexcess.net";
 
+alias maldet="/usr/sbin/maldet"
+alias du="/usr/bin/du"
+alias pgrep="/usr/bin/pgrep"
+alias grep="/bin/grep"
+alias xargs="/usr/bin/xargs"
+alias rm="/bin/rm"
+alias cat="/bin/cat"
+alias stat="/usr/bin/stat"
+alias awk="/bin/awk"
+alias tail="/usr/bin/tail"
+alias date="/bin/date"
+alias lsof="/usr/sbin/lsof"
+alias tee="/usr/bin/tee"
+alias sleep="/bin/sleep"
+alias mail="/bin/mail"
+alias ps="/bin/ps"
+alias mktemp="/bin/mktemp"
+alias tput="/usr/bin/tput"
+
+readonly OUTPUT_FILE="${TICKETDIR}maldetscan_$(date "+%F-%T")"
+
+
 maldetoutput="$(mktemp)"
 data_list="$(mktemp)"
 
@@ -114,7 +136,7 @@ _evaluateList () {
   scanlist="/usr/local/maldetect/tmp/.find.$1"
 
   # Populate data list with info needed to track progress
-  xargs --delimiter="\n" du -sb < "$scanlist" \
+  xargs --delimiter="\n" /usr/bin/du -sb < "$scanlist" \
     | awk '{print NR,(sum += $1),$0}' > "$data_list";
 
 }
@@ -215,6 +237,7 @@ _showResults () {
 
 }
 
+# Send results via email
 _email () {
   mail -s "Malware Results for $TICKET" "$1" < "$OUTPUT_FILE";
 }
@@ -225,7 +248,7 @@ _cleanUp () {
   # Kill any processes that are still running
   pgrep -g "$$" \
     | grep -v "$$" \
-    | xargs kill &> /dev/null
+    | xargs /bin/kill &> /dev/null
 
   # Clean up temp files
   rm "$maldetoutput"
