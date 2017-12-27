@@ -241,6 +241,11 @@ main () {
         ;;
       c)
         scanpid=$(pgrep -nf "maldet -a .*$OPTARGS");
+        if [[ -z $scanpid ]]; then
+          echo "No scans found";
+          _cleanUp;
+          exit;
+        fi
         filepath=$(ps -p "$scanpid" -o command | grep -Po "\-a \K.*")
         ;;
     esac
