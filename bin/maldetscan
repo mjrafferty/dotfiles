@@ -244,8 +244,7 @@ main () {
         exit 0;
         ;;
       e)
-        addr="$OPTARGS"
-        _email "${addr-"mrafferty@nexcess.net"}";
+        addr="${OPTARGS-"mrafferty@nexcess.net"}";
         ;;
       c)
         scanpid=$(pgrep -nf "maldet -a .*$OPTARGS");
@@ -279,6 +278,8 @@ main () {
   _watchScan "$filepath" "$scanpid";
 
   _showResults;
+
+  [[ -n "$addr" ]] && _email "$addr";
 
   _cleanUp;
 
