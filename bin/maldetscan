@@ -3,7 +3,7 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-readonly OUTPUT_FILE="${TICKETDIR}maldetscan_$(date "+%F-%T")"
+readonly OUTPUT_FILE="${TICKETDIR-$HOME}maldetscan_$(date "+%F-%T")"
 
 maldetoutput="$(mktemp)"
 data_list="$(mktemp)"
@@ -27,6 +27,9 @@ _cmdline() {
     case "$x" in
       "--help"|"-h")
         args="${args}-h "
+        ;;
+      "--email"|"-e")
+        args="${args}-e "
         ;;
       *) [[ "${x:0:1}" == "-" ]] || delim="\"";
         args="${args}${delim}${x}${delim} "
@@ -233,19 +236,30 @@ main () {
         _usage;
         exit 0;
         ;;
+      e)
+        _email;
+        ;;
+      c)
+        scanpid=$(pgrep -nf "maldet -a .*$OPTARGS");
+        filepath=$(ps -p "$scanpid" -o command | grep -Po "\-a \K.*")
+        ;;
     esac
 
   done
 
-  filepath="${ARGA[0]}";
+  if [[ -z "$scanpid" ]]; then
 
-  # start maldet
-  maldet -a "$filepath" > "$maldetoutput" &
+    filepath="${ARGA[0]}";
 
-  # Find scan process ID and file list
-  scanpid=$!;
+    # start maldet
+    maldet -a "$filepath" > "$maldetoutput" &
 
-  _waitForList "$filepath";
+    # Find scan process ID and file list
+    scanpid=$!;
+
+    _waitForList "$filepath";
+
+  fi
 
   _evaluateList "$scanpid";
 
