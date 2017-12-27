@@ -4,6 +4,7 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly OUTPUT_FILE="${TICKETDIR-$HOME}maldetscan_$(date "+%F-%T")"
+readonly DEFAULT_EMAIL="mrafferty@nexcess.net";
 
 maldetoutput="$(mktemp)"
 data_list="$(mktemp)"
@@ -247,7 +248,8 @@ main () {
         exit 0;
         ;;
       e)
-        addr="${OPTARGS-"mrafferty@nexcess.net"}";
+        addr="${OPTARGS-"$DEFAULT_EMAIL"}";
+        [[ -n "$TICKET" ]] || read -r TICKET "Ticket: ";
         ;;
       c)
         scanpid=$(pgrep -nf "maldet -a .*$OPTARGS");
@@ -258,7 +260,7 @@ main () {
         fi
         filepath=$(ps -p "$scanpid" -o command | grep -Po "\-a \K.*")
         ;;
-      e)
+      p)
         filepath="$OPTARGS";
         ;;
     esac
