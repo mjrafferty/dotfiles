@@ -25,9 +25,6 @@ alias ps="/bin/ps"
 alias mktemp="/bin/mktemp"
 alias tput="/usr/bin/tput"
 
-readonly OUTPUT_FILE="${TICKETDIR}maldetscan_$(date "+%F-%T")"
-
-
 maldetoutput="$(mktemp)"
 data_list="$(mktemp)"
 
