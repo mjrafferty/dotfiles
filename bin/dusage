@@ -54,8 +54,8 @@ _directories () {
   find . \
     -mindepth 4 \
     -maxdepth 4 \
-    -path '*/var/*/mail/*' -prune -o
-  -type d \
+    -path '*/var/*/mail/*' -prune -o \
+    -type d \
     -group "$(getusr)" \
     -exec du -sb {} + >> "$temp_list" &
 
