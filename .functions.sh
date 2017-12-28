@@ -154,7 +154,7 @@ totalmb () {
 # Show top IP addresses by number of hits
 topips () {
   zless -f "$@" \
-    | awk '{freq[$1]++} END {for (x in freq) {print freq[x], x}}' \
+    | awk '{gsub(/,/,"",$2); if (index($2,"-") == 0){freq[$2"-X"]++} else {freq[$1]++}} END {for (x in freq) {print freq[x], x}}' \
     | sort -rn \
     | head -20;
 }
