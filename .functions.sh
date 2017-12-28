@@ -252,12 +252,6 @@ hitslasthour () {
 
 ##### Disk Usage ######
 
-## Find files group owned by username in employee folders or temp directories
-savethequota(){
-  find /home/tmp -type f -size +100000k -group "$(getusr)" -exec ls -lah {} \;
-  find /home/nex* -type f -group "$(getusr)" -exec ls -lah {} \;
-}
-
 ## Adjust user quota on the fly using Nodeworx CLI
 bumpquota(){
 
