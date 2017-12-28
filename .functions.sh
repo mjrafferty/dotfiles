@@ -109,7 +109,8 @@ cdlogs () {
 # Show top IP addresses by bandwidth usage
 ipsbymb () {
   zless -f "$@" \
-    | awk '{tx[$1]+=$10} END {for (x in tx) {printf "%10.2fM\t%s\n",tx[x]/1048576,x}}' \
+    | grep -Po ".*\" \d{3} \d*(?= \")" \
+    | awk '{gsub(/,/,"",$2); if (index($2,"-") == 0){tx[$2"-X"]+=$(NF)} else {tx[$1]+=$(NF)}} END {for (x in tx) {printf "%10.2fM\t%s\n",tx[x]/1048576,x}}' \
     | sort -k1nr \
     | head -n20 \
     | column -t;
