@@ -69,9 +69,23 @@ main () {
 
   done
 
+  for ((x=0;x<60;x++)); do
+    restorepid=$(pgrep -P "$(pgrep -fo cdp)" -fn cdp);
+    [[ -n "$restorepid" ]] && break;
+    sleep 5;
+  done
 
-  restorepid=$(pgrep -P "$(pgrep -fo cdp)" -fn cdp);
-  restoreuser=$(stat -c "%U" "$(lsof -p "$restorepid" -ad0 | tail -n1 | awk '{print $NF}')")
+  [[ -n "$restorepid" ]] || exit 1;
+
+  for ((x=0;x<60;x++)); do
+    currentfile=$(lsof -p "$restorepid" -ad0 | tail -n1 | awk '{print $NF}')
+    [[ -n "$currentfile" ]] && break;
+    sleep 5;
+  done
+
+  [[ -n "$currentfile" ]] || exit 1;
+
+  restoreuser=$(stat -c "%U" "$currentfile")
 
   _wait "$restorepid";
 
