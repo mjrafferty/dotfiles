@@ -11,6 +11,8 @@ main () {
 
 	vim "$conf_file";
 
+  echo "$conf_file";
+
 }
 
 main;
