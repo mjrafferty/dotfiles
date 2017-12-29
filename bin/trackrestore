@@ -6,6 +6,8 @@ readonly ARGA=("$@")
 readonly EMAIL_SUBJECT="Restore Complete"
 readonly EMAIL_ADDR="mrafferty@nexcess.net"
 
+[[ -n "$TICKET" ]] || read -rp "Ticket: " TICKET;
+
 _usage() {
   cat <<- EOF
   This is the usage
@@ -35,6 +37,25 @@ _cmdline() {
   echo "$args";
 }
 
+_wait () {
+
+  while [[ -d /proc/$1 ]]; do
+    sleep 5;
+  done;
+
+}
+
+_notify () {
+
+  mail -s "$EMAIL_SUBJECT" "$EMAIL_ADDR" <<- EOF
+Restore for user $1 complete on $HOSTNAME
+
+See ticket $TICKET
+
+EOF
+
+}
+
 main () {
 
   while getopts "hxt:c:" OPTION "$(_cmdline)"; do
@@ -48,22 +69,14 @@ main () {
 
   done
 
-  [[ -n "$TICKET" ]] || read -rp "Ticket: " TICKET;
 
   restorepid=$(pgrep -P "$(pgrep -fo cdp)" -fn cdp);
   restoreuser=$(stat -c "%U" "$(lsof -p "$restorepid" -ad0 | tail -n1 | awk '{print $NF}')")
 
-  while [[ -d /proc/$restorepid ]]; do
-    sleep 5;
-  done;
+  _wait "$restorepid";
 
-  mail -s "$EMAIL_SUBJECT" "$EMAIL_ADDR" <<- EOF
-Restore for user $restoreuser complete on $HOSTNAME
-
-See ticket $TICKET
-
-EOF
+  _notify "$restoreuser";
 
 }
 
-main;
+main &
