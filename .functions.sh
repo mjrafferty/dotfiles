@@ -109,7 +109,7 @@ cdlogs () {
 # Show top IP addresses by bandwidth usage
 ipsbymb () {
   zless -f "$@" \
-    | grep -Po ".*\" \d{3} \d*(?= \")" \
+    | grep -Poa ".*\" \d{3} \d*(?= \")" \
     | awk '{gsub(/,/,"",$2); if (index($2,"-") == 0){tx[$2"-X"]+=$(NF)} else {tx[$1]+=$(NF)}} END {for (x in tx) {printf "%10.2fM\t%s\n",tx[x]/1048576,x}}' \
     | sort -k1nr \
     | head -n20 \
@@ -163,7 +163,7 @@ topips () {
 # Show top user agents by number of hits
 topuseragents () {
   zless -f "$@" \
-    | grep -Po '" "\K[^"]*' \
+    | grep -Poa '" "\K[^"]*' \
     | sort \
     | uniq -c \
     | sort -hr \
@@ -173,7 +173,7 @@ topuseragents () {
 # Show top uris by number of hits
 topuri () {
   zless -f "$@" \
-    | grep -hv " 403 " \
+    | grep -hva " 403 " \
     | grep -Po "\] \"\S* \K[^?, ]*\??" \
     | sort \
     | uniq -c \
@@ -184,7 +184,7 @@ topuri () {
 #Top query strings
 topquery () {
   zless -f "$@" \
-    | grep -v " 403 " \
+    | grep -va " 403 " \
     | sed -n 's_.*?\(.*\) HTTP/[0-2]\.[0-2]".*_\1_p' \
     | sort \
     | uniq -c \
@@ -195,31 +195,12 @@ topquery () {
 # Show top referers by number of hits
 topref () {
   zless -f "$@" \
-    | grep -v " 403 " \
+    | grep -av " 403 " \
     | grep -Po "[0-9]{3} ([0-9]*|-) \K\"[^\"]*\"" \
     | sort \
     | uniq -c \
     | sort -hr \
     | head;
-}
-
-# Show number of hits per hour
-hitsperhour () {
-  zless -f "$@" \
-    | sed 's_.*../.*/....:\(..\).*_\1_' \
-    | sort -h \
-    | uniq -c \
-    | sed 's_ *\(.*\) \(..\)_\2:00\t\1 hits_'
-}
-
-# Show number of hits per five minute
-hitsperfive () {
-  zless -f "$@" \
-    | grep -Po "$(date "+%Y"):\K..:.." \
-    | awk -F: '{printf "%02d:%02d\n",$1,int($2 / 5) * 5 }' \
-    | sort \
-    | uniq -c \
-    | awk '{print $2"\t"$1}'
 }
 
 # Show number of hits received on every site in the last hour
