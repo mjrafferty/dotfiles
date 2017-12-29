@@ -174,7 +174,7 @@ topuseragents () {
 topuri () {
   zless -f "$@" \
     | grep -hva " 403 " \
-    | grep -Po "\] \"\S* \K[^?, ]*\??" \
+    | grep -Poa "\] \"\S* \K[^?, ]*\??" \
     | sort \
     | uniq -c \
     | sort -hr \
@@ -196,7 +196,7 @@ topquery () {
 topref () {
   zless -f "$@" \
     | grep -av " 403 " \
-    | grep -Po "[0-9]{3} ([0-9]*|-) \K\"[^\"]*\"" \
+    | grep -Poa "[0-9]{3} ([0-9]*|-) \K\"[^\"]*\"" \
     | sort \
     | uniq -c \
     | sort -hr \
