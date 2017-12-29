@@ -48,6 +48,8 @@ main () {
 
   done
 
+  [[ -n "$TICKET" ]] || read -rp "Ticket: " TICKET;
+
   restorepid=$(pgrep -P "$(pgrep -fo cdp)" -fn cdp);
   restoreuser=$(stat -c "%U" "$(lsof -p "$restorepid" -ad0 | tail -n1 | awk '{print $NF}')")
 
@@ -56,7 +58,7 @@ main () {
   done;
 
   mail -s "$EMAIL_SUBJECT" "$EMAIL_ADDR" <<- EOF
-Restore for $restoreuser complete on $HOST
+Restore for user $restoreuser complete on $HOSTNAME
 
 See ticket $TICKET
 
