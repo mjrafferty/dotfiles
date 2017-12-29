@@ -1,0 +1,67 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+readonly EMAIL_SUBJECT="Restore Complete"
+readonly EMAIL_ADDR="mrafferty@nexcess.net"
+
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    local delim=""
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      *) [[ "${x:0:1}" == "-" ]] || delim="\"";
+        args="${args}${delim}${x}${delim} "
+        ;;
+    esac
+
+  done
+
+
+  echo "$args";
+}
+
+main () {
+
+  while getopts "hxt:c:" OPTION "$(_cmdline)"; do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+    esac
+
+  done
+
+  restorepid=$(pgrep -P "$(pgrep -fo cdp)" -fn cdp);
+  restoreuser=$(stat -c "%U" "$(lsof -p "$restorepid" -ad0 | tail -n1 | awk '{print $NF}')")
+
+  while [[ -d /proc/$restorepid ]]; do
+    sleep 5;
+  done;
+
+  mail -s "$EMAIL_SUBJECT" "$EMAIL_ADDR" <<- EOF
+Restore for $restoreuser complete on $HOST
+
+See ticket $TICKET
+
+EOF
+
+}
+
+main;
