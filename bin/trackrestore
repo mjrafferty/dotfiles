@@ -69,6 +69,8 @@ main () {
 
   done
 
+  local restorepid currentfile restoreuser;
+
   for ((x=0;x<60;x++)); do
     restorepid=$(pgrep -P "$(pgrep -fo cdp)" -fn cdp);
     [[ -n "$restorepid" ]] && break;
