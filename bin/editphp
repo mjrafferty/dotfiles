@@ -3,13 +3,17 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+alias find='/bin/find'
+alias grep='/bin/grep'
+alias head='/usr/bin/head'
+
 main () {
 
 	local conf_file;
 
 	conf_file="$(find {/opt/nexcess/php*/root,}/etc/php-fpm.d/ -name "$(pwd | grep -Po "home/\K[^\/]*").conf" | head -n1)";
 
-	vim "$conf_file";
+	$EDITOR "$conf_file";
 
   echo "$conf_file";
 

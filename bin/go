@@ -3,8 +3,28 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-readonly DOMAIN_CACHE_FILE="$HOME"/.domain_cache
-readonly DOMAIN_CACHE_CREATE="CREATE TABLE IF NOT EXISTS LOCATIONS ( domain PRIMARY KEY,destination NOT NULL,timestamp INT NOT NULL); \
+alias awk='/bin/awk'
+alias cat='/bin/cat'
+alias chmod='/bin/chmod'
+alias column='/usr/bin/column'
+alias curl='/usr/bin/curl'
+alias dig='/usr/bin/dig'
+alias grep='/bin/grep'
+alias head='/usr/bin/head'
+alias rm='/bin/rm'
+alias rsync='/usr/bin/rsync'
+alias sed='/bin/sed'
+alias sort='/bin/sort'
+alias sqlite3='hashed'
+alias ssh='/usr/bin/ssh'
+alias stat='/usr/bin/stat'
+alias tr='/usr/bin/tr'
+alias whoami='/usr/bin/whoami'
+alias whois='/usr/bin/whois'
+alias xxd='/usr/bin/xxd'
+
+readonly DOMAIN_DB_FILE="$HOME"/.domain_cache
+readonly DOMAIN_DB_CREATE="CREATE TABLE IF NOT EXISTS LOCATIONS ( domain PRIMARY KEY,destination NOT NULL,timestamp INT NOT NULL); \
   CREATE TABLE IF NOT EXISTS TICKETS (ticket_id NOT NULL,domain NOT NULL,PRIMARY KEY (ticket_id,domain),FOREIGN KEY (domain) REFERENCES LOCATIONS(domain));"
 
 readonly IP_REGEX='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
@@ -13,6 +33,7 @@ ticket="";
 domain="";
 destination="";
 
+# Print usage info
 _usage () {
   cat <<- EOF
 
@@ -68,6 +89,7 @@ _findsite () {
 }
 ################################ END CHRIS ORLANDO'S WORK ##############################################
 
+# Copy files and login to the destination
 _login () {
 
   local ident_file;
@@ -110,6 +132,7 @@ _login () {
     "nex$(whoami)@$destination" || return 1;
 }
 
+# Uses findsite to identify destination
 _findDestination () {
 
   local findsitelist selection find_servers;
@@ -148,11 +171,13 @@ _findDestination () {
 
 }
 
+# Creates file with commands to be sourced upon login to destination
 _setAction () {
 
   echo 'rm "$HOME"/action.sh' > "$HOME"/dotfiles/action.sh;
   echo "cdd ${domain}" >> "$HOME"/dotfiles/action.sh;
 
+  # Evaluates argument list and adds known commands to login command list
   for x in ${ARGA[*]}; do
     case "$x" in
       "htacc") # Edit .htaccess
@@ -174,6 +199,7 @@ _setAction () {
   done
 }
 
+# Creates file with variables to be sourced upon login to destination
 _setEnv () {
 
   true > "$HOME"/dotfiles/.environment.sh;
@@ -182,30 +208,36 @@ _setEnv () {
 
 }
 
+# Creates sqlite3 database
 _checkDB() {
 
-  sqlite3 "$DOMAIN_CACHE_FILE" "$DOMAIN_CACHE_CREATE";
+  sqlite3 "$DOMAIN_DB_FILE" "$DOMAIN_DB_CREATE";
 
 }
 
+# Searches cache for destination
 _getCache() {
 
     local query;
 
+    # If ticket is given, check cache for known destination associated with it
     if [[ -n $ticket ]]; then
       query=$(printf "SELECT destination FROM LOCATIONS WHERE domain=(SELECT domain FROM TICKETS WHERE ticket_id='%s' limit 1);" "${ticket}");
-      destination=$(sqlite3 "$DOMAIN_CACHE_FILE" "$query") || _checkDB;
+      destination=$(sqlite3 "$DOMAIN_DB_FILE" "$query") || _checkDB;
     fi
 
+    # Check cache for a known destination
     if [[ -z $destination ]]; then
       query=$(printf "SELECT destination FROM LOCATIONS WHERE domain='%s' AND timestamp > '%s';" "${domain}" "$(($(date "+%s")-172800))");
-      destination=$(sqlite3 "$DOMAIN_CACHE_FILE" "$query") || _checkDB
+      destination=$(sqlite3 "$DOMAIN_DB_FILE" "$query") || _checkDB
     fi
 
 }
 
+# For logging into IP's or abbreviated domains in nexcess.net,nextmp.net,us-midwest-1.nexcess.net i.e. sip1-208
 _abbrevDest() {
 
+  # If domain contains no periods or looks to be an IP address, assume it is a valid destination
   if [[ "$domain" != *.* || "$domain" =~ $IP_REGEX ]]; then
 
     destination="${domain}"
@@ -214,6 +246,7 @@ _abbrevDest() {
 
 }
 
+# Checks if domain resolves to a usable destination
 _didWeFindIt() {
 
   local host rdns;
@@ -221,7 +254,8 @@ _didWeFindIt() {
   host="$1";
   rdns="$2";
 
-  if [ "$host" == "nexcess" ] || [ "$rdns" == "nexcess" ]; then
+  # If host or reverse dns indicate nexcess, it should be a good destination
+  if [[ "$host" == "nexcess" || "$host" == "future host" ||  "$rdns" == "nexcess" ]]; then
 
     destination="${domain}";
 
@@ -229,6 +263,7 @@ _didWeFindIt() {
 
 }
 
+# If domain is not pointed at a usable destination, inform user before proceeding
 _theHardWay() {
 
   local host whoisinfo viewwhois keepgoing;
@@ -263,6 +298,7 @@ _theHardWay() {
 
 }
 
+# Main
 main () {
 
   # Show help
@@ -279,14 +315,16 @@ main () {
   _getCache;
 
 
+  # If destination was not in cache, see if it is an abbreviated domain
   [[ -z "$destination" ]] && _abbrevDest;
 
 
+  # If domain is not an abbreviation or found in cache, see if it resolves to nexcess
   if [[ -z "$destination" ]]; then
 
     ip_addr="$(dig +short "$domain" | sort | head -n1)";
     whoisinfo="$(whois "$ip_addr")";
-    host=$(echo "$whoisinfo"  | grep -m1 -ioE "nexcess|sucuri|cloudflare" | tr '[:upper:]' '[:lower:]');
+    host=$(echo "$whoisinfo"  | grep -m1 -ioE "nexcess|sucuri|cloudflare|future host" | tr '[:upper:]' '[:lower:]');
     rdns="$(dig +short -x "$ip_addr" | grep -o "nexcess")";
 
     _didWeFindIt "$host" "$rdns";
@@ -294,9 +332,11 @@ main () {
   fi
 
 
+  # If we still don't have a destination, find it the hard way
   [[ -z "$destination" ]] && _theHardWay "$host" "$whoisinfo";
 
 
+  # If we have a destination, proceed with login
   if [[ -n "$destination" ]]; then
 
     # Setup environment variables and actions to run on destination
@@ -307,11 +347,11 @@ main () {
 
     # Add to cache
     query=$(printf "INSERT OR REPLACE INTO LOCATIONS VALUES ('%s','%s','%s');" "${domain}" "${destination}" "$(date "+%s")")
-    sqlite3 "$DOMAIN_CACHE_FILE" "$query" || _checkDB;
+    sqlite3 "$DOMAIN_DB_FILE" "$query" || _checkDB;
 
     if [[ -n $ticket ]]; then
       query=$(printf "INSERT OR REPLACE INTO TICKETS VALUES ('%s','%s');" "${ticket}" "${domain}");
-      sqlite3 "$DOMAIN_CACHE_FILE" "$query" || _checkDB;
+      sqlite3 "$DOMAIN_DB_FILE" "$query" || _checkDB;
     fi
 
   fi

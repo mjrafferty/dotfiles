@@ -181,7 +181,7 @@ topuri () {
     | head;
 }
 
-#Top query strings
+# Top query strings
 topquery () {
   zless -f "$@" \
     | grep -va " 403 " \

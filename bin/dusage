@@ -3,6 +3,16 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+alias awk='/bin/awk'
+alias find='/bin/find'
+alias du='/usr/bin/du'
+alias sort='/bin/sort'
+alias head='/usr/bin/head'
+alias rm='/bin/rm'
+alias mktemp='/bin/mktemp'
+alias cat='/bin/cat'
+
+# Convert bytes to human readable KB,MB,GB
 _humanReadable() {
 
   awk '{ H=$1;
@@ -30,6 +40,7 @@ _humanReadable() {
 
 }
 
+# Find large files
 _files () {
 
   printf "\n----- Large Files ------\n";
@@ -39,25 +50,27 @@ _files () {
     -size +100M \
     -group "$(getusr)" \
     -type f \
-    -exec du -sh {} + \
+    -exec /usr/bin/du -sh {} + \
     | sort -hr \
     | head -20
 
 }
 
+# Find large directories
 _directories () {
 
   local temp_list directories;
 
   temp_list=$(mktemp);
 
+  # Get total size of directories located at given depth
   find . \
     -mindepth 4 \
     -maxdepth 4 \
     -path '*/var/*/mail/*' -prune -o \
     -type d \
     -group "$(getusr)" \
-    -exec du -sb {} + >> "$temp_list" &
+    -exec /usr/bin/du -sb {} + >> "$temp_list" &
 
   directories=$(find . \
     -maxdepth 3 \
@@ -67,9 +80,10 @@ _directories () {
 
   printf "\n----- Large Directories ------\n";
 
+  # Get sizes of directories EXCLUDING subdirectories for directories less than given depth
   IFS=$'\n'
   for x in $directories; do
-    find "$x" -mindepth 1 -maxdepth 1 -group "$(getusr)" -type f -exec du -sb {} + \
+    find "$x" -mindepth 1 -maxdepth 1 -group "$(getusr)" -type f -exec /usr/bin/du -sb {} + \
       | awk '{sum += $1} END {print sum,dirname}' dirname="$x" >> "$temp_list" &
   done;
 
@@ -83,6 +97,7 @@ _directories () {
 
 }
 
+# Find large mailboxes
 _mailboxes () {
 
   printf "\n----- Large Mailboxes ------\n";
@@ -93,22 +108,24 @@ _mailboxes () {
     -maxdepth 0 \
     -type d \
     -group "$(getusr)"\
-    -exec du -sh {} + \
+    -exec /usr/bin/du -sh {} + \
     | sort -hr \
     | head -10
 
 }
 
+# Find files in /home/tmp or nexcess employee home dirs
 _extraStuff() {
 
   printf "\n----- Extra Stuff ------\n";
 
-  find /home/{tmp,nex*} -maxdepth 3 -group "$(pwd | grep -Po "/home/\K[^/]*")" -exec du -sh {} + \
+  find /home/{tmp,nex*} -maxdepth 3 -group "$(pwd | grep -Po "/home/\K[^/]*")" -exec /usr/bin/du -sh {} + \
     | sort -hr \
     | head -n2
 
 }
 
+# Show deleted files that may still be counting against quota
 _deletedFiles() {
 
   printf "\n----- Deleted Files ------\n";
@@ -121,6 +138,7 @@ _deletedFiles() {
 
 }
 
+# Main
 main () {
 
   cd /home/"$(getusr)" || return 1;
@@ -132,6 +150,7 @@ main () {
 
   func_list=(_files _directories _mailboxes _extraStuff _deletedFiles);
 
+  # Execute all functions in parallel
   for ((x=0;x<${#func_list[@]};x++)); do
     tmp_list[x]="$(mktemp)";
     "${func_list[x]}" 2> /dev/null > "${tmp_list[x]}" &
@@ -139,6 +158,7 @@ main () {
 
   wait;
 
+  # Report data and cleanup temp files
   for ((x=0;x<${#tmp_list[@]};x++)); do
     cat "${tmp_list[x]}";
     rm "${tmp_list[x]}";
