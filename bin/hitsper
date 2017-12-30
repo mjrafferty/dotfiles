@@ -1,5 +1,8 @@
 #! /bin/awk -f
 
+# Shows hits per hour by default. Assign a value to i to change interval.
+# i.e hitsper i=5   is hits per 5 minute interval
+
 BEGIN {
 
   YEAR=strftime("%Y");
@@ -7,8 +10,8 @@ BEGIN {
 
   max=0;
 
-  if(length(interval)==0){
-    interval=60
+  if(length(i)==0){
+    i=60
   }
 
 }
@@ -19,7 +22,7 @@ BEGIN {
 
   split(substr($0,start,stop),temp,":");
 
-  timestamp=sprintf("%02s:%02s",temp[1],(int(temp[2] / interval) * interval))
+  timestamp=sprintf("%02s:%02s",temp[1],(int(temp[2] / i) * i))
 
   hits[timestamp]++
 }
@@ -47,7 +50,7 @@ END {
     printf "%s\t%s\t",WHITE hits2[x],BLUE hits[hits2[x]];
 
     # Print the dots
-    for (i=0; i<(hits[hits2[x]] * 100 / max);i++)
+    for (y=0; y<(hits[hits2[x]] * 100 / max);y++)
     {
       printf "%s",GREEN"*";
     }
