@@ -8,18 +8,18 @@ readonly OUTPUT_DIR="${HOME}/nex_strace"
 readonly PIPE_NAME="/tmp/nexcess_strace_pipe"
 readonly DEFAULT_IP="192.240.191.2"
 
-alias mkfifo="/usr/bin/mkfifo"
-alias dd="/bin/dd"
-alias rm="/bin/rm --preserve-root"
-alias mv="/bin/mv"
+alias cat='/bin/cat'
 alias chmod='/bin/chmod --preserve-root'
 alias chown='/bin/chown --preserve-root'
-alias mkdir='/bin/mkdir'
+alias dd='/bin/dd'
 alias find='/bin/find'
-alias cat='/bin/cat'
 alias grep='/bin/grep'
-alias strace='/usr/bin/strace'
+alias mkdir='/bin/mkdir'
+alias mkfifo='/usr/bin/mkfifo'
+alias mv='/bin/mv'
+alias rm='/bin/rm --preserve-root'
 alias sleep='/bin/sleep'
+alias strace='/usr/bin/strace'
 
 # Print usage
 _usage() {

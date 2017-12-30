@@ -3,20 +3,20 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-alias test='/usr/bin/test'
-alias find='/bin/find'
-alias printf='/usr/bin/printf'
-alias cat='/bin/cat'
-alias grep='/bin/grep'
-alias true='/bin/true'
-alias mysql='/usr/bin/mysql'
-alias sed='/bin/sed'
 alias awk='/bin/awk'
-alias sort='/bin/sort'
-alias head='/usr/bin/head'
-alias df='/bin/df'
+alias cat='/bin/cat'
 alias cut='/bin/cut'
+alias df='/bin/df'
+alias find='/bin/find'
+alias grep='/bin/grep'
+alias head='/usr/bin/head'
+alias mysql='/usr/bin/mysql'
+alias printf='/usr/bin/printf'
 alias ps='/bin/ps'
+alias sed='/bin/sed'
+alias sort='/bin/sort'
+alias test='/usr/bin/test'
+alias true='/bin/true'
 alias wc='/usr/bin/wc'
 
 

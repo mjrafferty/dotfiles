@@ -4,13 +4,13 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 alias awk='/bin/awk'
-alias find='/bin/find'
-alias du='/usr/bin/du'
-alias sort='/bin/sort'
-alias head='/usr/bin/head'
-alias rm='/bin/rm'
-alias mktemp='/bin/mktemp'
 alias cat='/bin/cat'
+alias du='/usr/bin/du'
+alias find='/bin/find'
+alias head='/usr/bin/head'
+alias mktemp='/bin/mktemp'
+alias rm='/bin/rm'
+alias sort='/bin/sort'
 
 # Convert bytes to human readable KB,MB,GB
 _humanReadable() {

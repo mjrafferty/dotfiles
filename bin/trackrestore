@@ -3,6 +3,15 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+alias awk='/bin/awk'
+alias cat='/bin/cat'
+alias lsof='/usr/sbin/lsof'
+alias mail='/bin/mail'
+alias pgrep='/usr/bin/pgrep'
+alias sleep='/bin/sleep'
+alias stat='/usr/bin/stat'
+alias tail='/usr/bin/tail'
+
 readonly EMAIL_SUBJECT="Restore Complete"
 readonly EMAIL_ADDR="mrafferty@nexcess.net"
 

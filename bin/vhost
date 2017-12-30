@@ -3,8 +3,14 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+alias cat='/bin/cat'
+alias column='/usr/bin/column'
+alias grep='/bin/grep'
+alias sed='/bin/sed'
+alias tr='/usr/bin/tr'
+
 _usage() {
-	cat <<- EOF
+  cat <<- EOF
     This is the usage
 EOF
 }
@@ -16,31 +22,43 @@ main () {
     return 0;
   fi
 
-if [  -n "${ARGA[0]}" ]; then
-  domain=$(echo "${ARGA[0]}" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
-else
-  domain="$(pwd | sed -e 's_\(.*home/[^/]*/[^/]*\)/html.*_\1_' -e 's_\(.*home/[^/]*/var/[^/]*\)/.*_\1_')";
-fi
+  if [  -n "${ARGA[0]}" ]; then
 
-vhost=($(grep -l "$domain" /etc/httpd/conf.d/vhost*));
+    domain=$(echo "${ARGA[0]}" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
 
-if [ -z "${vhost[0]}" ]; then
-  echo "No vhost found";
-  exit;
-elif [  -n "${vhost[1]}" ]; then
+  else
 
-  echo "Domain ambiguous. Select vhost:";
-  for (( i=0; i<${#vhost[@]}; i++ )); do
-    echo "$i  ${vhost[$i]}";
-  done | column -t;
-  echo;
-  read -rp "Choose vhost number:" selection;
+    domain="$(pwd | sed -e 's_\(.*home/[^/]*/[^/]*\)/html.*_\1_' -e 's_\(.*home/[^/]*/var/[^/]*\)/.*_\1_')";
 
-  vhost[0]=${vhost[$selection]};
+  fi
 
-fi;
+  vhost=($(grep -l "$domain" /etc/httpd/conf.d/vhost*));
 
-"$EDITOR" "${vhost[0]}";
+  if [ -z "${vhost[0]}" ]; then
+
+    echo "No vhost found";
+    exit;
+
+  elif [  -n "${vhost[1]}" ]; then
+
+    echo "Domain ambiguous. Select vhost:";
+
+    for (( i=0; i<${#vhost[@]}; i++ )); do
+
+      echo "$i  ${vhost[$i]}";
+
+    done \
+      | column -t;
+
+    echo;
+
+    read -rp "Choose vhost number:" selection;
+
+    vhost[0]=${vhost[$selection]};
+
+  fi;
+
+  "$EDITOR" "${vhost[0]}";
 
 }
 
