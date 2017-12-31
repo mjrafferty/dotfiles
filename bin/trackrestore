@@ -13,16 +13,20 @@ alias stat='/usr/bin/stat'
 alias tail='/usr/bin/tail'
 
 readonly EMAIL_SUBJECT="Restore Complete"
-readonly EMAIL_ADDR="mrafferty@nexcess.net"
+readonly DEFAULT_ADDR="support@nexcess.net"
+
+readonly EMAIL_ADDR="${1-$DEFAULT_ADDR}"
 
 [[ -n "$TICKET" ]] || read -rp "Ticket: " TICKET;
 
+# Show usage
 _usage() {
   cat <<- EOF
   This is the usage
 EOF
 }
 
+# Parse long command line options
 _cmdline() {
 
   local x;
@@ -46,6 +50,7 @@ _cmdline() {
   echo "$args";
 }
 
+# Wait for restore to complete
 _wait () {
 
   while [[ -d /proc/$1 ]]; do
@@ -54,6 +59,7 @@ _wait () {
 
 }
 
+# Send notification email
 _notify () {
 
   mail -s "$EMAIL_SUBJECT" "$EMAIL_ADDR" <<- EOF
@@ -65,6 +71,7 @@ EOF
 
 }
 
+# Main
 main () {
 
   while getopts "hxt:c:" OPTION "$(_cmdline)"; do

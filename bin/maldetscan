@@ -4,7 +4,7 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly OUTPUT_FILE="${TICKETDIR-$HOME}maldetscan_$(date "+%F-%T")"
-readonly DEFAULT_EMAIL="mrafferty@nexcess.net";
+readonly DEFAULT_EMAIL="support@nexcess.net";
 
 alias awk='/bin/awk'
 alias cat='/bin/cat'
