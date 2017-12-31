@@ -11,12 +11,9 @@ alias find='/bin/find'
 alias grep='/bin/grep'
 alias head='/usr/bin/head'
 alias mysql='/usr/bin/mysql'
-alias printf='/usr/bin/printf'
 alias ps='/bin/ps'
 alias sed='/bin/sed'
 alias sort='/bin/sort'
-alias test='/usr/bin/test'
-alias true='/bin/true'
 alias wc='/usr/bin/wc'
 
 
@@ -212,6 +209,8 @@ _checkservices () {
 
   process_data=$(ps -C redis-server,memcached,php-fpm,mysqld,httpd -o user,pid,cmd);
 
+
+  # Check php
   configured_phps=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kphp.*fpm'));
   running_phps=($(echo "$process_data" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$6); print $6}'));
 
@@ -231,6 +230,8 @@ _checkservices () {
 
   fi
 
+
+  # Check httpd
   configured_httpd=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Khttpd'));
   running_httpd=($(echo "$process_data" | grep -Po "^root.*\Khttpd"));
 
@@ -240,6 +241,8 @@ _checkservices () {
 
   fi
 
+
+  # Check memcached instances
   configured_memcached=($(find /etc/sysconfig -mindepth 1 | grep -Po "/etc/sysconfig/memcached\.\K\S*"));
   running_memcached=($(echo "$process_data" | grep -Po "memcached\..*\.pid"));
 
@@ -259,6 +262,8 @@ _checkservices () {
 
   fi
 
+
+  # Check redis instances
   configured_redis=($(find /etc/redis-multi/ -mindepth 1 | grep -Po "multi_[a-z]*\.\K.*(?=.conf)"));
   running_redis=($(echo "$process_data" | grep -Po "^\S*(?=.*redis-server)" ));
 
@@ -278,6 +283,8 @@ _checkservices () {
 
   fi
 
+
+  # Check mysqld
   configured_mysqld=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kmysqld'));
   running_mysqld=($(echo "$process_data" | grep -Po "\S*mysqld "));
 
@@ -330,25 +337,15 @@ main () {
 
   done
 
-  export -f _longrunqueries;
-  export -f _maxphpprocs;
-  export -f _maxclients;
-  export -f _memcheck;
-  export -f _loadavgchk;
-  export -f _partitioncheck;
-  export -f _checkservices;
-  export -f _m;
+  local func_list=(_longrunqueries _maxphpprocs _maxclients _memcheck _loadavgchk _partitioncheck _checkservices)
 
   echo;
 
-  parallel -- \
-    _longrunqueries \
-    _maxphpprocs \
-    _maxclients \
-    _memcheck \
-    _loadavgchk \
-    _partitioncheck \
-    _checkservices;
+  for x in ${func_list[*]}; do
+    $x &
+  done
+
+  wait;
 
   echo;
 
