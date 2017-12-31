@@ -25,8 +25,8 @@ cdd () {
     | cut -f2));
 
   for (( i=1; i<=${#alias[@]}; i++ )); do
-    docroot[$i]=($(sed -nr 's/[^#]*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"${domain[$i]}".conf \
-      | head -n1));
+    docroot[$i]=$(sed -nr 's/[^#]*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"${domain[$i]}".conf \
+      | head -n1);
   done;
 
   # Evaluate subdomains
@@ -78,8 +78,8 @@ cdlogs () {
   vhosts=($(grep -El "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*.conf));
 
   for (( i=1; i<=${#vhosts[@]}; i++ )); do
-    logsdir[$i]=($(sed -nr 's_[^#]*ErrorLog (.*)/error.log_\1_p' "${vhosts[$i]}" \
-      | head -n1));
+    logsdir[$i]=$(sed -nr 's_[^#]*ErrorLog (.*)/error.log_\1_p' "${vhosts[$i]}" \
+      | head -n1);
   done;
 
   # Evaluate too few or too many directories
@@ -137,7 +137,7 @@ refbymb () {
 # Show top uris by bandwidth usage
 uribymb () {
   zless -f "$@" \
-		| sed -nr 's|.*\] \"\S* ([^?, ]*\??)[^\"]*\" [0-9]{3} ([0-9]*) .*|\1\t\2|p' \
+    | sed -nr 's|.*\] \"\S* ([^?, ]*\??)[^\"]*\" [0-9]{3} ([0-9]*) .*|\1\t\2|p' \
     | awk '{tx[$1]+=$2} END {for (x in tx) {printf "%10.2fM\t%s\n",tx[x]/1048576,x}}' \
     | sort -hr \
     | head -n 20;
@@ -222,7 +222,7 @@ hitslasthour () {
   fi
 
   echo -e "\n";
-   find {/var/log/,/home/*/var/*/logs} -name transfer.log -exec grep -EHc "$regex" {} + \
+  find {/var/log/,/home/*/var/*/logs} -name transfer.log -exec grep -EHc "$regex" {} + \
     | grep -v ":0$" \
     | sed 's_log:_log\t_' \
     | sort -nr -k 2 \

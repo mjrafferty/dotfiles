@@ -66,14 +66,15 @@ _cmdline() {
 
   done
 
-
   echo "$args";
+
 }
 
 _m () {
 
   mysql -u"$(grep '^rootdsn=' /usr/local/interworx/iworx.ini | cut -d/ -f3 | cut -d: -f1)" \
     -p"$(grep '^rootdsn=' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)" "$1"
+
 }
 
 _longrunqueries () {
@@ -84,7 +85,9 @@ _longrunqueries () {
     | sed -n 's/count(\*): \([0-9]*\).*/\1/p');
 
   if [ -n "$count" ] && [ "$count" -ge 10 ]; then
+
     echo "$count long running queries";
+
   fi
 
 }
@@ -107,9 +110,13 @@ _maxphpprocs () {
       | head -n1)"
 
     if [ "${numprocs[$x]}" -ge "$max" ]; then
+
       echo "${users[$x]} at max children";
+
     elif [ "${numprocs[$x]}" -ge "$((9*max/10))" ]; then
+
       echo "${users[$x]} near max children";
+
     fi
 
   done
@@ -124,9 +131,13 @@ _maxclients () {
   max="$(sed -n 's/^[^#]*MaxClients\s*\([0-9]*\).*/\1/p' /etc/httpd/conf/httpd.conf | head -n1)";
 
   if [ "$count" -ge "$max" ]; then
+
     echo "Apache at MaxClients";
+
   elif [ $count -ge "$(( 9 * max / 10 ))" ]; then
+
     echo "Apache near MaxClients";
+
   fi
 
 }
@@ -141,10 +152,15 @@ _memcheck () {
   swpfree=$(sed -n 's/SwapFree:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
 
   if [ "$active" -ge "$((9 * total / 10))" ]; then
+
     echo "System memory low";
+
   fi
+
   if [ "$swpfree" -le "$((swptotal / 10))" ]; then
+
     echo "Swap low";
+
   fi
 
 }
@@ -163,13 +179,21 @@ _loadavgchk () {
   cpucount="$(grep -c ^processor /proc/cpuinfo)"
 
   if [ "${avgs[0]}" -ge "$cpucount" ]; then
+
     echo "Load average high";
+
   fi
+
   if [ "${avgs[1]}" -ge "$cpucount" ]; then
+
     echo "5 min load average high";
+
   fi
+
   if [ "${avgs[2]}" -ge "$cpucount" ]; then
+
     echo "15 min load average high";
+
   fi
 
 }
@@ -198,7 +222,9 @@ _checkservices () {
     for x in ${configured_phps[*]}; do
 
       if ! echo "$php_instances" | grep -qx "$x"; then
+
         echo "$x is DOWN";
+
       fi
 
     done
@@ -209,7 +235,9 @@ _checkservices () {
   running_httpd=($(echo "$process_data" | grep -Po "^root.*\Khttpd"));
 
   if [[ "${#configured_httpd[@]}" != "${#running_httpd[@]}" ]]; then
+
     echo "Apache is DOWN";
+
   fi
 
   configured_memcached=($(find /etc/sysconfig -mindepth 1 | grep -Po "/etc/sysconfig/memcached\.\K\S*"));
@@ -220,10 +248,15 @@ _checkservices () {
     memcached_instances="$(echo "$process_data" | grep -Po '\-P /var/tmp/memcached\.\K\S*(?=.pid)')"
 
     for x in ${configured_memcached[*]}; do
+
       if ! echo "$memcached_instances" | grep -q "$x"; then
+
         echo "Memcached instance $x is DOWN";
+
       fi
+
     done
+
   fi
 
   configured_redis=($(find /etc/redis-multi/ -mindepth 1 | grep -Po "multi_[a-z]*\.\K.*(?=.conf)"));
@@ -236,17 +269,22 @@ _checkservices () {
     for x in ${configured_redis[*]}; do
 
       if ! echo "$redis_instances" | grep -q "$x"; then
+
         echo "Redis instance $x is DOWN";
+
       fi
 
     done
+
   fi
 
   configured_mysqld=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kmysqld'));
   running_mysqld=($(echo "$process_data" | grep -Po "\S*mysqld "));
 
   if [[ "${#configured_mysqld[@]}" != "${#running_mysqld[@]}" ]]; then
+
     echo "MySQLd service is DOWN";
+
   fi
 
 }
