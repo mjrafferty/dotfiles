@@ -31,8 +31,6 @@ _cmdline() {
 
   for x in ${ARGA[*]}; do
 
-    local delim=""
-
     case "$x" in
       "--help"|"-h")
         args="${args}-h "
@@ -58,8 +56,8 @@ _cmdline() {
       "--services"|"-s")
         args="${args}-s "
         ;;
-      *) [[ "${x:0:1}" == "-" ]] || delim="\"";
-        args="${args}${delim}${x}${delim} "
+      *)
+        args="${args}${x} "
         ;;
     esac
 
