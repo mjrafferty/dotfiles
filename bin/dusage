@@ -12,6 +12,65 @@ alias mktemp='/bin/mktemp'
 alias rm='/bin/rm'
 alias sort='/bin/sort'
 
+user=""
+depth=""
+
+# Print usage
+_usage() {
+  cat <<- EOF
+
+Examines disk usage for a user. Can be run with no argument
+from anywhere in a user's home directory, or by specifying a
+user with -u flag. Currently checks for the following:
+
+  - large files
+  - large directories, excluding subdirectories to a certain depth
+  - large mailboxes
+  - files in /home/tmp or nexcess employee directories
+  - deleted files
+
+Options:
+
+  -h  --help    Shows this message
+
+  -u  --user    Specify a user
+
+  -d  --depth   Depth for subdirectory exclusion control, probably
+                won't need to touch this very often. Default is 3
+
+EOF
+}
+
+# Parse long command line options
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    local delim=""
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--depth"|"-d")
+        args="${args}-d "
+        ;;
+      "--user"|"-u")
+        args="${args}-u "
+        ;;
+      *) [[ "${x:0:1}" == "-" ]] || delim="\"";
+        args="${args}${delim}${x}${delim} "
+        ;;
+    esac
+
+  done
+
+
+  echo "$args";
+}
+
 # Convert bytes to human readable KB,MB,GB
 _humanReadable() {
 
@@ -48,7 +107,7 @@ _files () {
   find . \
     -path './var/*/mail' -prune -o \
     -size +100M \
-    -group "$(getusr)" \
+    -group "$user" \
     -type f \
     -exec /usr/bin/du -sh {} + \
     | sort -hr \
@@ -65,15 +124,15 @@ _directories () {
 
   # Get total size of directories located at given depth
   find . \
-    -mindepth 4 \
-    -maxdepth 4 \
+    -mindepth "$((depth +1))" \
+    -maxdepth "$((depth +1))" \
     -path '*/var/*/mail/*' -prune -o \
     -type d \
-    -group "$(getusr)" \
+    -group "$user" \
     -exec /usr/bin/du -sb {} + >> "$temp_list" &
 
   directories=$(find . \
-    -maxdepth 3 \
+    -maxdepth "$depth" \
     -path "./var/*/mail" -prune -o \
     -type d \
     -print);
@@ -83,7 +142,7 @@ _directories () {
   # Get sizes of directories EXCLUDING subdirectories for directories less than given depth
   IFS=$'\n'
   for x in $directories; do
-    find "$x" -mindepth 1 -maxdepth 1 -group "$(getusr)" -type f -exec /usr/bin/du -sb {} + \
+    find "$x" -mindepth 1 -maxdepth 1 -group "$user" -type f -exec /usr/bin/du -sb {} + \
       | awk '{sum += $1} END {print sum,dirname}' dirname="$x" >> "$temp_list" &
   done;
 
@@ -107,7 +166,7 @@ _mailboxes () {
   find ./*/mail/* \
     -maxdepth 0 \
     -type d \
-    -group "$(getusr)"\
+    -group "$user"\
     -exec /usr/bin/du -sh {} + \
     | sort -hr \
     | head -10
@@ -130,7 +189,7 @@ _deletedFiles() {
 
   printf "\n----- Deleted Files ------\n";
 
-  lsof -u "$(getusr)" \
+  lsof -u "$user" \
     | awk '/deleted/ {print $7,$9,$1,$2}' \
     | sort -hr \
     | _humanReadable \
@@ -141,7 +200,28 @@ _deletedFiles() {
 # Main
 main () {
 
-  cd /home/"$(getusr)" || return 1;
+ while getopts "hxt:c:" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      u)
+        user="$OPTARG";
+        ;;
+      d)
+        depth="$OPTARG";
+        ;;
+    esac
+
+  done
+
+  [[ -z "$user" ]] && user="$(pwd | grep -Po "home/\K[^/]*")"
+
+  [[ -z "$depth" ]] && depth=3;
+
+  cd /home/"$user" || return 1;
 
   local func_list tmp_list x;
 
