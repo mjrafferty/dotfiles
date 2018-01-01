@@ -48,8 +48,6 @@ _cmdline() {
 
   for x in ${ARGA[*]}; do
 
-    local delim=""
-
     case "$x" in
       "--help"|"-h")
         args="${args}-h "
@@ -60,8 +58,8 @@ _cmdline() {
       "--user"|"-u")
         args="${args}-u "
         ;;
-      *) [[ "${x:0:1}" == "-" ]] || delim="";
-        args="${args}${delim}${x}${delim} "
+      *)
+        args="${args}${x} "
         ;;
     esac
 
