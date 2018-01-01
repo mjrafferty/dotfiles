@@ -200,7 +200,7 @@ _deletedFiles() {
 # Main
 main () {
 
- while getopts "hxt:c:" OPTION $(_cmdline); do
+ while getopts "hu:d:" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
