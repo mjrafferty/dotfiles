@@ -248,7 +248,7 @@ Files Scanned: ${totals[0]}
 
                                         Modification Times:
 
-    $(for (( x=0; x<=${#bad_files[@]}; x++ )); do stat "${bad_files[$x]}"; done)
+    $(for (( x=0; x<=${#bad_files[@]}; x++ )); do stat "${bad_files[$x]}" 2> /dev/null; done)
 
 EOF
 
