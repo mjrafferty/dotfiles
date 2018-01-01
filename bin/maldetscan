@@ -281,7 +281,7 @@ main () {
 
   trap '_cleanUp && exit' INT QUIT TERM;
 
-  while getopts "he:c:p:" OPTION "$(_cmdline)"; do
+  while getopts "he:c:p:" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -289,11 +289,11 @@ main () {
         exit 0;
         ;;
       e)
-        addr="${OPTARGS-"$DEFAULT_EMAIL"}";
+        addr="${OPTARG-"$DEFAULT_EMAIL"}";
         [[ -n "$TICKET" ]] || read -rp "Ticket: " TICKET;
         ;;
       c)
-        scanpid=$(pgrep -nf "maldet -a .*$OPTARGS");
+        scanpid=$(pgrep -nf "maldet -a .*$OPTARG");
         if [[ -z $scanpid ]]; then
           echo "No scans found";
           _cleanUp;
@@ -302,7 +302,7 @@ main () {
         filepath=$(ps -p "$scanpid" -o command | grep -Po "\-a \K.*")
         ;;
       p)
-        filepath="$OPTARGS";
+        filepath="$OPTARG";
         ;;
     esac
 
