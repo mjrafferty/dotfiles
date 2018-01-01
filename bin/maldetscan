@@ -27,7 +27,7 @@ alias xargs='/usr/bin/xargs'
 
 maldetoutput="$(mktemp)"
 data_list="$(mktemp)"
-start_time=""
+scan_time=""
 totals=()
 
 # Print usage info
@@ -143,7 +143,7 @@ _evaluateList () {
 # Follow scan and output live data
 _watchScan() {
 
-  local filepath scanpid data_total_human clamdpid elapsed_time
+  local filepath scanpid data_total_human clamdpid elapsed_time start_time
   local currentfile lastfile scan_status scan_percentage data_scanned_human
   local current_file_size_human rate rate_human remaining_time
 
@@ -156,7 +156,8 @@ _watchScan() {
   # Find clamd process id
   clamdpid=$(pgrep -u clamav clamd);
 
-  start_time=$(date '+%s' -d "$(ps h -o stime -p "$scanpid")")
+  scan_time="$(ps h -o stime -p "$scanpid")"
+  start_time=$(date '+%s' -d "$scan_time")
 
   while [ -d /proc/"$scanpid" ]; do
 
@@ -231,8 +232,8 @@ Files Scanned: ${totals[0]}
          Hits: $(wc -l "$hits_file" | awk '{print $1}')
 
     Scan Date: $(date "+%F")
-   Start time: $(_convertTime "$start_time")
-     End time: $(date "+%s" | _convertTime)
+   Start time: $scan_time
+     End time: $(date "+%H:%M" )
 
      Hostname: $HOSTNAME
     Scan path: $1
