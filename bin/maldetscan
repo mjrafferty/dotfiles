@@ -4,7 +4,7 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly OUTPUT_FILE="${TICKETDIR-$HOME}maldetscan_$(date "+%F-%T")"
-readonly DEFAULT_EMAIL="support@nexcess.net";
+readonly DEFAULT_EMAIL="mrafferty@nexcess.net";
 
 alias awk='/bin/awk'
 alias cat='/bin/cat'
@@ -17,7 +17,7 @@ alias maldet='/usr/sbin/maldet'
 alias mktemp='/bin/mktemp'
 alias pgrep='/usr/bin/pgrep'
 alias ps='/bin/ps'
-alias rm='/bin/rm'
+alias rm='/bin/rm --preserve-root'
 alias sleep='/bin/sleep'
 alias stat='/usr/bin/stat'
 alias tail='/usr/bin/tail'
@@ -27,6 +27,8 @@ alias xargs='/usr/bin/xargs'
 
 maldetoutput="$(mktemp)"
 data_list="$(mktemp)"
+start_time=""
+totals=()
 
 # Print usage info
 _usage() {
@@ -141,7 +143,7 @@ _evaluateList () {
 # Follow scan and output live data
 _watchScan() {
 
-  local filepath scanpid totals data_total_human clamdpid start_time elapsed_time
+  local filepath scanpid data_total_human clamdpid elapsed_time
   local currentfile lastfile scan_status scan_percentage data_scanned_human
   local current_file_size_human rate rate_human remaining_time
 
@@ -216,37 +218,37 @@ _showResults () {
   report_id="$(grep -Po "report \K[0-9,\-,.]*" "$maldetoutput")"
   hits_file="/usr/local/maldetect/sess/session.hits.$report_id"
 
-    cat "$hits_file";
 
-    bad_files=($(awk '{print $3}' "$hits_file"));
+  bad_files=($(awk '{print $3}' "$hits_file"));
 
-    for (( x=0; x<=${#bad_files[@]}; x++ )); do
-      stat "${bad_files[$x]}";
-    done
 
   cat <<- EOF > "$OUTPUT_FILE"
                                             Maldet Report
 ==========================================================================================================
 
-Files Scanned:
- Data Scanned:
-         Hits:
+Files Scanned: ${totals[0]}
+ Data Scanned: $(echo "${totals[1]}" | _humanReadable)
+         Hits: $(wc -l "$hits_file")
 
-   Start time:
-     End time:
+    Scan Date: $(date "%F")
+   Start time: $(_convertTime "$start_time")
+     End time: $(date "+%s" | _convertTime)
 
-     Hostname:
-    Scan path:
-    Maldet ID:
+     Hostname: $HOSTNAME
+    Scan path: $1
+    Maldet ID: $report_id
 
 ==========================================================================================================
 
                                                 Hits:
 
+    $(cat "$hits_file");
+
 ==========================================================================================================
 
                                         Modification Times:
 
+    $(for (( x=0; x<=${#bad_files[@]}; x++ )); do stat "${bad_files[$x]}"; done)
 
 EOF
 
@@ -323,7 +325,7 @@ main () {
 
   _watchScan "$filepath" "$scanpid";
 
-  _showResults;
+  _showResults "$filepath" ;
 
   [[ -n "$addr" ]] && _email "$addr";
 
