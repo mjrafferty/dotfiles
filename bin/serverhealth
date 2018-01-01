@@ -17,12 +17,14 @@ alias sort='/bin/sort'
 alias wc='/usr/bin/wc'
 
 
+# Show usage
 _usage() {
   cat <<- EOF
   This is the usage
 EOF
 }
 
+# Parse long command line options
 _cmdline() {
 
   local x;
@@ -67,6 +69,7 @@ _cmdline() {
 
 }
 
+# Connect to mysql
 _m () {
 
   mysql -u"$(grep '^rootdsn=' /usr/local/interworx/iworx.ini | cut -d/ -f3 | cut -d: -f1)" \
@@ -74,6 +77,7 @@ _m () {
 
 }
 
+# Check for a buildup of long running mysql queries and/or connections
 _longrunqueries () {
 
   local count;
@@ -89,6 +93,7 @@ _longrunqueries () {
 
 }
 
+# Check all users for being at their max php child procs
 _maxphpprocs () {
 
   local phprocs numprocs users max;
@@ -120,6 +125,7 @@ _maxphpprocs () {
 
 }
 
+# Check for apache being at max clients
 _maxclients () {
 
   local count max;
@@ -139,6 +145,7 @@ _maxclients () {
 
 }
 
+# Check low memory in swap or RAM
 _memcheck () {
 
   local active total swptotal swpfree;
@@ -162,6 +169,7 @@ _memcheck () {
 
 }
 
+# Check CPU load
 _loadavgchk () {
 
   local avgs cpucount;
@@ -195,6 +203,7 @@ _loadavgchk () {
 
 }
 
+# Check for low disk space
 _partitioncheck () {
 
   df \
@@ -202,6 +211,7 @@ _partitioncheck () {
 
 }
 
+# Check to see if critical services are running
 _checkservices () {
 
   local process_data configured_phps running_phps php_instances configured_httpd running_httpd configured_memcached \
@@ -296,6 +306,7 @@ _checkservices () {
 
 }
 
+# Main
 main () {
 
   while getopts "hqpamlds" OPTION "$(_cmdline)"; do
@@ -341,6 +352,7 @@ main () {
 
   echo;
 
+  # Run all functions in parallel
   for x in ${func_list[*]}; do
     $x &
   done

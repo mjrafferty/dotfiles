@@ -216,8 +216,6 @@ _showResults () {
   report_id="$(grep -Po "report \K[0-9,\-,.]*" "$maldetoutput")"
   hits_file="/usr/local/maldetect/sess/session.hits.$report_id"
 
-  if [[ -s "$hits_file" ]]; then
-
     cat "$hits_file";
 
     bad_files=($(awk '{print $3}' "$hits_file"));
@@ -226,11 +224,31 @@ _showResults () {
       stat "${bad_files[$x]}";
     done
 
-  else
+  cat <<- EOF > "$OUTPUT_FILE"
+                                            Maldet Report
+==========================================================================================================
 
-    echo "No malware found!"
+Files Scanned:
+ Data Scanned:
+         Hits:
 
-  fi > "$OUTPUT_FILE";
+   Start time:
+     End time:
+
+     Hostname:
+    Scan path:
+    Maldet ID:
+
+==========================================================================================================
+
+                                                Hits:
+
+==========================================================================================================
+
+                                        Modification Times:
+
+
+EOF
 
 }
 
