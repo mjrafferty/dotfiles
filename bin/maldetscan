@@ -4,7 +4,7 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly OUTPUT_FILE="${TICKETDIR-$HOME}maldetscan_$(date "+%F-%T")"
-readonly DEFAULT_EMAIL="mrafferty@nexcess.net";
+readonly DEFAULT_EMAIL="support@nexcess.net";
 
 alias awk='/bin/awk'
 alias cat='/bin/cat'
@@ -50,6 +50,9 @@ _cmdline() {
       "--help"|"-h")
         args="${args}-h "
         ;;
+      "--notify"|"-n")
+        args="${args}-n "
+        ;;
       "--email"|"-e")
         args="${args}-e "
         ;;
@@ -59,7 +62,7 @@ _cmdline() {
       "--path"|"-p")
         args="${args}-p "
         ;;
-      *) [[ "${x:0:1}" == "-" ]] || delim="\"";
+      *) [[ "${x:0:1}" == "-" ]] || delim="";
         args="${args}${delim}${x}${delim} "
         ;;
     esac
@@ -243,13 +246,13 @@ Files Scanned: ${totals[0]}
 
                                                 Hits:
 
-    $(cat "$hits_file")
+$(cat "$hits_file")
 
 ==========================================================================================================
 
                                         Modification Times:
 
-    $(for (( x=0; x<=${#bad_files[@]}; x++ )); do stat "${bad_files[$x]}" 2> /dev/null; done)
+$(for (( x=0; x<=${#bad_files[@]}; x++ )); do stat "${bad_files[$x]}" 2> /dev/null; done)
 
 EOF
 
@@ -281,16 +284,20 @@ main () {
 
   trap '_cleanUp && exit' INT QUIT TERM;
 
-  while getopts "he:c:p:" OPTION $(_cmdline); do
+  while getopts "hne:c:p:" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
         _usage;
         exit 0;
         ;;
-      e)
-        addr="${OPTARG-"$DEFAULT_EMAIL"}";
+      n)
         [[ -n "$TICKET" ]] || read -rp "Ticket: " TICKET;
+        addr="$DEFAULT_EMAIL"
+        ;;
+      e)
+        [[ -n "$TICKET" ]] || read -rp "Ticket: " TICKET;
+        addr="$OPTARG";
         ;;
       c)
         scanpid=$(pgrep -nf "maldet -a .*$OPTARG");

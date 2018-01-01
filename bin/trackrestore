@@ -74,7 +74,7 @@ EOF
 # Main
 main () {
 
-  while getopts "hxt:c:" OPTION "$(_cmdline)"; do
+  while getopts "hxt:c:" OPTION $(_cmdline); do
 
     case $OPTION in
       h)

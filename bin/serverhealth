@@ -309,7 +309,7 @@ _checkservices () {
 # Main
 main () {
 
-  while getopts "hqpamlds" OPTION "$(_cmdline)"; do
+  while getopts "hqpamlds" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
