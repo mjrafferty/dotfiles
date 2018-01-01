@@ -228,9 +228,9 @@ _showResults () {
 
 Files Scanned: ${totals[0]}
  Data Scanned: $(echo "${totals[1]}" | _humanReadable)
-         Hits: $(wc -l "$hits_file")
+         Hits: $(wc -l "$hits_file" | awk '{print $1}')
 
-    Scan Date: $(date "%F")
+    Scan Date: $(date "+%F")
    Start time: $(_convertTime "$start_time")
      End time: $(date "+%s" | _convertTime)
 
@@ -242,7 +242,7 @@ Files Scanned: ${totals[0]}
 
                                                 Hits:
 
-    $(cat "$hits_file");
+    $(cat "$hits_file")
 
 ==========================================================================================================
 
