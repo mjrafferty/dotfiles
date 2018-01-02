@@ -37,7 +37,7 @@ destination="";
 _usage () {
   cat <<- EOF
 
-  Usage: go [domain] [ticket] [commands...]
+  Usage: go [destination] [ticket] [commands...]
 
 
   destination         Location to login to. Typically should be
