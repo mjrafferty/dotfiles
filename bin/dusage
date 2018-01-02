@@ -31,12 +31,12 @@ user with -u flag. Currently checks for the following:
 
 Options:
 
-  -h  --help    Shows this message
-
   -u  --user    Specify a user
 
   -d  --depth   Depth for subdirectory exclusion control, probably
                 won't need to touch this very often. Default is 3
+
+  -h  --help    Shows this message
 
 EOF
 }

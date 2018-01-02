@@ -9,7 +9,17 @@ alias head='/usr/bin/head'
 
 _usage() {
   cat <<- EOF
-  This is the usage
+
+Opens the PHP-FPM pool configuration file for a user. Can be
+run with no arguments from anywhere in a user's home directory, or
+by specifying a user with the -u flag.
+
+Options:
+
+  -u  --user    Edit file for specified user
+
+  -h  --help    Prints this message
+
 EOF
 }
 
@@ -60,7 +70,7 @@ main () {
   conf_file="$(find {/opt/nexcess/php*/root,}/etc/php-fpm.d/ -name "${user}.conf" | head -n1)";
 
   if [[ -z "$conf_file" ]]; then
-    echo "Config file not found";
+    echo "Config file not found for $user";
     exit 1;
   fi
 

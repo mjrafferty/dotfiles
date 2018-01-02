@@ -11,7 +11,7 @@ alias curl='/usr/bin/curl'
 alias dig='/usr/bin/dig'
 alias grep='/bin/grep'
 alias head='/usr/bin/head'
-alias rm='/bin/rm'
+alias rm='/bin/rm --preserve-root'
 alias rsync='/usr/bin/rsync'
 alias sed='/bin/sed'
 alias sort='/bin/sort'
@@ -37,9 +37,31 @@ destination="";
 _usage () {
   cat <<- EOF
 
-  Usage: go [DOMAIN]
+  Usage: go [domain] [ticket] [commands...]
 
-  [DOMAIN] must be the target domain/server you wish to go to.
+
+  destination         Location to login to. Typically should be
+                      a domain name, but also accepts IP's or
+                      abbreviated nexcess.net and nextmp.net names.
+                              i.e. go sip1-208
+
+  ticket              Ticket ID. Sets TICKET environment
+                      variable on destination. Subsequent logins
+                      can skip can be done with just ticket ID.
+                            i.e. go ASDF-1234
+
+  commands            List of commands to run on login. Currently
+                      supported options are:
+
+                        htacc     Edit .htaccess for domain
+
+                        cdlogs    Go to site's log directory
+
+                        editphp   Edit the user's php-fpm pool
+
+                        vhost     Edit the site's vhost
+
+                        exit      Exit the server after performing prior actions.
 
 EOF
 }
