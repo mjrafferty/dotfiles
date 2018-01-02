@@ -59,7 +59,10 @@ main () {
 
   conf_file="$(find {/opt/nexcess/php*/root,}/etc/php-fpm.d/ -name "${user}.conf" | head -n1)";
 
-  [[ -n "$conf_file" ]] || echo Config file not found && exit 1;
+  if [[ -z "$conf_file" ]]; then
+    echo "Config file not found";
+    exit 1;
+  fi
 
   $EDITOR "$conf_file";
 
