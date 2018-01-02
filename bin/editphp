@@ -41,7 +41,7 @@ main () {
 
   local conf_file user;
 
-  while getopts "hxt:c:" OPTION $(_cmdline); do
+  while getopts "hu:" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
