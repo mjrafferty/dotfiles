@@ -7,13 +7,59 @@ alias find='/bin/find'
 alias grep='/bin/grep'
 alias head='/usr/bin/head'
 
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--user"|"-u")
+        args="${args}-u "
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+
+  done
+
+
+  echo "$args";
+}
+
 main () {
 
-	local conf_file;
+  local conf_file user;
 
-	conf_file="$(find {/opt/nexcess/php*/root,}/etc/php-fpm.d/ -name "$(pwd | grep -Po "home/\K[^\/]*").conf" | head -n1)";
+  while getopts "hxt:c:" OPTION $(_cmdline); do
 
-	$EDITOR "$conf_file";
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      u)
+        user="$OPTARG"
+        ;;
+    esac
+
+  done
+
+  [[ -n "$user" ]] || user="$(pwd | grep -Po "home/\K[^\/]*")";
+
+  conf_file="$(find {/opt/nexcess/php*/root,}/etc/php-fpm.d/ -name "${user}.conf" | head -n1)";
+
+  $EDITOR "$conf_file";
 
   echo "$conf_file";
 

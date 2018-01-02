@@ -215,9 +215,9 @@ main () {
 
   done
 
-  [[ -z "$user" ]] && user="$(pwd | grep -Po "home/\K[^/]*")"
+  [[ -n "$user" ]] || user="$(pwd | grep -Po "home/\K[^/]*")"
 
-  [[ -z "$depth" ]] && depth=3;
+  [[ -n "$depth" ]] || depth=3;
 
   cd /home/"$user" || return 1;
 
