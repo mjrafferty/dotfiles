@@ -11,7 +11,12 @@ alias tr='/usr/bin/tr'
 
 _usage() {
   cat <<- EOF
-    This is the usage
+
+When run with no arguments, it will attempt to open the vhost relevant
+to your current working directory. If run from a user's home directory,
+it will provide a list of their vhosts. It may also be run with a substring
+of a domain as an argument to find a vhost.
+
 EOF
 }
 
