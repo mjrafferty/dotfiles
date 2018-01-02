@@ -33,7 +33,26 @@ totals=()
 # Print usage info
 _usage() {
   cat <<- EOF
-  This is the usage
+
+Mainly just a wrapper for maldet to provide some much needed verbosity. Can
+be used to start a scan by specifying the file path with the -p flag. It can
+also attach to an existing scan with the -a flag.
+
+Options:
+
+  -p  --path        Directory path to scan.
+
+  -a  --attach      Can attach to an existing scan by providing
+                    a partial filepath.
+
+  -n  --notify      Will send an email to $DEFAULT_EMAIL with the scan results.
+                    If you would like to send to a different email, use -e instead.
+
+  -e  --email       Not to be used in conjunction with -n. Will send the scan results
+                    to the email address specified.
+
+  -h  --help        Prints this message
+
 EOF
 }
 
@@ -54,8 +73,8 @@ _cmdline() {
       "--email"|"-e")
         args="${args}-e "
         ;;
-      "--check"|"-c")
-        args="${args}-c "
+      "--attach"|"-a")
+        args="${args}-a "
         ;;
       "--path"|"-p")
         args="${args}-p "
@@ -282,7 +301,7 @@ main () {
 
   trap '_cleanUp && exit' INT QUIT TERM;
 
-  while getopts "hne:c:p:" OPTION $(_cmdline); do
+  while getopts "hne:a:p:" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -297,7 +316,7 @@ main () {
         [[ -n "$TICKET" ]] || read -rp "Ticket: " TICKET;
         addr="$OPTARG";
         ;;
-      c)
+      a)
         scanpid=$(pgrep -nf "maldet -a .*$OPTARG");
         if [[ -z $scanpid ]]; then
           echo "No scans found";

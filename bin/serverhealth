@@ -20,7 +20,31 @@ alias wc='/usr/bin/wc'
 # Show usage
 _usage() {
   cat <<- EOF
-  This is the usage
+
+Serverhealth was created to be run upon login to a server
+and provide immediate information on potentially problematic
+conditions. With no arguments, it will run all tests simultaneously.
+Individual tests can be run with the options below.
+
+Options:
+
+  -l  --load          Report on high load average
+
+  -m  --memory        Report low RAM and/or swap space
+
+  -p  --php           Show users at/near max child processes
+
+  -a  --apache        Report if apache is at/near max clients
+
+  -d  --disk          Show disk partitions that are nearly full
+
+  -s  --services      Report important services that may be down. Monitored
+                      services are:
+
+                        php-fpm, apache, mysqld, memcached, redis
+
+  -q  --queries       Show long running query count if there are many
+
 EOF
 }
 

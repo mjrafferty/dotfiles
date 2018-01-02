@@ -17,12 +17,20 @@ readonly DEFAULT_ADDR="support@nexcess.net"
 
 readonly EMAIL_ADDR="${1-$DEFAULT_ADDR}"
 
-[[ -n "$TICKET" ]] || read -rp "Ticket: " TICKET;
-
 # Show usage
 _usage() {
   cat <<- EOF
-  This is the usage
+
+Simple script to send a notification email out when a restore is complete. It
+will automatically detect the most recently started restore on the server.
+If run without an argument, the email is sent to $DEFAULT_ADDR. The process
+runs in the background, and it is not necessary for you to stay logged in
+to the server.
+
+Usage:
+
+  trackrestore [email@example.com]
+
 EOF
 }
 
@@ -72,17 +80,6 @@ EOF
 # Main
 main () {
 
-  while getopts "hxt:c:" OPTION $(_cmdline); do
-
-    case $OPTION in
-      h)
-        _usage;
-        exit 0;
-        ;;
-    esac
-
-  done
-
   local restorepid currentfile restoreuser;
 
   for ((x=0;x<60;x++)); do
@@ -108,5 +105,18 @@ main () {
   _notify "$restoreuser";
 
 }
+
+while getopts "hxt:c:" OPTION $(_cmdline); do
+
+  case $OPTION in
+    h)
+      _usage;
+      exit 0;
+      ;;
+  esac
+
+done
+
+[[ -n "$TICKET" ]] || read -rp "Ticket: " TICKET;
 
 main &
