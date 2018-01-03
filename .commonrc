@@ -53,7 +53,7 @@ alias dotpush="cd ~/dotfiles; git add .; git commit -a -m updates; git push; cd 
 
 alias connections="lsof -nu apache | grep -E 'httpd.*ESTABLISHED|httpd.*CLOSE_WAIT' | sed 's_.*:http.*->\(.*\):.*_\1_' | sort | uniq -c | sort -hr"
 alias sshsync="rsync -p -v --progress -e ssh -a -u -z"
-alias grepphp="grep -Phia '\] \"\S* \K(?!.*(/static/|(\.(otf|txt|jpeg|ico|svg|jpg|css|js|gif|png|woff)))[^?].* 200 .*)'"
+alias grepphp="grep -Phiav '\] \"\S* .*(/static/|(\.(otf|txt|jpeg|ico|svg|jpg|css|js|gif|png|woff)))[^?].* 200 .*'"
 
 
 ##### Functions #####
