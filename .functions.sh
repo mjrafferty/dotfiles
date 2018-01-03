@@ -250,7 +250,7 @@ phplasthour () {
 
   echo -e "\n";
   find {/var/log/,/home/*/var/*/logs} -name transfer.log \
-		-exec grep -HPivc "$regex"'.*\] "\S* .*(/static/|(\.(otf|txt|jpeg|ico|svg|jpg|css|js|gif|png|woff)))[^?].* 200 .*' {} + \
+		-exec grep -HPic "$regex"'.*\] "\S* (?!.*(/static/|(\.(otf|txt|jpeg|ico|svg|jpg|css|js|gif|png|woff)))[^?].* 200 .*)' {} + \
     | grep -v ":0$" \
     | sed 's_log:_log\t_' \
     | sort -nr -k 2 \
