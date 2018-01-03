@@ -221,8 +221,13 @@ hitslasthour () {
     regex="${times[1]}:($prevhour:(${times[3]}[${times[4]}-9]|[$((times[3]+1))-5][0-9])|${times[2]}:)"
   fi
 
+  logs=($(find {/var/log/,/home/*/var/*/logs} -name transfer.log))
+
   echo -e "\n";
-  find {/var/log/,/home/*/var/*/logs} -name transfer.log -exec grep -EHc "$regex" {} + \
+
+  (for x in ${logs[*]}; do
+    grep -EHc "$regex" "$x" &
+  done; wait;) \
     | grep -v ":0$" \
     | sed 's_log:_log\t_' \
     | sort -nr -k 2 \
