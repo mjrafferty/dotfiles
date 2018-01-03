@@ -203,8 +203,8 @@ topref () {
     | head;
 }
 
-# Show number of hits received on every site in the last hour
-hitslasthour () {
+# Show number of requests received on every site in the last hour
+reqslasthour () {
   local prevhour regex;
   local -a times;
 
@@ -223,6 +223,34 @@ hitslasthour () {
 
   echo -e "\n";
   find {/var/log/,/home/*/var/*/logs} -name transfer.log -exec grep -EHc "$regex" {} + \
+    | grep -v ":0$" \
+    | sed 's_log:_log\t_' \
+    | sort -nr -k 2 \
+    | awk 'BEGIN{print "\t\t\tTransfer Log\t\t\t\t\tHits Last Hour"}{printf "%-75s %-s\n", $1, $2}';
+  echo -e "\n"
+}
+
+# Show number of requests received on every site in the last hour
+phplasthour () {
+  local prevhour regex;
+  local -a times;
+
+  times=($(date +%Y:%R | sed -e 's/:/ /g' -e 's/\([0-9]\)\([0-9]\)$/\1 \2/'))
+
+  if [ "${times[2]}" -eq 00 ]; then
+    prevhour=23;
+  else
+    prevhour=$(printf "%02d" "$((times[2]-1))");
+  fi
+  if [ "${times[3]}" -eq 5 ]; then
+    regex="${times[1]}:($prevhour:5[${times[4]}-9]|${times[2]}:)"
+  else
+    regex="${times[1]}:($prevhour:(${times[3]}[${times[4]}-9]|[$((times[3]+1))-5][0-9])|${times[2]}:)"
+  fi
+
+  echo -e "\n";
+  find {/var/log/,/home/*/var/*/logs} -name transfer.log \
+		-exec grep -HPic "$regex"'\] "\S* \K(?!.*(/static/|(\.(otf|txt|jpeg|ico|svg|jpg|css|js|gif|png|woff)))[^?].* 200 .*)' {} + \
     | grep -v ":0$" \
     | sed 's_log:_log\t_' \
     | sort -nr -k 2 \
