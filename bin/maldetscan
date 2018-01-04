@@ -155,7 +155,7 @@ _evaluateList () {
   scanlist="/usr/local/maldetect/tmp/.find.$1"
 
   # Populate data list with info needed to track progress
-  xargs --delimiter="\n" /usr/bin/du -sb < "$scanlist" \
+  xargs --delimiter="\n" /usr/bin/du -sb < "$scanlist" 2> /dev/null \
     | awk '{print NR,(sum += $1),$0}' > "$data_list";
 
 }
