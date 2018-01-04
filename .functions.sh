@@ -546,9 +546,9 @@ nexinfo () {
 sysusage () {
   local COLSORT=2;
 
-  printf "\n%-10s %10s %10s %10s %10s\n%s\n" "User" "Mem (MB)" "Process" "$CPU(%)" "MEM(%)" "$($DASHES 54)";
+  printf "\n%-10s %10s %10s %10s %10s\n%s\n" "User" "Mem (MB)" "Process" "CPU(%)" "MEM(%)" "$($DASHES 54)";
   $PS aux \
-    | $AWK ' !/^USER/ { mem[$1]+=$6; procs[$1]+=1; p$CPu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], p$CPu[i], pmem[i] } }' \
+    | $AWK ' !/^USER/ { mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' \
     | $SORT -nrk$COLSORT \
     | $HEAD;
   echo;
