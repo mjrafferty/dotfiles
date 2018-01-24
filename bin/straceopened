@@ -18,7 +18,7 @@ main () {
 
 
   zless ${ARGA[*]} \
-    | grep -Poh ' (open|stat)\(\"/chroot/home/[^/]*/[^/]*/[^/]*/\K[^"]*(?!.* = -1)' \
+    | grep -Poh ' (open|stat)\(\"/chroot/(home|local)/[^/]*/[^/]*/[^/]*/\K[^"]*(?!.* = -1)' \
     | sort -u
 
 }
