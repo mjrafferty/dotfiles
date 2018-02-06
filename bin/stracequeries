@@ -20,7 +20,7 @@ main () {
 
   tail -n +"${file_desc[0]}" "${ARGA[0]}" \
     | grep -Po '(write|sendto)\('"${file_desc[1]}"', "\\?[^\\]*(\\[^\\]*){3}\\.(\\.)?\K[^"]*", ' \
-    | sed -e 's_",$_;_' -e 's/\\n//g' \
+    | sed -e 's_", $_;_' -e 's/\\n//g' \
     | less -S
 
 }
