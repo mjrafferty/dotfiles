@@ -12,7 +12,7 @@ EOF
 }
 
 _timetofirstbyte () {
-  curl -so /dev/null -w "HTTP: %{http_code} Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} Redirect URL: %{redirect_url}\n" "$1";
+  curl -Lso /dev/null -w "HTTP: %{http_code} Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total}\n" "$1";
 }
 
 
