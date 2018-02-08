@@ -6,8 +6,8 @@ if [[ -z $TMUX && -n $SSH_TTY ]] then;
  exit;
 fi
 
-fpath+="~/.completions"
-ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR="~/.zprezto/modules/syntax-highlighting/external/highlighters/"
+fpath+=~"/.completions"
+ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=~"/.zprezto/modules/syntax-highlighting/external/highlighters/"
 
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
