@@ -16,12 +16,30 @@ main () {
     return 0;
   fi
 
-  file_desc=($(grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))' "${ARGA[0]}" | tr ':' ' '));
+  connections=($(grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))' "${ARGA[0]}"));
 
-  tail -n +"${file_desc[0]}" "${ARGA[0]}" \
-    | grep -Po '(write|sendto)\('"${file_desc[1]}"', "\\?[^\\]*(\\[^\\]*){3}\\.(\\.)?\K[^"]*", ' \
-    | sed -e 's_", $_;_' -e 's/[\n,\t,\r]*/ /g' \
-    | less -S
+	if [[ -n "$connections"  || -n ${ARGA[1]} ]]; then
+
+		cat $ARGS \
+			|grep -Po '(write|sendto)\(\d*, "\\?[^\\]*(\\[^\\]*){3}\\.(\\.)?\K[^"]*", ' \
+			| sed -e 's_", $_;_' -e 's/[\n,\t,\r]*/ /g' \
+      | less -SF
+
+    exit;
+
+	fi
+
+  for x in ${connections[*]}; do
+    local file_desc;
+
+    file_desc=(${x/:/ });
+
+    tail -n +"${file_desc[0]}" "${ARGA[0]}" \
+      | grep -Po '(write|sendto)\('"${file_desc[1]}"', "\\?[^\\]*(\\[^\\]*){3}\\.(\\.)?\K[^"]*", ' \
+      | sed -e 's_", $_;_' -e 's/[\n,\t,\r]*/ /g'
+
+  done \
+    | less -SF
 
 }
 
