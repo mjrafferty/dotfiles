@@ -4,42 +4,42 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 _usage() {
-  cat <<- EOF
-  This is the usage
+	cat <<- EOF
+	This is the usage
 EOF
 }
 
 main () {
 
-  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
-  fi
+	if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+		_usage;
+		return 0;
+	fi
 
-  connections=($(cat $ARGS | grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))'));
+	connections=($(cat $ARGS | grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))'));
 
-	if [[ -n "$connections"  || -n ${ARGA[1]} ]]; then
+	if [[ -z "$connections"  || -n ${ARGA[1]} ]]; then
 
 		cat $ARGS \
 			|grep -Po '(write|sendto)\(\d*, "\\?[^\\]*(\\[^\\]*){3}\\.(\\.)?\K[^"]*", ' \
-			| sed -e 's_", $_;_' -e 's/[\n,\t,\r]*/ /g' \
-      | less -SF
+			| sed -e 's_", $_;_' -e 's/\\r/ /g' -e 's/\\n/ /g' -e 's/\\t/ /g' \
+			| less -SF
 
-    exit;
+		exit;
 
 	fi
 
-  for x in ${connections[*]}; do
-    local file_desc;
+	for x in ${connections[*]}; do
+		local file_desc;
 
-    file_desc=(${x/:/ });
+		file_desc=(${x/:/ });
 
-    tail -n +"${file_desc[0]}" "${ARGA[0]}" \
-      | grep -Po '(write|sendto)\('"${file_desc[1]}"', "\\?[^\\]*(\\[^\\]*){3}\\.(\\.)?\K[^"]*", ' \
-      | sed -e 's_", $_;_' -e 's/[\n,\t,\r]*/ /g'
+		tail -n +"${file_desc[0]}" "${ARGA[0]}" \
+			| grep -Po '(write|sendto)\('"${file_desc[1]}"', "\\?[^\\]*(\\[^\\]*){3}\\.(\\.)?\K[^"]*", ' \
+			| sed -e 's_", $_;_' -e 's/\\r/ /g' -e 's/\\n/ /g' -e 's/\\t/ /g'
 
-  done \
-    | less -SF
+	done \
+		| less -SF
 
 }
 
