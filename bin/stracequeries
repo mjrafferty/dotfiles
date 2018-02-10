@@ -16,7 +16,7 @@ main () {
     return 0;
   fi
 
-  connections=($(grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))' "${ARGA[0]}"));
+  connections=($(cat $ARGS | grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))'));
 
 	if [[ -n "$connections"  || -n ${ARGA[1]} ]]; then
 
