@@ -20,7 +20,7 @@ main () {
 
   file="${ARGA[0]}"
 
-  awk '{ gsub(/<|>/,"",$(NF)); print (total_sum += $2),(user_sum += ($2 - $(NF))) }' "$file" \
+  awk '{ gsub(/<|>/,"",$(NF)); printf "%10.4f\t%10.4f\t\n" (total_sum += $2),(user_sum += ($2 - $(NF))) }' "$file" \
     | paste - "$file" \
     | less -S;
 

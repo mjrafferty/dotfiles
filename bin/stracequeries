@@ -11,6 +11,8 @@ EOF
 
 main () {
 
+  local x connections;
+
 	if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
 		_usage;
 		return 0;
@@ -21,7 +23,7 @@ main () {
 	if [[ -z "$connections"  || -n ${ARGA[1]} ]]; then
 
 		cat $ARGS \
-			|grep -Po '(write|sendto)\(\d*, "\\?[^\\]*(\\[^\\]*){3}\\.(\\.)?\K[^"]*", ' \
+			|grep -Po '(write|sendto)\(\d*, "\\?[^\\]*(\\[^\\]*){3}\\.(\\.)?\K[S,C,U,\(,D,I,R,A][^"]*", ' \
 			| sed -e 's_", $_;_' -e 's/\\r/ /g' -e 's/\\n/ /g' -e 's/\\t/ /g' \
 			| less -SF
 
@@ -30,6 +32,7 @@ main () {
 	fi
 
 	for x in ${connections[*]}; do
+
 		local file_desc;
 
 		file_desc=(${x/:/ });
