@@ -17,7 +17,7 @@ main () {
   fi
 
   echo;
-  (printf "syscall\ttime\tquantity\n%s\t%s\t%s\n" "$(dashes 10)" "$(dashes 10)" "$(dashes 10)"
+  (printf "syscall\ttime\tquantity\n%s\t%s\t%s\n" "----------" "----------" "----------"
   zless ${ARGA[*]} \
     | awk '{ gsub(/<|>/,"",$(NF)); syscall = gensub(/(\(..).*/,"\\1","G",$3); time[syscall]+=$(NF); numcalls[syscall]++} END { for (x in time) {printf "%s\t%10.4f\t%s\n",x,time[x],numcalls[x] }}'  \
     | sort -k2nr) \
