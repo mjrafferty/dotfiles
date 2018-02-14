@@ -3,35 +3,6 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-#restart_syscall(
-#lstat(
-#fstat(
-#read(
-#access(
-#munmap(
-#open(
-#mmap(
-#close(
-#stat(
-#poll(
-#getdents(
-#recvfrom(
-#sendto(
-#connect(
-#fcntl(
-#setitimer(
-#setsockopt(
-#shutdown(
-#socket(
-#umask(
-#write(
-#accept(
-#brk(
-#chdir(
-#getsockopt(
-#lseek(
-#times(
-
 _usage() {
   cat <<- EOF
   This is the usage
@@ -46,8 +17,8 @@ main () {
   fi
 
   echo;
-  zless ${ARGA[*]} \
-    | grep " = -1 E" \
+
+  zgrep " = -1 E" ${ARGA[*]}\
     | grep -Ev "(access)\(" \
     | less -SF
 
