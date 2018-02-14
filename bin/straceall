@@ -3,22 +3,100 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly OUTPUT_DIR="$HOME/straceall"
 _usage() {
   cat <<- EOF
   This is the usage
 EOF
 }
 
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--user"|"-u")
+        args="${args}-u "
+        ;;
+      "--process"|"-p")
+        args="${args}-p "
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+
+  done
+
+
+  echo "$args";
+}
+
 main () {
 
-  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
+  while getopts "hu:p:" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      u)
+				user="$OPTARG"
+        ;;
+      p)
+				process_name="$OPTARG"
+        ;;
+    esac
+
+  done
+
+  if [[ -z "$user" ]]; then
+
+    echo "Username is required.";
+    exit 1;
+
   fi
 
-  ps -u "${ARGA[0]}" \
-    | awk ' /php-fpm/ {print " -p " $1}' \
-    | xargs timeout 3 strace -q
+  if [[ -z "$process_name" ]]; then
+    process_name="php-fpm";
+  fi
+
+  pids=($(pgrep -f "$process_name" -u "$user"));
+
+  if [[ -z "${pids[0]}" ]]; then
+
+    echo "No PIDs found.";
+    exit;
+
+  else
+
+    mkdir -p "$OUTPUT_DIR" 2> /dev/null
+
+  fi
+
+  echo "Capturing processes...";
+
+  for x in ${pids[*]}; do
+
+    local outputfile;
+
+    outputfile="${OUTPUT_DIR}/${user}_${process_name}_$(date "+%F-%T")-${x}-strace"
+
+    timeout 5 strace -fTrvs200000 -o "$outputfile" -p "$x" &
+
+  done
+
+  wait;
+
+  echo;
+  echo "Output saved to ${OUTPUT_DIR}";
+  echo;
 
 }
 
