@@ -14,7 +14,7 @@ _awkStuff () {
 	{
 		gsub(/<|>/,"",$(NF));
 
-		if ( match($3,/^(access|lstat|open|munmap|mmap|stat|brk)\(/) )
+		if ( match($3,/^(access|lstat|open|munmap|mmap|stat|brk|chdir|socket)\(/) )
 			{
 				syscall = gensub(/(\().*/,"\\1","G",$3);
 			}
