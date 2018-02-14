@@ -1,0 +1,58 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+#restart_syscall(
+#lstat(
+#fstat(
+#read(
+#access(
+#munmap(
+#open(
+#mmap(
+#close(
+#stat(
+#poll(
+#getdents(
+#recvfrom(
+#sendto(
+#connect(
+#fcntl(
+#setitimer(
+#setsockopt(
+#shutdown(
+#socket(
+#umask(
+#write(
+#accept(
+#brk(
+#chdir(
+#getsockopt(
+#lseek(
+#times(
+
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
+main () {
+
+  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+  echo;
+  zless ${ARGA[*]} \
+    | grep " = -1 E" \
+    | grep -Ev "(access)\(" \
+    | less -SF
+
+  echo;
+
+}
+
+main;
