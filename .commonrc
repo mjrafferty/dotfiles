@@ -6,8 +6,10 @@ if [[ -z $TMUX && -n $SSH_TTY ]] then;
  exit;
 fi
 
-fpath+=~"/.completions"
-ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=~"/.zprezto/modules/syntax-highlighting/external/highlighters/"
+gobacktodir="$(pwd)";
+
+fpath+=".completions"
+ZSH_HIGHLIGHT_HIGHLIGHTERS_DIR=".zprezto/modules/syntax-highlighting/external/highlighters/"
 
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
@@ -59,6 +61,8 @@ alias grepphp="grep -Phiav '\] \"\S* .*(/static/|(\.(otf|txt|jpeg|ico|svg|jpg|cs
 
 ##### Functions #####
 [ -r ~/.functions.sh ] && source ~/.functions.sh
+
+cd "$gobacktodir"
 
 HISTFILE="$HOME/.zsh_history"
 
