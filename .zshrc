@@ -1,5 +1,5 @@
 
-if [ "$(id -u)" != "0" ]; then
+if [[ "$UID" != "0" && grep -q "release 6" /etc/centos-release ]]; then
 
   /usr/bin/sudo HOME=$HOME SSH_TTY=$SSH_TTY /bin/zsh
 
