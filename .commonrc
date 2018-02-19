@@ -1,5 +1,6 @@
 #! /bin/zsh
 
+# Automatically open and close tmux session when connecting via SSH
 if [[ -z $TMUX && -n $SSH_TTY ]] then;
  (tmux has-session -t "${HOME/*\//}" && tmux attach -t "${HOME/*\//}") \
    || tmux new-session -s "${HOME/*\//}"
@@ -15,21 +16,28 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
-
-##### Env Variables #####
-export LANG=en_US.UTF-8
+##### Environment Variables #####
+export LANG="en_US.UTF-8"
 export HISTTIMEFORMAT="%F %T "
-export PAGER=/usr/bin/less
-export EDITOR=/usr/bin/vim
-export VISUAL=/usr/bin/vim
+export PAGER="/usr/bin/less"
+export EDITOR="/usr/bin/vim"
+export VISUAL="/usr/bin/vim"
+export HISTFILE="$HOME/.zsh_history"
 
 if [[ -n $TMUX ]]; then
   TERM="screen-256color"
 else
   TERM="xterm-256color"
 fi
+
+if [[ -x "/usr/bin/konsole" ]]; then
+  TERMINAL="/usr/bin/konsole";
+fi
+
+ZSH_HIGHLIGHT_STYLES[line]='bold'
+
+export PATH="$PATH:$HOME/bin"
 
 ##### Aliases #####
 alias r="/usr/bin/sudo HOME=$HOME /bin/zsh"
@@ -48,24 +56,27 @@ alias reboot='systemctl reboot'
 alias mountro="mount -o ro,remount /usr && mount -o ro,remount /boot && mount -o ro,remount /"
 alias mountrw="mount -o rw,remount /usr; mount -o rw,remount /boot; mount -o rw,remount /"
 
-alias diff=colordiff
+if [[ -x "/usr/bin/colordiff" ]]; then
+  alias diff="/usr/bin/colordiff"
+fi
 
 alias login='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@login.tmr.nexcess.net'
 alias login2='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@login.otr.nexcess.net'
 
-alias dotpush="cd ~/dotfiles; git add .; git commit -a -m updates; git push; cd -;"
+alias dotpush="cd ~/dotfiles && git add . && git commit -a -m updates && git push && cd -"
 
 alias connections="lsof -nu apache | grep -E 'httpd.*ESTABLISHED|httpd.*CLOSE_WAIT' | sed 's_.*:http.*->\(.*\):.*_\1_' | sort | uniq -c | sort -hr"
 alias sshsync="rsync -p -v --progress -e ssh -a -u -z"
 alias grepphp="grep -Phiav '\] \"\S* .*(/static/|(\.(otf|txt|jpeg|ico|svg|jpg|css|js|gif|png|woff))).* (200|304) .*'"
 
+alias disks="df -h | grep -v tmpfs | grep -Ev '^(dev|run)'"
+
 
 ##### Functions #####
 [ -r ~/.functions.sh ] && source ~/.functions.sh
 
-HISTFILE="$HOME/.zsh_history"
 
-ZSH_HIGHLIGHT_STYLES[line]='bold'
-
+##### Completions Options #####
 zstyle ':completion:*' completer _expand _complete _ignored _match _correct _approximate _prefix _fasd_zsh_word_complete_trigger
-zsytle ':completion:*' max-errors 2 numeric
+zstyle ':completion:*' max-errors 2 numeric
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
