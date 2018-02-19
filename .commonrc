@@ -67,3 +67,5 @@ HISTFILE="$HOME/.zsh_history"
 
 ZSH_HIGHLIGHT_STYLES[line]='bold'
 
+zstyle ':completion:*' completer _expand _complete _ignored _match _correct _approximate _prefix _fasd_zsh_word_complete_trigger
+zsytle ':completion:*' max-errors 2 numeric
