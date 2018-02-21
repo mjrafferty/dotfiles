@@ -3,10 +3,6 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-if ! readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
-  LOGS=($(find /var/log/send -type f));
-fi
-
 _usage() {
   cat <<- EOF
   This is the usage
@@ -30,6 +26,7 @@ _cmdline() {
 
   done
 
+
   echo "$args";
 }
 
@@ -46,7 +43,7 @@ main () {
 
   done
 
-  grep -Poh "from <\K[^>]*" < ${LOGS[*]} \
+  grep -Poh "from <\K[^>]*" /var/log/send/* \
     | sort \
     | uniq -c \
     | sort -hr \
