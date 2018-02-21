@@ -46,7 +46,8 @@ main () {
 
   done
 
-  grep -Poh "from <\K[^>]*" < ${LOGS[*]} \
+  cat ${LOGS[*]} \
+    | grep -Poh "from <\K[^>]*" \
     | sort \
     | uniq -c \
     | sort -hr \
