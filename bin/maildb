@@ -32,30 +32,22 @@ _cmdline() {
 
 _parseLogs () {
   awk '{
-  BEGIN
-  {
-		type=$3;
-    switch (type)
-		{
-			case "info":
-				printf "INSERT INTO sender";
-      	break
-     	case "starting":
-				printf "INSERT INTO recipient;
-      	break
-     	case "delivery":
-				printf "UPDATE recipient;
-      	break
-     	case "bounce":
-				printf "bounce";
-      	break
-     }
-  }
-  {
 
-  } END
-  {
+  type=$3;
 
+  if (type="info")
+    {
+      printf "INSERT INTO sender";
+    } else if (type="starting")
+    {
+      printf "INSERT INTO recipient;
+    } else if (type="delivery")
+    {
+      printf "UPDATE recipient;
+    } else if (type="bounce")
+    {
+      printf "bounce";
+    }
   }
 }'
 }
