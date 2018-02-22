@@ -44,7 +44,7 @@ _parseLogs () {
       printf "INSERT INTO RECIPIENT VALUES (%s %s,%s,%s,%s,NULL);\n",$1,$2,$5,$9,$10;
     } else if (type=="delivery")
     {
-      printf "UPDATE RECIPIENT SET response=%s WHERE message=%s;\n",$5,$4;
+      printf "UPDATE RECIPIENT SET response_type=%s response_msg=%s WHERE message=%s;\n",$5,$6,$4;
     }
 
   }'
