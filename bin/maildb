@@ -3,7 +3,8 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-readonly $DBNAME
+readonly DBNAME=""
+
 _usage() {
   cat <<- EOF
   This is the usage
@@ -35,21 +36,18 @@ _parseLogs () {
 
   type=$3;
 
-  if (type="info")
+  if (type=="info")
     {
-      printf "INSERT INTO sender";
-    } else if (type="starting")
+      printf "INSERT INTO SENDER VALUES (%s %s,%s,%s)",$1,$2,$5,$9;
+    } else if (type=="starting")
     {
-      printf "INSERT INTO recipient;
-    } else if (type="delivery")
+      printf "INSERT INTO RECIPIENT VALUES (%s %s,%s,%s,%s,NULL)",$1,$2,$5,$9,$10;
+    } else if (type=="delivery")
     {
-      printf "UPDATE recipient;
-    } else if (type="bounce")
-    {
-      printf "bounce";
+      printf "UPDATE recipient";
     }
-  }
-}'
+
+  }'
 }
 
 main () {
@@ -65,9 +63,9 @@ main () {
 
   done
 
-  tai64nlocal < /var/log/send/* \
-  | _parseLogs \
-  | sqlite3 "$DBNAME"
+  cat /var/log/send/* \
+    | tai64nlocal \
+    | _parseLogs;
 
 }
 
