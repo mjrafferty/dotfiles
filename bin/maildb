@@ -1,0 +1,82 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+readonly $DBNAME
+_usage() {
+  cat <<- EOF
+  This is the usage
+EOF
+}
+
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+
+  done
+
+  echo "$args";
+}
+
+_parseLogs () {
+  awk '{
+  BEGIN
+  {
+		type=$3;
+    switch (type)
+		{
+			case "info":
+				printf "INSERT INTO sender";
+      	break
+     	case "starting":
+				printf "INSERT INTO recipient;
+      	break
+     	case "delivery":
+				printf "UPDATE recipient;
+      	break
+     	case "bounce":
+				printf "bounce";
+      	break
+     }
+  }
+  {
+
+  } END
+  {
+
+  }
+}'
+}
+
+main () {
+
+  while getopts "hxt:c:" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+    esac
+
+  done
+
+  tai64nlocal < /var/log/send/* \
+  | _parseLogs \
+  | sqlite3 "$DBNAME"
+
+}
+
+main;
