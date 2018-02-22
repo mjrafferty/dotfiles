@@ -46,9 +46,9 @@ main () {
 
   done
 
-	for x in $(grep -Po "delivery \K\d*(?=: failure.*)" /var/log/send/*); do
-		for y in $(grep -Po "starting delivery ${x}: msg \K\d*" /var/log/send/*); do
-			grep -Po "info msg ${y}: bytes \d* from <\K[^>]*" /var/log/send/*;
+	for x in $(grep -Po "delivery \K\d*(?=: failure.*)" /var/log/send/current); do
+		for y in $(grep -Po "starting delivery ${x}: msg \K\d*" /var/log/send/current); do
+			grep -Po "info msg ${y}: bytes \d* from <\K[^>]*" /var/log/send/current;
 		done;
 	done \
 		| sort \
