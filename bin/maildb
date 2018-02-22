@@ -35,16 +35,17 @@ _parseLogs () {
   awk '{
 
   type=$3;
+  timestamp=$1" "$2
 
   if (type=="info")
     {
-      printf "INSERT INTO SENDER VALUES (%s %s,%s,%s)",$1,$2,$5,$9;
+      printf "INSERT INTO SENDER VALUES (%s,%s,%s)\n",timestamp,$5,$9;
     } else if (type=="starting")
     {
-      printf "INSERT INTO RECIPIENT VALUES (%s %s,%s,%s,%s,NULL)",$1,$2,$5,$9,$10;
+      printf "INSERT INTO RECIPIENT VALUES (%s,%s,%s,%s,NULL)\n",timestamp,$5,$9,$10;
     } else if (type=="delivery")
     {
-      printf "UPDATE recipient";
+      printf "UPDATE RECIPIENT SET RESPONSE=%s\n";
     }
 
   }'
