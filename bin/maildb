@@ -39,13 +39,15 @@ _parseLogs () {
 
   if (type=="info")
     {
-      printf "INSERT INTO SENDER VALUES (%s,%s,%s)\n",timestamp,$5,$9;
+      printf "INSERT INTO SENDER VALUES (%s,%s,%s);\n",timestamp,$5,$9;
     } else if (type=="starting")
     {
-      printf "INSERT INTO RECIPIENT VALUES (%s,%s,%s,%s,NULL)\n",timestamp,$5,$9,$10;
+      printf "INSERT INTO RECIPIENT VALUES (%s,%s,%s,%s,NULL);\n",timestamp,$5,$9,$10;
     } else if (type=="delivery")
     {
-      printf "UPDATE RECIPIENT SET RESPONSE=%s\n";
+      msg=$4;
+      $1=""; $2=""; $3="" $4="";
+      printf "UPDATE RECIPIENT SET RESPONSE=%s where message=%s;\n",$0,msg;
     }
 
   }'
