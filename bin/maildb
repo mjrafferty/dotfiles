@@ -3,6 +3,7 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly LOGDIR="/var/log/send"
 readonly DBNAME=""
 
 _usage() {
@@ -38,13 +39,15 @@ _parseLogs () {
 
   if (type==\"info\")
     {
-      printf \"INSERT INTO SENDER VALUES ('%s %s','%s','%s');\n\",\$1,\$2,\$5,\$9;
-    } else if (type==\"starting\")
+      printf \"INSERT INTO SENDER VALUES ('%s %s','%s','%s');\\n\",\$1,\$2,\$5,\$9;
+    }
+  else if (type==\"starting\")
     {
-      printf \"INSERT INTO RECIPIENT VALUES ('%s %s','%s','%s','%s',NULL);\n\",\$1,\$2,\$5,\$9,\$10;
-    } else if (type==\"delivery\")
+      printf \"INSERT INTO RECIPIENT VALUES ('%s %s','%s','%s','%s',NULL);\\n\",\$1,\$2,\$5,\$9,\$10;
+    }
+  else if (type==\"delivery\")
     {
-      printf \"UPDATE RECIPIENT SET response_type='%s' response_msg='%s' WHERE message='%s';\n\",\$5,\$6,\$4;
+      printf \"UPDATE RECIPIENT SET response_type='%s' response_msg='%s' WHERE message='%s';\\n\",\$5,\$6,\$4;
     }
 
   }"
@@ -52,7 +55,7 @@ _parseLogs () {
 
 main () {
 
-  while getopts "hxt:c:" OPTION $(_cmdline); do
+  while getopts "h" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -63,7 +66,7 @@ main () {
 
   done
 
-  cat /var/log/send/* \
+  cat ${LOGDIR}/* \
     | tai64nlocal \
     | _parseLogs;
 
