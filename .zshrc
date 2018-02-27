@@ -25,19 +25,25 @@ fi
 
 
 ##### Set alias for all sudo commands to eliminate typing sudo #####
-sudo_cmds=$(sudo -l | grep -Po "\(ALL\) NOPASSWD:\K.*" | tr -d '\n|,');
+sudo_cmds=($(sudo -l | grep -Po "\(ALL\) NOPASSWD:\K.*" | tr -d '\n|,'));
 
-for x in $sudo_cmds; do
-  alias "${x/*\//}"="sudo $x";
+for x in ${sudo_cmds[*]}; do
+
+  if [[ "$x" =~ "/usr/nexkit/bin/nk" ]]; then
+
+    for y in /usr/nexkit/bin/nk*; do
+
+      alias "${y/*\//}"="sudo $y";
+
+    done
+  else
+
+    alias "${x/*\//}"="sudo $x";
+
+  fi
 done
 
-if [[ "$sudo_cmds" =~ "/usr/nexkit/bin/nk" ]]; then
-	for x in /usr/nexkit/bin/nk*; do
-		alias "${x/*\//}"="sudo $x";
-	done
-fi
 ######################################################################
-
 
 [ -r ~/.commonrc ] && source ~/.commonrc;
 
