@@ -25,7 +25,7 @@ fi
 
 
 ##### Set alias for all sudo commands to eliminate typing sudo #####
-sudo_cmds="$(sudo -l | grep -Po "\(ALL\) NOPASSWD:\K.*" | tr -d '\n|,')";
+sudo_cmds=$(sudo -l | grep -Po "\(ALL\) NOPASSWD:\K.*" | tr -d '\n|,');
 
 for x in $sudo_cmds; do
   alias "${x/*\//}"="sudo $x";
