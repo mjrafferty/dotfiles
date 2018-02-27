@@ -62,7 +62,8 @@ if [[ -x "/usr/bin/colordiff" ]]; then
   alias diff="/usr/bin/colordiff"
 fi
 
-alias login='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@login.tmr.nexcess.net'
+alias login='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@mellon-login01.us-midwest-1.nexcess.net'
+alias loginold='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@login.tmr.nexcess.net'
 alias login2='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@login.otr.nexcess.net'
 
 alias dotpush="cd ~/dotfiles && git add . && git commit -a -m updates && git push && cd -"

@@ -23,6 +23,22 @@ if [[ "$UID" != "0" ]] && grep -q "release 6" /etc/centos-release; then
 
 fi
 
+
+##### Set alias for all sudo commands to eliminate typing sudo #####
+sudo_cmds="$(sudo -l | grep -Po "\(ALL\) NOPASSWD:\K.*" | tr -d '\n|,')";
+
+for x in $sudo_cmds; do
+  alias "${x/*\//}"="sudo $x";
+done
+
+if [[ "$sudo_cmds" =~ "/usr/nexkit/bin/nk" ]]; then
+	for x in /usr/nexkit/bin/nk*; do
+		alias "${x/*\//}"="sudo $x";
+	done
+fi
+######################################################################
+
+
 [ -r ~/.commonrc ] && source ~/.commonrc;
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/opt/puppetlabs/bin:/var/qmail/bin:/usr/nexkit/bin:~/bin
