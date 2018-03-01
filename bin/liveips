@@ -24,12 +24,12 @@ main () {
     if [[ ${ARGA[0]} =~ -q ]]; then # Established Connections
 
       ss -ant \
-        | awk -F: '/EST.*ffff.*:80/{print \$4,\"<--\",\$8}'
+        | awk -F: '/EST.*ffff.*:80/{print $4,"<--",$8}'
 
     else # Verbose (EST and WAIT Connections)
 
       ss -ant \
-        | awk -F: '/ffff.*:80/{print \$4,\"<--\",\$8}'
+        | awk -F: '/ffff.*:80/{print $4,"<--",$8}'
 
     fi
   else # IPv4
@@ -37,13 +37,13 @@ main () {
     if [[ ${ARGA[0]} =~ -q ]]; then # Established Connections
 
       ss -ant \
-        | awk '/EST/ && (\$4 ~ /:80/) && !/\*/ {print \$4,\"<--\",\$5}' \
+        | awk '/EST/ && ($4 ~ /:80/) && !/*/ {print $4,"<--",$5}' \
         | sed 's/:80//g; s/:.*$//g'
 
     else # Verbose (EST and WAIT Connections)
 
       ss -ant \
-        | awk '(\$4 ~ /:80/) && !/\*/ {print \$4,\"<--\",\$5}' \
+        | awk '($4 ~ /:80/) && !/*/ {print $4,"<--",$5}' \
         | sed 's/:80//g; s/:.*$//g'
 
     fi
