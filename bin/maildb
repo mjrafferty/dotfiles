@@ -4,11 +4,10 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly LOGDIR="/var/log/send"
-readonly DBNAME=""
+readonly DBFILE="${HOME}/maildb"
 
-readonly CREATE_DB="CREATE TABLE SENDER(ID INT PRIMARY KEY NOT NULL,DATE TEXT NOT NULL,MESSAGE_ID INT NOT NULL,SENDER TEXT NOT NULL); \
-  CREATE TABLE RECIPIENT(ID INT PRIMARY KEY NOT NULL,DATE TEXT NOT NULL,DELIVERY_ID INT NOT NULL,MESSAGE_ID INT NOT NULL,QUEUE_TYPE TEXT NOT NULL,RECIPIENT TEXT NOT NULL,RESPONSE_TYPE,RESPONSE_MSG);
-"
+readonly CREATE_DB="CREATE TABLE SENDER(ID INT PRIMARY KEY AUTOINCREMENT,DATE TEXT NOT NULL,MESSAGE_ID INT NOT NULL,SENDER TEXT NOT NULL); \
+  CREATE TABLE RECIPIENT(ID INT PRIMARY KEY AUTOINCREMENT,DATE TEXT NOT NULL,DELIVERY_ID INT NOT NULL,MESSAGE_ID INT NOT NULL,QUEUE_TYPE TEXT NOT NULL,RECIPIENT TEXT NOT NULL,RESPONSE_TYPE,RESPONSE_MSG);"
 
 _usage() {
   cat <<- EOF
@@ -34,6 +33,11 @@ _cmdline() {
   done
 
   echo "$args";
+}
+
+_createDb () {
+  echo "$CREATE_DB" \
+    | sqlite3 $DBFILE;
 }
 
 _parseLogs () {
@@ -70,9 +74,16 @@ main () {
 
   done
 
-  cat ${LOGDIR}/* \
-    | tai64nlocal \
-    | _parseLogs;
+  if [[ ! -e "$DBFILE" ]]; then
+
+    _createDb;
+
+    cat ${LOGDIR}/* \
+      | tai64nlocal \
+      | _parseLogs \
+      sqlite3 "$DBFILE"
+
+  fi
 
 }
 
