@@ -48,15 +48,19 @@ _parseLogs () {
 
   if (type==\"info\")
     {
+      gsub(/:/,\"\",\$5);
       printf \"INSERT INTO SENDER VALUES (NULL,'%s %s','%s','%s');\\n\",\$1,\$2,\$5,\$9;
     }
   else if (type==\"starting\")
     {
-      printf \"INSERT INTO RECIPIENT VALUES (NULL,'%s %s','%s','%s',%s','%s',NULL);\\n\",\$1,\$2,\$5,\$7,\$9,\$10;
+      gsub(/:/,\"\",\$5);
+      printf \"INSERT INTO RECIPIENT VALUES (NULL,'%s %s','%s','%s','%s','%s',NULL,NULL);\\n\",\$1,\$2,\$5,\$7,\$9,\$10;
     }
   else if (type==\"delivery\")
     {
-      printf \"UPDATE RECIPIENT SET response_type='%s' response_msg='%s' WHERE delivery_id='%s';\\n\",\$5,\$6,\$4;
+      gsub(/:/,\"\",\$5);
+      gsub(/'/,\"\",\$6);
+      printf \"UPDATE RECIPIENT SET RESPONSE_TYPE='%s' RESPONSE_MSG='%s' WHERE ID=(SELECT ID FROM RECIPIENT where DELIVERY_ID='%s' order by ID desc limit 1;);\\n\",\$5,\$6,\$4;
     }
 
   }"
