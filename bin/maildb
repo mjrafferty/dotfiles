@@ -58,6 +58,7 @@ _parseLogs () {
     }
   else if (type==\"delivery\")
     {
+      gsub(/:/,\"\",\$4);
       gsub(/:/,\"\",\$5);
       gsub(/'/,\"\",\$6);
       printf \"UPDATE RECIPIENT SET RESPONSE_TYPE='%s',RESPONSE_MSG='%s' WHERE ID=(SELECT ID FROM RECIPIENT where DELIVERY_ID='%s' order by ID desc limit 1);\\n\",\$5,\$6,\$4;
@@ -86,7 +87,7 @@ main () {
     cat ${LOGDIR}/* \
       | tai64nlocal \
       | _parseLogs \
-      sqlite3 "$DBFILE"
+      | sqlite3 "$DBFILE"
 
   fi
 
