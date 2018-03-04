@@ -6,8 +6,8 @@ readonly ARGA=("$@")
 readonly LOGDIR="/var/log/send"
 readonly DBFILE="${HOME}/maildb"
 
-readonly CREATE_DB="CREATE TABLE SENDER(ID INT PRIMARY KEY AUTOINCREMENT,DATE TEXT NOT NULL,MESSAGE_ID INT NOT NULL,SENDER TEXT NOT NULL); \
-  CREATE TABLE RECIPIENT(ID INT PRIMARY KEY AUTOINCREMENT,DATE TEXT NOT NULL,DELIVERY_ID INT NOT NULL,MESSAGE_ID INT NOT NULL,QUEUE_TYPE TEXT NOT NULL,RECIPIENT TEXT NOT NULL,RESPONSE_TYPE,RESPONSE_MSG);"
+readonly CREATE_DB="CREATE TABLE SENDER(ID INTEGER PRIMARY KEY AUTOINCREMENT,DATE TEXT NOT NULL,MESSAGE_ID INTEGER NOT NULL,SENDER TEXT NOT NULL); \
+  CREATE TABLE RECIPIENT(ID INTEGER PRIMARY KEY AUTOINCREMENT,DATE TEXT NOT NULL,DELIVERY_ID INTEGER NOT NULL,MESSAGE_ID INTEGER NOT NULL,QUEUE_TYPE TEXT NOT NULL,RECIPIENT TEXT NOT NULL,RESPONSE_TYPE,RESPONSE_MSG);"
 
 _usage() {
   cat <<- EOF
@@ -36,8 +36,9 @@ _cmdline() {
 }
 
 _createDb () {
-  echo "$CREATE_DB" \
-    | sqlite3 $DBFILE;
+
+  sqlite3 "$DBFILE" "$CREATE_DB";
+
 }
 
 _parseLogs () {
@@ -47,11 +48,11 @@ _parseLogs () {
 
   if (type==\"info\")
     {
-      printf \"INSERT INTO SENDER VALUES ('%s %s','%s','%s');\\n\",\$1,\$2,\$5,\$9;
+      printf \"INSERT INTO SENDER VALUES (NULL,'%s %s','%s','%s');\\n\",\$1,\$2,\$5,\$9;
     }
   else if (type==\"starting\")
     {
-      printf \"INSERT INTO RECIPIENT VALUES ('%s %s','%s','%s',%s','%s',NULL);\\n\",\$1,\$2,\$5,\$7,\$9,\$10;
+      printf \"INSERT INTO RECIPIENT VALUES (NULL,'%s %s','%s','%s',%s','%s',NULL);\\n\",\$1,\$2,\$5,\$7,\$9,\$10;
     }
   else if (type==\"delivery\")
     {
