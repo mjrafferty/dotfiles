@@ -6,6 +6,10 @@ readonly ARGA=("$@")
 readonly LOGDIR="/var/log/send"
 readonly DBNAME=""
 
+readonly CREATE_DB="CREATE TABLE SENDER(ID INT PRIMARY KEY NOT NULL,DATE TEXT NOT NULL,MESSAGE_ID INT NOT NULL,SENDER TEXT NOT NULL); \
+  CREATE TABLE RECIPIENT(ID INT PRIMARY KEY NOT NULL,DATE TEXT NOT NULL,DELIVERY_ID INT NOT NULL,MESSAGE_ID INT NOT NULL,QUEUE_TYPE TEXT NOT NULL,RECIPIENT TEXT NOT NULL,RESPONSE_TYPE,RESPONSE_MSG);
+"
+
 _usage() {
   cat <<- EOF
   This is the usage
@@ -43,11 +47,11 @@ _parseLogs () {
     }
   else if (type==\"starting\")
     {
-      printf \"INSERT INTO RECIPIENT VALUES ('%s %s','%s','%s','%s',NULL);\\n\",\$1,\$2,\$5,\$9,\$10;
+      printf \"INSERT INTO RECIPIENT VALUES ('%s %s','%s','%s',%s','%s',NULL);\\n\",\$1,\$2,\$5,\$7,\$9,\$10;
     }
   else if (type==\"delivery\")
     {
-      printf \"UPDATE RECIPIENT SET response_type='%s' response_msg='%s' WHERE message='%s';\\n\",\$5,\$6,\$4;
+      printf \"UPDATE RECIPIENT SET response_type='%s' response_msg='%s' WHERE delivery_id='%s';\\n\",\$5,\$6,\$4;
     }
 
   }"
