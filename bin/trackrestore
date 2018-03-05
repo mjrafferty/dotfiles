@@ -71,7 +71,7 @@ _notify () {
   mail -s "$EMAIL_SUBJECT" "$EMAIL_ADDR" <<- EOF
 Restore for user $1 complete on $HOSTNAME
 
-See ticket $TICKET
+See ticket https://nocworx.nexcess.net/${TICKET}
 
 EOF
 
