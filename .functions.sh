@@ -24,7 +24,7 @@ readonly NSLOOKUP='/usr/bin/nslookup'
 readonly PS='/bin/ps'
 readonly SED='/bin/sed'
 readonly SORT='/bin/sort'
-readonly STAT='/usr/bin/stat'
+readonly STATT='/usr/bin/stat'
 readonly SWAKS='/usr/bin/swaks'
 readonly TOUCH='/bin/touch'
 readonly TR='/usr/bin/tr'
@@ -512,7 +512,7 @@ maldetstat () {
   local files;
   files=($($AWK '{print $3}' /usr/local/maldetect/sess/session.hits."$1"));
   for (( x=1; x<=${#files[@]}; x++ )); do
-    $STAT "${files[$x]}";
+    $STATT "${files[$x]}";
   done
 }
 
