@@ -100,7 +100,10 @@ main () {
 
   done
 
+    echo "Creating Database..."
     _createDb;
+
+    echo "Inserting mail log data(This may take a few minutes)..."
 
     cat ${LOGDIR}/* \
       | tai64nlocal \
@@ -108,6 +111,8 @@ main () {
       | mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
 
 		mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
+
+    echo "Cleaning up...";
 
     _cleanUp;
 
