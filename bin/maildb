@@ -46,7 +46,7 @@ create database mattmaildb;
 create user 'mattmaildb'@'localhost';
 set old_passwords=0;
 set password for 'mattmaildb'@'localhost' = password('SpawnedTypicalExaltNaked2284');
-grant all on 'mattmaildb'.* to 'mattmaildb'@'localhost';
+grant all on \`mattmaildb\`.* to 'mattmaildb'@'localhost';
 EOF
 
   echo "$CREATE_DB" \
