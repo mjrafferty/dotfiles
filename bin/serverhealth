@@ -94,8 +94,9 @@ _cmdline() {
 # Connect to mysql
 _m () {
 
-  mysql -u"$(grep '^rootdsn=' /usr/local/interworx/iworx.ini | cut -d/ -f3 | cut -d: -f1)" \
-    -p"$(grep '^rootdsn=' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)" "$1"
+  #mysql -u"$(grep '^rootdsn=' /usr/local/interworx/iworx.ini | cut -d/ -f3 | cut -d: -f1)" \
+    #-p"$(grep '^rootdsn=' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)" "$1"
+	mysql --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root "$@"
 
 }
 
