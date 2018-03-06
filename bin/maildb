@@ -4,7 +4,10 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly LOGDIR="/var/log/send"
-readonly DBNAME=""
+readonly DBFILE="${HOME}/maildb"
+
+readonly CREATE_DB="CREATE TABLE SENDER(ID INTEGER PRIMARY KEY AUTOINCREMENT,DATE TEXT NOT NULL,MESSAGE_ID INTEGER NOT NULL,SENDER TEXT NOT NULL); \
+  CREATE TABLE RECIPIENT(ID INTEGER PRIMARY KEY AUTOINCREMENT,DATE TEXT NOT NULL,DELIVERY_ID INTEGER NOT NULL,MESSAGE_ID INTEGER NOT NULL,QUEUE_TYPE TEXT NOT NULL,RECIPIENT TEXT NOT NULL,RESPONSE_TYPE,RESPONSE_MSG);"
 
 _usage() {
   cat <<- EOF
@@ -32,6 +35,12 @@ _cmdline() {
   echo "$args";
 }
 
+_createDb () {
+
+  sqlite3 "$DBFILE" "$CREATE_DB";
+
+}
+
 _parseLogs () {
   awk "{
 
@@ -39,15 +48,20 @@ _parseLogs () {
 
   if (type==\"info\")
     {
-      printf \"INSERT INTO SENDER VALUES ('%s %s','%s','%s');\\n\",\$1,\$2,\$5,\$9;
+      gsub(/:/,\"\",\$5);
+      printf \"INSERT INTO SENDER VALUES (NULL,'%s %s','%s','%s');\\n\",\$1,\$2,\$5,\$9;
     }
   else if (type==\"starting\")
     {
-      printf \"INSERT INTO RECIPIENT VALUES ('%s %s','%s','%s','%s',NULL);\\n\",\$1,\$2,\$5,\$9,\$10;
+      gsub(/:/,\"\",\$5);
+      printf \"INSERT INTO RECIPIENT VALUES (NULL,'%s %s','%s','%s','%s','%s',NULL,NULL);\\n\",\$1,\$2,\$5,\$7,\$9,\$10;
     }
   else if (type==\"delivery\")
     {
-      printf \"UPDATE RECIPIENT SET response_type='%s' response_msg='%s' WHERE message='%s';\\n\",\$5,\$6,\$4;
+      gsub(/:/,\"\",\$4);
+      gsub(/:/,\"\",\$5);
+      gsub(/'/,\"\",\$6);
+      printf \"UPDATE RECIPIENT SET RESPONSE_TYPE='%s',RESPONSE_MSG='%s' WHERE ID=(SELECT ID FROM RECIPIENT where DELIVERY_ID='%s' order by ID desc limit 1);\\n\",\$5,\$6,\$4;
     }
 
   }"
@@ -66,9 +80,16 @@ main () {
 
   done
 
-  cat ${LOGDIR}/* \
-    | tai64nlocal \
-    | _parseLogs;
+  if [[ ! -e "$DBFILE" ]]; then
+
+    _createDb;
+
+    cat ${LOGDIR}/* \
+      | tai64nlocal \
+      | _parseLogs \
+      | sqlite3 "$DBFILE"
+
+  fi
 
 }
 
