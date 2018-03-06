@@ -36,7 +36,7 @@ _cmdline() {
 }
 
 _m () {
-  mysql --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root "$@";
+  mysql --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root
 }
 
 _createDb () {
@@ -52,6 +52,13 @@ EOF
   echo "$CREATE_DB" \
 		| mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
 
+}
+
+_cleanUp () {
+  _m <<- EOF
+drop database mattmaildb;
+drop user 'mattmaildb'@'localhost';
+EOF
 }
 
 _parseLogs () {
@@ -93,8 +100,6 @@ main () {
 
   done
 
-  if [[ ! -e "$DBFILE" ]]; then
-
     _createDb;
 
     cat ${LOGDIR}/* \
@@ -102,7 +107,9 @@ main () {
       | _parseLogs \
       | mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
 
-  fi
+		mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
+
+    _cleanUp;
 
 }
 
