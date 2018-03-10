@@ -1,49 +1,59 @@
+export OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release);
 
-if [[ "$UID" != "0" ]] && grep -q "release 6" /etc/centos-release; then
+[[ -z $ME ]] && export ME=$USER
 
-  /usr/bin/sudo HOME=$HOME SSH_TTY=$SSH_TTY /bin/zsh
+if (( $OS_VERSION == 7 )); then
 
-  /usr/bin/sudo find /home/nexmrafferty/ -mindepth 1 \( \
-    -path "*/.bash_profile" -o \
-    -path "*/bin" -o \
-    -path "*/clients" -o \
-    -path "*/.commonrc" -o \
-    -path "*/.completions" -o \
-    -path "*/.functions.sh" -o \
-    -path "*/.mytop" -o \
-    -path "*/*history" -o \
-    -path "*/*SNAPS*" -o \
-    -path "*/.ssh" -o \
-    -path "*/.zlogin*" -o \
-    -path "*/.zpr*" -o \
-    -path "*/.vim*" -o \
-    -path "*/.zshrc" \) -prune -o -exec rm -rf {} + 2> /dev/null;
+  if [[ $USER == $ME ]]; then
 
-  exit;
+    ##### Set alias for all sudo commands to eliminate typing sudo #####
+    sudo_cmds=($(sudo -l | grep -Po "\(ALL\) NOPASSWD:\K.*" | tr -d '\n|,'));
 
-fi
+    for x in ${sudo_cmds[*]}; do
 
+      if [[ "$x" =~ "/usr/nexkit/bin/nk" ]]; then
 
-##### Set alias for all sudo commands to eliminate typing sudo #####
-sudo_cmds=($(sudo -l | grep -Po "\(ALL\) NOPASSWD:\K.*" | tr -d '\n|,'));
+        for y in /usr/nexkit/bin/nk*; do
 
-for x in ${sudo_cmds[*]}; do
+          alias "${y/*\//}"="sudo $y";
 
-  if [[ "$x" =~ "/usr/nexkit/bin/nk" ]]; then
+        done
+      else
 
-    for y in /usr/nexkit/bin/nk*; do
+        alias "${x/*\//}"="sudo $x";
 
-      alias "${y/*\//}"="sudo $y";
-
+      fi
     done
-  else
 
-    alias "${x/*\//}"="sudo $x";
+    ######################################################################
+  fi
+
+else
+
+  if [[ "$UID" != "0" ]] ; then
+
+    /usr/bin/sudo HOME=$HOME SSH_TTY=$SSH_TTY /bin/zsh
+
+    /usr/bin/sudo find /home/nexmrafferty/ -mindepth 1 \( \
+      -path "*/.bash_profile" -o \
+      -path "*/bin" -o \
+      -path "*/clients" -o \
+      -path "*/.commonrc" -o \
+      -path "*/.completions" -o \
+      -path "*/.functions.sh" -o \
+      -path "*/.mytop" -o \
+      -path "*/*history" -o \
+      -path "*/*SNAPS*" -o \
+      -path "*/.ssh" -o \
+      -path "*/.zlogin*" -o \
+      -path "*/.zpr*" -o \
+      -path "*/.vim*" -o \
+      -path "*/.zshrc" \) -prune -o -exec rm -rf {} + 2> /dev/null;
+
+    exit;
 
   fi
-done
-
-######################################################################
+fi
 
 [ -r ~/.commonrc ] && source ~/.commonrc;
 
@@ -54,7 +64,7 @@ mkdir -p ~/.vimfiles/{backup,swp,undo}
 
 [ -r /opt/nexcess/php56u/enable ] && source /opt/nexcess/php56u/enable;
 
-[ -r ~/action.sh ] && source ~/.environment.sh;
+[ -r ~/environment.sh ] && source ~/.environment.sh;
 
 mkdir -p "$HOME"/clients/"$TICKET";
 export TICKETDIR="${HOME}/clients/${TICKET}";
