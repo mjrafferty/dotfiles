@@ -29,7 +29,7 @@ readonly SWAKS='/usr/bin/swaks'
 readonly TOUCH='/bin/touch'
 readonly TR='/usr/bin/tr'
 readonly UNIQ='/usr/bin/uniq'
-readonly XARGS='usr/bin/xargs'
+readonly XARGS='/usr/bin/xargs'
 readonly ZLESS='/usr/bin/zless'
 
 ##### Change Directory #####
