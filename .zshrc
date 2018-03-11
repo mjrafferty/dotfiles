@@ -53,6 +53,9 @@ else
     exit;
 
   fi
+
+  [ -r /opt/nexcess/php56u/enable ] && source /opt/nexcess/php56u/enable;
+
 fi
 
 [ -r ~/.commonrc ] && source ~/.commonrc;
@@ -61,8 +64,6 @@ export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/opt/pu
 
 # Create directories for files used by vim if necessary
 mkdir -p ~/.vimfiles/{backup,swp,undo}
-
-[ -r /opt/nexcess/php56u/enable ] && source /opt/nexcess/php56u/enable;
 
 [ -r ~/environment.sh ] && source ~/.environment.sh;
 
