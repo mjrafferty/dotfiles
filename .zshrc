@@ -1,6 +1,5 @@
 export OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release);
 SHELL="$(readlink /proc/$$/exe)"
-
 [[ -z $ME ]] && export ME=$USER
 
 if (( $OS_VERSION == 7 )); then

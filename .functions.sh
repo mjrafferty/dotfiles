@@ -645,10 +645,15 @@ magsymlinks () {
 
 ## Switch to a user
 u () {
+
+  local user;
+
+  user="$(pwd | grep -Po "home/\K[^/]*")"
+
 	setfacl -R -m u:"$(getusr)":rX "$HOME"
 	setfacl -R -m u:"$(getusr)":rwX "$HOME"/{.zsh_history,clients,.vimfiles}
 
-	/usr/bin/sudo HOME="$HOME" ME="$ME" -u "$(getusr)" /bin/zsh
+	/usr/bin/sudo HOME="$HOME" ME="$ME" -u "$user" /bin/zsh
 
 	setfacl -R -x u:a0000379 ~/
 }
