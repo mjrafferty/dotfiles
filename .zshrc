@@ -1,4 +1,5 @@
 export OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release);
+SHELL="$(readlink /proc/$$/exe)"
 
 [[ -z $ME ]] && export ME=$USER
 
@@ -25,6 +26,7 @@ if (( $OS_VERSION == 7 )); then
       fi
     done
 
+    unset sudo_cmds
     ######################################################################
   fi
 
@@ -32,9 +34,9 @@ else
 
   if [[ "$UID" != "0" ]] ; then
 
-    /usr/bin/sudo HOME=$HOME SSH_TTY=$SSH_TTY /bin/zsh
+    /usr/bin/sudo HOME="$HOME" SSH_TTY="$SSH_TTY" "$SHELL"
 
-    /usr/bin/sudo find /home/nexmrafferty/ -mindepth 1 \( \
+    /usr/bin/sudo find "$HOME" -mindepth 1 \( \
       -path "*/.bash_profile" -o \
       -path "*/bin" -o \
       -path "*/clients" -o \
@@ -54,23 +56,23 @@ else
 
   fi
 
-  [ -r /opt/nexcess/php56u/enable ] && source /opt/nexcess/php56u/enable;
+  [ -r /opt/nexcess/php70u/enable ] && source /opt/nexcess/php70u/enable;
 
 fi
 
-[ -r ~/.commonrc ] && source ~/.commonrc;
+[ -r "$HOME"/.commonrc ] && source "$HOME"/.commonrc;
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/opt/puppetlabs/bin:/var/qmail/bin:/usr/nexkit/bin:~/bin
 
 # Create directories for files used by vim if necessary
-mkdir -p ~/.vimfiles/{backup,swp,undo}
+mkdir -p "${HOME}"/.vimfiles/{backup,swp,undo}
 
-[ -r ~/environment.sh ] && source ~/.environment.sh;
+[ -r "$HOME"/environment.sh ] && source "$HOME"/.environment.sh;
 
 mkdir -p "$HOME"/clients/"$TICKET";
 export TICKETDIR="${HOME}/clients/${TICKET}";
 
-[ -r ~/action.sh ] && source ~/action.sh;
+[ -r "$HOME"/action.sh ] && source "$HOME"/action.sh;
 
 # Server health check
 serverhealth;
