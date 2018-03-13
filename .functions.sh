@@ -588,6 +588,8 @@ ddns () {
     echo;
     $DIG +short txt default._domainkey."$x" +noshort;
     echo;
+    $DIG +short txt _dmarc."$x" +noshort;
+    echo;
     $DIG +short -x "$($DIG +time=2 +tries=2 +short "$x")" +noshort;
     echo;
   done
