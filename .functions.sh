@@ -480,7 +480,6 @@ addbackups () {
 }
 
 
-
 ######## Miscellaneous ########
 
 ## Simple System Status to check if services that should be running are running
