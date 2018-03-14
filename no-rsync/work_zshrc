@@ -2,6 +2,8 @@
 
 [ -r "${HOME}/.iterm2_shell_integration.zsh" ] && source "${HOME}/.iterm2_shell_integration.zsh"
 
+readonly SED='/usr/local/bin/sed'
+
 [ -r ~/dotfiles/.commonrc ] && source ~/dotfiles/.commonrc;
 
 alias ls='ls -FG'
