@@ -1,10 +1,8 @@
 export OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release);
 
-[[ -z $ME ]] && export ME=$USER
-
 if (( $OS_VERSION == 7 )); then
 
-  if [[ $USER == $ME ]]; then
+  if [[ $USER == "${HOME/*\//}" ]]; then
 
     ##### Set alias for all sudo commands to eliminate typing sudo #####
     sudo_cmds=($(sudo -l | grep -Po "\(ALL\) NOPASSWD:\K.*" | tr -d '\n|,'));
@@ -30,7 +28,7 @@ if (( $OS_VERSION == 7 )); then
 
 else
 
-  if [[ "$USER" == "$ME" ]] ; then
+  if [[ "$USER" == "${HOME/*\//}" ]] ; then
 
     /usr/bin/sudo HOME=$HOME SSH_TTY=$SSH_TTY /bin/zsh
 
