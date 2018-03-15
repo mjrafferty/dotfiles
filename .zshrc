@@ -1,5 +1,8 @@
 export OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release);
 
+# Fixes error when sharing history file among several users
+setopt nohistsavebycopy
+
 if (( $OS_VERSION == 7 )); then
 
   if [[ $USER == "${HOME/*\//}" ]]; then
