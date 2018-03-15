@@ -651,11 +651,11 @@ u () {
 
   user="$(pwd | grep -Po "home/\K[^/]*")"
 
-	setfacl -R -m u:"$(getusr)":rX "$HOME"
-	setfacl -m u:"$(getusr)":rwX "$HOME"
-	setfacl -R -m u:"$(getusr)":rwX "$HOME"/{.zsh_history,clients,.vimfiles}
+	setfacl -R -m u:"$user":rX "$HOME"
+	setfacl -m u:"$user":rwX "$HOME"
+	setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.vimfiles}
 
 	/usr/bin/sudo HOME="$HOME" ME="$ME" -u "$user" /bin/zsh
 
-	setfacl -R -x u:a0000379 ~/
+	setfacl -R -x u:"$user" ~/
 }
