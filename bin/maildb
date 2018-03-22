@@ -79,12 +79,12 @@ _parseLogs () {
   if (type==\"info\")
     {
       gsub(/:/,\"\",\$5);
-      printf \"(NULL,'%s %s','%s','%s'),\\n\",\$1,\$2,\$5,\$9 >sender_file;
+      printf \"(NULL,'%s %s','%s','%s'),\",\$1,\$2,\$5,\$9 >sender_file;
     }
   else if (type==\"starting\")
     {
       gsub(/:/,\"\",\$5);
-      printf \"(NULL,'%s %s','%s','%s','%s','%s',NULL,NULL),\\n\",\$1,\$2,\$5,\$7,\$9,\$10 >recipient_file;
+      printf \"(NULL,'%s %s','%s','%s','%s','%s',NULL,NULL),\",\$1,\$2,\$5,\$7,\$9,\$10 >recipient_file;
     }
   else if (type==\"delivery\")
     {
@@ -96,6 +96,8 @@ _parseLogs () {
 
   }
   END {
+  printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish');\" >sender_file;
+  printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish',NULL,NULL);\" >recipient_file;
   printf \";\" >sender_file;
   printf \";\" >recipient_file;
 
