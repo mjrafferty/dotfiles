@@ -6,8 +6,8 @@ readonly ARGA=("$@")
 readonly LOGDIR="/var/log/send"
 readonly DBFILE="${HOME}/maildb"
 
-readonly CREATE_DB="CREATE TABLE SENDER(ID INTEGER PRIMARY KEY AUTO_INCREMENT,DATE DATETIME NOT NULL,MESSAGE_ID INTEGER NOT NULL,SENDER VARCHAR(100) NOT NULL); \
-  CREATE TABLE RECIPIENT(ID INTEGER PRIMARY KEY AUTO_INCREMENT,DATE DATETIME NOT NULL,DELIVERY_ID INTEGER NOT NULL,MESSAGE_ID INTEGER NOT NULL,QUEUE_TYPE VARCHAR(10) NOT NULL,RECIPIENT VARCHAR(100) NOT NULL,RESPONSE_TYPE VARCHAR(10),RESPONSE_MSG TEXT); \
+readonly CREATE_DB="CREATE TABLE SENDER(ID INTEGER PRIMARY KEY AUTO_INCREMENT,DATE DATETIME NOT NULL,MESSAGE_ID INTEGER NOT NULL,SENDER VARCHAR(100) NOT NULL) ENGINE=MyISAM; \
+  CREATE TABLE RECIPIENT(ID INTEGER PRIMARY KEY AUTO_INCREMENT,DATE DATETIME NOT NULL,DELIVERY_ID INTEGER NOT NULL,MESSAGE_ID INTEGER NOT NULL,QUEUE_TYPE VARCHAR(10) NOT NULL,RECIPIENT VARCHAR(100) NOT NULL,RESPONSE_TYPE VARCHAR(10),RESPONSE_MSG TEXT) ENGINE=MyISAM; \
   CREATE VIEW MAIL AS SELECT SENDER.DATE as \"Sent time\",SENDER.SENDER,RECIPIENT.DATE as \"Receive time\",RECIPIENT.QUEUE_TYPE,RECIPIENT.RECIPIENT,RECIPIENT.RESPONSE_TYPE,RECIPIENT.RESPONSE_MSG FROM SENDER INNER JOIN RECIPIENT ON SENDER.MESSAGE_ID = RECIPIENT.MESSAGE_ID;"
 
 _usage() {
@@ -37,10 +37,12 @@ _cmdline() {
 }
 
 _m () {
-  mysql --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root
+  mysql --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root 2> /dev/null
 }
 
 _createDb () {
+
+  echo "Creating Database..."
 
 	_m <<- EOF
 create database mattmaildb;
@@ -56,6 +58,9 @@ EOF
 }
 
 _cleanUp () {
+
+  echo "Cleaning up...";
+
   _m <<- EOF
 drop database mattmaildb;
 drop user 'mattmaildb'@'localhost';
@@ -117,7 +122,6 @@ main () {
 
   done
 
-    echo "Creating Database..."
     _createDb;
 
     echo "Inserting mail log data(This may take a few minutes)..."
@@ -126,14 +130,13 @@ main () {
       | tai64nlocal \
       | _parseLogs
 
-    for x in sender_file recipient_file update_file; do
+    for x in sender_file recipient_file; do
       cat $x;
     done \
       | mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
 
-		#mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
+		mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
 
-    #echo "Cleaning up...";
 
     _cleanUp;
 
