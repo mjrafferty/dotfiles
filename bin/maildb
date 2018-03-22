@@ -6,8 +6,8 @@ readonly ARGA=("$@")
 readonly LOGDIR="/var/log/send"
 readonly DBFILE="${HOME}/maildb"
 
-readonly CREATE_DB="CREATE TABLE SENDER(ID INTEGER PRIMARY KEY AUTO_INCREMENT,DATE TEXT NOT NULL,MESSAGE_ID INTEGER NOT NULL,SENDER TEXT NOT NULL); \
-  CREATE TABLE RECIPIENT(ID INTEGER PRIMARY KEY AUTO_INCREMENT,DATE TEXT NOT NULL,DELIVERY_ID INTEGER NOT NULL,MESSAGE_ID INTEGER NOT NULL,QUEUE_TYPE TEXT NOT NULL,RECIPIENT TEXT NOT NULL,RESPONSE_TYPE TEXT,RESPONSE_MSG TEXT); \
+readonly CREATE_DB="CREATE TABLE SENDER(ID INTEGER PRIMARY KEY AUTO_INCREMENT,DATE DATETIME NOT NULL,MESSAGE_ID INTEGER NOT NULL,SENDER VARCHAR(100) NOT NULL); \
+  CREATE TABLE RECIPIENT(ID INTEGER PRIMARY KEY AUTO_INCREMENT,DATE DATETIME NOT NULL,DELIVERY_ID INTEGER NOT NULL,MESSAGE_ID INTEGER NOT NULL,QUEUE_TYPE VARCHAR(10) NOT NULL,RECIPIENT VARCHAR(100) NOT NULL,RESPONSE_TYPE VARCHAR(10),RESPONSE_MSG TEXT); \
   CREATE VIEW MAIL AS SELECT SENDER.DATE as \"Sent time\",SENDER.SENDER,RECIPIENT.DATE as \"Receive time\",RECIPIENT.QUEUE_TYPE,RECIPIENT.RECIPIENT,RECIPIENT.RESPONSE_TYPE,RECIPIENT.RESPONSE_MSG FROM SENDER INNER JOIN RECIPIENT ON SENDER.MESSAGE_ID = RECIPIENT.MESSAGE_ID;"
 
 _usage() {
@@ -63,29 +63,43 @@ EOF
 }
 
 _parseLogs () {
-  awk "{
+  awk "
+  BEGIN {
+    sender_file=\"sender_file\";
+    recipient_file=\"recipient_file\";
+    update_file=\"update_file\";
 
+      printf \"INSERT INTO SENDER VALUES \" >sender_file;
+      printf \"INSERT INTO RECIPIENT VALUES \" >recipient_file;
+  }
+
+  {
   type=\$3;
 
   if (type==\"info\")
     {
       gsub(/:/,\"\",\$5);
-      printf \"INSERT INTO SENDER VALUES (NULL,'%s %s','%s','%s');\\n\",\$1,\$2,\$5,\$9;
+      printf \"(NULL,'%s %s','%s','%s'),\\n\",\$1,\$2,\$5,\$9 >sender_file;
     }
   else if (type==\"starting\")
     {
       gsub(/:/,\"\",\$5);
-      printf \"INSERT INTO RECIPIENT VALUES (NULL,'%s %s','%s','%s','%s','%s',NULL,NULL);\\n\",\$1,\$2,\$5,\$7,\$9,\$10;
+      printf \"(NULL,'%s %s','%s','%s','%s','%s',NULL,NULL),\\n\",\$1,\$2,\$5,\$7,\$9,\$10 >recipient_file;
     }
   else if (type==\"delivery\")
     {
       gsub(/:/,\"\",\$4);
       gsub(/:/,\"\",\$5);
       gsub(/'/,\"\",\$6);
-      printf \"UPDATE RECIPIENT SET RESPONSE_TYPE='%s',RESPONSE_MSG='%s' WHERE DELIVERY_ID='%s' order by ID desc limit 1;\\n\",\$5,\$6,\$4;
+      printf \"UPDATE RECIPIENT SET RESPONSE_TYPE='%s',RESPONSE_MSG='%s' WHERE DELIVERY_ID='%s' order by ID desc limit 1;\\n\",\$5,\$6,\$4 >update_file;
     }
 
-  }"
+  }
+  END {
+  printf \";\" >sender_file;
+  printf \";\" >recipient_file;
+
+}"
 }
 
 main () {
@@ -108,12 +122,16 @@ main () {
 
     cat ${LOGDIR}/* \
       | tai64nlocal \
-      | _parseLogs \
+      | _parseLogs
+
+    for x in sender_file recipient_file update_file; do
+      cat $x;
+    done \
       | mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
 
-		mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
+		#mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
 
-    echo "Cleaning up...";
+    #echo "Cleaning up...";
 
     _cleanUp;
 
