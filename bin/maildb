@@ -42,7 +42,6 @@ _m () {
 
 _createDb () {
 
-
 	_m <<- EOF
 create database mattmaildb;
 create user 'mattmaildb'@'localhost';
