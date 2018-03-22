@@ -103,9 +103,6 @@ _parseLogs () {
   END {
     printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish');\" >sender_file;
     printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish',NULL,NULL);\" >recipient_file;
-    printf \";\" >sender_file;
-    printf \";\" >recipient_file;
-
   }"
 }
 
