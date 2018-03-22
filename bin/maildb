@@ -44,7 +44,7 @@ _createDb () {
 
   echo "Creating Database..."
 
-	_m <<- EOF
+  _m <<- EOF
 create database mattmaildb;
 create user 'mattmaildb'@'localhost';
 set old_passwords=0;
@@ -52,8 +52,8 @@ set password for 'mattmaildb'@'localhost' = password('SpawnedTypicalExaltNaked22
 grant all on \`mattmaildb\`.* to 'mattmaildb'@'localhost';
 EOF
 
-  echo "$CREATE_DB" \
-		| mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
+echo "$CREATE_DB" \
+  | mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
 
 }
 
@@ -70,15 +70,15 @@ EOF
 _parseLogs () {
   awk "
   BEGIN {
-    sender_file=\"sender_file\";
-    recipient_file=\"recipient_file\";
-    update_file=\"update_file\";
+  sender_file=\"sender_file\";
+  recipient_file=\"recipient_file\";
+  update_file=\"update_file\";
 
-      printf \"INSERT INTO SENDER VALUES \" >sender_file;
-      printf \"INSERT INTO RECIPIENT VALUES \" >recipient_file;
-  }
+  printf \"INSERT INTO SENDER VALUES \" >sender_file;
+  printf \"INSERT INTO RECIPIENT VALUES \" >recipient_file;
+}
 
-  {
+{
   type=\$3;
 
   if (type==\"info\")
@@ -101,12 +101,12 @@ _parseLogs () {
 
   }
   END {
-  printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish');\" >sender_file;
-  printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish',NULL,NULL);\" >recipient_file;
-  printf \";\" >sender_file;
-  printf \";\" >recipient_file;
+    printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish');\" >sender_file;
+    printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish',NULL,NULL);\" >recipient_file;
+    printf \";\" >sender_file;
+    printf \";\" >recipient_file;
 
-}"
+  }"
 }
 
 main () {
@@ -122,23 +122,26 @@ main () {
 
   done
 
-    _createDb;
+  trap "_cleanUp" EXIT;
 
-    echo "Inserting mail log data(This may take a few minutes)..."
+  _createDb;
 
-    cat ${LOGDIR}/* \
-      | tai64nlocal \
-      | _parseLogs
+  echo "Parsing mail logs..."
 
-    for x in sender_file recipient_file; do
-      cat $x;
-    done \
-      | mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
+  cat ${LOGDIR}/* \
+    | tai64nlocal \
+    | _parseLogs
 
-		mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
+  echo "Inserting mail log data(This may take a few minutes)..."
 
+  for x in sender_file recipient_file; do
+    cat $x;
+  done \
+    | mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
 
-    _cleanUp;
+  mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
+
+  _cleanUp;
 
 }
 
