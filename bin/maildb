@@ -129,8 +129,11 @@ _parseLogs () {
 
     }
   END {
-    printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish');\" >sender_file;
-    printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish');\" >recipient_file;
+    sender_row_id++;
+    recipient_row_id++;
+
+    printf \"('%s','0000-00-00 00:00:00','NULLish','NULLish');\",sender_row_id >sender_file;
+    printf \"('%s','0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish');\",recipient_row_id >recipient_file;
     printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish');\" >delivery_file;
   }"
 }
