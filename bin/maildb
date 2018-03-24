@@ -6,10 +6,10 @@ readonly ARGA=("$@")
 readonly LOGDIR="/var/log/send"
 readonly DBFILE="${HOME}/maildb"
 
-readonly CREATE_DB="CREATE TABLE SENDER(ID INTEGER PRIMARY KEY AUTO_INCREMENT,DATE DATETIME NOT NULL,MESSAGE_ID INTEGER NOT NULL,SENDER VARCHAR(100) NOT NULL) ENGINE=InnoDB; \
-  CREATE TABLE RECIPIENT(ID INTEGER PRIMARY KEY AUTO_INCREMENT,DATE DATETIME NOT NULL,DELIVERY_ID INTEGER NOT NULL,MESSAGE_ID INTEGER NOT NULL,QUEUE_TYPE VARCHAR(10) NOT NULL,RECIPIENT VARCHAR(100) NOT NULL) ENGINE=InnoDB; \
-  CREATE TABLE DELIVERY(ID INTEGER PRIMARY KEY AUTO_INCREMENT,DATE DATETIME NOT NULL,DELIVERY_ID INTEGER NOT NULL,RESPONSE_TYPE VARCHAR(10),RESPONSE_MSG TEXT) ENGINE=InnoDB; \
-  CREATE VIEW MAIL AS SELECT SENDER.DATE as \"Sent time\",SENDER.SENDER,RECIPIENT.DATE as \"Receive time\",RECIPIENT.QUEUE_TYPE,RECIPIENT.RECIPIENT FROM SENDER INNER JOIN RECIPIENT ON SENDER.MESSAGE_ID = RECIPIENT.MESSAGE_ID;"
+readonly CREATE_DB="CREATE TABLE sender(row_id INTEGER PRIMARY KEY AUTO_INCREMENT,date DATETIME NOT NULL,message_id INTEGER NOT NULL,sender VARCHAR(100) NOT NULL) ENGINE=InnoDB; \
+  CREATE TABLE recipient(row_id INTEGER PRIMARY KEY AUTO_INCREMENT,date DATETIME NOT NULL,delivery_id INTEGER NOT NULL,message_id INTEGER NOT NULL,queue_type VARCHAR(10) NOT NULL,recipient VARCHAR(100) NOT NULL) ENGINE=InnoDB; \
+  CREATE TABLE delivery(row_id INTEGER PRIMARY KEY AUTO_INCREMENT,date DATETIME NOT NULL,delivery_id INTEGER NOT NULL,response_type VARCHAR(10),response_msg TEXT) ENGINE=InnoDB; \
+"
 
 _usage() {
   cat <<- EOF
@@ -68,45 +68,55 @@ drop user 'mattmaildb'@'localhost';
 EOF
 }
 
-      #printf \"UPDATE RECIPIENT SET RESPONSE_TYPE='%s',RESPONSE_MSG='%s' WHERE DELIVERY_ID='%s' AND DATE < '%s %s' order by DATE desc limit 1;\\n\",\$5,\$6,\$4,\$1,\$2 >update_file;
 _parseLogs () {
   awk "
   BEGIN {
-  sender_file=\"sender_file\";
-  recipient_file=\"recipient_file\";
-  update_file=\"update_file\";
+    sender_file=\"sender_file\";
+    recipient_file=\"recipient_file\";
+    update_file=\"update_file\";
 
-  printf \"INSERT INTO SENDER VALUES \" >sender_file;
-  printf \"INSERT INTO RECIPIENT VALUES \" >recipient_file;
-  printf \"INSERT INTO DELIVERY VALUES \" >update_file;
-}
+    sender_row_id=0;
+    recipient_row_id=0;
 
-{
-  type=\$3;
-
-  if (type==\"info\")
-    {
-      gsub(/:/,\"\",\$5);
-      printf \"(NULL,'%s %s','%s','%s'),\",\$1,\$2,\$5,\$9 >sender_file;
-    }
-  else if (type==\"starting\")
-    {
-      gsub(/:/,\"\",\$5);
-      printf \"(NULL,'%s %s','%s','%s','%s','%s'),\",\$1,\$2,\$5,\$7,\$9,\$10 >recipient_file;
-    }
-  else if (type==\"delivery\")
-    {
-      gsub(/:/,\"\",\$4);
-      gsub(/:/,\"\",\$5);
-      gsub(/'/,\"\",\$6);
-      printf \"(NULL,'%s %s','%s','%s','%s'),\",\$1,\$2,\$4,\$5,\$6 >update_file;
-    }
-
+    printf \"INSERT INTO sender VALUES \" >sender_file;
+    printf \"INSERT INTO recipient VALUES \" >recipient_file;
+    printf \"INSERT INTO delivery VALUES \" >delivery_file;
   }
+
+  {
+    type=\$3;
+
+    if (type==\"info\")
+      {
+        gsub(/:/,\"\",\$5);
+
+        sender_row_id++;
+        message_ids[\$5]=sender_row_id';
+
+        printf \"(NULL,'%s %s','%s','%s'),\",\$1,\$2,\$5,\$9 >sender_file;
+      }
+    else if (type==\"starting\")
+      {
+        gsub(/:/,\"\",\$5);
+
+        recipient_row_id++;
+        delivery_ids[\$5]=recipient_row_id;
+
+        printf \"(NULL,'%s %s','%s','%s','%s','%s'),\",\$1,\$2,\$5,message_ids[\$7],\$9,\$10 >recipient_file;
+      }
+    else if (type==\"delivery\")
+      {
+        gsub(/:/,\"\",\$4);
+        gsub(/:/,\"\",\$5);
+        gsub(/'/,\"\",\$6);
+        printf \"(NULL,'%s %s','%s','%s','%s'),\",\$1,\$2,delivery_ids[\$4],\$5,\$6 >delivery_file;
+      }
+
+    }
   END {
     printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish');\" >sender_file;
     printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish');\" >recipient_file;
-    printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish');\" >update_file;
+    printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish');\" >delivery_file;
   }"
 }
 
@@ -141,8 +151,6 @@ main () {
     | mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
 
   mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
-
-  _cleanUp;
 
 }
 
