@@ -9,7 +9,7 @@ readonly DBFILE="${HOME}/maildb"
 readonly CREATE_DB="CREATE TABLE sender(row_id INTEGER PRIMARY KEY,date DATETIME NOT NULL,message_id INTEGER NOT NULL,sender VARCHAR(100) NOT NULL) ENGINE=InnoDB; \
   CREATE TABLE recipient(row_id INTEGER PRIMARY KEY,date DATETIME NOT NULL,delivery_id INTEGER NOT NULL,message_id INTEGER NOT NULL,queue_type VARCHAR(10) NOT NULL,recipient VARCHAR(100) NOT NULL) ENGINE=InnoDB; \
   CREATE TABLE delivery(row_id INTEGER PRIMARY KEY AUTO_INCREMENT,date DATETIME NOT NULL,delivery_id INTEGER NOT NULL,response_type VARCHAR(10),response_msg TEXT) ENGINE=InnoDB; \
-"
+  CREATE VIEW mail AS select sender.date as created_date, recipient.date as sent_date, delivery.date as delivery_date, sender, recipient, queue_type, response_type, response_msg from sender inner join recipient on recipient.message_id=sender.row_id inner join delivery on recipient.row_id=delivery.delivery_id;"
 
 _usage() {
   cat <<- EOF
