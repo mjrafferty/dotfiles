@@ -121,7 +121,7 @@ _parseLogs () {
           del_fkey=\"NULL\";
         } else
         {
-          del_fkey=message_ids[\$4];
+          del_fkey=delivery_ids[\$4];
         }
 
         printf \"(NULL,'%s %s','%s','%s','%s'),\",\$1,\$2,del_fkey,\$5,\$6 >delivery_file;
@@ -160,7 +160,7 @@ main () {
 
   echo "Inserting mail log data(This may take a few minutes)..."
 
-  for x in sender_file recipient_file update_file; do
+  for x in sender_file recipient_file delivery_file; do
     cat $x;
   done \
     | mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
