@@ -89,6 +89,12 @@ _parseLogs () {
     if (type==\"info\")
       {
         gsub(/:/,\"\",\$5);
+        gsub(/<|>/,\"\",\$9);
+
+        if (\$9 == \"\")
+          {
+            \$9=\"Qmail\";
+          }
 
         sender_row_id++;
         message_ids[\$5]=sender_row_id;
