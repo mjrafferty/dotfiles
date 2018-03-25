@@ -11,6 +11,10 @@ readonly CREATE_DB="CREATE TABLE sender(row_id INTEGER PRIMARY KEY,date DATETIME
   CREATE TABLE delivery(row_id INTEGER PRIMARY KEY AUTO_INCREMENT,date DATETIME NOT NULL,delivery_id INTEGER NOT NULL,response_type VARCHAR(10),response_msg TEXT) ENGINE=InnoDB; \
   CREATE VIEW mail AS select sender.date as created_date, recipient.date as sent_date, delivery.date as delivery_date, sender, recipient, queue_type, response_type, response_msg from sender inner join recipient on recipient.message_id=sender.row_id inner join delivery on recipient.row_id=delivery.delivery_id;"
 
+sender_file="$(mktemp)"
+recipient_file="$(mktemp)"
+delivery_file="$(mktemp)"
+
 _usage() {
   cat <<- EOF
   This is the usage
@@ -71,9 +75,9 @@ EOF
 _parseLogs () {
   awk "
   BEGIN {
-    sender_file=\"sender_file\";
-    recipient_file=\"recipient_file\";
-    delivery_file=\"delivery_file\";
+    sender_file=\"$sender_file\";
+    recipient_file=\"$recipient_file\";
+    delivery_file=\"$delivery_file\";
 
     sender_row_id=0;
     recipient_row_id=0;
@@ -169,8 +173,9 @@ main () {
 
   echo "Inserting mail log data(This may take a few minutes)..."
 
-  for x in sender_file recipient_file delivery_file; do
-    cat $x;
+  for x in "$sender_file" "$recipient_file" "$delivery_file"; do
+    cat "$x";
+    rm "$x";
   done \
     | mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
 
