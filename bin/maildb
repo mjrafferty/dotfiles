@@ -4,16 +4,20 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly LOGDIR="/var/log/send"
-readonly DBFILE="${HOME}/maildb"
 
-readonly CREATE_DB="CREATE TABLE sender(row_id INTEGER PRIMARY KEY,date DATETIME NOT NULL,message_id INTEGER NOT NULL,sender VARCHAR(100) NOT NULL) ENGINE=InnoDB; \
-  CREATE TABLE recipient(row_id INTEGER PRIMARY KEY,date DATETIME NOT NULL,delivery_id INTEGER NOT NULL,message_id INTEGER NOT NULL,queue_type VARCHAR(10) NOT NULL,recipient VARCHAR(100) NOT NULL) ENGINE=InnoDB; \
-  CREATE TABLE delivery(row_id INTEGER PRIMARY KEY AUTO_INCREMENT,date DATETIME NOT NULL,delivery_id INTEGER NOT NULL,response_type VARCHAR(10),response_msg TEXT) ENGINE=InnoDB; \
-  CREATE VIEW mail AS select sender.date as created_date, recipient.date as sent_date, delivery.date as delivery_date, sender, recipient, queue_type, response_type, response_msg from sender inner join recipient on recipient.message_id=sender.row_id inner join delivery on recipient.row_id=delivery.delivery_id;"
+readonly DBNAME="mattmaildb"
+readonly DBUSER="mattmaildb"
+readonly DBPASS="SpawnedTypicalExaltNaked2284"
 
-sender_file="$(mktemp)"
-recipient_file="$(mktemp)"
-delivery_file="$(mktemp)"
+readonly CREATE_DB="CREATE TABLE sender(row_id INTEGER PRIMARY KEY,date DATETIME,message_id INTEGERL,sender VARCHAR(100)) ENGINE=MyISAM; \
+  CREATE TABLE recipient(row_id INTEGER PRIMARY KEY,date DATETIME,delivery_id INTEGER,message_id INTEGER,queue_type VARCHAR(10),recipient VARCHAR(100)) ENGINE=MyISAM; \
+  CREATE TABLE delivery(row_id INTEGER PRIMARY KEY AUTO_INCREMENT,date DATETIME,delivery_id INTEGER,response_type VARCHAR(10),response_msg TEXT) ENGINE=MyISAM; \
+  CREATE VIEW mail AS select sender.date as created_date, recipient.date as sent_date, delivery.date as delivery_date, sender, recipient, queue_type, response_type,\
+  response_msg from sender inner join recipient on recipient.message_id=sender.row_id inner join delivery on recipient.row_id=delivery.delivery_id;"
+
+readonly sender_file="$(mktemp)"
+readonly recipient_file="$(mktemp)"
+readonly delivery_file="$(mktemp)"
 
 _usage() {
   cat <<- EOF
@@ -50,15 +54,15 @@ _createDb () {
   echo "Creating Database..."
 
   _m <<- EOF
-create database mattmaildb;
-create user 'mattmaildb'@'localhost';
+create database ${DBNAME};
+create user '${DBUSER}'@'localhost';
 set old_passwords=0;
-set password for 'mattmaildb'@'localhost' = password('SpawnedTypicalExaltNaked2284');
-grant all on \`mattmaildb\`.* to 'mattmaildb'@'localhost';
+set password for '${DBUSER}'@'localhost' = password('${DBPASS}');
+grant all on \`${DBNAME}\`.* to '${DBUSER}'@'localhost';
 EOF
 
 echo "$CREATE_DB" \
-  | mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
+  | mysql -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
 
 }
 
@@ -67,12 +71,12 @@ _cleanUp () {
   echo "Cleaning up...";
 
   _m <<- EOF
-drop database mattmaildb;
-drop user 'mattmaildb'@'localhost';
+drop database ${DBNAME};
+drop user '${DBUSER}'@'localhost';
 EOF
 }
 
-_parseLogs () {
+_awkLogs () {
   awk "
   BEGIN {
     sender_file=\"$sender_file\";
@@ -148,6 +152,28 @@ _parseLogs () {
   }"
 }
 
+_parseLogs () {
+
+  echo "Parsing mail logs..."
+
+  cat ${LOGDIR}/* \
+    | tai64nlocal \
+    | _awkLogs
+
+}
+
+_insertData () {
+
+  echo "Inserting mail log data(This may take a few minutes)..."
+
+  for x in "$sender_file" "$recipient_file" "$delivery_file"; do
+    cat "$x";
+    rm "$x";
+  done \
+    | mysql -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
+
+}
+
 main () {
 
   while getopts "h" OPTION $(_cmdline); do
@@ -165,21 +191,11 @@ main () {
 
   _createDb;
 
-  echo "Parsing mail logs..."
+  _parseLogs;
 
-  cat ${LOGDIR}/* \
-    | tai64nlocal \
-    | _parseLogs
+  _insertData;
 
-  echo "Inserting mail log data(This may take a few minutes)..."
-
-  for x in "$sender_file" "$recipient_file" "$delivery_file"; do
-    cat "$x";
-    rm "$x";
-  done \
-    | mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
-
-  mysql -u'mattmaildb' -D'mattmaildb' -p'SpawnedTypicalExaltNaked2284'
+  mysql -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
 
 }
 
