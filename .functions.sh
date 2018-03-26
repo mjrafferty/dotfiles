@@ -178,7 +178,7 @@ uribymb () {
 # Show top file types by bandwidth usage
 typebymb () {
   $ZLESS -f "$@" \
-    | $SED -nr 's|.*\] \"\S* [^?,., ]*(\.?[^?, ]*)\??[^\"]*\" [0-9]{3} ([0-9]*) .*|\1\t\2|p' \
+    | $SED -nr 's|.*\] \"\S* [^?, ]*(\.[^?, ]*)\??[^\"]*\" [0-9]{3} ([0-9]*) .*|\1\t\2|p' \
     | $AWK '{tx[$1]+=$2} END {for (x in tx) {printf "%10.2fM\t%s\n",tx[x]/1048576,x}}' \
     | $SORT -hr \
     | $HEAD -n 20;

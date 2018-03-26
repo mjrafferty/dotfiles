@@ -142,7 +142,7 @@ main () {
       ;;
     -u | --users )
       if [[ -z $param ]]; then
-        _wpdbconnect -e "select ${prefix}users.* from ${prefix}users inner join ${prefix}usermeta on ${prefix}users.Id=${prefix}usermeta.user_id where meta_key rlike \"wp_capabilities\" and meta_value rlike \"administrator\"\G";
+        _wpdbconnect -e "select ${prefix}users.* from ${prefix}users inner join ${prefix}usermeta on ${prefix}users.Id=${prefix}usermeta.user_id where meta_key rlike \"${prefix}capabilities\" and meta_value rlike \"administrator\"\G";
       elif [[ $param =~ -s ]]; then
         _wpdbconnect -e "select id,user_login,display_name,user_email,user_pass from ${prefix}users ORDER BY id";
       elif [[ $param == '-h' || $param == '--help' ]]; then
