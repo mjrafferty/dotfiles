@@ -9,7 +9,7 @@ readonly DBNAME="mattmaildb"
 readonly DBUSER="mattmaildb"
 readonly DBPASS="SpawnedTypicalExaltNaked2284"
 
-readonly CREATE_DB="CREATE TABLE sender(row_id INTEGER PRIMARY KEY,date DATETIME,message_id INTEGERL,sender VARCHAR(100)) ENGINE=MyISAM; \
+readonly CREATE_DB="CREATE TABLE sender(row_id INTEGER PRIMARY KEY,date DATETIME,message_id INTEGER,sender VARCHAR(100)) ENGINE=MyISAM; \
   CREATE TABLE recipient(row_id INTEGER PRIMARY KEY,date DATETIME,delivery_id INTEGER,message_id INTEGER,queue_type VARCHAR(10),recipient VARCHAR(100)) ENGINE=MyISAM; \
   CREATE TABLE delivery(row_id INTEGER PRIMARY KEY AUTO_INCREMENT,date DATETIME,delivery_id INTEGER,response_type VARCHAR(10),response_msg TEXT) ENGINE=MyISAM; \
   CREATE VIEW mail AS select sender.date as created_date, recipient.date as sent_date, delivery.date as delivery_date, sender, recipient, queue_type, response_type,\
