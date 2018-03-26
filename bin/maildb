@@ -97,7 +97,7 @@ _awkLogs () {
     if (type==\"info\")
       {
         gsub(/:/,\"\",\$5);
-        gsub(/<|>/,\"\",\$9);
+        gsub(/<|>|'/,\"\",\$9);
 
         if (\$9 == \"\")
           {
@@ -112,6 +112,7 @@ _awkLogs () {
     else if (type==\"starting\")
       {
         gsub(/:/,\"\",\$5);
+        gsub(/'/,\"\",\$10);
 
         recipient_row_id++;
         delivery_ids[\$5]=recipient_row_id;
