@@ -106,13 +106,14 @@ main () {
 
 }
 
-while getopts "hxt:c:" OPTION $(_cmdline); do
+while getopts "h" OPTION $(_cmdline); do
 
   case $OPTION in
     h)
       _usage;
       exit 0;
       ;;
+    *);;
   esac
 
 done
