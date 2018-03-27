@@ -3,6 +3,7 @@
 [ -r "${HOME}/.iterm2_shell_integration.zsh" ] && source "${HOME}/.iterm2_shell_integration.zsh"
 
 readonly SED='/usr/local/bin/sed'
+readonly GREP='/usr/local/bin/grep'
 
 [ -r ~/dotfiles/.commonrc ] && source ~/dotfiles/.commonrc;
 
