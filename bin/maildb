@@ -9,9 +9,9 @@ readonly DBNAME="mattmaildb"
 readonly DBUSER="mattmaildb"
 readonly DBPASS="SpawnedTypicalExaltNaked2284"
 
-readonly CREATE_DB="CREATE TEMPORARY TABLE sender(row_id INTEGER PRIMARY KEY,date DATETIME,message_id INTEGER,sender VARCHAR(100)) ENGINE=MyISAM; \
-  CREATE TEMPORARY TABLE recipient(row_id INTEGER PRIMARY KEY,date DATETIME,delivery_id INTEGER,message_id INTEGER,queue_type VARCHAR(10),recipient VARCHAR(100)) ENGINE=MyISAM; \
-  CREATE TEMPORARY TABLE delivery(row_id INTEGER PRIMARY KEY AUTO_INCREMENT,date DATETIME,delivery_id INTEGER,response_type VARCHAR(10),response_msg TEXT) ENGINE=MyISAM; \
+readonly CREATE_DB="CREATE TABLE sender(row_id INTEGER PRIMARY KEY,date DATETIME,message_id INTEGER,sender VARCHAR(100)) ENGINE=MyISAM; \
+  CREATE TABLE recipient(row_id INTEGER PRIMARY KEY,date DATETIME,delivery_id INTEGER,message_id INTEGER,queue_type VARCHAR(10),recipient VARCHAR(100)) ENGINE=MyISAM; \
+  CREATE TABLE delivery(row_id INTEGER PRIMARY KEY AUTO_INCREMENT,date DATETIME,delivery_id INTEGER,response_type VARCHAR(10),response_msg TEXT) ENGINE=MyISAM; \
   CREATE VIEW mail AS select sender.date as created_date, recipient.date as sent_date, delivery.date as delivery_date, sender, recipient, queue_type, response_type,\
   response_msg from sender inner join recipient on recipient.message_id=sender.row_id inner join delivery on recipient.row_id=delivery.delivery_id;"
 
@@ -79,16 +79,13 @@ EOF
 _awkLogs () {
   awk "
   BEGIN {
-    sender_file=\"$sender_file\";
-    recipient_file=\"$recipient_file\";
-    delivery_file=\"$delivery_file\";
 
     sender_row_id=0;
     recipient_row_id=0;
 
-    printf \"INSERT INTO sender VALUES \" >sender_file;
-    printf \"INSERT INTO recipient VALUES \" >recipient_file;
-    printf \"INSERT INTO delivery VALUES \" >delivery_file;
+    sender_file=sprintf(\"INSERT INTO sender VALUES \");
+    recipient_file=sprintf(\"INSERT INTO recipient VALUES \");
+    delivery_file=sprintf(\"INSERT INTO delivery VALUES \");
   }
 
   {
@@ -108,7 +105,7 @@ _awkLogs () {
         sender_row_id++;
         message_ids[\$5]=sender_row_id;
 
-        printf \"('%s','%s %s','%s','%s'),\",sender_row_id,\$1,\$2,\$5,\$9 >sender_file;
+        sender_file=sprintf(\"%s('%s','%s %s','%s','%s'),\",sender_file,sender_row_id,\$1,\$2,\$5,\$9);
       }
     else if (type==\"starting\")
       {
@@ -125,7 +122,7 @@ _awkLogs () {
           msg_fkey=message_ids[\$7];
         }
 
-        printf \"('%s','%s %s','%s','%s','%s','%s'),\",recipient_row_id,\$1,\$2,\$5,msg_fkey,\$9,\$10 >recipient_file;
+        recipient_file=sprintf(\"%s('%s','%s %s','%s','%s','%s','%s'),\",recipient_file,recipient_row_id,\$1,\$2,\$5,msg_fkey,\$9,\$10);
       }
     else if (type==\"delivery\")
       {
@@ -140,7 +137,7 @@ _awkLogs () {
           del_fkey=delivery_ids[\$4];
         }
 
-        printf \"(NULL,'%s %s','%s','%s','%s'),\",\$1,\$2,del_fkey,\$5,\$6 >delivery_file;
+        delivery_file=sprintf(\"%s(NULL,'%s %s','%s','%s','%s'),\",delivery_file,\$1,\$2,del_fkey,\$5,\$6);
       }
 
     }
@@ -148,9 +145,13 @@ _awkLogs () {
     sender_row_id++;
     recipient_row_id++;
 
-    printf \"('%s','0000-00-00 00:00:00','NULLish','NULLish');\",sender_row_id >sender_file;
-    printf \"('%s','0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish');\",recipient_row_id >recipient_file;
-    printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish');\" >delivery_file;
+    sender_file=sprintf(\"%s('%s','0000-00-00 00:00:00','NULLish','NULLish');\",sender_file,sender_row_id);
+    recipient_file=sprintf(\"%s('%s','0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish');\",recipient_file,recipient_row_id);
+    delivery_file=sprintf(\"%s(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish');\",delivery_file);
+
+		print sender_file;
+		print recipient_file;
+		print delivery_file;
   }"
 }
 
