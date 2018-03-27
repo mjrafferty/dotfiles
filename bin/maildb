@@ -79,13 +79,16 @@ EOF
 _awkLogs () {
   awk "
   BEGIN {
+    sender_file=\"$sender_file\";
+    recipient_file=\"$recipient_file\";
+    delivery_file=\"$delivery_file\";
 
     sender_row_id=0;
     recipient_row_id=0;
 
-    sender_file=sprintf(\"INSERT INTO sender VALUES \");
-    recipient_file=sprintf(\"INSERT INTO recipient VALUES \");
-    delivery_file=sprintf(\"INSERT INTO delivery VALUES \");
+    printf \"INSERT INTO sender VALUES \" >sender_file;
+    printf \"INSERT INTO recipient VALUES \" >recipient_file;
+    printf \"INSERT INTO delivery VALUES \" >delivery_file;
   }
 
   {
@@ -105,7 +108,7 @@ _awkLogs () {
         sender_row_id++;
         message_ids[\$5]=sender_row_id;
 
-        sender_file=sprintf(\"%s('%s','%s %s','%s','%s'),\",sender_file,sender_row_id,\$1,\$2,\$5,\$9);
+        printf \"('%s','%s %s','%s','%s'),\",sender_row_id,\$1,\$2,\$5,\$9 >sender_file;
       }
     else if (type==\"starting\")
       {
@@ -122,7 +125,7 @@ _awkLogs () {
           msg_fkey=message_ids[\$7];
         }
 
-        recipient_file=sprintf(\"%s('%s','%s %s','%s','%s','%s','%s'),\",recipient_file,recipient_row_id,\$1,\$2,\$5,msg_fkey,\$9,\$10);
+        printf \"('%s','%s %s','%s','%s','%s','%s'),\",recipient_row_id,\$1,\$2,\$5,msg_fkey,\$9,\$10 >recipient_file;
       }
     else if (type==\"delivery\")
       {
@@ -137,7 +140,7 @@ _awkLogs () {
           del_fkey=delivery_ids[\$4];
         }
 
-        delivery_file=sprintf(\"%s(NULL,'%s %s','%s','%s','%s'),\",delivery_file,\$1,\$2,del_fkey,\$5,\$6);
+        printf \"(NULL,'%s %s','%s','%s','%s'),\",\$1,\$2,del_fkey,\$5,\$6 >delivery_file;
       }
 
     }
@@ -145,13 +148,9 @@ _awkLogs () {
     sender_row_id++;
     recipient_row_id++;
 
-    sender_file=sprintf(\"%s('%s','0000-00-00 00:00:00','NULLish','NULLish');\",sender_file,sender_row_id);
-    recipient_file=sprintf(\"%s('%s','0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish');\",recipient_file,recipient_row_id);
-    delivery_file=sprintf(\"%s(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish');\",delivery_file);
-
-		print sender_file;
-		print recipient_file;
-		print delivery_file;
+    printf \"('%s','0000-00-00 00:00:00','NULLish','NULLish');\",sender_row_id >sender_file;
+    printf \"('%s','0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish');\",recipient_row_id >recipient_file;
+    printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish');\" >delivery_file;
   }"
 }
 
