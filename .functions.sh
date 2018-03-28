@@ -655,7 +655,7 @@ u () {
 	setfacl -m u:"$user":rwX "$HOME"
 	setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.vimfiles}
 
-	/usr/bin/sudo HOME="$HOME" ME="$ME" -u "$user" /bin/zsh
+	/usr/bin/sudo HOME="$HOME" USER="${HOME/*\//}" -u "$user" /bin/zsh
 
 	setfacl -R -x u:"$user" ~/
 }
