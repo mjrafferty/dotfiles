@@ -197,7 +197,7 @@ _insertData () {
 
 _makeOptionsFile () {
 
-  $CAT <<- EOF > $options_file
+  $CAT <<- EOF > "$options_file"
 [client_maildb]
 database = $DBNAME
 user = $DBUSER
@@ -216,6 +216,7 @@ main () {
         _usage;
         exit 0;
         ;;
+      *);;
     esac
 
   done
