@@ -24,6 +24,17 @@ tables="core_cache core_cache_option core_cache_tag core_session dataflow_batch_
 prefix="$(echo 'cat /config/global/resources/db/table_prefix/text()' | xmllint --nocdata --shell "$SITEPATH"/app/etc/local.xml | sed '1d;$d')"
 adminurl="$(echo 'cat /config/admin/routers/adminhtml/args/frontName/text()' | xmllint --nocdata --shell "$SITEPATH"/app/etc/local.xml | sed '1d;$d')"
 
+## Print some dashes
+dashes () {
+
+  local i;
+
+  for ((i=0;i<=$1;i++)); do
+    printf "-";
+  done;
+
+}
+
 _magdbusage () {
 
 	echo " Usage: magdb [<path>] <option> [<query>]

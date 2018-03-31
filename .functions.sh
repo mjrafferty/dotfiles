@@ -8,7 +8,6 @@ readonly COLUMN='/usr/bin/column'
 readonly CP='/bin/cp'
 readonly CURL='/usr/bin/curl'
 readonly CUT='/bin/cut'
-readonly DASHES='/home/nexmrafferty/bin/dashes'
 readonly DATE='/bin/date'
 readonly DIG='/usr/bin/dig'
 readonly FIND='/bin/find'
@@ -487,7 +486,7 @@ srvstatus(){
   local servicelist;
   servicelist=($($CHKCONFIG --list | $AWK '/3:on/ {print $1}' | sort));
 
-  printf "\n%-18s %s\n%-18s %s\n" " Service" " Status" "$($DASHES 18)" "$($DASHES 55)";
+  printf "\n%-18s %s\n%-18s %s\n" " Service" " Status" "$(dashes 18)" "$(dashes 55)";
 
   for x in ${servicelist[*]}; do
     printf "%-18s %s\n" " $x" " $(service "$x" status 2> /dev/null | $HEAD -1)";
@@ -554,7 +553,7 @@ nexinfo () {
 sysusage () {
   local COLSORT=2;
 
-  printf "\n%-10s %10s %10s %10s %10s\n%s\n" "User" "Mem (MB)" "Process" "$CPU(%)" "MEM(%)" "$($DASHES 54)";
+  printf "\n%-10s %10s %10s %10s %10s\n%s\n" "User" "Mem (MB)" "Process" "$CPU(%)" "MEM(%)" "$(dashes 54)";
   $PS aux \
     | $AWK ' !/^USER/ { mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' \
     | $SORT -nrk$COLSORT \
@@ -571,7 +570,7 @@ ddns () {
     D="$*";
   fi
   for x in $(echo "$D" | $SED 's_\(https\?://\)\?\([^/]*\).*_\2_' | $TR "[:upper:]" "[:lower:]"); do
-    echo -e "\nDNS Summary: $x\n$($DASHES 79)";
+    echo -e "\nDNS Summary: $x\n$(dashes 79)";
     for y in a aaaa ns mx txt soa; do
       $DIG +time=2 +tries=2 +short $y "$x" +noshort;
       if [[ $y == 'ns' ]]; then
@@ -642,6 +641,17 @@ magsymlinks () {
       sudo -u "$U" "$CP" /home/"$U"/"$D"/html/$Y .;
     done;
   fi
+}
+
+## Print some dashes
+dashes () {
+
+  local i;
+
+  for ((i=0;i<=$1;i++)); do
+    printf -- "-";
+  done;
+
 }
 
 ## Switch to a user

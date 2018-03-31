@@ -2,6 +2,17 @@
 
 ## Show backupserver and disk usage for current home directory
 
+## Print some dashes
+dashes () {
+
+  local i;
+
+  for ((i=0;i<=$1;i++)); do
+    printf "-";
+  done;
+
+}
+
 _printbackupsvr () {
 
   local ip internal rdns;

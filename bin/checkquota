@@ -22,6 +22,17 @@ _usage() {
 EOF
 }
 
+## Print some dashes
+dashes () {
+
+  local i;
+
+  for ((i=0;i<=$1;i++)); do
+    printf "-";
+  done;
+
+}
+
 ## Check users quota usage
 _quotaheader () {
   echo;
