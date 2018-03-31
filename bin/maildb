@@ -22,6 +22,7 @@ readonly MYSQL="/usr/bin/mysql"
 readonly RM="/bin/rm"
 readonly TAI64NLOCAL="/usr/bin/tai64nlocal"
 
+readonly options_file="$($MKTEMP)"
 readonly sender_file="$($MKTEMP)"
 readonly recipient_file="$($MKTEMP)"
 readonly delivery_file="$($MKTEMP)"
@@ -53,7 +54,7 @@ _cmdline() {
 }
 
 _m () {
-  $MYSQL --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root 2> /dev/null
+  $MYSQL --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root
 }
 
 _createDb () {
@@ -69,7 +70,7 @@ grant all on \`${DBNAME}\`.* to '${DBUSER}'@'localhost';
 EOF
 
 echo "$CREATE_DB" \
-  | $MYSQL -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
+  | $MYSQL --defaults-extra-file="$options_file" --defaults-group-suffix="_maildb"
 
 }
 
@@ -81,6 +82,8 @@ _cleanUp () {
 drop database ${DBNAME};
 drop user '${DBUSER}'@'localhost';
 EOF
+
+	$RM "$options_file";
 
 }
 
@@ -174,13 +177,25 @@ _parseLogs () {
 
 _insertData () {
 
-  echo "Inserting mail log data(This may take a few minutes)..."
+  echo "Inserting mail log data..."
 
   for x in "$sender_file" "$recipient_file" "$delivery_file"; do
     $CAT "$x";
     $RM "$x";
   done \
-    | $MYSQL -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
+		| $MYSQL --defaults-extra-file="$options_file" --defaults-group-suffix="_maildb"
+
+}
+
+_makeOptionsFile () {
+
+  $CAT <<- EOF > $options_file
+[client_maildb]
+database = $DBNAME
+user = $DBUSER
+password = $DBPASS
+socket = /var/lib/mysql/mysql.sock
+EOF
 
 }
 
@@ -199,13 +214,15 @@ main () {
 
   trap "_cleanUp" EXIT;
 
+	_makeOptionsFile;
+
   _createDb;
 
   _parseLogs;
 
   _insertData;
 
-  $MYSQL -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
+	$MYSQL --defaults-extra-file="$options_file" --defaults-group-suffix="_maildb"
 
 }
 
