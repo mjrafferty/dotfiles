@@ -59,7 +59,7 @@ _m () {
 
 _createDb () {
 
-  echo "Creating Database..."
+  printf "Creating Database..."
 
   _m <<- EOF
 create database ${DBNAME};
@@ -72,11 +72,13 @@ EOF
 echo "$CREATE_DB" \
   | $MYSQL --defaults-extra-file="$options_file" --defaults-group-suffix="_maildb"
 
+  printf "Done\n";
+
 }
 
 _cleanUp () {
 
-  echo "Cleaning up...";
+  printf "Cleaning up...";
 
   _m <<- EOF
 drop database ${DBNAME};
@@ -84,6 +86,8 @@ drop user '${DBUSER}'@'localhost';
 EOF
 
 	$RM "$options_file";
+
+  printf "Done\n";
 
 }
 
@@ -167,23 +171,27 @@ _awkLogs () {
 
 _parseLogs () {
 
-  echo "Parsing mail logs..."
+  printf "Parsing mail logs..."
 
   $CAT ${LOGDIR}/* \
     | $TAI64NLOCAL \
     | _awkLogs
 
+  printf "Done\n"
+
 }
 
 _insertData () {
 
-  echo "Inserting mail log data..."
+  printf "Inserting mail log data..."
 
   for x in "$sender_file" "$recipient_file" "$delivery_file"; do
     $CAT "$x";
     $RM "$x";
   done \
 		| $MYSQL --defaults-extra-file="$options_file" --defaults-group-suffix="_maildb"
+
+  printf "Done\n\n"
 
 }
 
