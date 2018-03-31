@@ -15,12 +15,20 @@ readonly CREATE_DB="CREATE TABLE sender(row_id INTEGER PRIMARY KEY,date DATETIME
   CREATE VIEW mail AS select sender.date as created_date, recipient.date as sent_date, delivery.date as delivery_date, sender, recipient, queue_type, response_type,\
   response_msg from sender inner join recipient on recipient.message_id=sender.row_id inner join delivery on recipient.row_id=delivery.delivery_id;"
 
-readonly sender_file="$(mktemp)"
-readonly recipient_file="$(mktemp)"
-readonly delivery_file="$(mktemp)"
+readonly AWK="/bin/awk"
+readonly CAT="/bin/cat"
+readonly MKTEMP="/bin/mktemp"
+readonly MYSQL="/usr/bin/mysql"
+readonly RM="/bin/rm"
+readonly TAI64NLOCAL="/usr/bin/tai64nlocal"
+
+readonly options_file="$($MKTEMP)"
+readonly sender_file="$($MKTEMP)"
+readonly recipient_file="$($MKTEMP)"
+readonly delivery_file="$($MKTEMP)"
 
 _usage() {
-  cat <<- EOF
+  $CAT <<- EOF
   This is the usage
 EOF
 }
@@ -46,12 +54,12 @@ _cmdline() {
 }
 
 _m () {
-  mysql --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root 2> /dev/null
+  $MYSQL --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root
 }
 
 _createDb () {
 
-  echo "Creating Database..."
+  printf "Creating Database..."
 
   _m <<- EOF
 create database ${DBNAME};
@@ -62,22 +70,29 @@ grant all on \`${DBNAME}\`.* to '${DBUSER}'@'localhost';
 EOF
 
 echo "$CREATE_DB" \
-  | mysql -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
+  | $MYSQL --defaults-extra-file="$options_file" --defaults-group-suffix="_maildb"
+
+  printf "Done\n";
 
 }
 
 _cleanUp () {
 
-  echo "Cleaning up...";
+  printf "Cleaning up...";
 
   _m <<- EOF
 drop database ${DBNAME};
 drop user '${DBUSER}'@'localhost';
 EOF
+
+	$RM "$options_file";
+
+  printf "Done\n";
+
 }
 
 _awkLogs () {
-  awk "
+  $AWK "
   BEGIN {
     sender_file=\"$sender_file\";
     recipient_file=\"$recipient_file\";
@@ -156,23 +171,39 @@ _awkLogs () {
 
 _parseLogs () {
 
-  echo "Parsing mail logs..."
+  printf "Parsing mail logs..."
 
-  cat ${LOGDIR}/* \
-    | tai64nlocal \
+  $CAT ${LOGDIR}/* \
+    | $TAI64NLOCAL \
     | _awkLogs
+
+  printf "Done\n"
 
 }
 
 _insertData () {
 
-  echo "Inserting mail log data(This may take a few minutes)..."
+  printf "Inserting mail log data..."
 
   for x in "$sender_file" "$recipient_file" "$delivery_file"; do
-    cat "$x";
-    rm "$x";
+    $CAT "$x";
+    $RM "$x";
   done \
-    | mysql -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
+		| $MYSQL --defaults-extra-file="$options_file" --defaults-group-suffix="_maildb"
+
+  printf "Done\n\n"
+
+}
+
+_makeOptionsFile () {
+
+  $CAT <<- EOF > "$options_file"
+[client_maildb]
+database = $DBNAME
+user = $DBUSER
+password = $DBPASS
+socket = /var/lib/mysql/mysql.sock
+EOF
 
 }
 
@@ -185,11 +216,14 @@ main () {
         _usage;
         exit 0;
         ;;
+      *);;
     esac
 
   done
 
   trap "_cleanUp" EXIT;
+
+	_makeOptionsFile;
 
   _createDb;
 
@@ -197,7 +231,7 @@ main () {
 
   _insertData;
 
-  mysql -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
+	$MYSQL --defaults-extra-file="$options_file" --defaults-group-suffix="_maildb"
 
 }
 
