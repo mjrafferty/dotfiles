@@ -15,12 +15,19 @@ readonly CREATE_DB="CREATE TABLE sender(row_id INTEGER PRIMARY KEY,date DATETIME
   CREATE VIEW mail AS select sender.date as created_date, recipient.date as sent_date, delivery.date as delivery_date, sender, recipient, queue_type, response_type,\
   response_msg from sender inner join recipient on recipient.message_id=sender.row_id inner join delivery on recipient.row_id=delivery.delivery_id;"
 
-readonly sender_file="$(mktemp)"
-readonly recipient_file="$(mktemp)"
-readonly delivery_file="$(mktemp)"
+alias AWK="/bin/awk"
+alias CAT="/bin/cat"
+alias MKTEMP="/bin/mktemp"
+alias MYSQL="/usr/bin/mysql"
+alias RM="/bin/rm"
+alias TAI64NLOCAL="/usr/bin/tai64nlocal"
+
+readonly sender_file="$($MKTEMP)"
+readonly recipient_file="$($MKTEMP)"
+readonly delivery_file="$($MKTEMP)"
 
 _usage() {
-  cat <<- EOF
+  $CAT <<- EOF
   This is the usage
 EOF
 }
@@ -46,7 +53,7 @@ _cmdline() {
 }
 
 _m () {
-  mysql --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root 2> /dev/null
+  $MYSQL --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root 2> /dev/null
 }
 
 _createDb () {
@@ -62,7 +69,7 @@ grant all on \`${DBNAME}\`.* to '${DBUSER}'@'localhost';
 EOF
 
 echo "$CREATE_DB" \
-  | mysql -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
+  | $MYSQL -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
 
 }
 
@@ -74,10 +81,11 @@ _cleanUp () {
 drop database ${DBNAME};
 drop user '${DBUSER}'@'localhost';
 EOF
+
 }
 
 _awkLogs () {
-  awk "
+  $AWK "
   BEGIN {
     sender_file=\"$sender_file\";
     recipient_file=\"$recipient_file\";
@@ -158,8 +166,8 @@ _parseLogs () {
 
   echo "Parsing mail logs..."
 
-  cat ${LOGDIR}/* \
-    | tai64nlocal \
+  $CAT ${LOGDIR}/* \
+    | $TAI64NLOCAL \
     | _awkLogs
 
 }
@@ -169,10 +177,10 @@ _insertData () {
   echo "Inserting mail log data(This may take a few minutes)..."
 
   for x in "$sender_file" "$recipient_file" "$delivery_file"; do
-    cat "$x";
-    rm "$x";
+    $CAT "$x";
+    $RM "$x";
   done \
-    | mysql -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
+    | $MYSQL -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
 
 }
 
@@ -197,7 +205,7 @@ main () {
 
   _insertData;
 
-  mysql -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
+  $MYSQL -u"$DBUSER" -D"$DBNAME" -p"$DBPASS"
 
 }
 
