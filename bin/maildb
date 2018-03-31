@@ -15,12 +15,12 @@ readonly CREATE_DB="CREATE TABLE sender(row_id INTEGER PRIMARY KEY,date DATETIME
   CREATE VIEW mail AS select sender.date as created_date, recipient.date as sent_date, delivery.date as delivery_date, sender, recipient, queue_type, response_type,\
   response_msg from sender inner join recipient on recipient.message_id=sender.row_id inner join delivery on recipient.row_id=delivery.delivery_id;"
 
-alias AWK="/bin/awk"
-alias CAT="/bin/cat"
-alias MKTEMP="/bin/mktemp"
-alias MYSQL="/usr/bin/mysql"
-alias RM="/bin/rm"
-alias TAI64NLOCAL="/usr/bin/tai64nlocal"
+readonly AWK="/bin/awk"
+readonly CAT="/bin/cat"
+readonly MKTEMP="/bin/mktemp"
+readonly MYSQL="/usr/bin/mysql"
+readonly RM="/bin/rm"
+readonly TAI64NLOCAL="/usr/bin/tai64nlocal"
 
 readonly sender_file="$($MKTEMP)"
 readonly recipient_file="$($MKTEMP)"
