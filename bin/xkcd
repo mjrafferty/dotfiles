@@ -18,7 +18,7 @@ main () {
     return 0;
   fi
 
-  local wordList wordLength n word len rnd
+  local wordList n word len rnd
 
   if [ -r /usr/local/interworx/lib/dict/words ]; then
 
@@ -33,23 +33,11 @@ main () {
     return 1;
   fi
 
-
-  if [[ ${ARGA[0]} =~ -l ]]; then
-
-    wordLength=$(( (ARGA[1] - 4) / 4 ));
-
-  else
-
-    wordLength="4,8";
-
-  fi
-
-
   if [[ -x /usr/bin/shuf ]]; then
 
-    echo $(shuf -n1000 $wordList | grep -E "^[a-z]{$wordLength}$" | shuf -n4 )$(( (RANDOM % 9000) + 1000 )) \
-      | sed 's/\b\([a-zA-Z]\)/\u\1/g' \
-      | sed 's/ //g'
+    pass=$(shuf -n1000 "$wordList" | grep -E '^[a-z,A-Z]{4,12}$' | head -n4 | sed 's/^\([a-z]\)/\u\1/' | tr -d '\n| ');
+
+    echo "$pass"$(( (RANDOM % 9000) + 1000 ));
 
   else
 

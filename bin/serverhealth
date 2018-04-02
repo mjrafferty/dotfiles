@@ -94,9 +94,81 @@ _cmdline() {
 # Connect to mysql
 _m () {
 
-  #mysql -u"$(grep '^rootdsn=' /usr/local/interworx/iworx.ini | cut -d/ -f3 | cut -d: -f1)" \
-    #-p"$(grep '^rootdsn=' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)" "$1"
 	mysql --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root "$@"
+
+}
+
+# Check low memory in swap or RAM
+_memcheck () {
+
+  local active total swptotal swpfree;
+
+  active=$(sed -n 's/Active:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
+  total=$(sed -n 's/MemTotal:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
+  swptotal=$(sed -n 's/SwapTotal:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
+  swpfree=$(sed -n 's/SwapFree:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
+
+  if [ "$active" -ge "$((9 * total / 10))" ]; then
+
+    echo "System memory low";
+
+  fi
+
+  if [ "$swpfree" -le "$((swptotal / 10))" ]; then
+
+    echo "Swap low";
+
+  fi
+
+}
+
+# Check CPU load
+_loadavgchk () {
+
+  local avgs cpucount;
+
+  avgs=($(cut -d ' ' -f1-3 /proc/loadavg));
+
+  avgs[0]=$(printf "%.*f\n" 0 "${avgs[0]}")
+  avgs[1]=$(printf "%.*f\n" 0 "${avgs[1]}")
+  avgs[2]=$(printf "%.*f\n" 0 "${avgs[2]}")
+
+
+  cpucount="$(grep -c ^processor /proc/cpuinfo)"
+
+  if [ "${avgs[0]}" -ge "$cpucount" ]; then
+
+    echo "Load average high";
+
+  fi
+
+  if [ "${avgs[1]}" -ge "$cpucount" ]; then
+
+    echo "5 min load average high";
+
+  fi
+
+  if [ "${avgs[2]}" -ge "$cpucount" ]; then
+
+    echo "15 min load average high";
+
+  fi
+
+}
+
+# Check for low disk space
+_partitioncheck () {
+
+  df \
+    | awk '!/Filesystem/ {gsub(/%/,"",$0); if($5 > 95){print $(NF)" partition "$5"% full"}}'
+
+}
+
+# Check for low disk inodes
+_inodecheck () {
+
+  df -i \
+    | awk '!/Filesystem/ {gsub(/%/,"",$0); if($5 > 95){print $(NF)" inodes "$5"% utilized"}}'
 
 }
 
@@ -165,72 +237,6 @@ _maxclients () {
     echo "Apache near MaxClients";
 
   fi
-
-}
-
-# Check low memory in swap or RAM
-_memcheck () {
-
-  local active total swptotal swpfree;
-
-  active=$(sed -n 's/Active:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
-  total=$(sed -n 's/MemTotal:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
-  swptotal=$(sed -n 's/SwapTotal:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
-  swpfree=$(sed -n 's/SwapFree:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
-
-  if [ "$active" -ge "$((9 * total / 10))" ]; then
-
-    echo "System memory low";
-
-  fi
-
-  if [ "$swpfree" -le "$((swptotal / 10))" ]; then
-
-    echo "Swap low";
-
-  fi
-
-}
-
-# Check CPU load
-_loadavgchk () {
-
-  local avgs cpucount;
-
-  avgs=($(cut -d ' ' -f1-3 /proc/loadavg));
-
-  avgs[0]=$(printf "%.*f\n" 0 "${avgs[0]}")
-  avgs[1]=$(printf "%.*f\n" 0 "${avgs[1]}")
-  avgs[2]=$(printf "%.*f\n" 0 "${avgs[2]}")
-
-
-  cpucount="$(grep -c ^processor /proc/cpuinfo)"
-
-  if [ "${avgs[0]}" -ge "$cpucount" ]; then
-
-    echo "Load average high";
-
-  fi
-
-  if [ "${avgs[1]}" -ge "$cpucount" ]; then
-
-    echo "5 min load average high";
-
-  fi
-
-  if [ "${avgs[2]}" -ge "$cpucount" ]; then
-
-    echo "15 min load average high";
-
-  fi
-
-}
-
-# Check for low disk space
-_partitioncheck () {
-
-  df \
-    | awk '!/Filesystem/ {gsub(/%/,"",$0); if($5 > 95){print $(NF)" partition "$5"% full"}}'
 
 }
 
@@ -371,7 +377,7 @@ main () {
 
   done
 
-  local func_list=(_longrunqueries _maxphpprocs _maxclients _memcheck _loadavgchk _partitioncheck _checkservices)
+  local func_list=(_longrunqueries _maxphpprocs _maxclients _memcheck _loadavgchk _partitioncheck _inodecheck _checkservices)
 
   echo;
 
