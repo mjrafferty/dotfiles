@@ -18,7 +18,7 @@ main () {
     return 0;
   fi
 
-  local wordList n word len rnd
+  local wordList word rnd
 
   if [ -r /usr/local/interworx/lib/dict/words ]; then
 
@@ -41,19 +41,17 @@ main () {
 
   else
 
-    n=0;  word=(); len=$(wc -l < $wordList)
+    word=();
 
-    while [[ $n -lt 4 ]]; do
+    matchList=$(grep -E '^[a-z,A-Z]{4,12}$' $wordList);
+    IFS=" "
+    wcount=$(echo "$matchList" | wc -l | awk '{print $1}')
 
-      rnd=$(( ( $(od -vAn -N4 -tu4 < /dev/urandom) )%(len)+1 ));
+    for ((x=0;x<4;x++)) do
 
-      word[$n]=$(sed -n "${rnd}p" $wordList | grep -E "^[a-z]{4,8}$" | sed 's:\b\(.\):\u\1:');
+      rnd=$((RANDOM % wcount))
 
-      if [[ -n ${word[$n]} ]]; then
-
-        n=$n+1;
-
-      fi;
+      word[$x]=$(echo "$matchList" | sed -n "${rnd}p" | sed 's/^\([a-z]\)/\u\1/');
 
     done;
 
