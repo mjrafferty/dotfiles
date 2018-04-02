@@ -65,6 +65,8 @@ main () {
 
   "$EDITOR" "${vhost[0]}";
 
+  echo "${vhost[0]}";
+
 }
 
 main;
