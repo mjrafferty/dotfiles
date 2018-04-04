@@ -82,10 +82,10 @@ cdd () {
   docroot=($(printf "%s\n" "${docroot[@]}" | $SORT -u));
 
   # Evaluate too few or too many docroots
-  if [ -z "${docroot[1]}" ]; then
+  if [ -z "${docroot[$ARRAY_START]}" ]; then
     echo "Domain not found";
     return;
-  elif [ "${docroot[2]}" ]; then
+  elif [ "${docroot[$ARRAY_START+1]}" ]; then
     echo "Domain ambiguous. Select docroot:";
     for (( i=ARRAY_START; i<=${#docroot[@]}; i++ )); do
       echo "$i  ${docroot[$i]}";
@@ -97,12 +97,12 @@ cdd () {
       read -rp "Choose docroot number:" selection;
     fi
 
-    docroot[1]=${docroot[$selection]};
+    docroot[$ARRAY_START]=${docroot[$selection]};
 
   fi;
 
   # Change working directory to docroot
-  cd "${docroot[1]}" || echo "Could not locate docroot";
+  cd "${docroot[$ARRAY_START]}" || echo "Could not locate docroot";
   pwd;
 }
 
@@ -269,7 +269,7 @@ reqslasthour () {
   if [ "${times[$ARRAY_START+1]}" -eq 00 ]; then
     prevhour=23;
   else
-    prevhour=$(printf "%02d" "$((times[2]-1))");
+    prevhour=$(printf "%02d" "$((times[$ARRAY_START+1]-1))");
   fi
   if [ "${times[$ARRAY_START+2]}" -eq 5 ]; then
     regex="${times[$ARRAY_START]}:($prevhour:5[${times[$ARRAY_START+3]}-9]|${times[$ARRAY_START+1]}:)"
@@ -293,15 +293,15 @@ phplasthour () {
 
   times=($($DATE +%Y:%R | $SED -e 's/:/ /g' -e 's/\([0-9]\)\([0-9]\)$/\1 \2/'))
 
-  if [ "${times[2]}" -eq 00 ]; then
+  if [ "${times[$ARRAY_START+1]}" -eq 00 ]; then
     prevhour=23;
   else
-    prevhour=$(printf "%02d" "$((times[2]-1))");
+    prevhour=$(printf "%02d" "$((times[$ARRAY_START+1]-1))");
   fi
-  if [ "${times[3]}" -eq 5 ]; then
-    regex="${times[1]}:($prevhour:5[${times[4]}-9]|${times[2]}:)"
+  if [ "${times[$ARRAY_START+2]}" -eq 5 ]; then
+    regex="${times[$ARRAY_START]}:($prevhour:5[${times[$ARRAY_START+3]}-9]|${times[$ARRAY_START+1]}:)"
   else
-    regex="${times[1]}:($prevhour:(${times[3]}[${times[4]}-9]|[$((times[3]+1))-5][0-9])|${times[2]}:)"
+    regex="${times[$ARRAY_START]}:($prevhour:(${times[$ARRAY_START+2]}[${times[$ARRAY_START+3]}-9]|[$((times[$ARRAY_START+2]+1))-5][0-9])|${times[$ARRAY_START+1]}:)"
   fi
 
   echo -e "\n";
