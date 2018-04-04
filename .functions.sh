@@ -63,13 +63,13 @@ cdd () {
   alias=($(echo "$domains" \
     | $CUT -f2));
 
-  for (( i="$ARRAY_START"; i<=${#alias[@]}; i++ )); do
+  for (( i=ARRAY_START; i<=${#alias[@]}; i++ )); do
     docroot[$i]=$($SED -nr 's/[^#]*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"${domain[$i]}".conf \
       | $HEAD -n1);
   done;
 
   # Evaluate subdomains
-  for (( i="$ARRAY_START"; i<=${#alias[@]}; i++ )); do
+  for (( i=ARRAY_START; i<=${#alias[@]}; i++ )); do
     if [[ ${alias[$i]} == *.${domain[$i]} ]]; then
       subdir="$(echo "${alias[$i]}" | $SED -nr 's/(.*).'"${domain[$i]}"'/\1/p')";
       if [ -d "${docroot[$i]}"/"$subdir" ]; then
@@ -87,7 +87,7 @@ cdd () {
     return;
   elif [ "${docroot[2]}" ]; then
     echo "Domain ambiguous. Select docroot:";
-    for (( i="$ARRAY_START"; i<=${#docroot[@]}; i++ )); do
+    for (( i=ARRAY_START; i<=${#docroot[@]}; i++ )); do
       echo "$i  ${docroot[$i]}";
     done | $COLUMN -t;
     echo;
@@ -116,7 +116,7 @@ cdlogs () {
   # Gather relevant domain information
   vhosts=($($GREP -El "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*.conf));
 
-  for (( i="$ARRAY_START"; i<=${#vhosts[@]}; i++ )); do
+  for (( i=ARRAY_START; i<=${#vhosts[@]}; i++ )); do
     logsdir[$i]=$($SED -nr 's_[^#]*ErrorLog (.*)/error.log_\1_p' "${vhosts[$i]}" \
       | $HEAD -n1);
   done;
@@ -127,7 +127,7 @@ cdlogs () {
     return;
   elif [ "${logsdir[2]}" ]; then
     echo "Domain ambiguous. Select log directory:";
-    for (( i="$ARRAY_START"; i<=${#logsdir[@]}; i++ )); do
+    for (( i=ARRAY_START; i<=${#logsdir[@]}; i++ )); do
       echo "$i  ${logsdir[$i]}";
     done | $COLUMN -t;
     echo;
@@ -507,7 +507,7 @@ nameservers () {
   local nameservers;
   echo;
   nameservers=($($SED -n 's/ns[1-2]="\([^"]*\).*/\1/p' ~iworx/iworx.ini))
-  for (( x="$ARRAY_START"; x<=${#nameservers[@]}; x++ )) do
+  for (( x=ARRAY_START; x<=${#nameservers[@]}; x++ )) do
     echo "${nameservers[$x]} ($($DIG +short "${nameservers[$x]}"))";
   done
   echo;
@@ -517,7 +517,7 @@ nameservers () {
 maldetstat () {
   local files;
   files=($($AWK '{print $3}' /usr/local/maldetect/sess/session.hits."$1"));
-  for (( x="$ARRAY_START"; x<=${#files[@]}; x++ )); do
+  for (( x=ARRAY_START; x<=${#files[@]}; x++ )); do
     $STATT "${files[$x]}";
   done
 }
