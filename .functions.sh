@@ -271,7 +271,7 @@ reqslasthour () {
   else
     prevhour=$(printf "%02d" "$((times[2]-1))");
   fi
-  if [ "${times[3]}" -eq 5 ]; then
+  if [ "${times[$ARRAY_START+2]}" -eq 5 ]; then
     regex="${times[$ARRAY_START]}:($prevhour:5[${times[$ARRAY_START+3]}-9]|${times[$ARRAY_START+1]}:)"
   else
     regex="${times[$ARRAY_START]}:($prevhour:(${times[$ARRAY_START+2]}[${times[$ARRAY_START+3]}-9]|[$((times[$ARRAY_START+2]+1))-5][0-9])|${times[$ARRAY_START+1]}:)"
