@@ -91,7 +91,11 @@ cdd () {
       echo "$i  ${docroot[$i]}";
     done | $COLUMN -t;
     echo;
-    vared -p "Choose docroot number:" -c selection;
+    if [[ "$MYSHELL" =~ zsh ]]; then
+      vared -p "Choose docroot number:" -c selection;
+    else
+      read -rp "Choose docroot number:" selection;
+    fi
 
     docroot[1]=${docroot[$selection]};
 
@@ -131,7 +135,11 @@ cdlogs () {
       echo "$i  ${logsdir[$i]}";
     done | $COLUMN -t;
     echo;
-    vared -p "Choose log directory number:" -c selection;
+    if [[ "$MYSHELL" =~ zsh ]]; then
+      vared -p "Choose log directory number:" -c selection;
+    else
+      read -rp "Choose log directory number:" selection;
+    fi
 
     logsdir[1]=${logsdir[$selection]};
 
@@ -573,7 +581,11 @@ sysusage () {
 ddns () {
   local D NS;
   if [[ -z "$*" ]]; then
-    vared -p "Domain Name: " -c D;
+    if [[ "$MYSHELL" =~ zsh ]]; then
+      vared -p "Domain Name: " -c D;
+    else
+      read -rp "Domain Name: " D;
+    fi
   else
     D="$*";
   fi
@@ -606,7 +618,11 @@ chkgzip () {
   local DNAME;
   echo;
   if [[ -z "$*" ]]; then
-    vared -p "Domain name(s): " -c DNAME;
+    if [[ "$MYSHELL" =~ zsh ]]; then
+      vared -p "Domain name(s): " -c DNAME;
+    else
+      read -rp "Domain name(s): " DNAME;
+    fi
   else
     DNAME="$*";
   fi
@@ -621,7 +637,11 @@ lsnapshots () {
   local DBNAME;
   echo;
   if [[ -z "$1" ]]; then
-    vared -p "Database Name: " -c DBNAME;
+    if [[ "$MYSHELL" =~ zsh ]]; then
+      vared -p "Database Name: " -c DBNAME;
+    else
+      read -rp "Database Name: " DBNAME;
+    fi
   else
     DBNAME="$1";
   fi
@@ -635,7 +655,11 @@ magsymlinks () {
   echo;
   U=$($GETUSR);
   if [[ -z $1 ]]; then
-    vared -p "Domain Name: " -c D;
+    if [[ "$MYSHELL" =~ zsh ]]; then
+      vared -p "Domain Name: " -c D;
+    else
+      read -rp "Domain Name: " D;
+    fi
   else
     D=$1;
   fi
@@ -643,7 +667,11 @@ magsymlinks () {
     sudo -u "$U" "$LN" -s /home/"$U"/"$D"/html/$X/ $X;
   done;
   echo;
-  vared -p "Copy .htaccess and index.php? [y/n]: " -c yn;
+  if [[ "$MYSHELL" =~ zsh ]]; then
+    vared -p "Copy .htaccess and index.php? [y/n]: " -c yn;
+  else
+    read -rp "Copy .htaccess and index.php? [y/n]: " -c yn;
+  fi
   if [[ $yn == "y" ]]; then
     for Y in index.php .htaccess; do
       sudo -u "$U" "$CP" /home/"$U"/"$D"/html/$Y .;
