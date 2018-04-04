@@ -126,10 +126,10 @@ cdlogs () {
   done;
 
   # Evaluate too few or too many directories
-  if [ -z "${logsdir[1]}" ]; then
+  if [ -z "${logsdir[$ARRAY_START]}" ]; then
     echo "Log directory not found";
     return;
-  elif [ "${logsdir[2]}" ]; then
+  elif [ "${logsdir[$ARRAY_START+1]}" ]; then
     echo "Domain ambiguous. Select log directory:";
     for (( i=ARRAY_START; i<=${#logsdir[@]}; i++ )); do
       echo "$i  ${logsdir[$i]}";
@@ -141,12 +141,12 @@ cdlogs () {
       read -rp "Choose log directory number:" selection;
     fi
 
-    logsdir[1]=${logsdir[$selection]};
+    logsdir[$ARRAY_START]=${logsdir[$selection]};
 
   fi;
 
   # Change working directory to log directory
-  cd "${logsdir[1]}" || echo "Could not locate log directory";
+  cd "${logsdir[$ARRAY_START]}" || echo "Could not locate log directory";
   pwd;
 }
 
@@ -266,15 +266,15 @@ reqslasthour () {
 
   times=($($DATE +%Y:%R | $SED -e 's/:/ /g' -e 's/\([0-9]\)\([0-9]\)$/\1 \2/'))
 
-  if [ "${times[2]}" -eq 00 ]; then
+  if [ "${times[$ARRAY_START+1]}" -eq 00 ]; then
     prevhour=23;
   else
     prevhour=$(printf "%02d" "$((times[2]-1))");
   fi
   if [ "${times[3]}" -eq 5 ]; then
-    regex="${times[1]}:($prevhour:5[${times[4]}-9]|${times[2]}:)"
+    regex="${times[$ARRAY_START]}:($prevhour:5[${times[$ARRAY_START+3]}-9]|${times[$ARRAY_START+1]}:)"
   else
-    regex="${times[1]}:($prevhour:(${times[3]}[${times[4]}-9]|[$((times[3]+1))-5][0-9])|${times[2]}:)"
+    regex="${times[$ARRAY_START]}:($prevhour:(${times[$ARRAY_START+2]}[${times[$ARRAY_START+3]}-9]|[$((times[$ARRAY_START+2]+1))-5][0-9])|${times[$ARRAY_START+1]}:)"
   fi
 
   echo -e "\n";
