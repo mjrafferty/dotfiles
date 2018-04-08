@@ -283,7 +283,11 @@ main () {
 
   done
 
-  mkfifo -m 666 "$PIPE_NAME";
+  if [[ ! -e "$PIPE_NAME" ]]; then
+    mkfifo -m 666 "$PIPE_NAME";
+    remove_pipe="yes";
+  fi
+
   _monitor "$persist";
 
   for x in ${filesUsed[*]}; do
@@ -295,10 +299,12 @@ main () {
   done
 
   # Flush pipe to prevent any remaining PHP processes from hanging
-  sleep 0.1;
-  dd if="$PIPE_NAME" iflag=nonblock of=/dev/null &> /dev/null
+  if [[ "$remove_pipe" == "yes" ]]; then
+    sleep 0.1;
+    dd if="$PIPE_NAME" iflag=nonblock of=/dev/null &> /dev/null
+    rm -f "$PIPE_NAME";
+  fi
 
-  rm -f "$PIPE_NAME";
   pkill -P $$ 2> /dev/null;
 
 }
