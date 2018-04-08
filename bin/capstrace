@@ -5,7 +5,7 @@ readonly ARGA=("$@")
 
 readonly TMP_EXT=".nexcess.bak"
 readonly OUTPUT_DIR="${HOME}/nex_strace"
-readonly PIPE_NAME="/tmp/nexcess_strace_pipe"
+readonly PIPE_NAME="/tmp/nexcess_strace_pipe-$(uuidgen)"
 readonly DEFAULT_IP="192.240.191.2"
 
 alias cat='/bin/cat'
@@ -236,6 +236,7 @@ main () {
       p)
         persist="yes";
         ;;
+      *);;
     esac
 
   done
