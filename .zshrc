@@ -71,6 +71,14 @@ if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
     source "$x";
   done
 
+  userPath=("$(grep -Po '\s*PATH=\K.*' /home/${USER}/.bash_profile | sed -e "s_\$HOME_/home/${USER}_g" -e "s_\$PATH_${PATH}_g")")
+
+  for x in ${userPath[*]}; do
+    PATH="$x";
+  done
+
+  export PATH;
+
 else
 	# Create directories for files used by vim if necessary
 	mkdir -p ~/.vimfiles/{backup,swp,undo}
