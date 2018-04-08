@@ -63,15 +63,25 @@ fi
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/opt/puppetlabs/bin:/var/qmail/bin:/usr/nexkit/bin:~/bin
 
-# Create directories for files used by vim if necessary
-mkdir -p ~/.vimfiles/{backup,swp,undo}
+if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
 
-[ -r ~/environment.sh ] && source ~/.environment.sh;
+	userEnv=("$(grep -Po '^\s*source\s*\K.*' /home/${USER}/.bashrc)");
 
-mkdir -p "$HOME"/clients/"$TICKET";
-export TICKETDIR="${HOME}/clients/${TICKET}";
+  for x in ${userEnv[*]}; do
+    source "$x";
+  done
 
-[ -r ~/action.sh ] && source ~/action.sh;
+else
+	# Create directories for files used by vim if necessary
+	mkdir -p ~/.vimfiles/{backup,swp,undo}
 
-# Server health check
-serverhealth;
+	[ -r ~/environment.sh ] && source ~/.environment.sh;
+
+	mkdir -p "$HOME"/clients/"$TICKET";
+	export TICKETDIR="${HOME}/clients/${TICKET}";
+
+	[ -r ~/action.sh ] && source ~/action.sh;
+
+	# Server health check
+	serverhealth;
+fi
