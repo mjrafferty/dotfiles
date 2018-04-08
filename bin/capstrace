@@ -5,7 +5,7 @@ readonly ARGA=("$@")
 
 readonly TMP_EXT=".nexcess.bak"
 readonly OUTPUT_DIR="${HOME}/nex_strace"
-readonly PIPE_NAME="/tmp/nexcess_strace_pipe-$(uuidgen)"
+readonly PIPE_PREFIX="/tmp/nexcess_strace_pipe-"
 readonly DEFAULT_IP="192.240.191.2"
 
 alias cat='/bin/cat'
@@ -211,7 +211,7 @@ _monitor () {
 
 main () {
 
-  local file address uri query persist;
+  local files filesUsed address uri query persist;
 
   # Parse command line options
   while getopts "hf:i:u:q:p" OPTION $(_cmdline); do
@@ -222,7 +222,7 @@ main () {
         exit 0;
         ;;
       f)
-        file="$OPTARG";
+        files=("$(echo "$OPTARG" | tr ',' ' ' )");
         ;;
       i)
         address="$OPTARG";
@@ -242,18 +242,13 @@ main () {
   done
 
   # Set defaults where necessary
-  if [[ -z "$file" ]]; then
+  if [[ -z "${files[0]}" ]]; then
     if [[ -r "${ARGA[0]}" ]]; then
-      file="${ARGA[0]}";
+      files=("${ARGA[0]}");
     else
       _usage;
       return;
     fi
-  fi
-
-  if [[ -L "$file" ]]; then
-    echo "$file is a symbolic link";
-    exit;
   fi
 
   if [[ -z "$address" ]]; then
@@ -271,13 +266,33 @@ main () {
   [[ -d $OUTPUT_DIR ]] || mkdir "${OUTPUT_DIR}";
   chmod 700 "${OUTPUT_DIR}"
 
+  PIPE_NAME=$(grep -Po "${PIPE_PREFIX}[^\"]*" "${files[0]}") \
+    || PIPE_NAME="${PIPE_PREFIX}$(uuidgen)"
+
+  for x in ${files[*]}; do
+
+    if [[ -L "$x" ]]; then
+      echo "$x is a symbolic link";
+      continue;
+    fi
+
+    if ! grep -Fq "${PIPE_NAME}" "$x"; then
+      _addCode "$x" "$address" "$uri" "$query" \
+        && filesUsed+=("$x");
+    fi
+
+  done
+
   mkfifo -m 666 "$PIPE_NAME";
-
-  _addCode "$file" "$address" "$uri" "$query" || return 1;
-
   _monitor "$persist";
 
-  mv -f "$file"{"$TMP_EXT",}
+  for x in ${filesUsed[*]}; do
+
+    if [[ ! -L "$x" && -e "${x}${TMP_EXT}" ]]; then
+      mv -f "$x"{"$TMP_EXT",}
+    fi
+
+  done
 
   # Flush pipe to prevent any remaining PHP processes from hanging
   sleep 0.1;
