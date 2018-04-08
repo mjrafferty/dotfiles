@@ -282,7 +282,7 @@ main () {
     remove_pipe="yes";
   fi
 
-  timeout "$maxRunTime" _monitor;
+  _monitor;
 
   for x in ${filesUsed[*]}; do
 
