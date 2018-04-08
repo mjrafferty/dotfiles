@@ -65,13 +65,13 @@ export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/opt/pu
 
 if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
 
-	userEnv=("$(grep -Po '^\s*source\s*\K.*' /home/${USER}/.bashrc)");
+	userEnv=("$(grep -Poh '^\s*source\s*\K.*' /home/${USER}/.bash{rc,_profile})");
 
   for x in ${userEnv[*]}; do
     source "$x";
   done
 
-  userPath=("$(grep -Po '\s*PATH=\K.*' /home/${USER}/.bash_profile | sed -e "s_\$HOME_/home/${USER}_g" -e "s_\$PATH_${PATH}_g")")
+  userPath=("$(grep -Poh '\s*PATH=\K.*' /home/${USER}/.bash{rc,_profile} | sed -e "s_\$HOME_/home/${USER}_g" -e "s_\$PATH_${PATH}_g")")
 
   for x in ${userPath[*]}; do
     PATH="$x";
