@@ -26,7 +26,8 @@ _usage() {
   cat <<- EOF
 
   Captures strace and php GLOBALS variable information of one or matching
-  requests to a website. Outputs data to "$OUTPUT_DIR".
+  requests to a website. Outputs data to "$OUTPUT_DIR". Can also be run on each
+  node of a cluster without conflict.
 
   Usage:
 
