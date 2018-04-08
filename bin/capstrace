@@ -36,6 +36,9 @@ _usage() {
 
   -f|--file FILE                   Target file for catching process.
                                    Usually an index.php, but not always.
+                                   Accepts a comma separated list of files
+                                   for capturing processes at multiple entry
+                                   points.
 
   -i|--ip-address REMOTE_ADDR,all  IP address initiating process.
                                    Default value is Nexcess IP: 192.240.191.2
@@ -222,7 +225,7 @@ main () {
         exit 0;
         ;;
       f)
-        files=("$(echo "$OPTARG" | tr ',' ' ' )");
+        files=($(echo "$OPTARG" | tr ',' ' ' ));
         ;;
       i)
         address="$OPTARG";
