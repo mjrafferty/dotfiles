@@ -49,10 +49,6 @@ _usage() {
 
   -q|--query-string QUERY_STRING   Specific query string to monitor for.
 
-  -p|--persist                     Default behavior is to catch one request. This
-                                   flag enables capstrace to catch every matching
-                                   request until you exit capstrace.
-
 EOF
 }
 
@@ -81,8 +77,8 @@ _cmdline() {
       "--uri"|"-u")
         args="${args}-u "
         ;;
-      "--persist"|"-p")
-        args="${args}-p "
+      "--long-run"|"-l")
+        args="${args}-l "
         ;;
       *)
         args="${args}${x} ";
@@ -180,13 +176,7 @@ _strace () {
 # Monitor for incoming requests
 _monitor () {
 
-  local pid persist parent
-
-  persist="$1";
-
-  printf "Waiting for process. Press enter to stop.\n";
-
-  parent="$$";
+  local pid
 
   # Perform monitoring in background
   (while (true); do
@@ -194,16 +184,12 @@ _monitor () {
   read -r pid;
 
   if [[ -n $pid ]]; then
-    if [[ -n $persist ]]; then
       _strace "$pid" &
-    else
-      _strace "$pid";
-      kill -s INT "$parent" 2>/dev/null;
-      return;
-    fi
   fi
 
   done <"$PIPE_NAME"; ) &
+
+  printf "Waiting for process. Press enter to stop.\n";
 
   # Handle user exiting capstrace
   trap 'return' INT QUIT TERM;
@@ -215,10 +201,10 @@ _monitor () {
 
 main () {
 
-  local files filesUsed address uri query persist;
+  local files filesUsed address uri query;
 
   # Parse command line options
-  while getopts "hf:i:u:q:p" OPTION $(_cmdline); do
+  while getopts "hf:i:u:q:l" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -237,8 +223,8 @@ main () {
       q)
         query="$OPTARG";
         ;;
-      p)
-        persist="yes";
+      l)
+        maxRunTime="3d";
         ;;
       *);;
     esac
@@ -267,6 +253,10 @@ main () {
     query="NULL";
   fi
 
+  if [[ -z "$maxRunTime" ]]; then
+    maxRunTime="1h";
+  fi
+
   [[ -d $OUTPUT_DIR ]] || mkdir "${OUTPUT_DIR}";
   chmod 700 "${OUTPUT_DIR}"
 
@@ -292,7 +282,7 @@ main () {
     remove_pipe="yes";
   fi
 
-  _monitor "$persist";
+  timeout "$maxRunTime" _monitor;
 
   for x in ${filesUsed[*]}; do
 
