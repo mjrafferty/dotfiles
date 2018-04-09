@@ -33,9 +33,11 @@ else
 
   if [[ "$USER" == "${HOME/*\//}" ]] ; then
 
+    # Auto switch to root on login
     /usr/bin/sudo HOME=$HOME SSH_TTY=$SSH_TTY /bin/zsh
 
-    /usr/bin/sudo find /home/nexmrafferty/ -mindepth 1 \( \
+    # Cleanup home folder on logout
+    /usr/bin/sudo find "$HOME"/ -mindepth 1 \( \
       -path "*/.bash_profile" -o \
       -path "*/bin" -o \
       -path "*/clients" -o \
@@ -59,9 +61,8 @@ else
 
 fi
 
+# Load main configuration
 [ -r ~/.commonrc ] && source ~/.commonrc;
-
-export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/opt/puppetlabs/bin:/var/qmail/bin:/usr/nexkit/bin:~/bin
 
 if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
 
@@ -80,6 +81,7 @@ if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
   export PATH;
 
 else
+
 	# Create directories for files used by vim if necessary
 	mkdir -p ~/.vimfiles/{backup,swp,undo}
 
@@ -92,4 +94,5 @@ else
 
 	# Server health check
 	serverhealth;
+
 fi
