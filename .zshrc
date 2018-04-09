@@ -64,6 +64,8 @@ fi
 # Load main configuration
 [ -r ~/.commonrc ] && source ~/.commonrc;
 
+PATH="$PATH":/var/qmail/bin
+
 if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
 
 	userEnv=("$(grep -Poh '^\s*source\s*\K.*' /home/${USER}/.bash{rc,_profile})");
