@@ -56,19 +56,15 @@ else
     exit;
 
   fi
-
-  [ -r /opt/nexcess/php56u/enable ] && source /opt/nexcess/php56u/enable;
-
 fi
 
 # Load main configuration
 [ -r ~/.commonrc ] && source ~/.commonrc;
 
-PATH="$PATH":/var/qmail/bin
 
 if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
 
-	userEnv=("$(grep -Poh '^\s*source\s*\K.*' /home/${USER}/.bash{rc,_profile})");
+  userEnv=("$(grep -Poh '^\s*source\s*\K.*' /home/${USER}/.bash{rc,_profile})");
 
   for x in ${userEnv[*]}; do
     source "$x";
@@ -80,21 +76,21 @@ if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
     PATH="$x";
   done
 
-  export PATH;
-
 else
 
-	# Create directories for files used by vim if necessary
-	mkdir -p ~/.vimfiles/{backup,swp,undo}
+  PATH="$PATH":/var/qmail/bin
 
-	[ -r ~/environment.sh ] && source ~/.environment.sh;
+  # Create directories for files used by vim if necessary
+  mkdir -p ~/.vimfiles/{backup,swp,undo}
 
-	mkdir -p "$HOME"/clients/"$TICKET";
-	export TICKETDIR="${HOME}/clients/${TICKET}";
+  [ -r ~/environment.sh ] && source ~/.environment.sh;
 
-	[ -r ~/action.sh ] && source ~/action.sh;
+  mkdir -p "$HOME"/clients/"$TICKET";
+  export TICKETDIR="${HOME}/clients/${TICKET}";
 
-	# Server health check
-	serverhealth;
+  [ -r ~/action.sh ] && source ~/action.sh;
+
+  # Server health check
+  serverhealth;
 
 fi
