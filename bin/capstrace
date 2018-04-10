@@ -146,6 +146,7 @@ _strace () {
   local output pid str_pid
 
   pid="$1";
+  daemon_time="$2";
 
   output="${OUTPUT_DIR}/$(date "+%F-%T")-$pid-strace";
 
@@ -170,6 +171,10 @@ _strace () {
 
   find /tmp/ -name "*-GLOBALS" -user "$(getusr)" -exec /bin/mv -t "$OUTPUT_DIR" {} + 2>/dev/null
 
+  if [[ $daemon_time ]]; then
+    gzip "$output";
+  fi
+
   chmod 600 "${OUTPUT_DIR}"/*
   chown root. "${OUTPUT_DIR}"/*
 
@@ -178,9 +183,9 @@ _strace () {
 # Monitor for incoming requests
 _monitor () {
 
-  local pid maxRunTime
+  local pid daemon_time
 
-  maxRunTime="$1";
+  daemon_time="$1";
 
   # Perform monitoring in background
   (while (true); do
@@ -188,7 +193,7 @@ _monitor () {
     read -r pid;
 
     if [[ -n $pid ]]; then
-      _strace "$pid" &
+      _strace "$pid" "$daemon_time" &
     fi
 
   done <"$PIPE_NAME";) &
@@ -198,7 +203,7 @@ _monitor () {
 
   trap 'return' INT QUIT TERM;
 
-  if [[ $maxRunTime ]]; then
+  if [[ $daemon_time ]]; then
 
     start_time="$(date "+%s")"
 
@@ -206,7 +211,7 @@ _monitor () {
 
       current_time="$(date "+%s")"
 
-      if (( current_time > (start_time + maxRunTime) )) ; then
+      if (( current_time > (start_time + daemon_time) )) ; then
         return;
       fi
 
@@ -249,7 +254,7 @@ main () {
         query="$OPTARG";
         ;;
       d)
-        maxRunTime="$(( $(echo "$OPTARG" | grep -Po '\d*') * 60 ))";
+        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 60 ))";
         ;;
       *);;
     esac
@@ -305,7 +310,7 @@ main () {
     remove_pipe="yes";
   fi
 
-  _monitor "$maxRunTime";
+  _monitor "$daemon_time";
 
   # Clean up the stuff we touched
   for x in ${filesUsed[*]}; do
@@ -323,7 +328,7 @@ main () {
     rm -f "$PIPE_NAME";
   fi
 
-  kill "$monitor_pid"
+  kill "$monitor_pid" 2> /dev/null
 
 }
 
