@@ -21,6 +21,12 @@ alias rm='/bin/rm --preserve-root'
 alias sleep='/bin/sleep'
 alias strace='/usr/bin/strace'
 
+if [[ -e /usr/bin/pigz ]]; then
+  GZIP="/usr/bin/pigz";
+else
+  GZIP="/bin/gzip";
+fi
+
 monitor_pid=""
 
 # Print usage
@@ -171,8 +177,8 @@ _strace () {
 
   find /tmp/ -name "*-GLOBALS" -user "$(getusr)" -exec /bin/mv -t "$OUTPUT_DIR" {} + 2>/dev/null
 
-  if [[ $daemon_time ]]; then
-    gzip "$output";
+  if [[ "$daemon_time" ]]; then
+    "$GZIP" "$output";
   fi
 
   chmod 600 "${OUTPUT_DIR}"/*
