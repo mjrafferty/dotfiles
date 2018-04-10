@@ -189,8 +189,15 @@ _monitor () {
 
   done <"$PIPE_NAME"; ) &
 
-  printf "Waiting for process. Press enter to stop.\n";
+  monitor_pid="$!"
 
+  start_time="$(date "+%s")"
+
+  while [[ -e /proc/"$monitor_pid" ]]; do
+
+    printf "Waiting for process. Press enter to stop.\n";
+
+  done
   # Handle user exiting capstrace
   trap 'return' INT QUIT TERM;
 
@@ -263,6 +270,7 @@ main () {
   PIPE_NAME=$(grep -Po "${PIPE_PREFIX}[^\"]*" "${files[0]}") \
     || PIPE_NAME="${PIPE_PREFIX}$(uuidgen)"
 
+  # Add the needed code to any files that don't currently have it
   for x in ${files[*]}; do
 
     if [[ -L "$x" ]]; then
@@ -277,6 +285,7 @@ main () {
 
   done
 
+  # Create pipe if not already present
   if [[ ! -e "$PIPE_NAME" ]]; then
     mkfifo -m 666 "$PIPE_NAME";
     remove_pipe="yes";
@@ -284,6 +293,7 @@ main () {
 
   _monitor;
 
+  # Clean up the stuff we touched
   for x in ${filesUsed[*]}; do
 
     if [[ ! -L "$x" && -e "${x}${TMP_EXT}" ]]; then
