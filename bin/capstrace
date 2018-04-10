@@ -249,18 +249,38 @@ main () {
         ;;
       f)
         files=($(echo "$OPTARG" | tr ',' ' ' ));
+        if [[ -e "${files[0]}" ]]; then
+          echo "Please provide a valid filename";
+          return 1;
+        fi
         ;;
       i)
         address="$OPTARG";
+        if [[ -z "$address" ]]; then
+          echo "IP address can not be empty.";
+          return 1;
+        fi
         ;;
       u)
         uri="$OPTARG";
+        if [[ -z "$uri" ]]; then
+          echo "URI can not be empty.";
+          return 1;
+        fi
         ;;
       q)
         query="$OPTARG";
+        if [[ -z "$query" ]]; then
+          echo "Query string can not be empty.";
+          return 1;
+        fi
         ;;
       d)
         daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
+        if [[ -z "$daemon_time" ]]; then
+          echo "Number of hours required when using -d and --daemonize";
+          return 1;
+        fi
         ;;
       *);;
     esac
@@ -289,9 +309,11 @@ main () {
     query="NULL";
   fi
 
+  # Create output directory if necessary and restrict perms
   [[ -d $OUTPUT_DIR ]] || mkdir "${OUTPUT_DIR}";
   chmod 700 "${OUTPUT_DIR}"
 
+  # Check if we already have a pipe id in the file ( Mainly for clusters )
   PIPE_NAME=$(grep -Po "${PIPE_PREFIX}[^\"]*" "${files[0]}") \
     || PIPE_NAME="${PIPE_PREFIX}$(uuidgen)"
 
@@ -338,6 +360,7 @@ main () {
 
 }
 
+# Background script if run in daemon mode
 if echo "$ARGS" | grep -Pq '\s*(-d|--daemonize) \d*'; then
   main &
 else
