@@ -254,7 +254,7 @@ main () {
         query="$OPTARG";
         ;;
       d)
-        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 60 ))";
+        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
         ;;
       *);;
     esac
