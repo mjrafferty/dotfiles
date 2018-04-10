@@ -249,38 +249,24 @@ main () {
         ;;
       f)
         files=($(echo "$OPTARG" | tr ',' ' ' ));
-        if [[ -e "${files[0]}" ]]; then
-          echo "Please provide a valid filename";
-          return 1;
-        fi
+        for x in ${files[*]}; do
+          if [[ ! -e "$x" ]]; then
+            echo "$x is not a valid filename";
+            return 1;
+          fi
+        done
         ;;
       i)
         address="$OPTARG";
-        if [[ -z "$address" ]]; then
-          echo "IP address can not be empty.";
-          return 1;
-        fi
         ;;
       u)
         uri="$OPTARG";
-        if [[ -z "$uri" ]]; then
-          echo "URI can not be empty.";
-          return 1;
-        fi
         ;;
       q)
         query="$OPTARG";
-        if [[ -z "$query" ]]; then
-          echo "Query string can not be empty.";
-          return 1;
-        fi
         ;;
       d)
         daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
-        if [[ -z "$daemon_time" ]]; then
-          echo "Number of hours required when using -d and --daemonize";
-          return 1;
-        fi
         ;;
       *);;
     esac
