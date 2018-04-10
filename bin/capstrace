@@ -21,6 +21,8 @@ alias rm='/bin/rm --preserve-root'
 alias sleep='/bin/sleep'
 alias strace='/usr/bin/strace'
 
+monitor_pid=""
+
 # Print usage
 _usage() {
   cat <<- EOF
@@ -77,8 +79,8 @@ _cmdline() {
       "--uri"|"-u")
         args="${args}-u "
         ;;
-      "--long-run"|"-l")
-        args="${args}-l "
+      "--daemonize"|"-d")
+        args="${args}-d "
         ;;
       *)
         args="${args}${x} ";
@@ -134,7 +136,7 @@ _addCode () {
 ?>
 EOF
 
-  cat "$file""$TMP_EXT" >> "$file";
+cat "$file""$TMP_EXT" >> "$file";
 
 }
 
@@ -176,34 +178,50 @@ _strace () {
 # Monitor for incoming requests
 _monitor () {
 
-  local pid
+  local pid maxRunTime
+
+  maxRunTime="$1";
 
   # Perform monitoring in background
   (while (true); do
 
-  read -r pid;
+    read -r pid;
 
-  if [[ -n $pid ]]; then
+    if [[ -n $pid ]]; then
       _strace "$pid" &
-  fi
+    fi
 
-  done <"$PIPE_NAME"; ) &
+  done <"$PIPE_NAME";) &
+
 
   monitor_pid="$!"
 
-  start_time="$(date "+%s")"
+  trap 'return' INT QUIT TERM;
 
-  while [[ -e /proc/"$monitor_pid" ]]; do
+  if [[ $maxRunTime ]]; then
+
+    start_time="$(date "+%s")"
+
+    while [[ -e /proc/"$monitor_pid" ]]; do
+
+      current_time="$(date "+%s")"
+
+      if (( current_time > (start_time + maxRunTime) )) ; then
+        return;
+      fi
+
+      sleep 5;
+
+    done
+  else
+
+    # Handle user exiting capstrace
 
     printf "Waiting for process. Press enter to stop.\n";
 
-  done
-  # Handle user exiting capstrace
-  trap 'return' INT QUIT TERM;
+    read -r;
 
-  read -r;
-
-  return;
+  fi
 }
 
 main () {
@@ -211,7 +229,7 @@ main () {
   local files filesUsed address uri query;
 
   # Parse command line options
-  while getopts "hf:i:u:q:l" OPTION $(_cmdline); do
+  while getopts "hf:i:u:q:d:" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -230,8 +248,8 @@ main () {
       q)
         query="$OPTARG";
         ;;
-      l)
-        maxRunTime="3d";
+      d)
+        maxRunTime="$(( $(echo "$OPTARG" | grep -Po '\d*') * 60 ))";
         ;;
       *);;
     esac
@@ -258,10 +276,6 @@ main () {
 
   if [[ -z "$query" ]]; then
     query="NULL";
-  fi
-
-  if [[ -z "$maxRunTime" ]]; then
-    maxRunTime="1h";
   fi
 
   [[ -d $OUTPUT_DIR ]] || mkdir "${OUTPUT_DIR}";
@@ -291,7 +305,7 @@ main () {
     remove_pipe="yes";
   fi
 
-  _monitor;
+  _monitor "$maxRunTime";
 
   # Clean up the stuff we touched
   for x in ${filesUsed[*]}; do
@@ -309,8 +323,12 @@ main () {
     rm -f "$PIPE_NAME";
   fi
 
-  pkill -P $$ 2> /dev/null;
+  kill "$monitor_pid"
 
 }
 
-main;
+if echo "$ARGS" | grep -Pq '\s*(-d|--daemonize) \d*'; then
+  main &
+else
+  main;
+fi
