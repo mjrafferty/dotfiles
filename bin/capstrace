@@ -248,11 +248,16 @@ main () {
         exit 0;
         ;;
       f)
+
         files=($(echo "$OPTARG" | tr ',' ' ' ));
+
         for x in ${files[*]}; do
+
           if [[ ! -e "$x" ]]; then
+
             echo "$x is not a valid filename";
             return 1;
+
           fi
         done
         ;;
@@ -275,24 +280,12 @@ main () {
 
   # Set defaults where necessary
   if [[ -z "${files[0]}" ]]; then
-    if [[ -r "${ARGA[0]}" ]]; then
+    if [[ -e "${ARGA[0]}" ]]; then
       files=("${ARGA[0]}");
     else
       _usage;
-      return;
+      return 1;
     fi
-  fi
-
-  if [[ -z "$address" ]]; then
-    address="$DEFAULT_IP";
-  fi
-
-  if [[ -z "$uri" ]]; then
-    uri="NULL";
-  fi
-
-  if [[ -z "$query" ]]; then
-    query="NULL";
   fi
 
   # Create output directory if necessary and restrict perms
@@ -312,7 +305,7 @@ main () {
     fi
 
     if ! grep -Fq "${PIPE_NAME}" "$x"; then
-      _addCode "$x" "$address" "$uri" "$query" \
+      _addCode "$x" "${address:=$DEFAULT_IP}" "${uri:=NULL}" "${query:=NULL}" \
         && filesUsed+=("$x");
     fi
 

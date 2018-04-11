@@ -83,7 +83,7 @@ else
   # Create directories for files used by vim if necessary
   mkdir -p ~/.vimfiles/{backup,swp,undo}
 
-  [ -r ~/environment.sh ] && source ~/.environment.sh;
+  [ -r ~/.environment.sh ] && source ~/.environment.sh;
 
   mkdir -p "$HOME"/clients/"$TICKET";
   export TICKETDIR="${HOME}/clients/${TICKET}";
