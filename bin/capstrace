@@ -6,7 +6,7 @@ readonly ARGA=("$@")
 readonly TMP_EXT=".nexcess.bak"
 readonly OUTPUT_DIR="${HOME}/nex_strace"
 readonly PIPE_PREFIX="/tmp/nexcess_strace_pipe-"
-readonly DEFAULT_IP="192.240.191.2"
+readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
 
 alias cat='/bin/cat'
 alias chmod='/bin/chmod --preserve-root'
