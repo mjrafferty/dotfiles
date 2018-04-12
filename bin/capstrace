@@ -1,13 +1,16 @@
 #! /bin/bash
 
+# Script Arguments
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+# Configurable Variables
 readonly TMP_EXT=".nexcess.bak"
 readonly OUTPUT_DIR="${HOME}/nex_strace"
 readonly PIPE_PREFIX="/tmp/nexcess_strace_pipe-"
 readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
 
+# Alias executables to prevent PATH issues
 alias cat='/bin/cat'
 alias chmod='/bin/chmod --preserve-root'
 alias chown='/bin/chown --preserve-root'
@@ -17,16 +20,18 @@ alias grep='/bin/grep'
 alias mkdir='/bin/mkdir'
 alias mkfifo='/usr/bin/mkfifo'
 alias mv='/bin/mv'
+alias pkill='/usr/bin/pkill'
 alias rm='/bin/rm --preserve-root'
 alias sleep='/bin/sleep'
 alias strace='/usr/bin/strace'
 
 if [[ -e /usr/bin/pigz ]]; then
-  GZIP="/usr/bin/pigz";
+  alias gzip='/usr/bin/pigz';
 else
-  GZIP="/bin/gzip";
+  alias gzip='/bin/gzip';
 fi
 
+# Necessary Global Variables
 MONITOR_PID=""
 PIPE_NAME=""
 REMOVE_PIPE=""
@@ -56,11 +61,18 @@ _usage() {
 
   -i|--ip-address REMOTE_ADDR,all  IP address initiating process.
                                    Default value is Nexcess IP: 192.240.191.2
-                                   Special value of 'all' will match any IP.
+                                   or the value of \$MY_IP if it is set in your
+                                   environment. Special value of 'all' will
+                                   match any IP.
 
   -u|--uri REQUEST_URI             Specific URI to monitor for.
 
   -q|--query-string QUERY_STRING   Specific query string to monitor for.
+
+  -d|--daemonize  HOURS_TO_RUN     Runs program as a daemon for the number of
+                                   hours specified.
+
+  -k|--kill                        Manually kill daemonized capstrace instance.
 
 EOF
 }
@@ -103,8 +115,8 @@ _cmdline() {
 
   done
 
-
   echo "$args";
+
 }
 
 # Insert code into target file
@@ -157,7 +169,7 @@ cat "$file""$TMP_EXT" >> "$file";
 # Perform strace of request
 _strace () {
 
-  local output pid str_pid
+  local output pid str_pid daemon_time
 
   pid="$1";
   daemon_time="$2";
@@ -186,7 +198,7 @@ _strace () {
   find /tmp/ -name "*-GLOBALS" -user "$(getusr)" -exec /bin/mv -t "$OUTPUT_DIR" {} + 2>/dev/null
 
   if [[ "$daemon_time" ]]; then
-    "$GZIP" "$output";
+    gzip "$output";
   fi
 
   chmod 600 "${OUTPUT_DIR}"/*
@@ -197,7 +209,7 @@ _strace () {
 # Monitor for incoming requests
 _monitor () {
 
-  local pid daemon_time
+  local pid daemon_time start_time current_time
 
   daemon_time="$1";
 
@@ -241,8 +253,10 @@ _monitor () {
     read -r;
 
   fi
+
 }
 
+# Perform setup tasks
 _setup() {
 
   local x address uri query
@@ -278,7 +292,8 @@ _setup() {
 
 }
 
-_cleanup() {
+# Clean up any changes made
+_cleanUp() {
 
   local x
   # Clean up the stuff we touched
@@ -314,7 +329,6 @@ main () {
         exit 0;
         ;;
       f)
-
         FILES=($(echo "$OPTARG" | tr ',' ' ' ));
 
         for x in ${FILES[*]}; do
@@ -362,11 +376,13 @@ main () {
   PIPE_NAME=$(grep -Po "${PIPE_PREFIX}[^\"]*" "${FILES[0]}") \
     || PIPE_NAME="${PIPE_PREFIX}$(uuidgen)"
 
+  trap "_cleanUp" EXIT;
+
   _setup "${address:=$DEFAULT_IP}" "${uri:=NULL}" "${query:=NULL}";
 
   _monitor "$daemon_time";
 
-  _cleanup;
+  _cleanUp;
 
 }
 
