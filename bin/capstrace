@@ -27,7 +27,12 @@ else
   GZIP="/bin/gzip";
 fi
 
-monitor_pid=""
+MONITOR_PID=""
+PIPE_NAME=""
+REMOVE_PIPE=""
+FILES=()
+FILES_USED=()
+
 
 # Print usage
 _usage() {
@@ -205,7 +210,7 @@ _monitor () {
   done <"$PIPE_NAME";) &
 
 
-  monitor_pid="$!"
+  MONITOR_PID="$!"
 
   trap 'return' INT QUIT TERM;
 
@@ -213,7 +218,7 @@ _monitor () {
 
     start_time="$(date "+%s")"
 
-    while [[ -e /proc/"$monitor_pid" ]]; do
+    while [[ -e /proc/"$MONITOR_PID" ]]; do
 
       current_time="$(date "+%s")"
 
@@ -235,9 +240,67 @@ _monitor () {
   fi
 }
 
+_setup() {
+
+  local x address uri query
+
+  address="$1"
+  uri="$2"
+  query="$3"
+
+  # Create output directory if necessary and restrict perms
+  [[ -d $OUTPUT_DIR ]] || mkdir "${OUTPUT_DIR}";
+  chmod 700 "${OUTPUT_DIR}"
+
+  # Add the needed code to any files that don't currently have it
+  for x in ${FILES[*]}; do
+
+    if [[ -L "$x" ]]; then
+      echo "$x is a symbolic link";
+      continue;
+    fi
+
+    if ! grep -Fq "${PIPE_NAME}" "$x"; then
+      _addCode "$x" "${address}" "${uri}" "${query}" \
+        && FILES_USED+=("$x");
+    fi
+
+  done
+
+  # Create pipe if not already present
+  if [[ ! -e "$PIPE_NAME" ]]; then
+    mkfifo -m 666 "$PIPE_NAME";
+    REMOVE_PIPE="yes";
+  fi
+
+}
+
+_cleanup() {
+
+  local x
+  # Clean up the stuff we touched
+  for x in ${FILES_USED[*]}; do
+
+    if [[ ! -L "$x" && -e "${x}${TMP_EXT}" ]]; then
+      mv -f "$x"{"$TMP_EXT",}
+    fi
+
+  done
+
+  # Flush pipe to prevent any remaining PHP processes from hanging
+  if [[ "$REMOVE_PIPE" == "yes" ]]; then
+    sleep 0.1;
+    dd if="$PIPE_NAME" iflag=nonblock of=/dev/null &> /dev/null
+    rm -f "$PIPE_NAME";
+  fi
+
+  kill "$MONITOR_PID" 2> /dev/null
+
+}
+
 main () {
 
-  local files filesUsed address uri query;
+  local address uri query daemon_time x;
 
   # Parse command line options
   while getopts "hf:i:u:q:d:" OPTION $(_cmdline); do
@@ -249,9 +312,9 @@ main () {
         ;;
       f)
 
-        files=($(echo "$OPTARG" | tr ',' ' ' ));
+        FILES=($(echo "$OPTARG" | tr ',' ' ' ));
 
-        for x in ${files[*]}; do
+        for x in ${FILES[*]}; do
 
           if [[ ! -e "$x" ]]; then
 
@@ -279,63 +342,24 @@ main () {
   done
 
   # Set defaults where necessary
-  if [[ -z "${files[0]}" ]]; then
+  if [[ -z "${FILES[0]}" ]]; then
     if [[ -e "${ARGA[0]}" ]]; then
-      files=("${ARGA[0]}");
+      FILES=("${ARGA[0]}");
     else
       _usage;
       return 1;
     fi
   fi
 
-  # Create output directory if necessary and restrict perms
-  [[ -d $OUTPUT_DIR ]] || mkdir "${OUTPUT_DIR}";
-  chmod 700 "${OUTPUT_DIR}"
-
   # Check if we already have a pipe id in the file ( Mainly for clusters )
-  PIPE_NAME=$(grep -Po "${PIPE_PREFIX}[^\"]*" "${files[0]}") \
+  PIPE_NAME=$(grep -Po "${PIPE_PREFIX}[^\"]*" "${FILES[0]}") \
     || PIPE_NAME="${PIPE_PREFIX}$(uuidgen)"
 
-  # Add the needed code to any files that don't currently have it
-  for x in ${files[*]}; do
-
-    if [[ -L "$x" ]]; then
-      echo "$x is a symbolic link";
-      continue;
-    fi
-
-    if ! grep -Fq "${PIPE_NAME}" "$x"; then
-      _addCode "$x" "${address:=$DEFAULT_IP}" "${uri:=NULL}" "${query:=NULL}" \
-        && filesUsed+=("$x");
-    fi
-
-  done
-
-  # Create pipe if not already present
-  if [[ ! -e "$PIPE_NAME" ]]; then
-    mkfifo -m 666 "$PIPE_NAME";
-    remove_pipe="yes";
-  fi
+  _setup "${address:=$DEFAULT_IP}" "${uri:=NULL}" "${query:=NULL}";
 
   _monitor "$daemon_time";
 
-  # Clean up the stuff we touched
-  for x in ${filesUsed[*]}; do
-
-    if [[ ! -L "$x" && -e "${x}${TMP_EXT}" ]]; then
-      mv -f "$x"{"$TMP_EXT",}
-    fi
-
-  done
-
-  # Flush pipe to prevent any remaining PHP processes from hanging
-  if [[ "$remove_pipe" == "yes" ]]; then
-    sleep 0.1;
-    dd if="$PIPE_NAME" iflag=nonblock of=/dev/null &> /dev/null
-    rm -f "$PIPE_NAME";
-  fi
-
-  kill "$monitor_pid" 2> /dev/null
+  _cleanup;
 
 }
 
