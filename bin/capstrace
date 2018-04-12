@@ -93,6 +93,9 @@ _cmdline() {
       "--daemonize"|"-d")
         args="${args}-d "
         ;;
+      "--kill"|"-k")
+        args="${args}-k "
+        ;;
       *)
         args="${args}${x} ";
         ;;
@@ -303,7 +306,7 @@ main () {
   local address uri query daemon_time x;
 
   # Parse command line options
-  while getopts "hf:i:u:q:d:" OPTION $(_cmdline); do
+  while getopts "hf:i:u:q:d:k" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -335,6 +338,10 @@ main () {
         ;;
       d)
         daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
+        ;;
+      k)
+        pkill capstrace -P 1
+        exit;
         ;;
       *);;
     esac
