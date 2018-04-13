@@ -30,4 +30,7 @@ _nkfirewall() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkfirewall "$@"
+
 compdef _nkfirewall nkfirewall

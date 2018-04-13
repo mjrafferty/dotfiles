@@ -34,4 +34,7 @@ _nkscl() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkscl "$@"
+
 compdef _nkscl nkscl

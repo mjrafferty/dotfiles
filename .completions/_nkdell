@@ -31,4 +31,7 @@ _nkdell() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkdell "$@"
+
 compdef _nkdell nkdell

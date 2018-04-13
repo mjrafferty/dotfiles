@@ -37,4 +37,7 @@ _nkvbulletin() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkvbulletin "$@"
+
 compdef _nkvbulletin nkvbulletin

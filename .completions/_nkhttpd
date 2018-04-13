@@ -53,4 +53,7 @@ _nkhttpd() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkhttpd "$@"
+
 compdef _nkhttpd nkhttpd

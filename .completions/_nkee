@@ -48,4 +48,7 @@ _nkee() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkee "$@"
+
 compdef _nkee nkee

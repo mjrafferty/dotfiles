@@ -45,4 +45,7 @@ _nkmysql() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkmysql "$@"
+
 compdef _nkmysql nkmysql

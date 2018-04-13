@@ -61,4 +61,7 @@ _nkmemcached() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkmemcached "$@"
+
 compdef _nkmemcached nkmemcached

@@ -49,4 +49,7 @@ _nkdrac() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkdrac "$@"
+
 compdef _nkdrac nkdrac

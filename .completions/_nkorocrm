@@ -32,4 +32,7 @@ _nkorocrm() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkorocrm "$@"
+
 compdef _nkorocrm nkorocrm

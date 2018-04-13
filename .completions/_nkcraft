@@ -42,4 +42,7 @@ _nkcraft() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkcraft "$@"
+
 compdef _nkcraft nkcraft

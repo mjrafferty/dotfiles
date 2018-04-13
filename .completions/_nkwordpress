@@ -80,4 +80,7 @@ _nkwordpress() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkwordpress "$@"
+
 compdef _nkwordpress nkwordpress

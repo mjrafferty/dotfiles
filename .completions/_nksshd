@@ -40,4 +40,7 @@ _nksshd() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nksshd "$@"
+
 compdef _nksshd nksshd

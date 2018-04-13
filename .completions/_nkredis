@@ -60,4 +60,7 @@ _nkredis() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkredis "$@"
+
 compdef _nkredis nkredis

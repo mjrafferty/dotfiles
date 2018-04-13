@@ -67,4 +67,7 @@ _nkmagento2() {
     _describe -t commands " Sub commands " mainopts
   fi
 }
+
+_nkmagento2 "$@"
+
 compdef _nkmagento2 nkmagento2
