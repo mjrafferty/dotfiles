@@ -1,8 +1,10 @@
 #! /bin/bash
 
+# Script Arguments
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+# Alias executables to prevent PATH issues
 alias awk='/bin/awk'
 alias cat='/bin/cat'
 alias du='/usr/bin/du'
@@ -12,8 +14,9 @@ alias mktemp='/bin/mktemp'
 alias rm='/bin/rm'
 alias sort='/bin/sort'
 
-user=""
-depth=""
+# Necessary Global Variables
+USER=""
+DEPTH=""
 
 # Print usage
 _usage() {
@@ -105,7 +108,7 @@ _files () {
   find . \
     -path './var/*/mail' -prune -o \
     -size +100M \
-    -group "$user" \
+    -group "$USER" \
     -type f \
     -exec /usr/bin/du -sh {} + \
     | sort -hr \
@@ -122,15 +125,15 @@ _directories () {
 
   # Get total size of directories located at given depth
   find . \
-    -mindepth "$((depth +1))" \
-    -maxdepth "$((depth +1))" \
+    -mindepth "$((DEPTH +1))" \
+    -maxdepth "$((DEPTH +1))" \
     -path '*/var/*/mail/*' -prune -o \
     -type d \
-    -group "$user" \
+    -group "$USER" \
     -exec /usr/bin/du -sb {} + >> "$temp_list" &
 
   directories=$(find . \
-    -maxdepth "$depth" \
+    -maxdepth "$DEPTH" \
     -path "./var/*/mail" -prune -o \
     -type d \
     -print);
@@ -140,7 +143,7 @@ _directories () {
   # Get sizes of directories EXCLUDING subdirectories for directories less than given depth
   IFS=$'\n'
   for x in $directories; do
-    find "$x" -mindepth 1 -maxdepth 1 -group "$user" -type f -exec /usr/bin/du -sb {} + \
+    find "$x" -mindepth 1 -maxdepth 1 -group "$USER" -type f -exec /usr/bin/du -sb {} + \
       | awk '{sum += $1} END {print sum,dirname}' dirname="$x" >> "$temp_list" &
   done;
 
@@ -164,7 +167,7 @@ _mailboxes () {
   find ./*/mail/* \
     -maxdepth 0 \
     -type d \
-    -group "$user"\
+    -group "$USER"\
     -exec /usr/bin/du -sh {} + \
     | sort -hr \
     | head -10
@@ -187,7 +190,7 @@ _deletedFiles() {
 
   printf "\n----- Deleted Files ------\n";
 
-  lsof -u "$user" \
+  lsof -u "$USER" \
     | awk '/deleted/ {print $7,$9,$1,$2}' \
     | sort -hr \
     | _humanReadable \
@@ -206,20 +209,20 @@ main () {
         exit 0;
         ;;
       u)
-        user="$OPTARG";
+        USER="$OPTARG";
         ;;
       d)
-        depth="$OPTARG";
+        DEPTH="$OPTARG";
         ;;
     esac
 
   done
 
-  [[ -n "$user" ]] || user="$(pwd | grep -Po "home/\K[^/]*")"
+  [[ -n "$USER" ]] || USER="$(pwd | grep -Po "home/\K[^/]*")"
 
-  [[ -n "$depth" ]] || depth=3;
+  [[ -n "$DEPTH" ]] || DEPTH=3;
 
-  cd /home/"$user" || return 1;
+  cd /home/"$USER" || return 1;
 
   local func_list tmp_list x;
 

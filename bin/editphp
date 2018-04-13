@@ -1,12 +1,15 @@
 #! /bin/bash
 
+# Script Arguments
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+# Alias executables to prevent PATH issues
 alias find='/bin/find'
 alias grep='/bin/grep'
 alias head='/usr/bin/head'
 
+# Print usage
 _usage() {
   cat <<- EOF
 
@@ -23,6 +26,7 @@ Options:
 EOF
 }
 
+# Convert long command line options into short ones for getopts
 _cmdline() {
 
   local x;
@@ -47,6 +51,7 @@ _cmdline() {
   echo "$args";
 }
 
+# Main
 main () {
 
   local conf_file user;
@@ -61,6 +66,7 @@ main () {
       u)
         user="$OPTARG"
         ;;
+      *);;
     esac
 
   done

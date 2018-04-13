@@ -1,8 +1,16 @@
 #! /bin/bash
 
+# Script Arguments
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+# Configurable Variables
+
+# Alias executables to prevent PATH issues
+
+# Necessary Global Variables
+
+# Print usage
 _usage() {
 
   cat <<- EOF
@@ -11,6 +19,7 @@ EOF
 
 }
 
+# Convert long command line options into short ones for getopts
 _cmdline() {
 
   local x;
@@ -31,6 +40,7 @@ _cmdline() {
 
 }
 
+# Main
 main () {
 
   while getopts "h" OPTION $(_cmdline); do
@@ -40,7 +50,6 @@ main () {
         _usage;
         exit 0;
         ;;
-
       *);;
     esac
   done

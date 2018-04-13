@@ -1,8 +1,16 @@
 #! /bin/bash
 
+# Script Arguments
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+# Configurable variables
+readonly DOMAIN_DB_FILE="$HOME"/.domain_cache
+readonly DOMAIN_DB_CREATE="CREATE TABLE IF NOT EXISTS LOCATIONS ( domain PRIMARY KEY,destination NOT NULL,timestamp INT NOT NULL); \
+  CREATE TABLE IF NOT EXISTS TICKETS (ticket_id NOT NULL,domain NOT NULL,PRIMARY KEY (ticket_id,domain),FOREIGN KEY (domain) REFERENCES LOCATIONS(domain));"
+readonly IP_REGEX='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+
+# Alias executables to prevent PATH issues
 alias awk='/bin/awk'
 alias cat='/bin/cat'
 alias chmod='/bin/chmod'
@@ -23,15 +31,10 @@ alias whoami='/usr/bin/whoami'
 alias whois='/usr/bin/whois'
 alias xxd='/usr/bin/xxd'
 
-readonly DOMAIN_DB_FILE="$HOME"/.domain_cache
-readonly DOMAIN_DB_CREATE="CREATE TABLE IF NOT EXISTS LOCATIONS ( domain PRIMARY KEY,destination NOT NULL,timestamp INT NOT NULL); \
-  CREATE TABLE IF NOT EXISTS TICKETS (ticket_id NOT NULL,domain NOT NULL,PRIMARY KEY (ticket_id,domain),FOREIGN KEY (domain) REFERENCES LOCATIONS(domain));"
-
-readonly IP_REGEX='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
-
-ticket="";
-domain="";
-destination="";
+# Necessary Global Variables
+TICKET="";
+DOMAIN="";
+DESTINATION="";
 
 # Print usage info
 _usage () {
@@ -114,9 +117,16 @@ _findsite () {
 # Copy files and login to the destination
 _login () {
 
-  local ident_file;
+  local ident_file cloud username;
 
-  ident_file=${HOME}/.ssh/nex$(whoami).id_rsa;
+  cloud="$1";
+
+  if [[ -n "$cloud" ]]; then
+    username="$USER";
+  else
+    username="nex$USER";
+  fi
+  ident_file="${HOME}/.ssh/nex${USER}.id_rsa";
 
   if [[ -d "$HOME"/dotfiles/ ]]; then
 
@@ -140,7 +150,7 @@ _login () {
       --exclude '*SNAPS*' \
       ~/dotfiles/ \
       -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-      "nex$(whoami)@$destination":~/ 2> /dev/null || echo "rsync failed";
+      "$username@$DESTINATION":~/ 2> /dev/null || echo "rsync failed";
 
   fi;
 
@@ -151,7 +161,7 @@ _login () {
     -o UserKnownHostsFile=/dev/null \
     -o StrictHostKeyChecking=no \
     -o PasswordAuthentication=no \
-    "nex$(whoami)@$destination" || return 1;
+    "$username@$DESTINATION" || return 1;
 }
 
 # Uses findsite to identify destination
@@ -161,7 +171,7 @@ _findDestination () {
   declare -a find_servers
 
   # If site not pointed at nexcess
-  findsitelist=$(_findsite "$domain");
+  findsitelist=$(_findsite "$DOMAIN");
 
   find_servers=($(echo "${findsitelist}" | awk '{print $1}'));
 
@@ -183,11 +193,11 @@ _findDestination () {
     echo;
     read -rep "Choose server:" selection;
 
-    destination=${find_servers[$selection]};
+    DESTINATION=${find_servers[$selection]};
 
   else
 
-    destination=${find_servers[0]};
+    DESTINATION=${find_servers[0]};
 
   fi;
 
@@ -197,7 +207,7 @@ _findDestination () {
 _setAction () {
 
   echo 'rm "$HOME"/action.sh' > "$HOME"/dotfiles/action.sh;
-  echo "cdd ${domain}" >> "$HOME"/dotfiles/action.sh;
+  echo "cdd ${DOMAIN}" >> "$HOME"/dotfiles/action.sh;
 
   # Evaluates argument list and adds known commands to login command list
   for x in ${ARGA[*]}; do
@@ -206,7 +216,7 @@ _setAction () {
         echo "vim .htaccess" >> "$HOME"/dotfiles/action.sh;
         ;;
       "cdlogs") # Go to domain's log directory
-        echo "cdlogs ${domain}" >> "$HOME"/dotfiles/action.sh;
+        echo "cdlogs ${DOMAIN}" >> "$HOME"/dotfiles/action.sh;
         ;;
       "editphp") # Go to domain's log directory
         echo "editphp" >> "$HOME"/dotfiles/action.sh;
@@ -227,7 +237,7 @@ _setEnv () {
   MY_IP=$(echo $SSH_CLIENT | grep -Po '([0-9]{1,3}\.){3}[0-9]{1,3}');
   true > "$HOME"/dotfiles/.environment.sh;
 
-  echo "export TICKET=${ticket}" >> "$HOME"/dotfiles/.environment.sh;
+  echo "export TICKET=${TICKET}" >> "$HOME"/dotfiles/.environment.sh;
 	echo "export MY_IP=\"${MY_IP}\"" >> "$HOME"/dotfiles/.environment.sh;
 
 }
@@ -245,15 +255,15 @@ _getCache() {
     local query;
 
     # If ticket is given, check cache for known destination associated with it
-    if [[ -n $ticket ]]; then
-      query=$(printf "SELECT destination FROM LOCATIONS WHERE domain=(SELECT domain FROM TICKETS WHERE ticket_id='%s' limit 1);" "${ticket}");
-      destination=$(sqlite3 "$DOMAIN_DB_FILE" "$query") || _checkDB;
+    if [[ -n $TICKET ]]; then
+      query=$(printf "SELECT destination FROM LOCATIONS WHERE domain=(SELECT domain FROM TICKETS WHERE ticket_id='%s' limit 1);" "${TICKET}");
+      DESTINATION=$(sqlite3 "$DOMAIN_DB_FILE" "$query") || _checkDB;
     fi
 
     # Check cache for a known destination
-    if [[ -z $destination ]]; then
-      query=$(printf "SELECT destination FROM LOCATIONS WHERE domain='%s' AND timestamp > '%s';" "${domain}" "$(($(date "+%s")-172800))");
-      destination=$(sqlite3 "$DOMAIN_DB_FILE" "$query") || _checkDB
+    if [[ -z $DESTINATION ]]; then
+      query=$(printf "SELECT destination FROM LOCATIONS WHERE domain='%s' AND timestamp > '%s';" "${DOMAIN}" "$(($(date "+%s")-172800))");
+      DESTINATION=$(sqlite3 "$DOMAIN_DB_FILE" "$query") || _checkDB
     fi
 
 }
@@ -262,9 +272,9 @@ _getCache() {
 _abbrevDest() {
 
   # If domain contains no periods or looks to be an IP address, assume it is a valid destination
-  if [[ "$domain" != *.* || "$domain" =~ $IP_REGEX ]]; then
+  if [[ "$DOMAIN" != *.* || "$DOMAIN" =~ $IP_REGEX ]]; then
 
-    destination="${domain}"
+    DESTINATION="${DOMAIN}"
 
   fi
 
@@ -281,7 +291,7 @@ _didWeFindIt() {
   # If host or reverse dns indicate nexcess, it should be a good destination
   if [[ "$host" == "nexcess" || "$host" == "future host" ||  "$rdns" == "nexcess" ]]; then
 
-    destination="${domain}";
+    DESTINATION="${DOMAIN}";
 
   fi
 
@@ -325,28 +335,43 @@ _theHardWay() {
 # Main
 main () {
 
-  # Show help
-  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
-  fi
+  local ip_addr whoisinfo host rdns query cloud nocache permanent timestamp;
 
-  local ip_addr whoisinfo host rdns query;
+  for ((x=0;x<${#ARGA[@]};x++)); do
+    case "$x" in
+      "-h"|"--help")
+        _usage;
+        exit;
+        ;;
+      "-c"|"--cloud")
+        cloud="yes";
+        ;;
+      "-n"|"--no-cache")
+        nocache="yes";
+        ;;
+      "-p"|"--permanent")
+        permanent="yes";
+        ;;
+      *)
+        if [[ -z "$DOMAIN" ]]; then
+          DOMAIN=$(echo "${ARGA[$x]}" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]");
+        elif [[ -z "$TICKET" ]]; then
+          TICKET=$(echo "${ARGA[$x]}" | grep -Po "[a-z,A-z]{4}-[0-9]{4}" | tr "[:lower:]" "[:upper:]");
+        fi
+        ;;
+    esac
+  done
 
-  domain=$(echo "${ARGA[0]}" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]");
-  ticket=$(echo "$ARGS" | grep -Po "[a-z,A-z]{4}-[0-9]{4}" | tr "[:lower:]" "[:upper:]");
-
-  _getCache;
-
+  [[ -z "$nocache" ]] && _getCache;
 
   # If destination was not in cache, see if it is an abbreviated domain
-  [[ -z "$destination" ]] && _abbrevDest;
+  [[ -z "$DESTINATION" ]] && _abbrevDest;
 
 
   # If domain is not an abbreviation or found in cache, see if it resolves to nexcess
-  if [[ -z "$destination" ]]; then
+  if [[ -z "$DESTINATION" ]]; then
 
-    ip_addr="$(dig +short "$domain" | sort | head -n1)";
+    ip_addr="$(dig +short "$DOMAIN" | sort | head -n1)";
     whoisinfo="$(whois "$ip_addr")";
     host=$(echo "$whoisinfo"  | grep -m1 -ioE "nexcess|sucuri|cloudflare|future host" | tr '[:upper:]' '[:lower:]');
     rdns="$(dig +short -x "$ip_addr" | grep -o "nexcess")";
@@ -357,32 +382,34 @@ main () {
 
 
   # If we still don't have a destination, find it the hard way
-  [[ -z "$destination" ]] && _theHardWay "$host" "$whoisinfo";
+  [[ -z "$DESTINATION" ]] && _theHardWay "$host" "$whoisinfo";
 
 
   # If we have a destination, proceed with login
-  if [[ -n "$destination" ]]; then
+  if [[ -n "$DESTINATION" ]]; then
 
     # Setup environment variables and actions to run on destination
     _setAction;
     _setEnv;
 
-    _login || return 1;
+    _login "$cloud" || return 1;
+
+    if [[ -z "$permanent" ]]; then
+      timestamp="$(date "+%s")"
+    else
+      timestamp="9999999999"
+    fi
 
     # Add to cache
-    query=$(printf "INSERT OR REPLACE INTO LOCATIONS VALUES ('%s','%s','%s');" "${domain}" "${destination}" "$(date "+%s")")
+    query=$(printf "INSERT OR REPLACE INTO LOCATIONS VALUES ('%s','%s','%s');" "${DOMAIN}" "${DESTINATION}" "${timestamp}")
     sqlite3 "$DOMAIN_DB_FILE" "$query" || _checkDB;
 
-    if [[ -n $ticket ]]; then
-      query=$(printf "INSERT OR REPLACE INTO TICKETS VALUES ('%s','%s');" "${ticket}" "${domain}");
+    if [[ -n $TICKET ]]; then
+      query=$(printf "INSERT OR REPLACE INTO TICKETS VALUES ('%s','%s');" "${TICKET}" "${DOMAIN}");
       sqlite3 "$DOMAIN_DB_FILE" "$query" || _checkDB;
     fi
 
   fi
-
-  unset ticket;
-  unset destination;
-  unset domain;
 
 };
 

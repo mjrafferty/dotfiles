@@ -195,7 +195,7 @@ _strace () {
 
   kill "$str_pid" 2> /dev/null;
 
-  find /tmp/ -name "*-GLOBALS" -user "$(getusr)" -exec /bin/mv -t "$OUTPUT_DIR" {} + 2>/dev/null
+  find /tmp/ -name "*-GLOBALS" -user "$(pwd | grep -Po "home/\K[^/]*")" -exec /bin/mv -t "$OUTPUT_DIR" {} + 2>/dev/null
 
   if [[ "$daemon_time" ]]; then
     gzip "$output";
