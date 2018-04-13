@@ -338,7 +338,7 @@ main () {
   local ip_addr whoisinfo host rdns query cloud nocache permanent timestamp;
 
   for ((x=0;x<${#ARGA[@]};x++)); do
-    case "$x" in
+    case "${ARGA[$x]}" in
       "-h"|"--help")
         _usage;
         exit;
