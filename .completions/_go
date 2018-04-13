@@ -15,7 +15,7 @@ _go() {
 
   if [[ "$state" == "args" ]]; then
     _arguments \
-      '*:Destination:_listDest -/'
+      '*:Destination:($(_listDest))'
   fi
 }
 compdef _go go
