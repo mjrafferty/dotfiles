@@ -9,7 +9,7 @@ fi
 
 unsetopt nocaseglob;
 
-fpath=("$HOME/.completions" ${fpath[@]});
+fpath+="$HOME/.completions"
 
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
