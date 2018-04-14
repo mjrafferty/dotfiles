@@ -544,19 +544,6 @@ srvnotes () {
   $EDITOR /etc/nexcess/server_notes.txt;
 }
 
-## Create or add http-auth section for given .htaccess file
-htaccessauth () {
-  $TOUCH .htaccess;
-  echo -e "\n# ----- Password Protection Section -----
-  \nAuthUserFile $(pwd)/.htpasswd
-  AuthGroupFile /dev/null
-  AuthName \"Authorized Access Only\"
-  AuthType Basic
-  \nRequire valid-user
-  \n# ----- Password Protection Section -----\n" >> .htaccess \
-    && $CHOWN "$($GETUSR)". .htaccess;
-}
-
 ## Generate nexinfo.php to view php info in browser
 nexinfo () {
   echo '<?php phpinfo(); ?>' > nexinfo.php \
