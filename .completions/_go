@@ -1,9 +1,10 @@
 #compdef go
 
 _listDest () {
-  sqlite3 ~/.domain_cache "select domain from locations;"
-  sqlite3 ~/.domain_cache "select destination from locations;"
-  sqlite3 ~/.domain_cache "select ticket_id from tickets;"
+  echo "select domain from locations;
+  select destination from locations;
+    select ticket_id from tickets;" \
+      | sqlite3 ~/.domain_cache
 }
 
 _go() {
