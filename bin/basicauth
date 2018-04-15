@@ -185,8 +185,13 @@ main () {
   [[ -z "$modify" ]] && _addAuth "$htaccess" "$auth_file" "$owner"
 
   # Display configured username and password
-  printf "Username: %10s\nPassword: %10s\nAuth_File: %10s\n" "$user" "$pass" "$auth_file"
+  cat <<- EOF
 
+Username:   $user
+Password:   $pass
+Auth_File:  $auth_file
+
+EOF
 }
 
 main;
