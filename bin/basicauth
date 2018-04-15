@@ -128,10 +128,15 @@ main () {
   done
 
   if [[ -z "$protected_dir" ]]; then
-    protected_dir="$(pwd)";
+    protected_dir="$PWD";
   fi
 
   owner=$(echo "$protected_dir" | grep -Po '^(/chroot)?/home/\K[^/]*')
+  site_dir="$(echo "$protected_dir" | grep -Po '.*home/[^/]*/[^/]*')"
+
+  if [[ -z "$owner" || -z "$site_dir" ]]; then
+    echo "$protected_dir must be part of a domain structure";
+  fi
 
   htaccess="${protected_dir}/.htaccess"
 
@@ -159,13 +164,6 @@ main () {
   # Set password
   if [[ -z "$pass" ]]; then
     pass=$(_xkcd) || exit 5;
-  fi
-
-  site_dir="$(echo "$protected_dir" | grep -Po '.*home/[^/]*/[^/]*')"
-
-  if [[ -z "$site_dir" ]]; then
-    echo "$protected_dir does not belong to a domain."
-    exit 1;
   fi
 
   if [[ -z "$auth_file" ]]; then
