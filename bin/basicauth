@@ -182,6 +182,7 @@ main () {
   # Display configured username and password
   echo -e "Username: $user\nPassword: $pass\nAuth_File: $auth_file\n" \
     | column -t
+  echo;
 
 }
 
