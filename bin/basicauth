@@ -189,7 +189,7 @@ main () {
 
 Username:   $user
 Password:   $pass
-Auth_File:  $auth_file
+Auth File:  $auth_file
 
 EOF
 }

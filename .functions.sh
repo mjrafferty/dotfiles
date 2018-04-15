@@ -687,7 +687,7 @@ u () {
   touch "$HOME"/.viminfo;
 	setfacl -R -m u:"$user":rX "$HOME"
 	setfacl -m u:"$user":rwX "$HOME"
-	setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.vimfiles,.viminfo}
+	setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.vimfiles,.viminfo} 2> /dev/null
 
 	/usr/bin/sudo HOME="$HOME" -u "$user" "$MYSHELL"
 
