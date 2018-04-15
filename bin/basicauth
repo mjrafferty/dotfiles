@@ -73,7 +73,7 @@ _addAuth () {
   owner="$3"
 
   if [[ -e "$htaccess" ]]; then
-    mv "$htaccess" "$htaccess${TEMP_EXT}"
+    sudo -u "$owner" mv "$htaccess" "$htaccess${TEMP_EXT}"
   fi
 
   cat <<- EOF | sudo -u "$owner" tee "$htaccess" > /dev/null
@@ -88,7 +88,7 @@ Require valid-user
 EOF
 
   if [[ -e "$htaccess${TEMP_EXT}" ]]; then
-    cat "$htaccess${TEMP_EXT}" >> "$htaccess"
+    cat "$htaccess${TEMP_EXT}" | sudo -u "$owner" tee -a "$htaccess" > /dev/null
     rm "$htaccess${TEMP_EXT}";
   fi
 
