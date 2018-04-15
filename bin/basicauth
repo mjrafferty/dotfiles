@@ -136,6 +136,7 @@ main () {
 
   if [[ -z "$owner" || -z "$site_dir" ]]; then
     echo "$protected_dir must be part of a domain structure";
+    exit 1;
   fi
 
   htaccess="${protected_dir}/.htaccess"
