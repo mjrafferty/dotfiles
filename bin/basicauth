@@ -73,10 +73,10 @@ _addAuth () {
   owner="$3"
 
   if [[ -e "$htaccess" ]]; then
-    sudo -u "$owner" mv "$htaccess" "$htaccess${TEMP_EXT}"
+    mv "$htaccess" "$htaccess${TEMP_EXT}"
   fi
 
-  cat <<- EOF | sudo -u "$owner" tee "$htaccess" > /dev/null
+  cat <<- EOF > "$htaccess"
 # ----- Begin Basic Authentication -----
 AuthUserFile $auth_file
 AuthGroupFile /dev/null
@@ -88,9 +88,11 @@ Require valid-user
 EOF
 
   if [[ -e "$htaccess${TEMP_EXT}" ]]; then
-    cat "$htaccess${TEMP_EXT}" | sudo -u "$owner" tee -a "$htaccess" > /dev/null
+    cat "$htaccess${TEMP_EXT}" >> "$htaccess"
     rm -f "$htaccess${TEMP_EXT}";
   fi
+
+  chown "$owner". "$htaccess";
 
 }
 
@@ -171,10 +173,11 @@ main () {
 
   # Write information to file
   if [[ -e "$auth_file" ]]; then
-    sudo -u "$owner" htpasswd -mb "$auth_file" "$user" "$pass";
+    htpasswd -mb "$auth_file" "$user" "$pass";
   else
-    sudo -u "$owner" htpasswd -cmb "$auth_file" "$user" "$pass";
+    htpasswd -cmb "$auth_file" "$user" "$pass";
   fi;
+  chown "${owner}". "$auth_file";
 
   [[ -z "$modify" ]] && _addAuth "$htaccess" "$auth_file" "$owner"
 
