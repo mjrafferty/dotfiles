@@ -135,7 +135,7 @@ main () {
   site_dir="$(echo "$protected_dir" | grep -Po '.*home/[^/]*/[^/]*')"
 
   if [[ -z "$owner" || -z "$site_dir" ]]; then
-    echo "$protected_dir must be part of a domain structure";
+    echo "$protected_dir is not part of a domain structure";
     exit 1;
   fi
 
@@ -148,10 +148,12 @@ main () {
   if [[ -n "$auth_file" ]]; then
     read -rp "Authenticaton already present. Modify existing .htpasswd? (Y,n): " modify;
     if [[ "$modify" == "n" ]]; then
-      exit 1;
+      exit 0;
     else
      modify="Yes";
    fi
+ else
+    auth_file="${site_dir}/${PREFIX}_$(echo "$protected_dir" | grep -Po 'html/\K.*' | tr '/' '-')"
   fi
 
   # Get username
@@ -167,10 +169,6 @@ main () {
     pass=$(_xkcd) || exit 5;
   fi
 
-  if [[ -z "$auth_file" ]]; then
-    auth_file="${site_dir}/${PREFIX}_$(echo "$protected_dir" | grep -Po 'html/\K.*' | tr '/' '-')"
-  fi
-
   # Write information to file
   if [[ -e "$auth_file" ]]; then
     sudo -u "$owner" htpasswd -mb "$auth_file" "$user" "$pass";
@@ -181,7 +179,8 @@ main () {
   [[ -z "$modify" ]] && _addAuth "$htaccess" "$auth_file" "$owner"
 
   # Display configured username and password
-  echo -e "\nUsername: $user\nPassword: $pass\nAuth File: $auth_file\n";
+  echo -e "\nUsername: $user\nPassword: $pass\nAuth File: $auth_file\n" \
+    | column -t
 
 }
 
