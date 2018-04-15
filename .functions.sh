@@ -685,7 +685,7 @@ u () {
   user="$(pwd | grep -Po "home/\K[^/]*")"
 
   touch "$HOME"/.viminfo;
-	setfacl -R -m u:"$user":rX "$HOME"
+	setfacl -R -m u:"$user":rX "$HOME" 2> /dev/null
 	setfacl -m u:"$user":rwX "$HOME"
 	setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.vimfiles,.viminfo} 2> /dev/null
 
