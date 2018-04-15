@@ -89,7 +89,7 @@ EOF
 
   if [[ -e "$htaccess${TEMP_EXT}" ]]; then
     cat "$htaccess${TEMP_EXT}" | sudo -u "$owner" tee -a "$htaccess" > /dev/null
-    rm "$htaccess${TEMP_EXT}";
+    rm -f "$htaccess${TEMP_EXT}";
   fi
 
 }
