@@ -150,7 +150,10 @@ main () {
 
   # Get username
   if [[ -z "$user" ]]; then
-    read -rp "Username: " user;
+    read -rp "Username (Default: $owner): " user;
+    if [[ -z "$user" ]]; then
+      user="$owner";
+    fi
   fi;
 
   # Set password
