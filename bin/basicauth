@@ -179,7 +179,7 @@ main () {
   [[ -z "$modify" ]] && _addAuth "$htaccess" "$auth_file" "$owner"
 
   # Display configured username and password
-  echo -e "\nUsername: $user\nPassword: $pass\nAuth File: $auth_file\n" \
+  echo -e "\nUsername: $user\nPassword: $pass\nAuth_File: $auth_file\n" \
     | column -t
 
 }
