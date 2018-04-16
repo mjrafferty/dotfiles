@@ -105,6 +105,8 @@ _cleanUp() {
 
   local target
 
+  target="$1"
+
   rm "${target}${ARCHIVE_SUFFIX}"*
 
 }
