@@ -8,6 +8,7 @@ readonly ARGA=("$@")
 readonly PREFIX=".htpasswd"
 readonly TEMP_EXT="_$(uuidgen)"
 
+# Print usage info
 _usage() {
   cat <<- EOF
 
@@ -103,6 +104,7 @@ main () {
 
   local user pass protected_dir site_dir auth_file htaccess owner;
 
+  # Parse command line arguments
   for ((x=0;x<${#ARGA[@]};x++)); do
     case "${ARGA[$x]}" in
       "-h"|"--help")
@@ -132,24 +134,30 @@ main () {
     esac
   done
 
+  # If no directory provided, use current directory
   if [[ -z "$protected_dir" ]]; then
     protected_dir="$PWD";
   fi
 
+  # Which user and domain will this belong to
   owner=$(echo "$protected_dir" | grep -Po '^(/chroot)?/home/\K[^/]*')
   site_dir="$(echo "$protected_dir" | grep -Po '.*home/[^/]*/[^/]*')"
 
+  # If owner or site is NULL, chosen directory was not within a docroot
   if [[ -z "$owner" || -z "$site_dir" ]]; then
     echo "$protected_dir is not part of a domain structure";
     exit 1;
   fi
 
+  # Name of .htaccess file
   htaccess="${protected_dir}/.htaccess"
 
+  # Check for existing basic auth configuration
   if [[ -e "$htaccess" ]]; then
     auth_file=$(grep -Poi '(?<!#)\s*authuserfile\s*\K.*' "$htaccess");
   fi
 
+  # If existing configuration present, ask if we should modify credentials
   if [[ -n "$auth_file" ]]; then
     read -rp "Authenticaton already present. Modify existing .htpasswd? (Y,n): " modify;
     if [[ "$modify" == "n" ]]; then
@@ -161,7 +169,7 @@ main () {
     auth_file="${site_dir}/${PREFIX}_$(echo "$protected_dir" | grep -Po 'html/\K.*' | tr '/' '-')"
   fi
 
-  # Get username
+  # Get username if not provided on command line
   if [[ -z "$user" ]]; then
     read -rp "Username (Default: $owner): " user;
     if [[ -z "$user" ]]; then
@@ -169,19 +177,22 @@ main () {
     fi
   fi;
 
-  # Set password
+  # Set password if not provided on command line
   if [[ -z "$pass" ]]; then
     pass=$(_xkcd) || exit 5;
   fi
 
-  # Write information to file
+  # Write information to htpasswd file
   if [[ -e "$auth_file" ]]; then
     htpasswd -mb "$auth_file" "$user" "$pass";
   else
     htpasswd -cmb "$auth_file" "$user" "$pass";
   fi;
+
+  # Set ownership
   chown "${owner}". "$auth_file";
 
+  # Add basic auth section to .htaccess if it was not already present
   [[ -z "$modify" ]] && _addAuth "$htaccess" "$auth_file" "$owner"
 
   # Display configured username and password
