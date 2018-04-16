@@ -8,6 +8,20 @@ readonly ARGA=("$@")
 readonly PREFIX=".htpasswd"
 readonly TEMP_EXT="_$(uuidgen)"
 
+# Alias executables to prevent PATH issues
+alias awk="/bin/awk"
+alias cat="/bin/cat"
+alias chown="/bin/chown --preserve-root"
+alias grep="/bin/grep"
+alias head="/usr/bin/head"
+alias htpasswd="/usr/bin/htpasswd"
+alias mv="/bin/mv"
+alias rm="/bin/rm --preserve-root"
+alias sed="/bin/sed"
+alias shuf="/usr/bin/shuf"
+alias tr="/usr/bin/tr"
+alias wc="/usr/bin/wc"
+
 # Print usage info
 _usage() {
   cat <<- EOF

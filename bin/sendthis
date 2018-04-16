@@ -8,6 +8,22 @@ readonly ARGA=("$@")
 readonly SPLIT_SIZE="20"
 readonly ARCHIVE_SUFFIX=".tgz"
 
+# Alias executables to prevent PATH issues
+alias cat="/bin/cat"
+alias grep="/bin/grep"
+alias mail="/bin/mail"
+alias rm='/bin/rm --preserve-root'
+alias sha1sum="/usr/bin/sha1sum"
+alias split="/usr/bin/split"
+alias stat="/usr/bin/stat"
+alias tar="/bin/tar"
+
+if [[ -e /usr/bin/pigz ]]; then
+  alias gzip='/usr/bin/pigz';
+else
+  alias gzip='/bin/gzip';
+fi
+
 # Print usage info
 _usage() {
   cat <<- EOF
