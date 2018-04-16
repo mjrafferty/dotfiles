@@ -47,13 +47,15 @@ _compressTarget() {
 
   size="$(stat -c "%s" "${target}${ARCHIVE_SUFFIX}")";
 
+  sha1sum "${target}${ARCHIVE_SUFFIX}" > "${target}${ARCHIVE_SUFFIX}.SHA1"
+
   if (( size > (SPLIT_SIZE * 1024 * 1024) )); then
     read -rp "Archive is $((size / 1024 / 1024))M. Proceed? (N,y)" proceed;
     if [[ "$proceed" == "y" ]]; then
       split -d -b "${SPLIT_SIZE}M" "${target}${ARCHIVE_SUFFIX}" "${target}${ARCHIVE_SUFFIX}." \
         && rm "${target}${ARCHIVE_SUFFIX}"
     else
-      rm "${target}${ARCHIVE_SUFFIX}"
+      rm "${target}${ARCHIVE_SUFFIX}*"
       exit;
     fi
   fi
@@ -92,12 +94,15 @@ main () {
 
   _compressTarget "$target"
 
-  #if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
-    #echo "See Attached" \
-      #| mail -s "$subject" -a "$target" "$address";
-  #else
-    #mail -s "$subject" "$address" < "$target";
-  #fi;
+  for x in ${target}${ARCHIVE_SUFFIX}*; do
+    if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
+      echo "See Attached" \
+        | mail -s "$subject" -a "$x" "$address";
+    else
+      mail -s "$subject" "$address" < "$x";
+    fi;
+  done
+  rm "${target}${ARCHIVE_SUFFIX}*"
 
 }
 
