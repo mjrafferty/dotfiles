@@ -39,7 +39,11 @@ _compressTarget() {
 
   target="$1";
 
-  tar -cf - "$target" | pigz > "${target}${ARCHIVE_SUFFIX}"
+  printf "Compressing target..."
+
+  tar -cf - "$target" 2> /dev/null | pigz > "${target}${ARCHIVE_SUFFIX}"
+
+  printf "Done\n"
 
   size="$(stat -c "%s" "${target}${ARCHIVE_SUFFIX}")";
 
