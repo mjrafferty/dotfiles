@@ -21,7 +21,7 @@ _validateInput() {
     exit 1;
   fi
 
-  if [[ ! -e "${PWD}/$target" && ! -e "$target" ]]; then
+  if [[ (  ! -e "${PWD}/$target" && ! -e "$target" ) || -z "$target" ]]; then
     echo "Target does not exist";
     exit 1;
   fi
