@@ -57,7 +57,7 @@ main () {
   [[ -z "$subject" ]] && read -rp "Subject: " subject;
   [[ -z "$address" ]] && read -rp "Email: " address;
 
-  _validateItargetnput "$address" "$target"
+  _validateInput "$address" "$target"
 
   cat <<- EOF
 
