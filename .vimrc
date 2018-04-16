@@ -126,6 +126,8 @@ set showmode
 " Clear search highlighting by pressing Enter
 nnoremap <cr> :noh<CR><CR>:<backspace>
 
+"set viminfo='100,<50,s10,h,n/chroot/home/${USER}/.viminfo
+
 "-------------------------------
 "------ End Vim Settings -------
 "-------------------------------

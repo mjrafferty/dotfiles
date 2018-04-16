@@ -6,42 +6,63 @@ readonly ARGA=("$@")
 _usage() {
   cat <<- EOF
 
-  Usage: sendthis <filename> <subject> <emailaddr>
+  Usage: sendthis <targetname> <subject> <emailaddr>
 
 EOF
 }
 
 main () {
 
-  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
+  local subject target address
+
+  for ((x=0;x<${#ARGA[@]};x++)); do
+
+    if [[ -z "$target" ]]; then
+      if [[ -e "${PWD}/${ARGA[$x]}" ]]; then
+        target="${PWD}/${ARGA[$x]}";
+        continue;
+      elif [[ -e "${ARGA[$x]}" ]]; then
+        target="${ARGA[$x]}";
+        continue;
+      fi
+    fi
+
+    if [[ -z "$address" ]]; then
+      address="$(echo "${ARGA[$x]}" | grep -Po '\S+@\S+\.\S+')"
+      continue;
+    fi
+
+    [[ -z "$subject" ]] && subject="${ARGA[$x]}"
+
+  done
+
+  [[ -z "$target" ]] && read -rp "File/Directory: " target;
+  [[ -z "$subject" ]] && read -rp "Subject: " subject;
+  [[ -z "$address" ]] && read -rp "Email: " address;
+
+  if ! echo "$address" | grep -Pq '\S+@\S+\.\S+'; then
+    echo "Email address invalid";
+    exit 1;
   fi
 
-  if [[ -r ${ARGA[0]} ]]; then
-    FILE=${ARGA[0]};
-  else
-    read -rp "Filename: " FILE;
+  if [[ ! -e "${PWD}/$target" && ! -e "$target" ]]; then
+    echo "Target does not exist";
+    exit 1;
   fi
 
-  if [[ -n ${ARGA[1]} ]]; then
-    SUBJECT=${ARGA[1]};
-  else
-    read -rp "Subject: " SUBJECT;
-  fi
+  cat <<- EOF
 
-  if [[ -n ${ARGA[2]} ]]; then
-    EMAIL=${ARGA[2]};
-  else
-    read -rp "Email: " EMAIL;
-  fi
+Address: $address
+Subject: $subject
+File:    $target
 
-  if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
-    echo "See Attached" \
-      | mail -s "$SUBJECT" -a "$FILE" "$EMAIL";
-  else
-    mail -s "$SUBJECT" "$EMAIL" < "$FILE";
-  fi;
+EOF
+  #if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
+    #echo "See Attached" \
+      #| mail -s "$subject" -a "$target" "$address";
+  #else
+    #mail -s "$subject" "$address" < "$target";
+  #fi;
 
 }
 
