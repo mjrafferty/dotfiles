@@ -6,6 +6,7 @@ readonly ARGA=("$@")
 
 # Configurable Variables
 readonly SPLIT_SIZE="20"
+readonly ARCHIVE_SUFFIX=".tgz"
 
 _usage() {
   cat <<- EOF
@@ -34,17 +35,23 @@ _validateInput() {
 
 _compressTarget() {
 
-  local target
+  local target size proceed
 
   target="$1";
 
-  tar -cf - "$target" | pigz > "${target}.tgz"
+  tar -cf - "$target" | pigz > "${target}${ARCHIVE_SUFFIX}"
 
-  size="$(stat -c "%s" "${target}.tgz")";
+  size="$(stat -c "%s" "${target}${ARCHIVE_SUFFIX}")";
 
   if (( size > (SPLIT_SIZE * 1024 * 1024) )); then
-    split -d -b "${SPLIT_SIZE}M" "${target}.tgz" "${target}.tgz" \
-      && rm "${target}.tgz"
+    read -rp "Archive is $((size / 1024 / 1024))M. Proceed? (N,y)" proceed;
+    if [[ "$proceed" == "y" ]]; then
+      split -d -b "${SPLIT_SIZE}M" "${target}${ARCHIVE_SUFFIX}" "${target}${ARCHIVE_SUFFIX}." \
+        && rm "${target}${ARCHIVE_SUFFIX}"
+    else
+      rm "${target}${ARCHIVE_SUFFIX}"
+      exit;
+    fi
   fi
 }
 
