@@ -28,8 +28,8 @@ main () {
     fi
 
     if [[ -z "$address" ]]; then
-      address="$(echo "${ARGA[$x]}" | grep -Po '\S+@\S+\.\S+')"
-      continue;
+      address="$(echo "${ARGA[$x]}" | grep -Po '\S+@\S+\.\S+')" \
+        && continue;
     fi
 
     [[ -z "$subject" ]] && subject="${ARGA[$x]}"
