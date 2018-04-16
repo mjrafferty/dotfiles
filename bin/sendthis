@@ -11,6 +11,23 @@ _usage() {
 EOF
 }
 
+_validateInput() {
+
+  address="$1"
+  target="$2"
+
+  if ! echo "$address" | grep -Pq '\S+@\S+\.\S+'; then
+    echo "Email address invalid";
+    exit 1;
+  fi
+
+  if [[ ! -e "${PWD}/$target" && ! -e "$target" ]]; then
+    echo "Target does not exist";
+    exit 1;
+  fi
+
+}
+
 main () {
 
   local subject target address
@@ -40,15 +57,7 @@ main () {
   [[ -z "$subject" ]] && read -rp "Subject: " subject;
   [[ -z "$address" ]] && read -rp "Email: " address;
 
-  if ! echo "$address" | grep -Pq '\S+@\S+\.\S+'; then
-    echo "Email address invalid";
-    exit 1;
-  fi
-
-  if [[ ! -e "${PWD}/$target" && ! -e "$target" ]]; then
-    echo "Target does not exist";
-    exit 1;
-  fi
+  _validateItargetnput "$address" "$target"
 
   cat <<- EOF
 
@@ -57,6 +66,7 @@ Subject: $subject
 File:    $target
 
 EOF
+
   #if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
     #echo "See Attached" \
       #| mail -s "$subject" -a "$target" "$address";
