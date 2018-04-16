@@ -1,7 +1,11 @@
 #! /bin/bash
 
+# Script Arguments
 readonly ARGS="$*"
 readonly ARGA=("$@")
+
+# Configurable Variables
+readonly SPLIT_SIZE="20"
 
 _usage() {
   cat <<- EOF
@@ -26,6 +30,21 @@ _validateInput() {
     exit 1;
   fi
 
+}
+
+_compressTarget() {
+
+  local target
+
+  target="$1";
+
+  tar -cf - "$target" | pigz > "${target}.tgz"
+
+  size="$(stat -c "%s" "${target}.tgz")";
+
+  if (( size > (SPLIT_SIZE * 1024 * 1024) )); then
+    split -d -b "${SPLIT_SIZE}M" "${target}.tgz" "$target"
+  fi
 }
 
 main () {
@@ -59,13 +78,7 @@ main () {
 
   _validateInput "$address" "$target"
 
-  cat <<- EOF
-
-Address: $address
-Subject: $subject
-File:    $target
-
-EOF
+  _compressTarget "$target"
 
   #if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
     #echo "See Attached" \
