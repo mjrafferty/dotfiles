@@ -43,7 +43,8 @@ _compressTarget() {
   size="$(stat -c "%s" "${target}.tgz")";
 
   if (( size > (SPLIT_SIZE * 1024 * 1024) )); then
-    split -d -b "${SPLIT_SIZE}M" "${target}.tgz" "$target"
+    split -d -b "${SPLIT_SIZE}M" "${target}.tgz" "${target}.tgz" \
+      && rm "${target}.tgz"
   fi
 }
 
