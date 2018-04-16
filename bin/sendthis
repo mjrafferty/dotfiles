@@ -55,7 +55,7 @@ _compressTarget() {
       split -d -b "${SPLIT_SIZE}M" "${target}${ARCHIVE_SUFFIX}" "${target}${ARCHIVE_SUFFIX}." \
         && rm "${target}${ARCHIVE_SUFFIX}"
     else
-      rm "${target}${ARCHIVE_SUFFIX}*"
+      rm "${target}${ARCHIVE_SUFFIX}"*
       exit;
     fi
   fi
@@ -102,7 +102,7 @@ main () {
       mail -s "$subject" "$address" < "$x";
     fi;
   done
-  rm "${target}${ARCHIVE_SUFFIX}*"
+  rm "${target}${ARCHIVE_SUFFIX}"*
 
 }
 
