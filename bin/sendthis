@@ -8,6 +8,7 @@ readonly ARGA=("$@")
 readonly SPLIT_SIZE="20"
 readonly ARCHIVE_SUFFIX=".tgz"
 
+# Print usage info
 _usage() {
   cat <<- EOF
 
@@ -16,6 +17,7 @@ _usage() {
 EOF
 }
 
+# Validate user input
 _validateInput() {
 
   address="$1"
@@ -33,6 +35,7 @@ _validateInput() {
 
 }
 
+# Compress target file/directory and split if necessary
 _compressTarget() {
 
   local target size proceed
@@ -61,10 +64,41 @@ _compressTarget() {
   fi
 }
 
+# Send target
+_send() {
+
+  local subject target address
+
+  subject="$1"
+  target="$2"
+  address="$3"
+
+  for x in ${target}${ARCHIVE_SUFFIX}*; do
+    if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
+      echo "See Attached" \
+        | mail -s "$subject" -a "$x" "$address";
+    else
+      mail -s "$subject" "$address" < "$x";
+    fi;
+  done
+
+}
+
+# Clean up temporary files
+_cleanUp() {
+
+  local target
+
+  rm "${target}${ARCHIVE_SUFFIX}"*
+
+}
+
+# Main
 main () {
 
   local subject target address
 
+  # Parse command line arguments
   for ((x=0;x<${#ARGA[@]};x++)); do
 
     if [[ -z "$target" ]]; then
@@ -86,6 +120,7 @@ main () {
 
   done
 
+  # Ask for any data not provided on command line
   [[ -z "$target" ]] && read -rp "File/Directory: " target;
   [[ -z "$subject" ]] && read -rp "Subject: " subject;
   [[ -z "$address" ]] && read -rp "Email: " address;
@@ -94,15 +129,9 @@ main () {
 
   _compressTarget "$target"
 
-  for x in ${target}${ARCHIVE_SUFFIX}*; do
-    if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
-      echo "See Attached" \
-        | mail -s "$subject" -a "$x" "$address";
-    else
-      mail -s "$subject" "$address" < "$x";
-    fi;
-  done
-  rm "${target}${ARCHIVE_SUFFIX}"*
+  _send "$subject" "$target" "$address"
+
+  _cleanUp "$target";
 
 }
 
