@@ -1,0 +1,301 @@
+#! /bin/bash
+
+# Script Arguments
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+# Configurable Variables
+readonly TMP_EXT=".nexcess.bak"
+readonly OUTPUT_DIR="${HOME}/nex_strace"
+readonly PIPE_PREFIX="/tmp/nexcess_strace_pipe-"
+readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
+
+# Alias executables to prevent PATH issues
+alias cat='/bin/cat'
+alias chmod='/bin/chmod --preserve-root'
+alias chown='/bin/chown --preserve-root'
+alias dd='/bin/dd'
+alias find='/bin/find'
+alias grep='/bin/grep'
+alias mkdir='/bin/mkdir'
+alias mkfifo='/usr/bin/mkfifo'
+alias mv='/bin/mv'
+alias pkill='/usr/bin/pkill'
+alias rm='/bin/rm --preserve-root'
+alias sleep='/bin/sleep'
+alias strace='/usr/bin/strace'
+
+if [[ -e /usr/bin/pigz ]]; then
+  alias gzip='/usr/bin/pigz';
+else
+  alias gzip='/bin/gzip';
+fi
+
+# Necessary Global Variables
+MONITOR_PID=""
+PIPE_NAME="${PIPE_PREFIX}$(uuidgen)"
+
+
+# Print usage
+_usage() {
+  cat <<- EOF
+
+  Captures strace and php GLOBALS variable information of one or matching
+  requests to a website. Outputs data to "$OUTPUT_DIR". Can also be run on each
+  node of a cluster without conflict.
+
+  Usage:
+
+  capstrace [options]
+
+  -h|--help                        Prints this message.
+
+  -f|--file FILE                   Target file for catching process.
+                                   Usually an index.php, but not always.
+                                   Accepts a comma separated list of files
+                                   for capturing processes at multiple entry
+                                   points.
+
+  -i|--ip-address REMOTE_ADDR,all  IP address initiating process.
+                                   Default value is Nexcess IP: 192.240.191.2
+                                   or the value of \$MY_IP if it is set in your
+                                   environment. Special value of 'all' will
+                                   match any IP.
+
+  -u|--uri REQUEST_URI             Specific URI to monitor for.
+
+  -q|--query-string QUERY_STRING   Specific query string to monitor for.
+
+  -d|--daemonize  HOURS_TO_RUN     Runs program as a daemon for the number of
+                                   hours specified.
+
+  -k|--kill                        Manually kill daemonized capstrace instance.
+
+EOF
+}
+
+# Convert long command line options into short ones for getopts
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    local args
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--file"|"-f")
+        args="${args}-f "
+        ;;
+      "--ip-address"|"-i")
+        args="${args}-i "
+        ;;
+      "--query-string"|"-q")
+        args="${args}-q "
+        ;;
+      "--uri"|"-u")
+        args="${args}-u "
+        ;;
+      "--daemonize"|"-d")
+        args="${args}-d "
+        ;;
+      "--kill"|"-k")
+        args="${args}-k "
+        ;;
+      *)
+        args="${args}${x} ";
+        ;;
+    esac
+
+  done
+
+  echo "$args";
+
+}
+
+# Perform strace of request
+_strace () {
+
+  local output pid str_pid daemon_time
+
+  pid="$1";
+  daemon_time="$2";
+
+  output="${OUTPUT_DIR}/$(date "+%F-%T")-$pid-strace";
+
+  strace -fTrvs200000 -o "$output" -p"$pid" &
+
+  str_pid="$!"
+
+  trap 'break' INT QUIT TERM;
+  sleep 0.1;
+
+  # Kill strace once php process becomes idle
+  if [[ -e /proc/"$str_pid" ]]; then
+    while(true); do
+      if tail | grep -qE "^$pid .*(accept\(0|\+\+\+ (killed|exited))"; then
+        kill "$str_pid" 2>/dev/null || echo "$pid exited";
+        break;
+      fi
+    done < "$output"
+  fi
+
+  kill "$str_pid" 2> /dev/null;
+
+  if [[ "$daemon_time" ]]; then
+    gzip "$output";
+  fi
+
+  chmod 600 "${OUTPUT_DIR}"/*
+  chown root. "${OUTPUT_DIR}"/*
+
+}
+
+# Monitor for incoming requests
+_monitor () {
+
+  local pid daemon_time start_time current_time
+
+  daemon_time="$1";
+
+  # Perform monitoring in background
+  (while (true); do
+
+  read -r pid;
+
+  if [[ -n $pid ]]; then
+    _strace "$pid" "$daemon_time" &
+  fi
+
+done <"$PIPE_NAME";) &
+
+
+MONITOR_PID="$!"
+
+trap 'return' INT QUIT TERM;
+
+if [[ $daemon_time ]]; then
+
+  start_time="$(date "+%s")"
+
+  while [[ -e /proc/"$MONITOR_PID" ]]; do
+
+    current_time="$(date "+%s")"
+
+    if (( current_time > (start_time + daemon_time) )) ; then
+      return;
+    fi
+
+    sleep 5;
+
+  done
+else
+
+  # Handle user exiting capstrace
+
+  printf "Waiting for process. Press enter to stop.\n";
+
+  read -r;
+
+fi
+
+}
+
+# Perform setup tasks
+_setup() {
+
+  local x address uri query
+
+  address="$1"
+  uri="$2"
+  query="$3"
+
+  # Create output directory if necessary and restrict perms
+  [[ -d $OUTPUT_DIR ]] || mkdir "${OUTPUT_DIR}";
+  chmod 700 "${OUTPUT_DIR}"
+
+  # Create pipe if not already present
+  mkfifo -m 666 "$PIPE_NAME";
+
+}
+
+# Clean up any changes made
+_cleanUp() {
+
+  # Flush pipe to prevent any remaining PHP processes from hanging
+  sleep 0.1;
+  dd if="$PIPE_NAME" iflag=nonblock of=/dev/null &> /dev/null
+  rm -f "$PIPE_NAME";
+
+  kill "$MONITOR_PID" 2> /dev/null
+
+}
+
+main () {
+
+  local address uri query daemon_time x;
+
+  # Parse command line options
+  while getopts "hf:i:u:q:d:k" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      i)
+        address="$OPTARG";
+        ;;
+      d)
+        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
+        ;;
+      k)
+        pkill malstrace -P 1
+        exit;
+        ;;
+      *);;
+    esac
+
+  done
+
+  tcpdump -l -nn host 192.240.191.2 \
+    | grep -Po --line-buffered '192.240.191.2.\K\d*' \
+    | \
+    while (true); do
+      read -r test2;
+      if [[ -n $test2 ]]; then
+        lsof -nP -i :"$test2" \
+          | grep -Po '^\S* \K\d*';
+      fi
+    done \
+      | \
+      while (true); do
+        read -r test3;
+        if [[ -n $test3 ]]; then
+          date "+%F-%T";
+          ps h -lf -p "$test3"
+          echo;
+          lsof -p "$test3"
+          printf "\n\n\n"
+        fi
+      done
+
+  trap "_cleanUp" EXIT;
+
+  _setup "${address:=$DEFAULT_IP}" "${uri:=NULL}" "${query:=NULL}";
+
+  _monitor "$daemon_time";
+
+  _cleanUp;
+
+}
+
+# Background script if run in daemon mode
+if echo "$ARGS" | grep -Pq '\s*(-d|--daemonize) \d*'; then
+  main &
+else
+  main;
+fi
