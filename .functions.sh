@@ -30,7 +30,6 @@
 [[ -z $UNIQ ]] && readonly UNIQ='/usr/bin/uniq'
 [[ -z $XARGS ]] && readonly XARGS='/usr/bin/xargs'
 [[ -z $ZLESS ]] && readonly ZLESS='/usr/bin/zless'
-
 [[ -z $MYSHELL ]] && readonly MYSHELL="$(readlink /proc/$$/exe)"
 
 if [[ "$MYSHELL" =~ zsh ]]; then
@@ -683,6 +682,9 @@ u () {
   local user;
 
   user="$(pwd | grep -Po "home/\K[^/]*")"
+
+  # Fixes error when sharing history file among several users
+  setopt nohistsavebycopy
 
   touch "$HOME"/.viminfo;
 	setfacl -R -m u:"$user":rX "$HOME" 2> /dev/null

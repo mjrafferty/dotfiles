@@ -1,8 +1,8 @@
+#! /bin/zsh
+
 export OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release);
 
-# Fixes error when sharing history file among several users
-setopt nohistsavebycopy
-
+# No root access on centos7 servers, so set sudo aliases instead.
 if (( $OS_VERSION == 7 )); then
 
   if [[ $USER == "${HOME/*\//}" ]]; then
@@ -33,8 +33,8 @@ else
 
   if [[ "$USER" == "${HOME/*\//}" ]] ; then
 
-    # Auto switch to root on login
-    /usr/bin/sudo HOME="$HOME" SSH_TTY="$SSH_TTY" TMUX="$TMUX" /bin/zsh
+    # Auto switch to root on login for centos6 servers
+    /usr/bin/sudo HOME="$HOME" SSH_TTY="$SSH_TTY" TMUX="$TMUX" "$MYSHELL"
 
     # Cleanup home folder on logout
     /usr/bin/sudo find "$HOME"/ -mindepth 1 \( \
@@ -61,7 +61,7 @@ fi
 # Load main configuration
 [ -r ~/.commonrc ] && source ~/.commonrc;
 
-
+# Used in combination with the "u" function to pull in the user's environment
 if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
 
   userEnv=("$(grep -Poh '^\s*source\s*\K.*' /home/${USER}/.bash{rc,_profile})");
@@ -78,16 +78,20 @@ if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
 
 else
 
+  # Expand PATH
   PATH="$PATH":/var/qmail/bin
 
   # Create directories for files used by vim if necessary
   mkdir -p ~/.vimfiles/{backup,swp,undo}
 
+  # Source environment variables provided by login script
   [ -r ~/.environment.sh ] && source ~/.environment.sh;
 
+  # Create directory for preserving client/ticket data
   mkdir -p "$HOME"/clients/"$TICKET";
   export TICKETDIR="${HOME}/clients/${TICKET}";
 
+  # Source actions provided by login script
   [ -r ~/action.sh ] && source ~/action.sh;
 
   # Server health check
