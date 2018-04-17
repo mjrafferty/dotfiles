@@ -689,7 +689,7 @@ u () {
 	setfacl -m u:"$user":rwX "$HOME"
 	setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.vimfiles,.viminfo} 2> /dev/null
 
-	/usr/bin/sudo HOME="$HOME" -u "$user" "$MYSHELL"
+	/usr/bin/sudo HOME="$HOME" TMUX="$TMUX" -u "$user" "$MYSHELL"
 
 	setfacl -R -x u:"$user" ~/
 }

@@ -34,7 +34,7 @@ else
   if [[ "$USER" == "${HOME/*\//}" ]] ; then
 
     # Auto switch to root on login
-    /usr/bin/sudo HOME=$HOME SSH_TTY=$SSH_TTY /bin/zsh
+    /usr/bin/sudo HOME="$HOME" SSH_TTY="$SSH_TTY" TMUX="$TMUX" /bin/zsh
 
     # Cleanup home folder on logout
     /usr/bin/sudo find "$HOME"/ -mindepth 1 \( \
