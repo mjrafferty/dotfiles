@@ -683,9 +683,6 @@ u () {
 
   user="$(pwd | grep -Po "home/\K[^/]*")"
 
-  # Fixes error when sharing history file among several users
-  setopt nohistsavebycopy
-
   touch "$HOME"/.viminfo;
 	setfacl -R -m u:"$user":rX "$HOME" 2> /dev/null
 	setfacl -m u:"$user":rwX "$HOME"
