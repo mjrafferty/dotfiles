@@ -239,7 +239,7 @@ main () {
   local address uri query daemon_time x;
 
   # Parse command line options
-  while getopts "hf:i:u:q:d:k" OPTION $(_cmdline); do
+  while getopts "hi:d:k" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -261,26 +261,40 @@ main () {
 
   done
 
-  tcpdump -l -nn host 192.240.191.2 \
-    | grep -Po --line-buffered '192.240.191.2.\K\d*' \
+  tcpdump -l -nn host "$address" \
+    | grep -Po --line-buffered "${address}.\K\d*" \
     | \
     while (true); do
-      read -r test2;
-      if [[ -n $test2 ]]; then
-        lsof -nP -i :"$test2" \
+
+      read -r port;
+
+      if [[ -n $port ]]; then
+
+        lsof -Pni :"$port" \
           | grep -Po '^\S* \K\d*';
+
+        # Flush stdin
+        while read -re -t 0.1; do : ; done;
+
       fi
+
     done \
       | \
       while (true); do
-        read -r test3;
-        if [[ -n $test3 ]]; then
+
+        read -r pid;
+
+        if [[ -n $pid ]]; then
+
           date "+%F-%T";
-          ps h -lf -p "$test3"
+          ps h -lf -p "$pid"
+
           echo;
-          lsof -p "$test3"
+          lsof -p "$pid"
           printf "\n\n\n"
+
         fi
+
       done
 
   trap "_cleanUp" EXIT;
