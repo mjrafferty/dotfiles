@@ -64,6 +64,8 @@ fi
 # Used in combination with the "u" function to pull in the user's environment
 if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
 
+  setopt nohistsavebycopy
+
   userEnv=("$(grep -Poh '^\s*source\s*\K.*' /home/${USER}/.bash{rc,_profile})");
 
   for x in ${userEnv[*]}; do
