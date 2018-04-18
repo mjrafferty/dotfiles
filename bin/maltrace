@@ -191,18 +191,14 @@ fi
 # Perform setup tasks
 _setup() {
 
-  local x address uri query
-
-  address="$1"
-  uri="$2"
-  query="$3"
+  local x address
 
   # Create output directory if necessary and restrict perms
   [[ -d $OUTPUT_DIR ]] || mkdir "${OUTPUT_DIR}";
   chmod 700 "${OUTPUT_DIR}"
 
   # Create pipe if not already present
-  mkfifo -m 666 "$PIPE_NAME";
+  #mkfifo -m 666 "$PIPE_NAME";
 
 }
 
@@ -245,6 +241,8 @@ main () {
 
   done
 
+  _setup;
+
   tcpdump -l -nn dst "$address" \
     | tee -a "$TRAFFIC_LOG" \
     | grep -Po --line-buffered "${MAIN_IP}.\K\d+" \
@@ -286,8 +284,6 @@ main () {
       done >> "$PROCESS_LOG"
 
   trap "_cleanUp" EXIT;
-
-  #_setup "${address:=$DEFAULT_IP}" "${uri:=NULL}" "${query:=NULL}";
 
   #_monitor "$daemon_time";
 
