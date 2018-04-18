@@ -6,7 +6,9 @@ readonly ARGA=("$@")
 
 # Configurable Variables
 readonly TMP_EXT=".nexcess.bak"
-readonly OUTPUT_DIR="${HOME}/nex_strace"
+readonly OUTPUT_DIR="${HOME}/clients/maltrace/"
+readonly TRAFFIC_LOG="${OUTPUT_DIR}/traffic.log"
+readonly PROCESS_LOG="${OUTPUT_DIR}/process.log"
 readonly PIPE_PREFIX="/tmp/nexcess_strace_pipe-"
 readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
 readonly MAIN_IP="$(ifconfig | grep -Po 'inet addr:\K\S+' | head -n1)"
@@ -51,21 +53,11 @@ _usage() {
 
   -h|--help                        Prints this message.
 
-  -f|--file FILE                   Target file for catching process.
-                                   Usually an index.php, but not always.
-                                   Accepts a comma separated list of files
-                                   for capturing processes at multiple entry
-                                   points.
-
   -i|--ip-address REMOTE_ADDR,all  IP address initiating process.
                                    Default value is Nexcess IP: 192.240.191.2
                                    or the value of \$MY_IP if it is set in your
                                    environment. Special value of 'all' will
                                    match any IP.
-
-  -u|--uri REQUEST_URI             Specific URI to monitor for.
-
-  -q|--query-string QUERY_STRING   Specific query string to monitor for.
 
   -d|--daemonize  HOURS_TO_RUN     Runs program as a daemon for the number of
                                    hours specified.
@@ -88,17 +80,8 @@ _cmdline() {
       "--help"|"-h")
         args="${args}-h "
         ;;
-      "--file"|"-f")
-        args="${args}-f "
-        ;;
       "--ip-address"|"-i")
         args="${args}-i "
-        ;;
-      "--query-string"|"-q")
-        args="${args}-q "
-        ;;
-      "--uri"|"-u")
-        args="${args}-u "
         ;;
       "--daemonize"|"-d")
         args="${args}-d "
@@ -237,7 +220,7 @@ _cleanUp() {
 
 main () {
 
-  local address uri query daemon_time x;
+  local address daemon_time x;
 
   # Parse command line options
   while getopts "hi:d:k" OPTION $(_cmdline); do
@@ -263,7 +246,7 @@ main () {
   done
 
   tcpdump -l -nn dst "$address" \
-    | tee -a ~/clients/log \
+    | tee -a "$TRAFFIC_LOG" \
     | grep -Po --line-buffered "${MAIN_IP}.\K\d+" \
     | \
     while (true); do
@@ -294,13 +277,13 @@ main () {
           date "+%F-%T";
           ps h -lf -p "$pid"
 
-          #echo;
-          #lsof -p "$pid"
-          #printf "\n\n\n"
+          echo;
+          lsof -p "$pid"
+          printf "\n\n\n"
 
         fi
 
-      done
+      done >> "$PROCESS_LOG"
 
   trap "_cleanUp" EXIT;
 
