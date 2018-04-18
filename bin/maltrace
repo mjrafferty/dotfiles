@@ -6,7 +6,7 @@ readonly ARGA=("$@")
 
 # Configurable Variables
 readonly TMP_EXT=".nexcess.bak"
-readonly OUTPUT_DIR="${HOME}/clients/maltrace/"
+readonly OUTPUT_DIR="${HOME}/clients/maltrace"
 readonly TRAFFIC_LOG="${OUTPUT_DIR}/traffic.log"
 readonly PROCESS_LOG="${OUTPUT_DIR}/process.log"
 readonly PIPE_PREFIX="/tmp/nexcess_strace_pipe-"
