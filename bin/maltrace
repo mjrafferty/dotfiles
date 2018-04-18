@@ -276,7 +276,7 @@ main () {
           ps h -lf -p "$pid"
 
           echo;
-          lsof -p "$pid"
+          lsof -Pn -p "$pid"
           printf "\n\n\n"
 
         fi
