@@ -261,8 +261,9 @@ main () {
 
   done
 
-  tcpdump -l -nn host "$address" \
-    | grep -Po --line-buffered "${address}.\K\d*" \
+  tcpdump -l -nn dst "$address" \
+    | tee -a ~/clients/log \
+    | grep -Po --line-buffered "${address}.\K\d+" \
     | \
     while (true); do
 
@@ -270,11 +271,14 @@ main () {
 
       if [[ -n $port ]]; then
 
-        lsof -Pni :"$port" \
-          | grep -Po '^\S* \K\d*';
+        pid=$(lsof -Pni :"$port" | grep -Po '^\S+\s+\K\d+');
 
         # Flush stdin
-        while read -re -t 0.1; do : ; done;
+        while read -re -t 0.1; do
+          : ;
+        done;
+
+        echo "$pid";
 
       fi
 
@@ -289,9 +293,9 @@ main () {
           date "+%F-%T";
           ps h -lf -p "$pid"
 
-          echo;
-          lsof -p "$pid"
-          printf "\n\n\n"
+          #echo;
+          #lsof -p "$pid"
+          #printf "\n\n\n"
 
         fi
 
@@ -299,11 +303,11 @@ main () {
 
   trap "_cleanUp" EXIT;
 
-  _setup "${address:=$DEFAULT_IP}" "${uri:=NULL}" "${query:=NULL}";
+  #_setup "${address:=$DEFAULT_IP}" "${uri:=NULL}" "${query:=NULL}";
 
-  _monitor "$daemon_time";
+  #_monitor "$daemon_time";
 
-  _cleanUp;
+  #_cleanUp;
 
 }
 
