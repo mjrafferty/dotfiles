@@ -9,6 +9,7 @@ readonly TMP_EXT=".nexcess.bak"
 readonly OUTPUT_DIR="${HOME}/nex_strace"
 readonly PIPE_PREFIX="/tmp/nexcess_strace_pipe-"
 readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
+readonly MAIN_IP="$(ifconfig | grep -Po 'inet addr:\K\S+' | head -n1)"
 
 # Alias executables to prevent PATH issues
 alias cat='/bin/cat'
@@ -263,7 +264,7 @@ main () {
 
   tcpdump -l -nn dst "$address" \
     | tee -a ~/clients/log \
-    | grep -Po --line-buffered "${address}.\K\d+" \
+    | grep -Po --line-buffered "${MAIN_IP}.\K\d+" \
     | \
     while (true); do
 
