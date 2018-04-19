@@ -109,8 +109,8 @@ _setup() {
 # Clean up any changes made
 _cleanUp() {
 
-  pkill -P $(pgrep -f maltrace -P 1)
-  kill "$MONITOR_PID" 2> /dev/null
+  pkill -P $MONITOR_PID &> /dev/null
+  kill "$MONITOR_PID" &> /dev/null
 
 }
 
