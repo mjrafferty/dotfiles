@@ -180,7 +180,7 @@ main () {
         address="$OPTARG";
         ;;
       d)
-        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
+        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 60 ))";
         ;;
       k)
         pkill -P $(pgrep -f maltrace -P 1)
@@ -196,6 +196,33 @@ main () {
   _setup;
 
   _monitor "$address";
+
+  MONITOR_PID="$!"
+
+  if [[ $daemon_time ]]; then
+
+    start_time="$(date "+%s")"
+
+    while [[ -e /proc/"$MONITOR_PID" ]]; do
+
+      current_time="$(date "+%s")"
+
+      if (( current_time > (start_time + daemon_time) )) ; then
+        return;
+      fi
+
+      sleep 5;
+
+    done
+  else
+
+    # Handle user exiting capstrace
+
+    printf "Waiting for process. Press enter to stop.\n";
+
+    read -r;
+
+  fi
 
   _cleanUp;
 
