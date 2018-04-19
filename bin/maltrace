@@ -180,7 +180,8 @@ _monitor() {
 
       if [[ -n $port ]]; then
 
-        pid=$(lsof -Pni :"$port" | grep -Po '^\S+\s+\K\d+');
+        #pid=$(lsof -Pni :"$port" | grep -Po '^\S+\s+\K\d+');
+        pid=$(netstat -tnap | grep -Po "${MAIN_IP}:${port}.*\s+\K\d+(?=/\S+\s+$)")
 
         # Flush stdin
         while read -re -t 0.1; do
