@@ -101,7 +101,7 @@ _setup() {
   local x address
 
   # Create output directory if necessary and restrict perms
-  [[ -d $OUTPUT_DIR ]] || mkdir -p "${OUTPUT_DIR}";
+  [[ -d "$OUTPUT_DIR" ]] || mkdir -p "${OUTPUT_DIR}";
   chmod 700 "${OUTPUT_DIR}"
 
 }
@@ -109,7 +109,7 @@ _setup() {
 # Clean up any changes made
 _cleanUp() {
 
-  pkill -P $MONITOR_PID &> /dev/null
+  pkill -P "$MONITOR_PID" &> /dev/null
   kill "$MONITOR_PID" &> /dev/null
 
 }
@@ -118,7 +118,7 @@ _findPid() {
 
   local port;
 
-  while (true); do
+  while [[ -e /proc/"$PPID" ]]; do
 
     read -r port;
 
@@ -136,7 +136,7 @@ _findPid() {
 
 _logData() {
 
-  while (true); do
+  while [[ -e /proc/"$PPID" ]]; do
 
     read -r pid;
 
