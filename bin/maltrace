@@ -196,7 +196,7 @@ main () {
 
   _setup;
 
-  _monitor "$address";
+  _monitor "$address" &
 
   MONITOR_PID="$!"
 
