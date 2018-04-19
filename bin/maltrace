@@ -138,56 +138,6 @@ _strace () {
 
 }
 
-# Monitor for incoming requests
-_monitor () {
-
-  local pid daemon_time start_time current_time
-
-  daemon_time="$1";
-
-  # Perform monitoring in background
-  (while (true); do
-
-  read -r pid;
-
-  if [[ -n $pid ]]; then
-    _strace "$pid" "$daemon_time" &
-  fi
-
-done <"$PIPE_NAME";) &
-
-
-MONITOR_PID="$!"
-
-trap 'return' INT QUIT TERM;
-
-if [[ $daemon_time ]]; then
-
-  start_time="$(date "+%s")"
-
-  while [[ -e /proc/"$MONITOR_PID" ]]; do
-
-    current_time="$(date "+%s")"
-
-    if (( current_time > (start_time + daemon_time) )) ; then
-      return;
-    fi
-
-    sleep 5;
-
-  done
-else
-
-  # Handle user exiting capstrace
-
-  printf "Waiting for process. Press enter to stop.\n";
-
-  read -r;
-
-fi
-
-}
-
 # Perform setup tasks
 _setup() {
 
@@ -214,34 +164,11 @@ _cleanUp() {
 
 }
 
-main () {
+_monitor() {
 
-  local address daemon_time x;
+  local address;
 
-  # Parse command line options
-  while getopts "hi:d:k" OPTION $(_cmdline); do
-
-    case $OPTION in
-      h)
-        _usage;
-        exit 0;
-        ;;
-      i)
-        address="$OPTARG";
-        ;;
-      d)
-        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
-        ;;
-      k)
-        pkill malstrace -P 1
-        exit;
-        ;;
-      *);;
-    esac
-
-  done
-
-  _setup;
+  address="$1"
 
   tcpdump -l -nn dst "$address" \
     | tee -a "$TRAFFIC_LOG" \
@@ -282,6 +209,40 @@ main () {
         fi
 
       done >> "$PROCESS_LOG"
+
+
+}
+
+main () {
+
+  local address daemon_time x;
+
+  # Parse command line options
+  while getopts "hi:d:k" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      i)
+        address="$OPTARG";
+        ;;
+      d)
+        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
+        ;;
+      k)
+        pkill malstrace -P 1
+        exit;
+        ;;
+      *);;
+    esac
+
+  done
+
+  _setup;
+
+  _monitor "$address";
 
   trap "_cleanUp" EXIT;
 
