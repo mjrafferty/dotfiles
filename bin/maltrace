@@ -192,16 +192,12 @@ _monitor() {
 
         read -r pid;
 
-        if [[ -n $pid ]]; then
-
           date "+%F-%T";
           ps h -lf -p "$pid"
 
           echo;
           lsof -Pn -p "$pid"
           printf "\n\n\n"
-
-        fi
 
       done >> "$PROCESS_LOG"
 
