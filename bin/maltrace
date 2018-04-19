@@ -5,12 +5,9 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 # Configurable Variables
-readonly TMP_EXT=".nexcess.bak"
 readonly OUTPUT_DIR="${HOME}/clients/maltrace"
 readonly TRAFFIC_LOG="${OUTPUT_DIR}/traffic.log"
 readonly PROCESS_LOG="${OUTPUT_DIR}/process.log"
-readonly PIPE_PREFIX="/tmp/nexcess_strace_pipe-"
-readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
 readonly MAIN_IP="$(ifconfig | grep -Po 'inet addr:\K\S+' | head -n1)"
 
 # Alias executables to prevent PATH issues
@@ -36,8 +33,6 @@ fi
 
 # Necessary Global Variables
 MONITOR_PID=""
-PIPE_NAME="${PIPE_PREFIX}$(uuidgen)"
-
 
 # Print usage
 _usage() {
@@ -100,65 +95,19 @@ _cmdline() {
 
 }
 
-# Perform strace of request
-_strace () {
-
-  local output pid str_pid daemon_time
-
-  pid="$1";
-  daemon_time="$2";
-
-  output="${OUTPUT_DIR}/$(date "+%F-%T")-$pid-strace";
-
-  strace -fTrvs200000 -o "$output" -p"$pid" &
-
-  str_pid="$!"
-
-  trap 'break' INT QUIT TERM;
-  sleep 0.1;
-
-  # Kill strace once php process becomes idle
-  if [[ -e /proc/"$str_pid" ]]; then
-    while(true); do
-      if tail | grep -qE "^$pid .*(accept\(0|\+\+\+ (killed|exited))"; then
-        kill "$str_pid" 2>/dev/null || echo "$pid exited";
-        break;
-      fi
-    done < "$output"
-  fi
-
-  kill "$str_pid" 2> /dev/null;
-
-  if [[ "$daemon_time" ]]; then
-    gzip "$output";
-  fi
-
-  chmod 600 "${OUTPUT_DIR}"/*
-  chown root. "${OUTPUT_DIR}"/*
-
-}
-
 # Perform setup tasks
 _setup() {
 
   local x address
 
   # Create output directory if necessary and restrict perms
-  [[ -d $OUTPUT_DIR ]] || mkdir "${OUTPUT_DIR}";
+  [[ -d $OUTPUT_DIR ]] || mkdir -p "${OUTPUT_DIR}";
   chmod 700 "${OUTPUT_DIR}"
-
-  # Create pipe if not already present
-  #mkfifo -m 666 "$PIPE_NAME";
 
 }
 
 # Clean up any changes made
 _cleanUp() {
-
-  # Flush pipe to prevent any remaining PHP processes from hanging
-  sleep 0.1;
-  dd if="$PIPE_NAME" iflag=nonblock of=/dev/null &> /dev/null
-  rm -f "$PIPE_NAME";
 
   kill "$MONITOR_PID" 2> /dev/null
 
@@ -191,7 +140,7 @@ _logData() {
     read -r pid;
 
     date "+%F-%T";
-    ps h -lf -p "$pid"
+    ps -lf -p "$pid"
 
     echo;
     lsof -Pn -p "$pid"
@@ -212,7 +161,6 @@ _monitor() {
     | grep -Po --line-buffered "${MAIN_IP}.\K\d+" \
     | _findPid \
     | _logData;
-
 
 }
 
@@ -243,15 +191,13 @@ main () {
 
   done
 
+  trap "_cleanUp" EXIT;
+
   _setup;
 
   _monitor "$address";
 
-  trap "_cleanUp" EXIT;
-
-  #_monitor "$daemon_time";
-
-  #_cleanUp;
+  _cleanUp;
 
 }
 
