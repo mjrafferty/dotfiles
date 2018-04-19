@@ -183,7 +183,7 @@ main () {
         daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
         ;;
       k)
-        pkill malstrace -P 1
+        pkill -P $(pgrep -f maltrace -P 1)
         exit;
         ;;
       *);;
@@ -203,7 +203,7 @@ main () {
 
 # Background script if run in daemon mode
 if echo "$ARGS" | grep -Pq '\s*(-d|--daemonize) \d*'; then
-  main &
+  main &> /dev/null &
 else
   main;
 fi
