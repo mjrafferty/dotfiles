@@ -209,7 +209,7 @@ main () {
       current_time="$(date "+%s")"
 
       if (( current_time > (start_time + daemon_time) )) ; then
-        continue;
+        break;
       fi
 
       sleep 5;
