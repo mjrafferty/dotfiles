@@ -164,6 +164,43 @@ _cleanUp() {
 
 }
 
+_findPid() {
+
+  local port;
+
+  while (true); do
+
+    read -r port;
+
+    netstat -tnap \
+      | grep -Po "${MAIN_IP}:${port}.*\s+\K\d+(?=/\S+\s+$)"
+
+    # Flush stdin
+    while read -re -t 0.1; do
+      : ;
+    done;
+
+  done
+
+}
+
+_logData() {
+
+  while (true); do
+
+    read -r pid;
+
+    date "+%F-%T";
+    ps h -lf -p "$pid"
+
+    echo;
+    lsof -Pn -p "$pid"
+    printf "\n\n\n"
+
+  done >> "$PROCESS_LOG"
+
+}
+
 _monitor() {
 
   local address;
@@ -173,33 +210,8 @@ _monitor() {
   tcpdump -l -nn dst "$address" \
     | tee -a "$TRAFFIC_LOG" \
     | grep -Po --line-buffered "${MAIN_IP}.\K\d+" \
-    | \
-    while (true); do
-
-      read -r port;
-
-        netstat -tnap \
-          | grep -Po "${MAIN_IP}:${port}.*\s+\K\d+(?=/\S+\s+$)"
-
-        # Flush stdin
-        while read -re -t 0.1; do
-          : ;
-        done;
-
-    done \
-      | \
-      while (true); do
-
-        read -r pid;
-
-          date "+%F-%T";
-          ps h -lf -p "$pid"
-
-          echo;
-          lsof -Pn -p "$pid"
-          printf "\n\n\n"
-
-      done >> "$PROCESS_LOG"
+    | _findPid \
+    | _logData;
 
 
 }
