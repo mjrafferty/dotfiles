@@ -167,7 +167,7 @@ _monitor() {
 
 main () {
 
-  local address daemon_time x;
+  local address daemon_time x main_pid;
 
   # Parse command line options
   while getopts "hi:d:k" OPTION $(_cmdline); do
@@ -184,7 +184,9 @@ main () {
         daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 60 ))";
         ;;
       k)
-        pkill -P $(pgrep -f maltrace -P 1)
+        main_pid="$(pgrep -o maltrace -P 1)";
+        MONITOR_PID="$(pgrep -oP "$main_pid")";
+        _cleanUp;
         exit;
         ;;
       *);;
