@@ -227,8 +227,6 @@ main () {
 
   fi
 
-  _cleanUp;
-
 }
 
 # Background script if run in daemon mode
