@@ -217,6 +217,9 @@ main () {
       sleep 5;
 
     done
+
+    _cleanUp;
+
   else
 
     # Handle user exiting capstrace
