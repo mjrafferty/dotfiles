@@ -181,7 +181,7 @@ main () {
         address="$OPTARG";
         ;;
       d)
-        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 60 ))";
+        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
         ;;
       k)
         main_pid="$(pgrep -o maltrace -P 1)";
