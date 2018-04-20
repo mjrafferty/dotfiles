@@ -98,8 +98,6 @@ _cmdline() {
 # Perform setup tasks
 _setup() {
 
-  local x address
-
   # Create output directory if necessary and restrict perms
   [[ -d "$OUTPUT_DIR" ]] || mkdir -p "${OUTPUT_DIR}";
   chmod 700 "${OUTPUT_DIR}"
@@ -136,6 +134,8 @@ _findPid() {
 
 _logData() {
 
+  local pid;
+
   while [[ -e /proc/"$PPID" ]]; do
 
     read -r pid;
@@ -167,7 +167,7 @@ _monitor() {
 
 main () {
 
-  local address daemon_time x main_pid;
+  local address daemon_time x main_pid start_time current_time;
 
   # Parse command line options
   while getopts "hi:d:k" OPTION $(_cmdline); do
