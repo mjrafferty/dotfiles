@@ -280,16 +280,12 @@ main () {
 
   PROCESS_DATA=$(ps -C php-fpm,httpd,memcached,redis-server,mysqld,haproxy,varnishd,pound -o user,pid,cmd);
 
-  echo;
-
   # Run all functions in parallel
   for x in ${func_list[*]}; do
     $x &
   done
 
   wait;
-
-  echo;
 
 }
 
