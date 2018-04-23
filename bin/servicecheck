@@ -61,6 +61,30 @@ _cmdline() {
       "--help"|"-h")
         args="${args}-h "
         ;;
+      "--php-fpm"|"-p")
+        args="${args}-p "
+        ;;
+      "--apache"|"-a")
+        args="${args}-a "
+        ;;
+      "--memcached"|"-M")
+        args="${args}-M "
+        ;;
+      "--redis"|"-r")
+        args="${args}-r "
+        ;;
+      "--mysqld"|"-m")
+        args="${args}-m "
+        ;;
+      "--haproxy"|"-H")
+        args="${args}-H "
+        ;;
+      "--varnish"|"-v")
+        args="${args}-v "
+        ;;
+      "--pound"|"-P")
+        args="${args}-P "
+        ;;
       *)
         args="${args}${x} "
         ;;
@@ -217,12 +241,36 @@ _pound() {
 # Main
 main () {
 
-  while getopts "h" OPTION $(_cmdline); do
+  while getopts "hpaMrmHvP" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
         _usage;
         exit 0;
+        ;;
+      p)
+        _php;
+        ;;
+      a)
+        _httpd;
+        ;;
+      M)
+        _memcached;
+        ;;
+      r)
+        _redis;
+        ;;
+      m)
+        _mysqld;
+        ;;
+      H)
+        _haproxy;
+        ;;
+      v)
+        _varnish;
+        ;;
+      P)
+        _pound;
         ;;
       *)
         ;;
