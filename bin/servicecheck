@@ -72,9 +72,9 @@ _cmdline() {
 
 }
 
+# Check php
 _php() {
 
-  # Check php
   configured_phps=($(find /etc/rc.d/rc3.d/ -name 'S*php*fpm' | grep -Po '...\Kphp.*fpm'));
   running_phps=($(echo "$PROCESS_DATA" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$6); print $6}'));
 
@@ -96,9 +96,9 @@ _php() {
 
 }
 
+# Check httpd
 _httpd () {
 
-  # Check httpd
   configured_httpd=($(find /etc/rc.d/rc3.d/ -name 'S*httpd' ));
   running_httpd=($(echo "$PROCESS_DATA" | grep -Po "^root.*\Khttpd"));
 
@@ -110,9 +110,9 @@ _httpd () {
 
 }
 
+# Check memcached instances
 _memcached() {
 
-  # Check memcached instances
   configured_memcached=($(find /etc/sysconfig -mindepth 1 | grep -Po "/etc/sysconfig/memcached\.\K\S*"));
   running_memcached=($(echo "$PROCESS_DATA" | grep -Po "memcached\..*\.pid"));
 
@@ -134,9 +134,9 @@ _memcached() {
 
 }
 
+# Check redis instances
 _redis() {
 
-  # Check redis instances
   configured_redis=($(find /etc/redis-multi/ -mindepth 1 | grep -Po "multi_[a-z]*\.\K.*(?=.conf)"));
   running_redis=($(echo "$PROCESS_DATA" | grep -Po "^\S*(?=.*redis-server)" ));
 
@@ -158,9 +158,9 @@ _redis() {
 
 }
 
+# Check mysqld
 _mysqld() {
 
-  # Check mysqld
   configured_mysqld=($(find /etc/rc.d/rc3.d/ -name 'S*mysqld'));
   running_mysqld=($(echo "$PROCESS_DATA" | grep -Po "\S*mysqld "));
 
@@ -172,16 +172,46 @@ _mysqld() {
 
 }
 
+# Check haproxy
 _haproxy() {
-  :
+
+  configured_haproxy=($(find /etc/rc.d/rc3.d/ -name 'S*haproxy'));
+  running_haproxy=($(echo "$PROCESS_DATA" | grep -Po "\S*haproxy "));
+
+  if (( ${#running_haproxy[@]} < ${#configured_haproxy[@]} )); then
+
+    echo "Haproxy service is DOWN";
+
+  fi
+
 }
 
+# Check varnish
 _varnish() {
-  :
+
+  configured_varnish=($(find /etc/rc.d/rc3.d/ -name 'S*varnish'));
+  running_varnish=($(echo "$PROCESS_DATA" | grep -Po "\S*varnish "));
+
+  if (( ${#running_varnish[@]} < ${#configured_varnish[@]} )); then
+
+    echo "Varnish service is DOWN";
+
+  fi
+
 }
 
+# Check pound
 _pound() {
-  :
+
+  configured_pound=($(find /etc/rc.d/rc3.d/ -name 'S*pound'));
+  running_pound=($(echo "$PROCESS_DATA" | grep -Po "\S*pound "));
+
+  if (( ${#running_pound[@]} < ${#configured_pound[@]} )); then
+
+    echo "Pound service is DOWN";
+
+  fi
+
 }
 
 # Main
@@ -202,7 +232,7 @@ main () {
 
   local func_list=(_php _httpd _memcached _redis _mysqld _haproxy _varnish _pound)
 
-  PROCESS_DATA=$(ps -C redis-server,memcached,php-fpm,mysqld,httpd -o user,pid,cmd);
+  PROCESS_DATA=$(ps -C php-fpm,httpd,memcached,redis-server,mysqld,haproxy,varnishd,pound -o user,pid,cmd);
 
   echo;
 
