@@ -75,7 +75,7 @@ _cmdline() {
 _php() {
 
   # Check php
-  configured_phps=($(find /etc/rc.d/rc3.d/ -name 'S.*php.*fpm' | grep -Po '...\Kphp.*fpm'));
+  configured_phps=($(find /etc/rc.d/rc3.d/ -name 'S*php*fpm' | grep -Po '...\Kphp.*fpm'));
   running_phps=($(echo "$PROCESS_DATA" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$6); print $6}'));
 
   if [[ "${#configured_phps[@]}" != "${#running_phps[@]}" ]]; then
@@ -99,7 +99,7 @@ _php() {
 _httpd () {
 
   # Check httpd
-  configured_httpd=($(find /etc/rc.d/rc3.d/ -name 'S.*httpd' ));
+  configured_httpd=($(find /etc/rc.d/rc3.d/ -name 'S*httpd' ));
   running_httpd=($(echo "$PROCESS_DATA" | grep -Po "^root.*\Khttpd"));
 
   if [[ "${#configured_httpd[@]}" != "${#running_httpd[@]}" ]]; then
@@ -161,7 +161,7 @@ _redis() {
 _mysqld() {
 
   # Check mysqld
-  configured_mysqld=($(find /etc/rc.d/rc3.d/ -name 'S.*mysqld'));
+  configured_mysqld=($(find /etc/rc.d/rc3.d/ -name 'S*mysqld'));
   running_mysqld=($(echo "$PROCESS_DATA" | grep -Po "\S*mysqld "));
 
   if [[ "${#configured_mysqld[@]}" != "${#running_mysqld[@]}" ]]; then
