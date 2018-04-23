@@ -113,9 +113,7 @@ _php() {
         echo "$x is DOWN";
 
       fi
-
     done
-
   fi
 
 }
@@ -149,9 +147,7 @@ _memcached() {
         echo "Memcached instance $x is DOWN";
 
       fi
-
     done
-
   fi
 
 }
@@ -159,23 +155,21 @@ _memcached() {
 # Check redis instances
 _redis() {
 
-  configured_redis=($(find /etc/redis-multi/ -mindepth 1 | grep -Po "multi_[a-z]*\.\K.*(?=.conf)"));
-  running_redis=($(echo "$PROCESS_DATA" | grep -Po "^\S*(?=.*redis-server)" ));
+  configured_redis=($(grep -Po '^\s*\Kport.*' /etc/redis-multi/* | sed -r 's|/etc/redis-multi/(redis-multi_)?(.*).conf:port (\d*)|\2+\3|'));
+  running_redis=($(echo "$PROCESS_DATA" | grep -Po 'redis-server 127.0.0.1:\K\d*' ));
 
   if (( ${#running_redis[@]} < ${#configured_redis[@]} )); then
 
-    redis_instances=$(lsof -U -ap"$(echo "$PROCESS_DATA" | awk 'BEGIN{ORS=",";} /redis-server/ {print $2}')" -Fn)
-
     for x in ${configured_redis[*]}; do
 
-      if ! echo "$redis_instances" | grep -q "$x"; then
+      if [[ ${x/*+/} != "0" ]]; then
 
-        echo "Redis instance $x is DOWN";
+        if ! echo "${running_redis[*]}" | grep -Pq "^${x}$"; then
+          echo "Redis instance ${x/+[0-9]*/} is DOWN";
+        fi
 
       fi
-
     done
-
   fi
 
 }
