@@ -138,7 +138,7 @@ _httpd () {
 _memcached() {
 
   configured_memcached=($(find /etc/{sysconfig,memcached-multi} -type f | grep -Po '/etc/(sysconfig/\Kmemcached\.|memcached-multi/\K).*'));
-  running_memcached=($(echo "$PROCESS_DATA" | grep -Po '[^/]*(?=.pid.*)'));
+  running_memcached=($(echo "$PROCESS_DATA" | awk '{ if ($3=="memcached"){print $0}}' | grep -Po '[^/]*(?=.pid.*)'));
 
   if (( ${#running_memcached[@]} < ${#configured_memcached[@]} )); then
 
