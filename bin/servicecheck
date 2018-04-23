@@ -1,0 +1,220 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+alias awk='/bin/awk'
+alias cat='/bin/cat'
+alias cut='/bin/cut'
+alias df='/bin/df'
+alias find='/bin/find'
+alias grep='/bin/grep'
+alias head='/usr/bin/head'
+alias mysql='/usr/bin/mysql'
+alias ps='/bin/ps'
+alias sed='/bin/sed'
+alias sort='/bin/sort'
+alias wc='/usr/bin/wc'
+
+# Necessary Global Variables
+PROCESS_DATA=""
+
+# Show usage
+_usage() {
+  cat <<- EOF
+
+Serverhealth was created to be run upon login to a server
+and provide immediate information on potentially problematic
+conditions. With no arguments, it will run all tests simultaneously.
+Individual tests can be run with the options below.
+
+Options:
+
+  -l  --load          Report on high load average
+
+  -m  --memory        Report low RAM and/or swap space
+
+  -p  --php           Show users at/near max child processes
+
+  -a  --apache        Report if apache is at/near max clients
+
+  -d  --disk          Show disk partitions that are nearly full
+
+  -s  --services      Report important services that may be down. Monitored
+                      services are:
+
+                        php-fpm, apache, mysqld, memcached, redis
+
+  -q  --queries       Show long running query count if there are many
+
+EOF
+}
+
+# Parse long command line options
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+
+  done
+
+  echo "$args";
+
+}
+
+_php() {
+
+  # Check php
+  configured_phps=($(find /etc/rc.d/rc3.d/ -name 'S.*php.*fpm' | grep -Po '...\Kphp.*fpm'));
+  running_phps=($(echo "$PROCESS_DATA" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$6); print $6}'));
+
+  if [[ "${#configured_phps[@]}" != "${#running_phps[@]}" ]]; then
+
+    php_instances=$(echo "$PROCESS_DATA" | grep -Po "php-fpm: master process \(\K.*" | sed -rn -e 's/.*(php[0-9]{2}u).*(php-fpm).*/\1-\2/p' -e 's/^\/etc\/(php-fpm).*/\1/p')
+
+    for x in ${configured_phps[*]}; do
+
+      if ! echo "$php_instances" | grep -qx "$x"; then
+
+        echo "$x is DOWN";
+
+      fi
+
+    done
+
+  fi
+
+}
+
+_httpd () {
+
+  # Check httpd
+  configured_httpd=($(find /etc/rc.d/rc3.d/ -name 'S.*httpd' ));
+  running_httpd=($(echo "$PROCESS_DATA" | grep -Po "^root.*\Khttpd"));
+
+  if [[ "${#configured_httpd[@]}" != "${#running_httpd[@]}" ]]; then
+
+    echo "Apache is DOWN";
+
+  fi
+
+}
+
+_memcached() {
+
+  # Check memcached instances
+  configured_memcached=($(find /etc/sysconfig -mindepth 1 | grep -Po "/etc/sysconfig/memcached\.\K\S*"));
+  running_memcached=($(echo "$PROCESS_DATA" | grep -Po "memcached\..*\.pid"));
+
+  if [[ "${#configured_memcached[@]}" != "${#running_memcached[@]}" ]]; then
+
+    memcached_instances="$(echo "$PROCESS_DATA" | grep -Po '\-P /var/tmp/memcached\.\K\S*(?=.pid)')"
+
+    for x in ${configured_memcached[*]}; do
+
+      if ! echo "$memcached_instances" | grep -q "$x"; then
+
+        echo "Memcached instance $x is DOWN";
+
+      fi
+
+    done
+
+  fi
+
+}
+
+_redis() {
+
+  # Check redis instances
+  configured_redis=($(find /etc/redis-multi/ -mindepth 1 | grep -Po "multi_[a-z]*\.\K.*(?=.conf)"));
+  running_redis=($(echo "$PROCESS_DATA" | grep -Po "^\S*(?=.*redis-server)" ));
+
+  if [[ "${#configured_redis[@]}" != "${#running_redis[@]}" ]]; then
+
+    redis_instances=$(lsof -U -ap"$(echo "$PROCESS_DATA" | awk 'BEGIN{ORS=",";} /redis-server/ {print $2}')" -Fn)
+
+    for x in ${configured_redis[*]}; do
+
+      if ! echo "$redis_instances" | grep -q "$x"; then
+
+        echo "Redis instance $x is DOWN";
+
+      fi
+
+    done
+
+  fi
+
+}
+
+_mysqld() {
+
+  # Check mysqld
+  configured_mysqld=($(find /etc/rc.d/rc3.d/ -name 'S.*mysqld'));
+  running_mysqld=($(echo "$PROCESS_DATA" | grep -Po "\S*mysqld "));
+
+  if [[ "${#configured_mysqld[@]}" != "${#running_mysqld[@]}" ]]; then
+
+    echo "MySQLd service is DOWN";
+
+  fi
+
+}
+
+_haproxy() {
+  :
+}
+
+_varnish() {
+  :
+}
+
+_pound() {
+  :
+}
+
+# Main
+main () {
+
+  while getopts "h" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      *)
+        ;;
+    esac
+
+  done
+
+  local func_list=(_php _httpd _memcached _redis _mysqld _haproxy _varnish _pound)
+
+  PROCESS_DATA=$(ps -C redis-server,memcached,php-fpm,mysqld,httpd -o user,pid,cmd);
+
+  echo;
+
+  # Run all functions in parallel
+  for x in ${func_list[*]}; do
+    $x &
+  done
+
+  wait;
+
+  echo;
+
+}
+
+main;

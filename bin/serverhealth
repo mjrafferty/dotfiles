@@ -240,101 +240,6 @@ _maxclients () {
 
 }
 
-# Check to see if critical services are running
-_checkservices () {
-
-  local process_data configured_phps running_phps php_instances configured_httpd running_httpd configured_memcached \
-    running_memcached memcached_instances configured_redis running_redis redis_instances configured_mysqld running_mysqld;
-
-  process_data=$(ps -C redis-server,memcached,php-fpm,mysqld,httpd -o user,pid,cmd);
-
-
-  # Check php
-  configured_phps=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kphp.*fpm'));
-  running_phps=($(echo "$process_data" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$6); print $6}'));
-
-  if [[ "${#configured_phps[@]}" != "${#running_phps[@]}" ]]; then
-
-    php_instances=$(echo "$process_data" | grep -Po "php-fpm: master process \(\K.*" | sed -rn -e 's/.*(php[0-9]{2}u).*(php-fpm).*/\1-\2/p' -e 's/^\/etc\/(php-fpm).*/\1/p')
-
-    for x in ${configured_phps[*]}; do
-
-      if ! echo "$php_instances" | grep -qx "$x"; then
-
-        echo "$x is DOWN";
-
-      fi
-
-    done
-
-  fi
-
-
-  # Check httpd
-  configured_httpd=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Khttpd'));
-  running_httpd=($(echo "$process_data" | grep -Po "^root.*\Khttpd"));
-
-  if [[ "${#configured_httpd[@]}" != "${#running_httpd[@]}" ]]; then
-
-    echo "Apache is DOWN";
-
-  fi
-
-
-  # Check memcached instances
-  configured_memcached=($(find /etc/sysconfig -mindepth 1 | grep -Po "/etc/sysconfig/memcached\.\K\S*"));
-  running_memcached=($(echo "$process_data" | grep -Po "memcached\..*\.pid"));
-
-  if [[ "${#configured_memcached[@]}" != "${#running_memcached[@]}" ]]; then
-
-    memcached_instances="$(echo "$process_data" | grep -Po '\-P /var/tmp/memcached\.\K\S*(?=.pid)')"
-
-    for x in ${configured_memcached[*]}; do
-
-      if ! echo "$memcached_instances" | grep -q "$x"; then
-
-        echo "Memcached instance $x is DOWN";
-
-      fi
-
-    done
-
-  fi
-
-
-  # Check redis instances
-  configured_redis=($(find /etc/redis-multi/ -mindepth 1 | grep -Po "multi_[a-z]*\.\K.*(?=.conf)"));
-  running_redis=($(echo "$process_data" | grep -Po "^\S*(?=.*redis-server)" ));
-
-  if [[ "${#configured_redis[@]}" != "${#running_redis[@]}" ]]; then
-
-    redis_instances=$(lsof -U -ap"$(echo "$process_data" | awk 'BEGIN{ORS=",";} /redis-server/ {print $2}')" -Fn)
-
-    for x in ${configured_redis[*]}; do
-
-      if ! echo "$redis_instances" | grep -q "$x"; then
-
-        echo "Redis instance $x is DOWN";
-
-      fi
-
-    done
-
-  fi
-
-
-  # Check mysqld
-  configured_mysqld=($(find /etc/rc.d/rc3.d/ | grep -Po '...\Kmysqld'));
-  running_mysqld=($(echo "$process_data" | grep -Po "\S*mysqld "));
-
-  if [[ "${#configured_mysqld[@]}" != "${#running_mysqld[@]}" ]]; then
-
-    echo "MySQLd service is DOWN";
-
-  fi
-
-}
-
 # Main
 main () {
 
@@ -377,10 +282,11 @@ main () {
 
   done
 
-  local func_list=(_longrunqueries _maxphpprocs _maxclients _memcheck _loadavgchk _partitioncheck _inodecheck _checkservices)
+  local func_list=(_longrunqueries _maxphpprocs _maxclients _memcheck _loadavgchk _partitioncheck _inodecheck )
 
   echo;
 
+  servicecheck &
   # Run all functions in parallel
   for x in ${func_list[*]}; do
     $x &
