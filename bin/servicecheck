@@ -235,6 +235,8 @@ _pound() {
 # Main
 main () {
 
+  PROCESS_DATA=$(ps -C php-fpm,httpd,memcached,redis-server,mysqld,haproxy,varnishd,pound -o user,pid,cmd);
+
   while getopts "hpaMrmHvP" OPTION $(_cmdline); do
 
     case $OPTION in
@@ -274,7 +276,6 @@ main () {
 
   local func_list=(_php _httpd _memcached _redis _mysqld _haproxy _varnish _pound)
 
-  PROCESS_DATA=$(ps -C php-fpm,httpd,memcached,redis-server,mysqld,haproxy,varnishd,pound -o user,pid,cmd);
 
   # Run all functions in parallel
   for x in ${func_list[*]}; do
