@@ -78,7 +78,7 @@ _php() {
   configured_phps=($(find /etc/rc.d/rc3.d/ -name 'S*php*fpm' | grep -Po '...\Kphp.*fpm'));
   running_phps=($(echo "$PROCESS_DATA" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$6); print $6}'));
 
-  if [[ "${#configured_phps[@]}" != "${#running_phps[@]}" ]]; then
+  if (( ${#running_phps[@]} < ${#configured_phps[@]} )); then
 
     php_instances=$(echo "$PROCESS_DATA" | grep -Po "php-fpm: master process \(\K.*" | sed -rn -e 's/.*(php[0-9]{2}u).*(php-fpm).*/\1-\2/p' -e 's/^\/etc\/(php-fpm).*/\1/p')
 
@@ -102,7 +102,7 @@ _httpd () {
   configured_httpd=($(find /etc/rc.d/rc3.d/ -name 'S*httpd' ));
   running_httpd=($(echo "$PROCESS_DATA" | grep -Po "^root.*\Khttpd"));
 
-  if [[ "${#configured_httpd[@]}" != "${#running_httpd[@]}" ]]; then
+  if (( ${#running_httpd[@]} < ${#configured_httpd[@]} )); then
 
     echo "Apache is DOWN";
 
@@ -116,7 +116,7 @@ _memcached() {
   configured_memcached=($(find /etc/sysconfig -mindepth 1 | grep -Po "/etc/sysconfig/memcached\.\K\S*"));
   running_memcached=($(echo "$PROCESS_DATA" | grep -Po "memcached\..*\.pid"));
 
-  if [[ "${#configured_memcached[@]}" != "${#running_memcached[@]}" ]]; then
+  if (( ${#running_memcached[@]} < ${#configured_memcached[@]} )); then
 
     memcached_instances="$(echo "$PROCESS_DATA" | grep -Po '\-P /var/tmp/memcached\.\K\S*(?=.pid)')"
 
@@ -140,7 +140,7 @@ _redis() {
   configured_redis=($(find /etc/redis-multi/ -mindepth 1 | grep -Po "multi_[a-z]*\.\K.*(?=.conf)"));
   running_redis=($(echo "$PROCESS_DATA" | grep -Po "^\S*(?=.*redis-server)" ));
 
-  if [[ "${#configured_redis[@]}" != "${#running_redis[@]}" ]]; then
+  if (( ${#running_redis[@]} < ${#configured_redis[@]} )); then
 
     redis_instances=$(lsof -U -ap"$(echo "$PROCESS_DATA" | awk 'BEGIN{ORS=",";} /redis-server/ {print $2}')" -Fn)
 
@@ -164,7 +164,7 @@ _mysqld() {
   configured_mysqld=($(find /etc/rc.d/rc3.d/ -name 'S*mysqld'));
   running_mysqld=($(echo "$PROCESS_DATA" | grep -Po "\S*mysqld "));
 
-  if [[ "${#configured_mysqld[@]}" != "${#running_mysqld[@]}" ]]; then
+  if (( ${#running_mysqld[@]} < ${#configured_mysqld[@]} )); then
 
     echo "MySQLd service is DOWN";
 
