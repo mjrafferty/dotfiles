@@ -155,7 +155,7 @@ _memcached() {
 # Check redis instances
 _redis() {
 
-  configured_redis=($(grep -Po '^\s*\Kport.*' /etc/redis-multi/* 2> /dev/null | sed -r 's|/etc/redis-multi/((redis-multi_)?.*).conf:port (\d*)|\1+\3|'));
+  configured_redis=($(grep -PoH '^\s*\Kport.*' /etc/redis-multi/* 2> /dev/null | sed -r 's|/etc/redis-multi/((redis-multi_)?.*).conf:port (\d*)|\1+\3|'));
   running_redis=($(echo "$PROCESS_DATA" | grep -Po 'redis-server 127.0.0.1:\K\d*' ));
 
   if (( ${#running_redis[@]} < ${#configured_redis[@]} )); then
