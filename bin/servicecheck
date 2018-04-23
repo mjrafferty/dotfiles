@@ -137,16 +137,14 @@ _httpd () {
 # Check memcached instances
 _memcached() {
 
-  configured_memcached=($(find /etc/sysconfig -mindepth 1 | grep -Po "/etc/sysconfig/memcached\.\K\S*"));
-  running_memcached=($(echo "$PROCESS_DATA" | grep -Po "memcached\..*\.pid"));
+  configured_memcached=($(find /etc/{sysconfig,memcached-multi} -type f | grep -Po '/etc/(sysconfig/\Kmemcached\.|memcached-multi/\K).*'));
+  running_memcached=($(echo "$PROCESS_DATA" | grep -Po '[^/]*(?=.pid.*)'));
 
   if (( ${#running_memcached[@]} < ${#configured_memcached[@]} )); then
 
-    memcached_instances="$(echo "$PROCESS_DATA" | grep -Po '\-P /var/tmp/memcached\.\K\S*(?=.pid)')"
-
     for x in ${configured_memcached[*]}; do
 
-      if ! echo "$memcached_instances" | grep -q "$x"; then
+      if ! echo "${running_memcached[*]}" | grep -Pq "\s*${x}\s*"; then
 
         echo "Memcached instance $x is DOWN";
 
