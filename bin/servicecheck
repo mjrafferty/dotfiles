@@ -174,7 +174,7 @@ _redis() {
 
           fi
 
-        elif ! grep -Pq "\s+/var/run/redis-mult-${x/+[0-9]*/}/redis.sock" /proc/net/unix; then
+        elif ! grep -Pq "\s+/var/run/redis-multi-${x/+[0-9]*/}/redis.sock" /proc/net/unix; then
 
           echo "Redis instance ${x/+[0-9]*/} is DOWN";
 
