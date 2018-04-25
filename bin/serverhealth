@@ -5,7 +5,6 @@ readonly ARGA=("$@")
 
 readonly OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release);
 
-
 alias awk='/bin/awk'
 alias cat='/bin/cat'
 alias df='/bin/df'

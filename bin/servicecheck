@@ -16,6 +16,8 @@ alias sed='/bin/sed'
 alias sort='/bin/sort'
 alias wc='/usr/bin/wc'
 
+readonly OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release);
+
 # Necessary Global Variables
 PROCESS_DATA=""
 
@@ -162,14 +164,36 @@ _redis() {
 
     for x in ${configured_redis[*]}; do
 
-      if [[ ${x/*+/} != "0" ]]; then
+      if (( OS_VERSION == 7 )); then
 
-        if ! echo "${running_redis[*]}" | grep -Pq "^${x}$"; then
+        if [[ ${x/*+/} != "0" ]]; then
+
+          if ! echo "${running_redis[*]}" | grep -Pq "^${x}$"; then
+
+            echo "Redis instance ${x/+[0-9]*/} is DOWN";
+
+          fi
+
+        elif ! grep -Pq "\s+/var/run/redis-mult-${x/+[0-9]*/}/redis.sock" /proc/net/unix; then
+
           echo "Redis instance ${x/+[0-9]*/} is DOWN";
-        fi
 
-      elif ! grep -Pq "\s+/var/(tmp|run/redis-multi)/${x/+[0-9]*/}.sock" /proc/net/unix; then
-        echo "Redis instance ${x/+[0-9]*/} is DOWN";
+        fi
+      else
+
+        if [[ ${x/*+/} != "0" ]]; then
+
+          if ! echo "${running_redis[*]}" | grep -Pq "^${x}$"; then
+
+            echo "Redis instance ${x/+[0-9]*/} is DOWN";
+
+          fi
+
+        elif ! grep -Pq "\s+/var/(tmp|run/redis-multi)/${x/+[0-9]*/}.sock" /proc/net/unix; then
+
+          echo "Redis instance ${x/+[0-9]*/} is DOWN";
+
+        fi
       fi
     done
   fi
