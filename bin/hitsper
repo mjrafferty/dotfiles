@@ -48,6 +48,24 @@ END {
     }
   }
 
+  # Fills in times when there are zero hits to improve visualization
+  tinc=tstart;
+  while(tinc!=tstop){
+    hits[tinc]+=0;
+
+    split(tinc,temp);
+
+    ttemp[2]+=i;
+
+    if(ttemp[2]>=60){
+      ttemp[1]++;
+      ttemp[2]=ttemp[2]%60;
+    }
+
+    tinc=ttemp[1]":"ttemp[2];
+
+  }
+
   # Sort the array because awk
   n=asorti(hits,hits2)
 
@@ -66,5 +84,4 @@ END {
     printf "\n"
   }
   printf "\n"
-  printf "%s\t%s",tstart,tstop;
 }
