@@ -221,7 +221,7 @@ _mysqld() {
   else
     configured_mysqld=($(find /etc/rc.d/rc3.d/ -name 'S*mysqld'));
   fi
-  running_mysqld=($(echo "$PROCESS_DATA" | grep -Po "\s*\K/usr/sbin/mysqld\s*"));
+  running_mysqld=($(echo "$PROCESS_DATA" | grep -Po "\s*\K/usr/(libexec|sbin)/mysqld\s*"));
 
   if (( ${#running_mysqld[@]} < ${#configured_mysqld[@]} )); then
 
