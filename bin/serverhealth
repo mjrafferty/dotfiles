@@ -109,13 +109,13 @@ _memcheck () {
   swptotal=$(sed -n 's/SwapTotal:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
   swpfree=$(sed -n 's/SwapFree:\s*\([0-9]*\).*/\1/p' /proc/meminfo)
 
-  if [ "$active" -ge "$((9 * total / 10))" ]; then
+  if (( active >= (9 * total / 10) )); then
 
     echo "System memory low";
 
   fi
 
-  if [ "$swpfree" -le "$((swptotal / 10))" ]; then
+  if (( swpfree > 0 && swpfree <= (swptotal / 10) )); then
 
     echo "Swap low";
 
