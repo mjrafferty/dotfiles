@@ -293,7 +293,7 @@ _nginx() {
   else
     configured_nginx=($(find /etc/rc.d/rc3.d/ -name 'S*nginx'));
   fi
-  running_nginx=($(echo "$PROCESS_DATA" | grep -Po "nginx:\s+master\s+process\s+\K/usr/bin/nginx"));
+  running_nginx=($(echo "$PROCESS_DATA" | grep -Po "nginx:\s+master\s+process\s+\K/usr/sbin/nginx"));
 
   if (( ${#running_nginx[@]} < ${#configured_nginx[@]} )); then
 
