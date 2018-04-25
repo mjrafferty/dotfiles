@@ -3,9 +3,11 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release);
+
+
 alias awk='/bin/awk'
 alias cat='/bin/cat'
-alias cut='/bin/cut'
 alias df='/bin/df'
 alias find='/bin/find'
 alias grep='/bin/grep'
@@ -202,9 +204,20 @@ _maxphpprocs () {
 
   for ((x=0;x<"${#users[@]}";x++)); do
 
-    max="$(find {/opt/nexcess/php*/root,}/etc/php-fpm.d/*.conf -name "${users[$x]}.conf" \
-      -exec /bin/awk -F '=' '/^[^#;]*pm.max_children/{ gsub(/\ [^0-9]*$/,"",$2); gsub(/^\ */,"",$2); print $2  }' {} + \
-      | head -n1)"
+
+    if [[ $OS_VERSION == 7 ]]; then
+
+      max="$(find /opt/remi/php*/root/etc/php-fpm.d/*.conf -name "${users[$x]}.conf" \
+        -exec /bin/awk -F '=' '/^[^#;]*pm.max_children/{ gsub(/\ [^0-9]*$/,"",$2); gsub(/^\ */,"",$2); print $2  }' {} + \
+        | head -n1)"
+
+    else
+
+      max="$(find {/opt/nexcess/php*/root,}/etc/php-fpm.d/*.conf -name "${users[$x]}.conf" \
+        -exec /bin/awk -F '=' '/^[^#;]*pm.max_children/{ gsub(/\ [^0-9]*$/,"",$2); gsub(/^\ */,"",$2); print $2  }' {} + \
+        | head -n1)"
+
+    fi
 
     if [ "${numprocs[$x]}" -ge "$max" ]; then
 
@@ -278,6 +291,7 @@ main () {
         _checkservices;
         exit 0;
         ;;
+      *);;
     esac
 
   done
