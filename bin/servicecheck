@@ -137,7 +137,7 @@ _httpd () {
 # Check memcached instances
 _memcached() {
 
-  configured_memcached=($(find /etc/{sysconfig,memcached-multi} -type f 2> /dev/null | grep -Po '/etc/(sysconfig/\Kmemcached\.|memcached-multi/\K).*'));
+  configured_memcached=($(find /etc/{sysconfig,memcached-multi} -type f -not -name "*.rpmnew" 2> /dev/null | grep -Po '/etc/(sysconfig/\Kmemcached\.|memcached-multi/\K).*'));
   running_memcached=($(echo "$PROCESS_DATA" | awk '{ if ($3=="memcached" && $8!="memcached"){print $0}}' | grep -Po '[^/]*(?=.pid.*)'));
 
   if (( ${#running_memcached[@]} < ${#configured_memcached[@]} )); then
