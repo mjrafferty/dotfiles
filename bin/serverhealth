@@ -137,19 +137,19 @@ _loadavgchk () {
 
   cpucount="$(grep -c ^processor /proc/cpuinfo)"
 
-  if [ "${avgs[0]}" -ge "$cpucount" ]; then
+  if (( avgs[0] >= cpucount )); then
 
     echo "Load average high";
 
   fi
 
-  if [ "${avgs[1]}" -ge "$cpucount" ]; then
+  if (( avgs[1] >= cpucount )); then
 
     echo "5 min load average high";
 
   fi
 
-  if [ "${avgs[2]}" -ge "$cpucount" ]; then
+  if (( avgs[2] >= cpucount )); then
 
     echo "15 min load average high";
 
@@ -204,7 +204,7 @@ _maxphpprocs () {
   for ((x=0;x<"${#users[@]}";x++)); do
 
 
-    if [[ $OS_VERSION == 7 ]]; then
+    if (( OS_VERSION == 7 )); then
 
       max="$(find /opt/remi/php*/root/etc/php-fpm.d/*.conf -name "${users[$x]}.conf" \
         -exec /bin/awk -F '=' '/^[^#;]*pm.max_children/{ gsub(/\ [^0-9]*$/,"",$2); gsub(/^\ */,"",$2); print $2  }' {} + \
@@ -218,11 +218,11 @@ _maxphpprocs () {
 
     fi
 
-    if [ "${numprocs[$x]}" -ge "$max" ]; then
+    if (( numprocs[x] >= max )); then
 
       echo "${users[$x]} at max children";
 
-    elif [ "${numprocs[$x]}" -ge "$((9*max/10))" ]; then
+    elif (( numprocs[x] >= (9*max/10) )); then
 
       echo "${users[$x]} near max children";
 
@@ -244,7 +244,7 @@ _maxclients () {
 
     echo "Apache at MaxClients";
 
-  elif [ $count -ge "$(( 9 * max / 10 ))" ]; then
+  elif (( count >= ( 9 * max / 10 ) )); then
 
     echo "Apache near MaxClients";
 
