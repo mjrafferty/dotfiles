@@ -259,7 +259,7 @@ _pound() {
 # Main
 main () {
 
-  PROCESS_DATA=$(ps -C php-fpm,httpd,memcached,redis-server,mysqld,haproxy,varnishd,pound -o user,pid,cmd);
+  PROCESS_DATA=$(ps -C php-fpm,httpd,memcached,redis-server,mysqld,haproxy,varnishd,pound -o user,cmd);
 
   while getopts "hpaMrmHvP" OPTION $(_cmdline); do
 
