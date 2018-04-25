@@ -9,6 +9,8 @@ BEGIN {
   REGEX=YEAR":..:.."
 
   max=0;
+  tstart=0;
+  tstop=0;
 
   if(length(i)==0){
     i=60
@@ -24,6 +26,10 @@ BEGIN {
 
   timestamp=sprintf("%02s:%02s",temp[1],(int(temp[2] / i) * i))
 
+  if(tstart==0){
+    tstart=timestamp;
+  }
+
   hits[timestamp]++
 }
 
@@ -32,6 +38,8 @@ END {
   WHITE="\033[1;37m"
   BLUE="\033[1;34m"
   GREEN="\033[1;32m"
+
+  tstop=timestamp;
 
   # Find highest number of hits
   for(x in hits){
@@ -58,4 +66,5 @@ END {
     printf "\n"
   }
   printf "\n"
+  printf "%s\t%s",tstart,tstop;
 }
