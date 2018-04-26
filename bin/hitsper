@@ -18,10 +18,6 @@ BEGIN {
 }
 
 {
-  if( 60 % i != 0 ){
-    printf "i must divide evenly into 60\n"
-    exit 1;
-  }
 
   start = match($0,REGEX) + 5
   stop = 5
@@ -44,6 +40,11 @@ END {
   GREEN="\033[1;32m"
 
   tstop=timestamp;
+
+  if( 60 % i != 0 ){
+    printf "Increment variable 'i' must divide evenly into 60\n"
+    exit 1;
+  }
 
   # Find highest number of hits
   for(x in hits){
