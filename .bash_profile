@@ -4,10 +4,9 @@
 if type tmux &> /dev/null && [[  -z $TMUX && -n $SSH_TTY ]]; then
   (tmux has-session -t "${HOME/*\//}" && tmux attach -t "${HOME/*\//}") \
     || tmux new-session -s "${HOME/*\//}"
-  exit;
+else
+  zsh;
 fi
-
-zsh;
 
 # Cleanup home folder on logout
 /usr/bin/sudo find "$HOME"/ -mindepth 1 \( \
