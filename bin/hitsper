@@ -14,14 +14,15 @@ BEGIN {
 
   if(length(i)==0){
     i=60
-  }else if(int(60%i)!=0){
-  printf "i must divide evenly into 60\n"
-  exit 1;
   }
-
 }
 
 {
+  if( 60 % i != 0 ){
+    printf "i must divide evenly into 60\n"
+    exit 1;
+  }
+
   start = match($0,REGEX) + 5
   stop = 5
 
