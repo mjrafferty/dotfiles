@@ -14,7 +14,7 @@ BEGIN {
 
   if(length(i)==0){
     i=60
-  }else if(60%i!=0){
+  }else if(int(60%i)!=0){
   printf "i must divide evenly into 60\n"
   exit 1;
   }
