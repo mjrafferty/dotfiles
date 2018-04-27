@@ -690,7 +690,7 @@ u () {
 
 	/usr/bin/sudo HOME="$HOME" TMUX="$TMUX" -u "$user" "$MYSHELL"
 
-	/usr/bin/sudo -u "$user" find $HOME -user $user -exec setfacl -m $USER:rwX {} +
+	/usr/bin/sudo -u "$user" find $HOME -user $user -exec setfacl -m u:$USER:rwX {} +
 
 	setfacl -R -x u:"$user" ~/
 }
