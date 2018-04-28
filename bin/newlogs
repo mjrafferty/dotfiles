@@ -14,7 +14,29 @@ readonly ARGA=("$@")
 _usage() {
 
   cat <<- EOF
-  This is the usage
+Obtain data from various logs
+
+    -h|--help
+
+    -f|--ftp
+    -p|--php
+    -s|--ssh
+    -H|--httpd
+    -m|--mysqld
+    -c|--cron
+    -M|--messages
+    -i|--imap
+    -P|--pop3
+    -e|--send
+    -E|--smtp
+    -l|--letse
+    -d|--domain
+    -t|--transfer
+
+    -T|--tail
+    -O|--open
+    -G|--grep
+
 EOF
 
 }
