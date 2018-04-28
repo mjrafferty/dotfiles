@@ -227,7 +227,7 @@ main () {
     esac
   done
 
-  tail -n10 ${logFiles[*]};
+  tail -n10 ${logFiles[*]} | $PAGER;
 
 }
 
