@@ -22,7 +22,7 @@ fi
 ##### Environment Variables #####
 export LANG="en_US.UTF-8"
 export HISTTIMEFORMAT="%F %T "
-export PAGER="/usr/bin/less"
+export PAGER="/usr/bin/less -inSF"
 export EDITOR="/usr/bin/vim"
 export VISUAL="/usr/bin/vim"
 export HISTFILE="$HOME/.zsh_history"
