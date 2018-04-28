@@ -22,8 +22,6 @@ EOF
 # Convert long command line options into short ones for getopts
 _cmdline() {
 
-  local logFiles;
-
   local x;
 
   for x in ${ARGA[*]}; do
@@ -71,11 +69,8 @@ _cmdline() {
       "--domain"|"-d")
         args="${args}-d "
         ;;
-      "--all"|"-a")
-        args="${args}-a "
-        ;;
-      "--tail"|"-t")
-        args="${args}-a "
+      "--transfer"|"-t")
+        args="${args}-t "
         ;;
       *)
         args="${args}${x} "
@@ -90,7 +85,9 @@ _cmdline() {
 # Main
 main () {
 
-  while getopts "hfpsHmcMiPeEldat" OPTION $(_cmdline); do
+  local logFiles=();
+
+  while getopts "hfpsHmcMiPeEldt" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -98,38 +95,134 @@ main () {
         exit 0;
         ;;
       f)
+        local f;
+        for f in /var/log/proftpd/{auth,xfer}.log; do
+          if [[ -e $f ]]; then
+            logFiles+=("$f");
+          fi
+        done
         ;;
       p)
+        local f;
+        for f in {/opt/{remi,nexcess}/php*/root,}/var/log/php-fpm/error.log; do
+          if [[ -e $f ]]; then
+            logFiles+=("$f");
+          fi
+        done
         ;;
       s)
+        local f;
+        for f in /var/log/secure; do
+          if [[ -e $f ]]; then
+            logFiles+=("$f");
+          fi
+        done
         ;;
       H)
+        local f;
+        for f in /var/log/httpd/error.log; do
+          if [[ -e $f ]]; then
+            logFiles+=("$f");
+          fi
+        done
         ;;
       m)
+        local f;
+        for f in /var/log/mysqld.log; do
+          if [[ -e $f ]]; then
+            logFiles+=("$f");
+          fi
+        done
         ;;
       c)
+        local f;
+        for f in /var/log/cron; do
+          if [[ -e $f ]]; then
+            logFiles+=("$f");
+          fi
+        done
         ;;
       M)
+        local f;
+        for f in /var/log/messages; do
+          if [[ -e $f ]]; then
+            logFiles+=("$f");
+          fi
+        done
         ;;
       i)
+        local f;
+        for f in /var/log/imap4-ssl/current; do
+          if [[ -e $f ]]; then
+            logFiles+=("$f");
+          fi
+        done
         ;;
       P)
+        local f;
+        for f in /var/log/pop3-ssl/current; do
+          if [[ -e $f ]]; then
+            logFiles+=("$f");
+          fi
+        done
         ;;
       e)
+        local f;
+        for f in /var/log/send/current; do
+          if [[ -e $f ]]; then
+            logFiles+=("$f");
+          fi
+        done
         ;;
       E)
+        local f;
+        for f in /var/log/smtp/current; do
+          if [[ -e $f ]]; then
+            logFiles+=("$f");
+          fi
+        done
         ;;
       l)
+        local f;
+        for f in /var/log/letsencrypt/letsencrypt.log; do
+          if [[ -e $f ]]; then
+            logFiles+=("$f");
+          fi
+        done
         ;;
       d)
-        ;;
-      a)
+        local f user domain
+
+        user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
+        domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
+
+        if [[ -n "$user" && -n "$domain" ]]; then
+          for f in /home/$user/var/{php-fpm,$domain/logs}/error.log; do
+            if [[ -e $f ]]; then
+              logFiles+=("$f");
+            fi
+          done
+        fi
         ;;
       t)
+        local f user domain
+
+        user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
+        domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
+
+        if [[ -n "$user" && -n "$domain" ]]; then
+          for f in /home/$user/var/$domain/logs/transfer.log; do
+            if [[ -e $f ]]; then
+              logFiles+=("$f");
+            fi
+          done
+        fi
         ;;
       *);;
     esac
   done
+
+  echo ${logFiles[*]};
 
 }
 
