@@ -240,8 +240,8 @@ main () {
         domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
 
         if [[ -n "$user" && -n "$domain" ]]; then
-          for f in /home/$user/var/$domain/logs/transfer.log; do
-            if [[ -e $f ]]; then
+          for f in /home/$user/var/$domain/logs/transfer{,-{,ssl-}$(date "+%F")}.log; do
+            if [[ -e $f && ! -L $f ]]; then
               logFiles+=("$f");
             fi
           done
