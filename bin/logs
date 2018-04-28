@@ -226,7 +226,7 @@ main () {
         domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
 
         if [[ -n "$user" && -n "$domain" ]]; then
-          for f in /home/$user/var/{php-fpm,$domain/logs}/error.log; do
+          for f in /home/$user/var/{php-fpm,$domain/logs}/{error,-{,ssl-}$(date "+%F")}.log; do
             if [[ -e $f ]]; then
               logFiles+=("$f");
             fi
