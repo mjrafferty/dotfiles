@@ -1,39 +1,26 @@
 #! /bin/zsh
-#
-# 16 Terminal Colors
-# -- ---------------
-#  0 black
-#  1 red
-#  2 green
-#  3 yellow
-#  4 blue
-#  5 magenta
-#  6 cyan
-#  7 white
-#  8 bright black
-#  9 bright red
-# 10 bright green
-# 11 bright yellow
-# 12 bright blue
-# 13 bright magenta
-# 14 bright cyan
-# 15 bright white
-#
 
 # Load dependencies.
 pmodload 'helper'
 
-function prompt_matt_precmd {
+prompt_matt_precmd() {
+
   setopt LOCAL_OPTIONS
   unsetopt XTRACE KSH_ARRAYS
 
-  _quota=$(quota -qg $(pwd | grep -Po "/home/\K[^/]*") 2> /dev/null | grep -Po "Over|grace|limit")
+  if [[ -x /usr/bin/quota ]] && ((( OS_VERSION < 7 )) || [[ $USER == "${HOME/*\//}" ]]); then
+    _quota=$(quota -qg $(pwd | grep -Po "/home/\K[^/]*") 2> /dev/null | grep -Po "Over|grace|limit")
+  fi
 
-  }
+}
 
-function prompt_matt_setup {
+prompt_matt_setup() {
+
   setopt LOCAL_OPTIONS
   unsetopt XTRACE KSH_ARRAYS
+
+  OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release 2> /dev/null);
+
   prompt_opts=(cr percent sp subst)
 
   # Load required functions.
@@ -48,26 +35,9 @@ function prompt_matt_setup {
   zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format ' %F{3}♺%f'
   zstyle ':prezto:module:editor:info:keymap:alternate' format ' %B%F{2}❮%F{3}❮%F{1}❮%f%b'
 
-  # Set git-info parameters.
-  zstyle ':prezto:module:git:info' verbose 'yes'
-  zstyle ':prezto:module:git:info:action' format '%F{7}:%f%%B%F{9}%s%f%%b'
-  zstyle ':prezto:module:git:info:added' format ' %%B%F{2}✚%f%%b'
-  zstyle ':prezto:module:git:info:ahead' format ' %%B%F{13}⬆%f%%b'
-  zstyle ':prezto:module:git:info:behind' format ' %%B%F{13}⬇%f%%b'
-  zstyle ':prezto:module:git:info:branch' format ' %%B%F{2}%b%f%%b'
-  zstyle ':prezto:module:git:info:commit' format ' %%B%F{3}%.7c%f%%b'
-  zstyle ':prezto:module:git:info:deleted' format ' %%B%F{1}✖%f%%b'
-  zstyle ':prezto:module:git:info:modified' format ' %%B%F{4}✱%f%%b'
-  zstyle ':prezto:module:git:info:position' format ' %%B%F{13}%p%f%%b'
-  zstyle ':prezto:module:git:info:renamed' format ' %%B%F{5}➜%f%%b'
-  zstyle ':prezto:module:git:info:stashed' format ' %%B%F{6}✭%f%%b'
-  zstyle ':prezto:module:git:info:unmerged' format ' %%B%F{3}═%f%%b'
-  zstyle ':prezto:module:git:info:untracked' format ' %%B%F{7}◼%f%%b'
-  zstyle ':prezto:module:git:info:keys' format \
-    'status' '%b %p %c:%s%A%B%S%a%d%m%r%U%u'
-
   # Set up non-zero return value display
   local show_return="✘ "
+
   # Default is to show the return value
   if zstyle -T ':prezto:module:prompt' show-return-val; then
     show_return+='%? '
@@ -81,6 +51,7 @@ function prompt_matt_setup {
   RPROMPT+='%F{9}${_quota}%f'
   RPROMPT+='%(?:: %F{1}'${show_return}'%f)'
   SPROMPT='zsh: correct %F{1}%R%f to %F{2}%r%f [nyae]? '
+
 }
 
 prompt_matt_setup "$@"

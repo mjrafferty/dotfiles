@@ -1,0 +1,136 @@
+#! /bin/bash
+
+# Script Arguments
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+# Configurable Variables
+
+# Alias executables to prevent PATH issues
+
+# Necessary Global Variables
+
+# Print usage
+_usage() {
+
+  cat <<- EOF
+  This is the usage
+EOF
+
+}
+
+# Convert long command line options into short ones for getopts
+_cmdline() {
+
+  local logFiles;
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--ftp"|"-f")
+        args="${args}-f "
+        ;;
+      "--php"|"-p")
+        args="${args}-p "
+        ;;
+      "--ssh"|"-s")
+        args="${args}-s "
+        ;;
+      "--httpd"|"-H")
+        args="${args}-H "
+        ;;
+      "--mysqld"|"-m")
+        args="${args}-m "
+        ;;
+      "--cron"|"-c")
+        args="${args}-c "
+        ;;
+      "--messages"|"-M")
+        args="${args}-M "
+        ;;
+      "--imap"|"-i")
+        args="${args}-i "
+        ;;
+      "--pop3"|"-P")
+        args="${args}-P "
+        ;;
+      "--send"|"-e")
+        args="${args}-e "
+        ;;
+      "--smtp"|"-E")
+        args="${args}-E "
+        ;;
+      "--letse"|"-l")
+        args="${args}-l "
+        ;;
+      "--domain"|"-d")
+        args="${args}-d "
+        ;;
+      "--all"|"-a")
+        args="${args}-a "
+        ;;
+      "--tail"|"-t")
+        args="${args}-a "
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+  done
+
+  echo "$args";
+
+}
+
+# Main
+main () {
+
+  while getopts "hfpsHmcMiPeEldat" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      f)
+        ;;
+      p)
+        ;;
+      s)
+        ;;
+      H)
+        ;;
+      m)
+        ;;
+      c)
+        ;;
+      M)
+        ;;
+      i)
+        ;;
+      P)
+        ;;
+      e)
+        ;;
+      E)
+        ;;
+      l)
+        ;;
+      d)
+        ;;
+      a)
+        ;;
+      t)
+        ;;
+      *);;
+    esac
+  done
+
+}
+
+main;
