@@ -227,7 +227,7 @@ main () {
 
         if [[ -n "$user" && -n "$domain" ]]; then
           for f in /home/$user/var/{php-fpm,$domain/logs}/error{,-{,ssl-}$(date "+%F")}.log; do
-            if [[ -f $f ]]; then
+            if [[ -e $f && ! -L $f ]]; then
               logFiles+=("$f");
             fi
           done
