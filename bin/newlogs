@@ -75,6 +75,9 @@ _cmdline() {
       "--tail"|"-T")
         args="${args}-T "
         ;;
+      "--open"|"-O")
+        args="${args}-T "
+        ;;
       *)
         args="${args}${x} "
         ;;
@@ -89,6 +92,7 @@ _cmdline() {
 main () {
 
   local logFiles=();
+  local cmd;
 
   while getopts "hfpsHmcMiPeEldt" OPTION $(_cmdline); do
 
@@ -222,12 +226,32 @@ main () {
         fi
         ;;
       T)
+        cmd="tail";
+        ;;
+      O)
+        cmd="open";
         ;;
       *);;
     esac
   done
 
-  tail -n10 ${logFiles[*]} | tai64nlocal | $PAGER;
+  if [[ -n "${logFiles[0]}" ]]; then
+    case $cmd in
+      "tail")
+        tail -fn0 ${logFiles[*]} | tai64nlocal;
+        ;;
+      "open")
+        for i in ${logFiles[*]}; do
+          tai64nlocal < "$i" | $PAGER;
+        done
+        ;;
+      *)
+        tail -n10 ${logFiles[*]} | tai64nlocal | $PAGER;
+        ;;
+    esac
+  else
+    echo "No Logs found";
+  fi
 
 }
 
