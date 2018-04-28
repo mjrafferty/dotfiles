@@ -116,7 +116,7 @@ main () {
   local logFiles=();
   local cmd;
 
-  while getopts "hfpsHmcMiPeEldt" OPTION $(_cmdline); do
+  while getopts "hfpsHmcMiPeEldtTOG" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
