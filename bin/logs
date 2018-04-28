@@ -133,7 +133,7 @@ main () {
         ;;
       p)
         local f;
-        for f in {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var/log}/php-fpm/error.log; do
+        for f in {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error.log; do
           if [[ -e $f ]]; then
             logFiles+=("$f");
           fi
