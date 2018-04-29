@@ -9,6 +9,7 @@ readonly ARGA=("$@")
 # Alias executables to prevent PATH issues
 
 # Necessary Global Variables
+shopt -s nullglob;
 LOG_FILES=();
 
 # Print usage
