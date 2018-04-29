@@ -34,8 +34,8 @@ Obtain data from various logs
     -t|--transfer
 
     -T|--tail
-    -O|--open
-    -G|--grep
+    -L|--less
+    -C|--cat
 
 EOF
 
@@ -98,7 +98,10 @@ _cmdline() {
         args="${args}-T "
         ;;
       "--open"|"-O")
-        args="${args}-T "
+        args="${args}-O "
+        ;;
+      "--cat"|"-C")
+        args="${args}-C "
         ;;
       *)
         args="${args}${x} "
@@ -116,7 +119,7 @@ main () {
   local logFiles=();
   local cmd;
 
-  while getopts "hfpsHmcMiPeEldtTOG" OPTION $(_cmdline); do
+  while getopts "hfpsHmcMiPeEldtTOC" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -250,8 +253,11 @@ main () {
       T)
         cmd="tail";
         ;;
-      O)
-        cmd="open";
+      L)
+        cmd="less";
+        ;;
+      C)
+        cmd="cat";
         ;;
       *);;
     esac
@@ -262,10 +268,13 @@ main () {
       "tail")
         tail -fn0 ${logFiles[*]} | tai64nlocal;
         ;;
-      "open")
+      "less")
         for i in ${logFiles[*]}; do
           tai64nlocal < "$i" | $PAGER;
         done
+        ;;
+      "cat")
+        tai64nlocal < ${logFiles[*]}
         ;;
       *)
         tail -n10 ${logFiles[*]} | tai64nlocal | $PAGER;
