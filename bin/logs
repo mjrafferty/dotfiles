@@ -9,6 +9,7 @@ readonly ARGA=("$@")
 # Alias executables to prevent PATH issues
 
 # Necessary Global Variables
+LOG_FILES=();
 
 # Print usage
 _usage() {
@@ -117,10 +118,237 @@ _cmdline() {
 
 }
 
+_ftp(){
+
+  local f;
+  for f in /var/log/proftpd/{auth,xfer}.log; do
+    if [[ -e $f ]]; then
+      LOG_FILES+=("$f");
+    fi
+  done
+
+}
+
+_php() {
+
+  local f;
+
+  for f in {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error.log; do
+    if [[ -e $f ]]; then
+      LOG_FILES+=("$f");
+    fi
+  done
+
+}
+
+_ssh(){
+
+  local f;
+
+  for f in /var/log/secure; do
+    if [[ -e $f ]]; then
+      LOG_FILES+=("$f");
+    fi
+  done
+
+}
+
+_httpd() {
+
+  local f;
+  for f in /var/log/httpd/error_log; do
+    if [[ -e $f ]]; then
+      LOG_FILES+=("$f");
+    fi
+  done
+
+}
+
+_mysqld() {
+
+  local f;
+  for f in /var/log/mysqld.log; do
+    if [[ -e $f ]]; then
+      LOG_FILES+=("$f");
+    fi
+  done
+
+}
+
+_cron() {
+
+  local f;
+  for f in /var/log/cron; do
+    if [[ -e $f ]]; then
+      LOG_FILES+=("$f");
+    fi
+  done
+
+}
+
+_messages() {
+
+  local f;
+  for f in /var/log/messages; do
+    if [[ -e $f ]]; then
+      LOG_FILES+=("$f");
+    fi
+  done
+
+}
+
+_imap() {
+
+  local f;
+  for f in /var/log/imap4-ssl/current; do
+    if [[ -e $f ]]; then
+      LOG_FILES+=("$f");
+    fi
+  done
+
+}
+
+_pop3() {
+
+  local f;
+  for f in /var/log/pop3-ssl/current; do
+    if [[ -e $f ]]; then
+      LOG_FILES+=("$f");
+    fi
+  done
+
+}
+
+_send() {
+
+  local f;
+  for f in /var/log/send/current; do
+    if [[ -e $f ]]; then
+      LOG_FILES+=("$f");
+    fi
+  done
+
+}
+
+_smtp() {
+
+  local f;
+  for f in /var/log/smtp/current; do
+    if [[ -e $f ]]; then
+      LOG_FILES+=("$f");
+    fi
+  done
+
+}
+
+_letse() {
+
+  local f;
+  for f in /var/log/letsencrypt/letsencrypt.log; do
+    if [[ -e $f ]]; then
+      LOG_FILES+=("$f");
+    fi
+  done
+
+}
+
+_magento(){
+
+  local f=();
+  local l x user domain;
+
+  user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
+  domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
+
+  l="$1"
+
+  case $l in
+    "system")
+      f+=(/home/"${user}"/"${domain}"/html/var/log/system.log)
+      ;;
+    "exception")
+      f+=(/home/"${user}"/"${domain}"/html/var/log/exception.log)
+      ;;
+    "debug")
+      f+=(/home/"${user}"/"${domain}"/html/var/log/debug.log)
+      ;;
+    "all")
+      f+=(/home/"${user}"/"${domain}"/html/var/log/{system,exception,debug}.log)
+      ;;
+    *);;
+  esac
+
+  for x in ${f[*]}; do
+    if [[ -e $x ]]; then
+      LOG_FILES+=("$x");
+    fi
+  done
+}
+
+_transfer() {
+
+  local f user domain
+
+  user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
+  domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
+
+  if [[ -n "$user" && -n "$domain" ]]; then
+    for f in /home/$user/var/$domain/logs/transfer{,-{,ssl-}$(date "+%F")}.log; do
+      if [[ -e $f && ! -L $f ]]; then
+        LOG_FILES+=("$f");
+      fi
+    done
+  fi
+
+}
+
+_domain(){
+
+  local f user domain
+
+  user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
+  domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
+
+  if [[ -n "$user" && -n "$domain" ]]; then
+    for f in /home/$user/var/{php-fpm,$domain/logs}/error{,-{,ssl-}$(date "+%F")}.log; do
+      if [[ -e $f && ! -L $f ]]; then
+        LOG_FILES+=("$f");
+      fi
+    done
+  fi
+
+}
+
+_act() {
+
+  local cmd="$1"
+
+  if [[ -n "${LOG_FILES[0]}" ]]; then
+    case $cmd in
+      "tail")
+        tail -fn0 ${LOG_FILES[*]} | tai64nlocal;
+        ;;
+      "less")
+        for i in ${LOG_FILES[*]}; do
+          tai64nlocal < "$i" | $PAGER;
+        done
+        ;;
+      "cat")
+        tai64nlocal < ${LOG_FILES[*]}
+        ;;
+      *)
+        tail -n10 ${LOG_FILES[*]} | tai64nlocal | $PAGER;
+        ;;
+    esac
+  else
+    echo "No Logs found";
+  fi
+
+}
+
 # Main
 main () {
 
-  local logFiles=();
   local cmd;
 
   while getopts "hfpsHmcMiPeEldtA:TLC" OPTION $(_cmdline); do
@@ -131,160 +359,49 @@ main () {
         exit 0;
         ;;
       f)
-        local f;
-        for f in /var/log/proftpd/{auth,xfer}.log; do
-          if [[ -e $f ]]; then
-            logFiles+=("$f");
-          fi
-        done
+        _ftp;
         ;;
       p)
-        local f;
-        for f in {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error.log; do
-          if [[ -e $f ]]; then
-            logFiles+=("$f");
-          fi
-        done
+        _php;
         ;;
       s)
-        local f;
-        for f in /var/log/secure; do
-          if [[ -e $f ]]; then
-            logFiles+=("$f");
-          fi
-        done
+        _ssh;
         ;;
       H)
-        local f;
-        for f in /var/log/httpd/error_log; do
-          if [[ -e $f ]]; then
-            logFiles+=("$f");
-          fi
-        done
+        _httpd;
         ;;
       m)
-        local f;
-        for f in /var/log/mysqld.log; do
-          if [[ -e $f ]]; then
-            logFiles+=("$f");
-          fi
-        done
+        _mysqld;
         ;;
       c)
-        local f;
-        for f in /var/log/cron; do
-          if [[ -e $f ]]; then
-            logFiles+=("$f");
-          fi
-        done
+        _cron;
         ;;
       M)
-        local f;
-        for f in /var/log/messages; do
-          if [[ -e $f ]]; then
-            logFiles+=("$f");
-          fi
-        done
+        _messages;
         ;;
       i)
-        local f;
-        for f in /var/log/imap4-ssl/current; do
-          if [[ -e $f ]]; then
-            logFiles+=("$f");
-          fi
-        done
+        _imap;
         ;;
       P)
-        local f;
-        for f in /var/log/pop3-ssl/current; do
-          if [[ -e $f ]]; then
-            logFiles+=("$f");
-          fi
-        done
+        _pop3;
         ;;
       e)
-        local f;
-        for f in /var/log/send/current; do
-          if [[ -e $f ]]; then
-            logFiles+=("$f");
-          fi
-        done
+        _send;
         ;;
       E)
-        local f;
-        for f in /var/log/smtp/current; do
-          if [[ -e $f ]]; then
-            logFiles+=("$f");
-          fi
-        done
+        _smtp;
         ;;
       l)
-        local f;
-        for f in /var/log/letsencrypt/letsencrypt.log; do
-          if [[ -e $f ]]; then
-            logFiles+=("$f");
-          fi
-        done
+        _letse;
         ;;
       d)
-        local f user domain
-
-        user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
-        domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
-
-        if [[ -n "$user" && -n "$domain" ]]; then
-          for f in /home/$user/var/{php-fpm,$domain/logs}/error{,-{,ssl-}$(date "+%F")}.log; do
-            if [[ -e $f && ! -L $f ]]; then
-              logFiles+=("$f");
-            fi
-          done
-        fi
+        _domain;
         ;;
       t)
-        local f user domain
-
-        user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
-        domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
-
-        if [[ -n "$user" && -n "$domain" ]]; then
-          for f in /home/$user/var/$domain/logs/transfer{,-{,ssl-}$(date "+%F")}.log; do
-            if [[ -e $f && ! -L $f ]]; then
-              logFiles+=("$f");
-            fi
-          done
-        fi
+        _transfer;
         ;;
       A)
-        local f=();
-        local l x user domain;
-
-        user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
-        domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
-
-        l="$OPTARG"
-
-        case l in
-          "system")
-            f+=(/home/${user}/${domain}/html/var/log/system.log)
-            ;;
-          "exception")
-            f+=(/home/${user}/${domain}/html/var/log/exception.log)
-            ;;
-          "debug")
-            f+=(/home/${user}/${domain}/html/var/log/debug.log)
-            ;;
-          "all")
-            f+=(/home/${user}/${domain}/html/var/log/{system,exception,debug}.log)
-            ;;
-          *);;
-        esac
-
-        for x in ${f[*]}; do
-          if [[ -e $x ]]; then
-            logFiles+=("$x");
-          fi
-        done
-
+        _magento "$OPTARG";
         ;;
       T)
         cmd="tail";
@@ -299,26 +416,7 @@ main () {
     esac
   done
 
-  if [[ -n "${logFiles[0]}" ]]; then
-    case $cmd in
-      "tail")
-        tail -fn0 ${logFiles[*]} | tai64nlocal;
-        ;;
-      "less")
-        for i in ${logFiles[*]}; do
-          tai64nlocal < "$i" | $PAGER;
-        done
-        ;;
-      "cat")
-        tai64nlocal < ${logFiles[*]}
-        ;;
-      *)
-        tail -n10 ${logFiles[*]} | tai64nlocal | $PAGER;
-        ;;
-    esac
-  else
-    echo "No Logs found";
-  fi
+  _act "$cmd";
 
 }
 
