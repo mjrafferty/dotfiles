@@ -32,6 +32,7 @@ Obtain data from various logs
     -l|--letse
     -d|--domain
     -t|--transfer
+    -A|--magento
 
     -T|--tail
     -L|--less
@@ -94,11 +95,14 @@ _cmdline() {
       "--transfer"|"-t")
         args="${args}-t "
         ;;
+      "--magento"|"-A")
+        args="${args}-A "
+        ;;
       "--tail"|"-T")
         args="${args}-T "
         ;;
-      "--open"|"-O")
-        args="${args}-O "
+      "--less"|"-L")
+        args="${args}-L "
         ;;
       "--cat"|"-C")
         args="${args}-C "
@@ -119,7 +123,7 @@ main () {
   local logFiles=();
   local cmd;
 
-  while getopts "hfpsHmcMiPeEldtTLC" OPTION $(_cmdline); do
+  while getopts "hfpsHmcMiPeEldtA:TLC" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -249,6 +253,38 @@ main () {
             fi
           done
         fi
+        ;;
+      A)
+        local f=();
+        local l x user domain;
+
+        user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
+        domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
+
+        l="$OPTARG"
+
+        case l in
+          "system")
+            f+=(/home/${user}/${domain}/html/var/log/system.log)
+            ;;
+          "exception")
+            f+=(/home/${user}/${domain}/html/var/log/exception.log)
+            ;;
+          "debug")
+            f+=(/home/${user}/${domain}/html/var/log/debug.log)
+            ;;
+          "all")
+            f+=(/home/${user}/${domain}/html/var/log/{system,exception,debug}.log)
+            ;;
+          *);;
+        esac
+
+        for x in ${f[*]}; do
+          if [[ -e $x ]]; then
+            logFiles+=("$x");
+          fi
+        done
+
         ;;
       T)
         cmd="tail";
