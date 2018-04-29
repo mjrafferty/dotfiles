@@ -15,29 +15,39 @@ LOG_FILES=();
 _usage() {
 
   cat <<- EOF
+
 Obtain data from various logs
 
-    -h|--help
+  Available logs:
 
-    -f|--ftp
-    -p|--php
-    -s|--ssh
-    -H|--httpd
-    -m|--mysqld
-    -c|--cron
-    -M|--messages
-    -i|--imap
-    -P|--pop3
-    -e|--send
-    -E|--smtp
-    -l|--letse
-    -d|--domain
-    -t|--transfer
-    -A|--magento
+    -f|--ftp        profptd/auth.log proftpd/xfer.log
+    -p|--php        All php-fpm/error.log files
+    -s|--ssh        /var/log/secure
+    -H|--httpd      Apache error log
+    -m|--mysqld     MySQLd error log
+    -c|--cron       /var/log/cron
+    -M|--messages   /var/log/messages
+    -i|--imap       IMAP log
+    -P|--pop3       POP3 log
+    -e|--send       Mail send log
+    -E|--smtp       SMTP log
+    -l|--letse      Let's Encrypt log
+    -d|--domain     Domain's apache and php-fpm error logs
+    -t|--transfer   Domain's transfer log
+    -A|--magento    Magento logs. Requires an argument. Available
+                    logs:
 
-    -T|--tail
-    -L|--less
-    -C|--cat
+                      system
+                      exception
+                      debug
+
+  Log operations:
+
+    -T|--tail       Follow log
+    -L|--less       Open log in $PAGER
+    -C|--cat        Cat out log
+
+    -h|--help       Print this message.
 
 EOF
 
