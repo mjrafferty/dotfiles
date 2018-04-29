@@ -118,6 +118,7 @@ _cmdline() {
 
 }
 
+# FTP
 _ftp(){
 
   local f;
@@ -129,6 +130,7 @@ _ftp(){
 
 }
 
+# PHP-FPM
 _php() {
 
   local f;
@@ -141,6 +143,7 @@ _php() {
 
 }
 
+# SSH
 _ssh(){
 
   local f;
@@ -153,6 +156,7 @@ _ssh(){
 
 }
 
+# Apache
 _httpd() {
 
   local f;
@@ -164,6 +168,7 @@ _httpd() {
 
 }
 
+# MySQLd
 _mysqld() {
 
   local f;
@@ -175,6 +180,7 @@ _mysqld() {
 
 }
 
+# Cron
 _cron() {
 
   local f;
@@ -186,6 +192,7 @@ _cron() {
 
 }
 
+# /var/log/messages
 _messages() {
 
   local f;
@@ -197,6 +204,7 @@ _messages() {
 
 }
 
+# IMAP
 _imap() {
 
   local f;
@@ -208,6 +216,7 @@ _imap() {
 
 }
 
+# POP3
 _pop3() {
 
   local f;
@@ -219,6 +228,7 @@ _pop3() {
 
 }
 
+# /var/log/send
 _send() {
 
   local f;
@@ -230,6 +240,7 @@ _send() {
 
 }
 
+# SMTP
 _smtp() {
 
   local f;
@@ -241,6 +252,7 @@ _smtp() {
 
 }
 
+# Let's Encrypt
 _letse() {
 
   local f;
@@ -252,6 +264,7 @@ _letse() {
 
 }
 
+# Magento
 _magento(){
 
   local f=();
@@ -285,6 +298,7 @@ _magento(){
   done
 }
 
+# Domain transfer log
 _transfer() {
 
   local f user domain
@@ -302,6 +316,7 @@ _transfer() {
 
 }
 
+# Domain php-fpm and apache error log
 _domain(){
 
   local f user domain
@@ -319,6 +334,7 @@ _domain(){
 
 }
 
+# Perform requested action on log files
 _act() {
 
   local cmd="$1"
@@ -334,7 +350,8 @@ _act() {
         done
         ;;
       "cat")
-        tai64nlocal < ${LOG_FILES[*]}
+        cat ${LOG_FILES[*]} \
+          | tai64nlocal
         ;;
       *)
         tail -n10 ${LOG_FILES[*]} | tai64nlocal | $PAGER;
