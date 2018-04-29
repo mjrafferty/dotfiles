@@ -129,13 +129,14 @@ _cmdline() {
 }
 
 # FTP
-_ftp(){
+_ftp() {
 
-  local f;
-  for f in /var/log/proftpd/{auth,xfer}.log; do
-    if [[ -e $f ]]; then
-      LOG_FILES+=("$f");
-    fi
+  local files f;
+
+  mapfile -t files < <(find /var/log/proftpd/{auth,xfer}.log -type f)
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
   done
 
 }
@@ -143,12 +144,12 @@ _ftp(){
 # PHP-FPM
 _php() {
 
-  local f;
+  local files f;
 
-  for f in {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error.log; do
-    if [[ -e $f ]]; then
-      LOG_FILES+=("$f");
-    fi
+  mapfile -t files < <(find {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error.log -type f)
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
   done
 
 }
@@ -156,12 +157,12 @@ _php() {
 # SSH
 _ssh(){
 
-  local f;
+  local files f;
 
-  for f in /var/log/secure; do
-    if [[ -e $f ]]; then
-      LOG_FILES+=("$f");
-    fi
+  mapfile -t files < <(find /var/log/secure -type f)
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
   done
 
 }
@@ -169,11 +170,12 @@ _ssh(){
 # Apache
 _httpd() {
 
-  local f;
-  for f in /var/log/httpd/error_log; do
-    if [[ -e $f ]]; then
-      LOG_FILES+=("$f");
-    fi
+  local files f;
+
+  mapfile -t files < <(find /var/log/httpd/error_log -type f)
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
   done
 
 }
@@ -181,11 +183,12 @@ _httpd() {
 # MySQLd
 _mysqld() {
 
-  local f;
-  for f in /var/log/mysqld.log; do
-    if [[ -e $f ]]; then
-      LOG_FILES+=("$f");
-    fi
+  local files f;
+
+  mapfile -t files < <(find /var/log/mysqld.log -type f)
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
   done
 
 }
@@ -193,11 +196,12 @@ _mysqld() {
 # Cron
 _cron() {
 
-  local f;
-  for f in /var/log/cron; do
-    if [[ -e $f ]]; then
-      LOG_FILES+=("$f");
-    fi
+  local files f;
+
+  mapfile -t files < <(find /var/log/cron -type f)
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
   done
 
 }
@@ -205,11 +209,12 @@ _cron() {
 # /var/log/messages
 _messages() {
 
-  local f;
-  for f in /var/log/messages; do
-    if [[ -e $f ]]; then
-      LOG_FILES+=("$f");
-    fi
+  local files f;
+
+  mapfile -t files < <(find /var/log/messages -type f)
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
   done
 
 }
@@ -217,11 +222,12 @@ _messages() {
 # IMAP
 _imap() {
 
-  local f;
-  for f in /var/log/imap4-ssl/current; do
-    if [[ -e $f ]]; then
-      LOG_FILES+=("$f");
-    fi
+  local files f;
+
+  mapfile -t files < <(find /var/log/imap4-ssl/current -type f)
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
   done
 
 }
@@ -229,11 +235,12 @@ _imap() {
 # POP3
 _pop3() {
 
-  local f;
-  for f in /var/log/pop3-ssl/current; do
-    if [[ -e $f ]]; then
-      LOG_FILES+=("$f");
-    fi
+  local files f;
+
+  mapfile -t files < <(find /var/log/pop3-ssl/current -type f)
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
   done
 
 }
@@ -241,11 +248,12 @@ _pop3() {
 # /var/log/send
 _send() {
 
-  local f;
-  for f in /var/log/send/current; do
-    if [[ -e $f ]]; then
-      LOG_FILES+=("$f");
-    fi
+  local files f;
+
+  mapfile -t files < <(find /var/log/send/current -type f)
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
   done
 
 }
@@ -253,11 +261,12 @@ _send() {
 # SMTP
 _smtp() {
 
-  local f;
-  for f in /var/log/smtp/current; do
-    if [[ -e $f ]]; then
-      LOG_FILES+=("$f");
-    fi
+  local files f;
+
+  mapfile -t files < <(find /var/log/smtp/current -type f)
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
   done
 
 }
@@ -265,11 +274,12 @@ _smtp() {
 # Let's Encrypt
 _letse() {
 
-  local f;
-  for f in /var/log/letsencrypt/letsencrypt.log; do
-    if [[ -e $f ]]; then
-      LOG_FILES+=("$f");
-    fi
+  local files f;
+
+  mapfile -t files < <(find /var/log/letsenccrypt/letsencrypt.log -type f)
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
   done
 
 }
