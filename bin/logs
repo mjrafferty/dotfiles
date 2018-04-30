@@ -386,7 +386,7 @@ _letse() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/letsencrypt/letsencrypt.log -type f 2> /dev/null)
+    mapfile -t files < <(find /var/log/letsencrypt/letsencrypt.log* -type f 2> /dev/null)
   else
     mapfile -t files < <(find /var/log/letsencrypt/letsencrypt.log -type f 2> /dev/null)
   fi
