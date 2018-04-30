@@ -449,28 +449,38 @@ _domain(){
 # Perform requested action on log files
 _act() {
 
-  local cmd="$1"
+  local log cmd
+
+  cmd="$1"
 
   if [[ -n "${LOG_FILES[0]}" ]]; then
+
     case $cmd in
+
       "tail")
         tail -fn0 ${LOG_FILES[*]} | tai64nlocal;
         ;;
+
       "less")
-        for i in ${LOG_FILES[*]}; do
-          tai64nlocal < "$i" | $PAGER;
+        for log in ${LOG_FILES[*]}; do
+          tai64nlocal < "$log" | $PAGER;
         done
         ;;
+
       "cat")
-        cat ${LOG_FILES[*]} \
-          | tai64nlocal
+        tai64nlocal < <(cat ${LOG_FILES[*]});
         ;;
+
       *)
         tail -n10 ${LOG_FILES[*]} | tai64nlocal | $PAGER;
         ;;
+
     esac
+
   else
+
     echo "No Logs found";
+
   fi
 
 }
