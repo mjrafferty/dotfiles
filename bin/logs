@@ -47,6 +47,8 @@ _usage() {
       -D|--deep       Look at compressed logs as well
       -S|--server     When used in conjuction with --domain or --transfer
                       this will look at logs for all sites on the server.
+      -U|--user       When used in conjuction with --domain or --transfer
+                      this will look at logs for all sites for that user.
 
     Log operations:
 
@@ -130,6 +132,9 @@ _cmdline() {
         ;;
       "--server"|"-S")
         args="${args}-S "
+        ;;
+      "--user"|"-U")
+        args="${args}-U "
         ;;
       *)
         args="${args}${x} "
@@ -334,16 +339,53 @@ _magento(){
 # Domain transfer log
 _transfer() {
 
-  local f user domain
+  local f files user domain deep serverAll userAll
+
+  deep="$1"
+  serverAll="$2"
+  userAll="$3"
 
   user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
   domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
 
-  if [[ -n "$user" && -n "$domain" ]]; then
-    for f in /home/$user/var/$domain/logs/transfer{,-{,ssl-}$(date "+%F")}.log; do
-      if [[ -e $f && ! -L $f ]]; then
-        LOG_FILES+=("$f");
-      fi
+  if [[ "$serverAll" == "YES" && "$deep" == "YES" ]]; then
+
+    mapfile -t files < <(find /home/*/var/*/logs/transfer* -type f)
+
+  elif [[ "$serverAll" == "YES" && "$deep" == "NO" ]]; then
+
+    mapfile -t files < <(find /home/"$user"/var/"$domain"/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f)
+
+  elif [[ "$userAll" == "YES" && "$deep" == "YES" ]]; then
+
+    if [[ -n "$user" ]]; then
+      mapfile -t files < <(find /home/*/var/*/logs/transfer* -type f)
+    fi
+
+  elif [[ "$userAll" == "YES" && "$deep" == "NO" ]]; then
+
+    if [[ -n "$user" ]]; then
+      mapfile -t files < <(find /home/*/var/*/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f)
+    fi
+
+  elif [[ "$deep" == "YES" ]]; then
+
+    if [[ -n "$domain" ]]; then
+      mapfile -t files < <(find /home/*/var/*/logs/transfer* -type f)
+    fi
+
+  else
+
+    if [[ -n "$domain" ]]; then
+      mapfile -t files < <(find /home/"$user"/var/"$domain"/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f)
+    fi
+
+  fi
+
+  if [[ -n "${files[0]}" ]]; then
+
+    for f in ${files[*]}; do
+      LOG_FILES+=("$f");
     done
   fi
 
@@ -352,16 +394,53 @@ _transfer() {
 # Domain php-fpm and apache error log
 _domain(){
 
-  local f user domain
+  local f files user domain deep serverAll userAll
+
+  deep="$1";
+  serverAll="$2";
+  userAll="$3"
 
   user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
   domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
 
-  if [[ -n "$user" && -n "$domain" ]]; then
-    for f in /home/$user/var/{php-fpm,$domain/logs}/error{,-{,ssl-}$(date "+%F")}.log; do
-      if [[ -e $f && ! -L $f ]]; then
-        LOG_FILES+=("$f");
-      fi
+  if [[ "$serverAll" == "YES" && "$deep" == "YES" ]]; then
+
+    mapfile -t files < <(find /home/*/var/{php-fpm,*/logs}/error* -type f)
+
+  elif [[ "$serverAll" == "YES" && "$deep" == "NO" ]]; then
+
+    mapfile -t files < <(find /home/*/var/{php-fpm,*/logs}/error{,-{,ssl-}"$(date "+%F")"}.log -type f)
+
+  elif [[ "$userAll" == "YES" && "$deep" == "YES" ]]; then
+
+    if [[ -n "$user" ]]; then
+      mapfile -t files < <(find /home/"$user"/var/{php-fpm,*/logs}/error* -type f)
+    fi
+
+  elif [[ "$userAll" == "YES" && "$deep" == "NO" ]]; then
+
+    if [[ -n "$user" ]]; then
+      mapfile -t files < <(find /home/"$user"/var/{php-fpm,*/logs}/error{,-{,ssl-}"$(date "+%F")"}.log -type f)
+    fi
+
+  elif [[ "$deep" == "YES" ]]; then
+
+    if [[ -n "$domain" ]]; then
+      mapfile -t files < <(find /home/"$user"/var/{php-fpm,"$domain"/logs}/error* -type f)
+    fi
+
+  else
+
+    if [[ -n "$domain" ]]; then
+      mapfile -t files < <(find /home/"$user"/var/{php-fpm,"$domain"/logs}/error{,-{,ssl-}"$(date "+%F")"}.log -type f)
+    fi
+
+  fi
+
+  if [[ -n "${files[0]}" ]]; then
+
+    for f in ${files[*]}; do
+      LOG_FILES+=("$f");
     done
   fi
 
@@ -401,9 +480,10 @@ main () {
 
   local logFuncs cmd;
   local deep="NO"
-  local server="NO"
+  local serverAll="NO"
+  local userAll="NO"
 
-  while getopts "hfpsHmcMiPeEldtA:TLCDS" OPTION $(_cmdline); do
+  while getopts "hfpsHmcMiPeEldtA:TLCDSU" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -469,7 +549,10 @@ main () {
         deep="YES";
         ;;
       S)
-        server="YES";
+        serverAll="YES";
+        ;;
+      U)
+        userAll="YES";
         ;;
       *);;
     esac
@@ -480,8 +563,11 @@ main () {
       "_magento")
         "$func" "$_magentoArg"
         ;;
+      "_domain"|"_transfer")
+        "$func" "$deep" "$serverAll" "$userAll";
+        ;;
       *)
-        "$func" "$deep" "$server";
+        "$func" "$deep"
         ;;
     esac
   done
