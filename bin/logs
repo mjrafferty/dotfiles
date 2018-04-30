@@ -32,6 +32,7 @@ _usage() {
       -P|--pop3       POP3 log
       -e|--send       Mail send log
       -E|--smtp       SMTP log
+      -O|--smtp2      SMTP2 log
       -l|--letse      Let's Encrypt log
       -d|--domain     Domain's apache and php-fpm error logs
       -t|--transfer   Domain's transfer log
@@ -106,6 +107,9 @@ _cmdline() {
       "--smtp"|"-E")
         args="${args}-E "
         ;;
+      "--smtp2"|"-O")
+        args="${args}-O "
+        ;;
       "--letse"|"-l")
         args="${args}-l "
         ;;
@@ -149,9 +153,15 @@ _cmdline() {
 # FTP
 _ftp() {
 
-  local files f;
+  local files f deep;
 
-  mapfile -t files < <(find /var/log/proftpd/{auth,xfer}.log -type f 2> /dev/null)
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find /var/log/proftpd/{auth,xfer}* -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find /var/log/proftpd/{auth,xfer}.log -type f 2> /dev/null)
+  fi
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -162,9 +172,15 @@ _ftp() {
 # PHP-FPM
 _php() {
 
-  local files f;
+  local files f deep;
 
-  mapfile -t files < <(find {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error.log -type f 2> /dev/null)
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error* -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error.log -type f 2> /dev/null)
+  fi
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -175,9 +191,15 @@ _php() {
 # SSH
 _ssh(){
 
-  local files f;
+  local files f deep;
 
-  mapfile -t files < <(find /var/log/secure -type f 2> /dev/null)
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find /var/log/secure* -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find /var/log/secure -type f 2> /dev/null)
+  fi
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -188,9 +210,15 @@ _ssh(){
 # Apache
 _httpd() {
 
-  local files f;
+  local files f deep;
 
-  mapfile -t files < <(find /var/log/httpd/error_log -type f 2> /dev/null)
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find /var/log/httpd/error_log* -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find /var/log/httpd/error_log -type f 2> /dev/null)
+  fi
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -201,9 +229,15 @@ _httpd() {
 # MySQLd
 _mysqld() {
 
-  local files f;
+  local files f deep;
 
-  mapfile -t files < <(find /var/log/mysqld.log -type f 2> /dev/null)
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find /var/log/mysqld.log* -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find /var/log/mysqld.log -type f 2> /dev/null)
+  fi
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -214,9 +248,15 @@ _mysqld() {
 # Cron
 _cron() {
 
-  local files f;
+  local files f deep;
 
-  mapfile -t files < <(find /var/log/cron -type f 2> /dev/null)
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find /var/log/cron* -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find /var/log/cron -type f 2> /dev/null)
+  fi
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -227,9 +267,15 @@ _cron() {
 # /var/log/messages
 _messages() {
 
-  local files f;
+  local files f deep;
 
-  mapfile -t files < <(find /var/log/messages -type f 2> /dev/null)
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find /var/log/messages* -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find /var/log/messages -type f 2> /dev/null)
+  fi
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -240,9 +286,15 @@ _messages() {
 # IMAP
 _imap() {
 
-  local files f;
+  local files f deep;
 
-  mapfile -t files < <(find /var/log/imap4-ssl/current -type f 2> /dev/null)
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find /var/log/imap4-ssl/* -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find /var/log/imap4-ssl/current -type f 2> /dev/null)
+  fi
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -253,9 +305,15 @@ _imap() {
 # POP3
 _pop3() {
 
-  local files f;
+  local files f deep;
 
-  mapfile -t files < <(find /var/log/pop3-ssl/current -type f 2> /dev/null)
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find /var/log/pop3-ssl/* -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find /var/log/pop3-ssl/current -type f 2> /dev/null)
+  fi
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -266,9 +324,15 @@ _pop3() {
 # /var/log/send
 _send() {
 
-  local files f;
+  local files f deep;
 
-  mapfile -t files < <(find /var/log/send/current -type f 2> /dev/null)
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find /var/log/send/* -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find /var/log/send/current -type f 2> /dev/null)
+  fi
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -279,9 +343,34 @@ _send() {
 # SMTP
 _smtp() {
 
-  local files f;
+  local files f deep;
 
-  mapfile -t files < <(find /var/log/smtp/current -type f 2> /dev/null)
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find /var/log/smtp/* -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find /var/log/smtp/current -type f 2> /dev/null)
+  fi
+
+  for f in ${files[*]}; do
+    LOG_FILES+=("$f");
+  done
+
+}
+
+# SMTP
+_smtp2() {
+
+  local files f deep;
+
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find /var/log/smtp2/* -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find /var/log/smtp2/current -type f 2> /dev/null)
+  fi
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -292,9 +381,15 @@ _smtp() {
 # Let's Encrypt
 _letse() {
 
-  local files f;
+  local files f deep;
 
-  mapfile -t files < <(find /var/log/letsenccrypt/letsencrypt.log -type f 2> /dev/null)
+  deep="$1";
+
+  if [[ "$deep" == "YES" ]]; then
+    mapfile -t files < <(find /var/log/letsencrypt/letsencrypt.log -type f 2> /dev/null)
+  else
+    mapfile -t files < <(find /var/log/letsencrypt/letsencrypt.log -type f 2> /dev/null)
+  fi
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -371,7 +466,7 @@ _transfer() {
   elif [[ "$deep" == "YES" ]]; then
 
     if [[ -n "$domain" ]]; then
-      mapfile -t files < <(find /home/*/var/*/logs/transfer* -type f 2> /dev/null)
+      mapfile -t files < <(find /home/"$user"/var/"$domain"/logs/transfer* -type f 2> /dev/null)
     fi
 
   else
@@ -475,115 +570,118 @@ _act() {
         tail -n10 ${LOG_FILES[*]} | tai64nlocal | $PAGER;
         ;;
 
-    esac
+      esac
 
-  else
+    else
 
-    echo "No Logs found";
+      echo "No Logs found";
 
-  fi
+    fi
 
-}
+  }
 
-# Main
-main () {
+  # Main
+  main () {
 
-  local logFuncs cmd;
-  local deep="NO"
-  local serverAll="NO"
-  local userAll="NO"
+    local logFuncs cmd;
+    local deep="NO"
+    local serverAll="NO"
+    local userAll="NO"
 
-  while getopts "hfpsHmcMiPeEldtA:TLCDSU" OPTION $(_cmdline); do
+    while getopts "hfpsHmcMiPeEOldtA:TLCDSU" OPTION $(_cmdline); do
 
-    case $OPTION in
-      h)
-        _usage;
-        exit 0;
-        ;;
-      f)
-        logFuncs+=(_ftp);
-        ;;
-      p)
-        logFuncs+=(_php);
-        ;;
-      s)
-        logFuncs+=(_ssh);
-        ;;
-      H)
-        logFuncs+=(_httpd);
-        ;;
-      m)
-        logFuncs+=(_mysqld);
-        ;;
-      c)
-        logFuncs+=(_cron);
-        ;;
-      M)
-        logFuncs+=(_messages);
-        ;;
-      i)
-        logFuncs+=(_imap);
-        ;;
-      P)
-        logFuncs+=(_pop3);
-        ;;
-      e)
-        logFuncs+=(_send);
-        ;;
-      E)
-        logFuncs+=(_smtp);
-        ;;
-      l)
-        logFuncs+=(_letse);
-        ;;
-      d)
-        logFuncs+=(_domain);
-        ;;
-      t)
-        logFuncs+=(_transfer);
-        ;;
-      A)
-        logFuncs+=(_magento);
-        _magentoArg="$OPTARG";
-        ;;
-      T)
-        cmd="tail";
-        ;;
-      L)
-        cmd="less";
-        ;;
-      C)
-        cmd="cat";
-        ;;
-      D)
-        deep="YES";
-        ;;
-      S)
-        serverAll="YES";
-        ;;
-      U)
-        userAll="YES";
-        ;;
-      *);;
-    esac
-  done
+      case $OPTION in
+        h)
+          _usage;
+          exit 0;
+          ;;
+        f)
+          logFuncs+=(_ftp);
+          ;;
+        p)
+          logFuncs+=(_php);
+          ;;
+        s)
+          logFuncs+=(_ssh);
+          ;;
+        H)
+          logFuncs+=(_httpd);
+          ;;
+        m)
+          logFuncs+=(_mysqld);
+          ;;
+        c)
+          logFuncs+=(_cron);
+          ;;
+        M)
+          logFuncs+=(_messages);
+          ;;
+        i)
+          logFuncs+=(_imap);
+          ;;
+        P)
+          logFuncs+=(_pop3);
+          ;;
+        e)
+          logFuncs+=(_send);
+          ;;
+        E)
+          logFuncs+=(_smtp);
+          ;;
+        O)
+          logFuncs+=(_smtp2);
+          ;;
+        l)
+          logFuncs+=(_letse);
+          ;;
+        d)
+          logFuncs+=(_domain);
+          ;;
+        t)
+          logFuncs+=(_transfer);
+          ;;
+        A)
+          logFuncs+=(_magento);
+          _magentoArg="$OPTARG";
+          ;;
+        T)
+          cmd="tail";
+          ;;
+        L)
+          cmd="less";
+          ;;
+        C)
+          cmd="cat";
+          ;;
+        D)
+          deep="YES";
+          ;;
+        S)
+          serverAll="YES";
+          ;;
+        U)
+          userAll="YES";
+          ;;
+        *);;
+      esac
+    done
 
-  for func in ${logFuncs[*]}; do
-    case $func in
-      "_magento")
-        "$func" "$_magentoArg"
-        ;;
-      "_domain"|"_transfer")
-        "$func" "$deep" "$serverAll" "$userAll";
-        ;;
-      *)
-        "$func" "$deep"
-        ;;
-    esac
-  done
+    for func in ${logFuncs[*]}; do
+      case $func in
+        "_magento")
+          "$func" "$_magentoArg"
+          ;;
+        "_domain"|"_transfer")
+          "$func" "$deep" "$serverAll" "$userAll";
+          ;;
+        *)
+          "$func" "$deep"
+          ;;
+      esac
+    done
 
-  _act "$cmd";
+    _act "$cmd";
 
-}
+  }
 
-main;
+  main;
