@@ -42,6 +42,12 @@ _usage() {
                         exception
                         debug
 
+    Log modes:
+
+      -D|--deep       Look at compressed logs as well
+      -S|--server     When used in conjuction with --domain or --transfer
+                      this will look at logs for all sites on the server.
+
     Log operations:
 
       -T|--tail       Follow log
@@ -118,6 +124,12 @@ _cmdline() {
         ;;
       "--cat"|"-C")
         args="${args}-C "
+        ;;
+      "--deep"|"-D")
+        args="${args}-D "
+        ;;
+      "--server"|"-S")
+        args="${args}-S "
         ;;
       *)
         args="${args}${x} "
@@ -387,9 +399,11 @@ _act() {
 # Main
 main () {
 
-  local cmd;
+  local logFuncs cmd;
+  local deep="NO"
+  local server="NO"
 
-  while getopts "hfpsHmcMiPeEldtA:TLC" OPTION $(_cmdline); do
+  while getopts "hfpsHmcMiPeEldtA:TLCDS" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -397,49 +411,50 @@ main () {
         exit 0;
         ;;
       f)
-        _ftp;
+        logFuncs+=(_ftp);
         ;;
       p)
-        _php;
+        logFuncs+=(_php);
         ;;
       s)
-        _ssh;
+        logFuncs+=(_ssh);
         ;;
       H)
-        _httpd;
+        logFuncs+=(_httpd);
         ;;
       m)
-        _mysqld;
+        logFuncs+=(_mysqld);
         ;;
       c)
-        _cron;
+        logFuncs+=(_cron);
         ;;
       M)
-        _messages;
+        logFuncs+=(_messages);
         ;;
       i)
-        _imap;
+        logFuncs+=(_imap);
         ;;
       P)
-        _pop3;
+        logFuncs+=(_pop3);
         ;;
       e)
-        _send;
+        logFuncs+=(_send);
         ;;
       E)
-        _smtp;
+        logFuncs+=(_smtp);
         ;;
       l)
-        _letse;
+        logFuncs+=(_letse);
         ;;
       d)
-        _domain;
+        logFuncs+=(_domain);
         ;;
       t)
-        _transfer;
+        logFuncs+=(_transfer);
         ;;
       A)
-        _magento "$OPTARG";
+        logFuncs+=(_magento);
+        _magentoArg="$OPTARG";
         ;;
       T)
         cmd="tail";
@@ -450,7 +465,24 @@ main () {
       C)
         cmd="cat";
         ;;
+      D)
+        deep="YES";
+        ;;
+      S)
+        server="YES";
+        ;;
       *);;
+    esac
+  done
+
+  for func in ${logFuncs[*]}; do
+    case $func in
+      "_magento")
+        "$func" "$_magentoArg"
+        ;;
+      *)
+        "$func" "$deep" "$server";
+        ;;
     esac
   done
 
