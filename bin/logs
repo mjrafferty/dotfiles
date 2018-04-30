@@ -365,7 +365,7 @@ _transfer() {
   elif [[ "$userAll" == "YES" && "$deep" == "NO" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/"$domain"/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
+      mapfile -t files < <(find /home/"$user"/var/*/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
     fi
 
   elif [[ "$deep" == "YES" ]]; then
