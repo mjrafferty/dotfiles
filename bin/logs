@@ -354,18 +354,18 @@ _transfer() {
 
   elif [[ "$serverAll" == "YES" && "$deep" == "NO" ]]; then
 
-    mapfile -t files < <(find /home/"$user"/var/"$domain"/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f)
+    mapfile -t files < <(find /home/*/var/*/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f)
 
   elif [[ "$userAll" == "YES" && "$deep" == "YES" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <(find /home/*/var/*/logs/transfer* -type f)
+      mapfile -t files < <(find /home/"$user"/var/*/logs/transfer* -type f)
     fi
 
   elif [[ "$userAll" == "YES" && "$deep" == "NO" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <(find /home/*/var/*/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f)
+      mapfile -t files < <(find /home/"$user"/var/"$domain"/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f)
     fi
 
   elif [[ "$deep" == "YES" ]]; then
