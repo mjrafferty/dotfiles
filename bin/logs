@@ -151,7 +151,7 @@ _ftp() {
 
   local files f;
 
-  mapfile -t files < <(find /var/log/proftpd/{auth,xfer}.log -type f)
+  mapfile -t files < <(find /var/log/proftpd/{auth,xfer}.log -type f 2> /dev/null)
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -164,7 +164,7 @@ _php() {
 
   local files f;
 
-  mapfile -t files < <(find {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error.log -type f)
+  mapfile -t files < <(find {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error.log -type f 2> /dev/null)
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -177,7 +177,7 @@ _ssh(){
 
   local files f;
 
-  mapfile -t files < <(find /var/log/secure -type f)
+  mapfile -t files < <(find /var/log/secure -type f 2> /dev/null)
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -190,7 +190,7 @@ _httpd() {
 
   local files f;
 
-  mapfile -t files < <(find /var/log/httpd/error_log -type f)
+  mapfile -t files < <(find /var/log/httpd/error_log -type f 2> /dev/null)
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -203,7 +203,7 @@ _mysqld() {
 
   local files f;
 
-  mapfile -t files < <(find /var/log/mysqld.log -type f)
+  mapfile -t files < <(find /var/log/mysqld.log -type f 2> /dev/null)
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -216,7 +216,7 @@ _cron() {
 
   local files f;
 
-  mapfile -t files < <(find /var/log/cron -type f)
+  mapfile -t files < <(find /var/log/cron -type f 2> /dev/null)
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -229,7 +229,7 @@ _messages() {
 
   local files f;
 
-  mapfile -t files < <(find /var/log/messages -type f)
+  mapfile -t files < <(find /var/log/messages -type f 2> /dev/null)
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -242,7 +242,7 @@ _imap() {
 
   local files f;
 
-  mapfile -t files < <(find /var/log/imap4-ssl/current -type f)
+  mapfile -t files < <(find /var/log/imap4-ssl/current -type f 2> /dev/null)
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -255,7 +255,7 @@ _pop3() {
 
   local files f;
 
-  mapfile -t files < <(find /var/log/pop3-ssl/current -type f)
+  mapfile -t files < <(find /var/log/pop3-ssl/current -type f 2> /dev/null)
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -268,7 +268,7 @@ _send() {
 
   local files f;
 
-  mapfile -t files < <(find /var/log/send/current -type f)
+  mapfile -t files < <(find /var/log/send/current -type f 2> /dev/null)
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -281,7 +281,7 @@ _smtp() {
 
   local files f;
 
-  mapfile -t files < <(find /var/log/smtp/current -type f)
+  mapfile -t files < <(find /var/log/smtp/current -type f 2> /dev/null)
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -294,7 +294,7 @@ _letse() {
 
   local files f;
 
-  mapfile -t files < <(find /var/log/letsenccrypt/letsencrypt.log -type f)
+  mapfile -t files < <(find /var/log/letsenccrypt/letsencrypt.log -type f 2> /dev/null)
 
   for f in ${files[*]}; do
     LOG_FILES+=("$f");
@@ -350,34 +350,34 @@ _transfer() {
 
   if [[ "$serverAll" == "YES" && "$deep" == "YES" ]]; then
 
-    mapfile -t files < <(find /home/*/var/*/logs/transfer* -type f)
+    mapfile -t files < <(find /home/*/var/*/logs/transfer* -type f 2> /dev/null)
 
   elif [[ "$serverAll" == "YES" && "$deep" == "NO" ]]; then
 
-    mapfile -t files < <(find /home/*/var/*/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f)
+    mapfile -t files < <(find /home/*/var/*/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
 
   elif [[ "$userAll" == "YES" && "$deep" == "YES" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/*/logs/transfer* -type f)
+      mapfile -t files < <(find /home/"$user"/var/*/logs/transfer* -type f 2> /dev/null)
     fi
 
   elif [[ "$userAll" == "YES" && "$deep" == "NO" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/"$domain"/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f)
+      mapfile -t files < <(find /home/"$user"/var/"$domain"/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
     fi
 
   elif [[ "$deep" == "YES" ]]; then
 
     if [[ -n "$domain" ]]; then
-      mapfile -t files < <(find /home/*/var/*/logs/transfer* -type f)
+      mapfile -t files < <(find /home/*/var/*/logs/transfer* -type f 2> /dev/null)
     fi
 
   else
 
     if [[ -n "$domain" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/"$domain"/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f)
+      mapfile -t files < <(find /home/"$user"/var/"$domain"/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
     fi
 
   fi
@@ -405,34 +405,34 @@ _domain(){
 
   if [[ "$serverAll" == "YES" && "$deep" == "YES" ]]; then
 
-    mapfile -t files < <(find /home/*/var/{php-fpm,*/logs}/error* -type f)
+    mapfile -t files < <(find /home/*/var/{php-fpm,*/logs}/error* -type f 2> /dev/null)
 
   elif [[ "$serverAll" == "YES" && "$deep" == "NO" ]]; then
 
-    mapfile -t files < <(find /home/*/var/{php-fpm,*/logs}/error{,-{,ssl-}"$(date "+%F")"}.log -type f)
+    mapfile -t files < <(find /home/*/var/{php-fpm,*/logs}/error{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
 
   elif [[ "$userAll" == "YES" && "$deep" == "YES" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/{php-fpm,*/logs}/error* -type f)
+      mapfile -t files < <(find /home/"$user"/var/{php-fpm,*/logs}/error* -type f 2> /dev/null)
     fi
 
   elif [[ "$userAll" == "YES" && "$deep" == "NO" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/{php-fpm,*/logs}/error{,-{,ssl-}"$(date "+%F")"}.log -type f)
+      mapfile -t files < <(find /home/"$user"/var/{php-fpm,*/logs}/error{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
     fi
 
   elif [[ "$deep" == "YES" ]]; then
 
     if [[ -n "$domain" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/{php-fpm,"$domain"/logs}/error* -type f)
+      mapfile -t files < <(find /home/"$user"/var/{php-fpm,"$domain"/logs}/error* -type f 2> /dev/null)
     fi
 
   else
 
     if [[ -n "$domain" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/{php-fpm,"$domain"/logs}/error{,-{,ssl-}"$(date "+%F")"}.log -type f)
+      mapfile -t files < <(find /home/"$user"/var/{php-fpm,"$domain"/logs}/error{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
     fi
 
   fi
