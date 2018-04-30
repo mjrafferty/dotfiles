@@ -569,119 +569,118 @@ _act() {
       *)
         tail -n10 ${LOG_FILES[*]} | tai64nlocal | $PAGER;
         ;;
+    esac
 
-      esac
+  else
 
-    else
+    echo "No Logs found";
 
-      echo "No Logs found";
+  fi
 
-    fi
+}
 
-  }
+# Main
+main () {
 
-  # Main
-  main () {
+  local logFuncs cmd;
+  local deep="NO"
+  local serverAll="NO"
+  local userAll="NO"
 
-    local logFuncs cmd;
-    local deep="NO"
-    local serverAll="NO"
-    local userAll="NO"
+  while getopts "hfpsHmcMiPeEOldtA:TLCDSU" OPTION $(_cmdline); do
 
-    while getopts "hfpsHmcMiPeEOldtA:TLCDSU" OPTION $(_cmdline); do
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      f)
+        logFuncs+=(_ftp);
+        ;;
+      p)
+        logFuncs+=(_php);
+        ;;
+      s)
+        logFuncs+=(_ssh);
+        ;;
+      H)
+        logFuncs+=(_httpd);
+        ;;
+      m)
+        logFuncs+=(_mysqld);
+        ;;
+      c)
+        logFuncs+=(_cron);
+        ;;
+      M)
+        logFuncs+=(_messages);
+        ;;
+      i)
+        logFuncs+=(_imap);
+        ;;
+      P)
+        logFuncs+=(_pop3);
+        ;;
+      e)
+        logFuncs+=(_send);
+        ;;
+      E)
+        logFuncs+=(_smtp);
+        ;;
+      O)
+        logFuncs+=(_smtp2);
+        ;;
+      l)
+        logFuncs+=(_letse);
+        ;;
+      d)
+        logFuncs+=(_domain);
+        ;;
+      t)
+        logFuncs+=(_transfer);
+        ;;
+      A)
+        logFuncs+=(_magento);
+        _magentoArg="$OPTARG";
+        ;;
+      T)
+        cmd="tail";
+        ;;
+      L)
+        cmd="less";
+        ;;
+      C)
+        cmd="cat";
+        ;;
+      D)
+        deep="YES";
+        ;;
+      S)
+        serverAll="YES";
+        ;;
+      U)
+        userAll="YES";
+        ;;
+      *);;
+    esac
+  done
 
-      case $OPTION in
-        h)
-          _usage;
-          exit 0;
-          ;;
-        f)
-          logFuncs+=(_ftp);
-          ;;
-        p)
-          logFuncs+=(_php);
-          ;;
-        s)
-          logFuncs+=(_ssh);
-          ;;
-        H)
-          logFuncs+=(_httpd);
-          ;;
-        m)
-          logFuncs+=(_mysqld);
-          ;;
-        c)
-          logFuncs+=(_cron);
-          ;;
-        M)
-          logFuncs+=(_messages);
-          ;;
-        i)
-          logFuncs+=(_imap);
-          ;;
-        P)
-          logFuncs+=(_pop3);
-          ;;
-        e)
-          logFuncs+=(_send);
-          ;;
-        E)
-          logFuncs+=(_smtp);
-          ;;
-        O)
-          logFuncs+=(_smtp2);
-          ;;
-        l)
-          logFuncs+=(_letse);
-          ;;
-        d)
-          logFuncs+=(_domain);
-          ;;
-        t)
-          logFuncs+=(_transfer);
-          ;;
-        A)
-          logFuncs+=(_magento);
-          _magentoArg="$OPTARG";
-          ;;
-        T)
-          cmd="tail";
-          ;;
-        L)
-          cmd="less";
-          ;;
-        C)
-          cmd="cat";
-          ;;
-        D)
-          deep="YES";
-          ;;
-        S)
-          serverAll="YES";
-          ;;
-        U)
-          userAll="YES";
-          ;;
-        *);;
-      esac
-    done
+  for func in ${logFuncs[*]}; do
+    case $func in
+      "_magento")
+        "$func" "$_magentoArg"
+        ;;
+      "_domain"|"_transfer")
+        "$func" "$deep" "$serverAll" "$userAll";
+        ;;
+      *)
+        "$func" "$deep"
+        ;;
+    esac
+  done
 
-    for func in ${logFuncs[*]}; do
-      case $func in
-        "_magento")
-          "$func" "$_magentoArg"
-          ;;
-        "_domain"|"_transfer")
-          "$func" "$deep" "$serverAll" "$userAll";
-          ;;
-        *)
-          "$func" "$deep"
-          ;;
-      esac
-    done
+  _act "$cmd";
 
-    _act "$cmd";
+}
 
-  }
-
-  main;
+main;
