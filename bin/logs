@@ -558,12 +558,12 @@ _act() {
 
       "less")
         for log in ${LOG_FILES[*]}; do
-          tai64nlocal < "$log" | $PAGER;
+          tai64nlocal < <(zless $log) | $PAGER;
         done
         ;;
 
       "cat")
-        tai64nlocal < <(cat ${LOG_FILES[*]});
+        tai64nlocal < <(zless ${LOG_FILES[*]});
         ;;
 
       *)
