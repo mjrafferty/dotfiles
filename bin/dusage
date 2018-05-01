@@ -181,7 +181,7 @@ _extraStuff() {
 
   find /home/{tmp,nex*} -maxdepth 3 -group "$(pwd | grep -Po "/home/\K[^/]*")" -exec /usr/bin/du -sh {} + \
     | sort -hr \
-    | head -n2
+    | head -n10;
 
 }
 
