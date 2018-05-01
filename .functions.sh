@@ -22,8 +22,10 @@
 [[ -z $NSLOOKUP ]] && readonly NSLOOKUP='/usr/bin/nslookup'
 [[ -z $PS ]] && readonly PS='/bin/ps'
 [[ -z $SED ]] && readonly SED='/bin/sed'
+[[ -z $SETFACL ]] && readonly SETFACL='/usr/bin/setfacl'
 [[ -z $SORT ]] && readonly SORT='/bin/sort'
 [[ -z $STATT ]] && readonly STATT='/usr/bin/stat'
+[[ -z $SUDO ]] && readonly SUDO='/usr/bin/sudo'
 [[ -z $SWAKS ]] && readonly SWAKS='/usr/bin/swaks'
 [[ -z $TOUCH ]] && readonly TOUCH='/bin/touch'
 [[ -z $TR ]] && readonly TR='/usr/bin/tr'
@@ -265,15 +267,15 @@ reqslasthour () {
 
   times=($($DATE +%Y:%R | $SED -e 's/:/ /g' -e 's/\([0-9]\)\([0-9]\)$/\1 \2/'))
 
-  if [ "${times[$ARRAY_START+1]}" -eq 00 ]; then
+  if [ "${times[ARRAY_START+1]}" -eq 00 ]; then
     prevhour=23;
   else
-    prevhour=$(printf "%02d" "$((times[$ARRAY_START+1]-1))");
+    prevhour=$(printf "%02d" "$((times[ARRAY_START+1]-1))");
   fi
-  if [ "${times[$ARRAY_START+2]}" -eq 5 ]; then
-    regex="${times[$ARRAY_START]}:($prevhour:5[${times[$ARRAY_START+3]}-9]|${times[$ARRAY_START+1]}:)"
+  if [ "${times[ARRAY_START+2]}" -eq 5 ]; then
+    regex="${times[ARRAY_START]}:($prevhour:5[${times[ARRAY_START+3]}-9]|${times[ARRAY_START+1]}:)"
   else
-    regex="${times[$ARRAY_START]}:($prevhour:(${times[$ARRAY_START+2]}[${times[$ARRAY_START+3]}-9]|[$((times[$ARRAY_START+2]+1))-5][0-9])|${times[$ARRAY_START+1]}:)"
+    regex="${times[ARRAY_START]}:($prevhour:(${times[ARRAY_START+2]}[${times[ARRAY_START+3]}-9]|[$((times[ARRAY_START+2]+1))-5][0-9])|${times[ARRAY_START+1]}:)"
   fi
 
   echo -e "\n";
@@ -292,15 +294,15 @@ phplasthour () {
 
   times=($($DATE +%Y:%R | $SED -e 's/:/ /g' -e 's/\([0-9]\)\([0-9]\)$/\1 \2/'))
 
-  if [ "${times[$ARRAY_START+1]}" -eq 00 ]; then
+  if [ "${times[ARRAY_START+1]}" -eq 00 ]; then
     prevhour=23;
   else
-    prevhour=$(printf "%02d" "$((times[$ARRAY_START+1]-1))");
+    prevhour=$(printf "%02d" "$((times[ARRAY_START+1]-1))");
   fi
-  if [ "${times[$ARRAY_START+2]}" -eq 5 ]; then
-    regex="${times[$ARRAY_START]}:($prevhour:5[${times[$ARRAY_START+3]}-9]|${times[$ARRAY_START+1]}:)"
+  if [ "${times[ARRAY_START+2]}" -eq 5 ]; then
+    regex="${times[ARRAY_START]}:($prevhour:5[${times[ARRAY_START+3]}-9]|${times[ARRAY_START+1]}:)"
   else
-    regex="${times[$ARRAY_START]}:($prevhour:(${times[$ARRAY_START+2]}[${times[$ARRAY_START+3]}-9]|[$((times[$ARRAY_START+2]+1))-5][0-9])|${times[$ARRAY_START+1]}:)"
+    regex="${times[ARRAY_START]}:($prevhour:(${times[ARRAY_START+2]}[${times[ARRAY_START+3]}-9]|[$((times[ARRAY_START+2]+1))-5][0-9])|${times[ARRAY_START+1]}:)"
   fi
 
   echo -e "\n";
@@ -683,14 +685,18 @@ u () {
 
   user="$(pwd | grep -Po "home/\K[^/]*")"
 
-  touch "$HOME"/.viminfo;
-	setfacl -R -m u:"$user":rX "$HOME" 2> /dev/null
-	setfacl -m u:"$user":rwX "$HOME"
-	setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.vimfiles,.viminfo} 2> /dev/null
 
-	/usr/bin/sudo HOME="$HOME" TMUX="$TMUX" -u "$user" "$MYSHELL"
+  # Give permissions on my home dir to new user
+	$SETFACL -R -m u:"$user":rX "$HOME" 2> /dev/null
+	$SETFACL -m u:"$user":rwX "$HOME"
+	$SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.vimfiles} 2> /dev/null
 
-	/usr/bin/sudo -u "$user" find $HOME -user $user -exec setfacl -m u:"$USER":rwX {} +
+  # Switch user
+	$SUDO HOME="$HOME" TMUX="$TMUX" -u "$user" "$MYSHELL"
 
-	setfacl -R -x u:"$user" ~/
+  # Give me permissions on any files the user created in my home dir
+	$SUDO -u "$user" find "$HOME" -user "$user" -exec $SETFACL -m u:"$USER":rwX {} +
+
+  # Revoke the permissions given to that user
+	$SETFACL -R -x u:"$user" ~/
 }

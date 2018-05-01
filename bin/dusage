@@ -214,6 +214,7 @@ main () {
       d)
         DEPTH="$OPTARG";
         ;;
+      *);;
     esac
 
   done

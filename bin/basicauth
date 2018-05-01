@@ -26,11 +26,23 @@ alias wc="/usr/bin/wc"
 _usage() {
   cat <<- EOF
 
-  Usage: htpasswdauth [-u|--user username] [-p|--pass password] [-l length]
+  Tool for easily configuring basic auth on
+  web accessible sites or directories.
 
-  Ex: htpasswdauth -u username -p password
-  Ex: htpasswdauth -u username -l 5
-  Ex: htpasswdauth -u username
+  Usage:
+
+    -u|--user         Username for basic auth. Default
+                      value is the username of the home
+                      directory that this directory
+                      resides in.
+
+    -p|--pass         Password for basic auth. Will generate
+                      pass automatically if not specified.
+
+    -d|--directory    Directory to apply auth to. Default is
+                      your current working directory.
+
+    -h|--help         Print this message.
 
 EOF
 }
