@@ -97,11 +97,11 @@ _php() {
   local configured_phps running_phps php_instances x
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_phps <(find /etc/systemd -name 'php*.service' | grep -Po '[^/]*(?=.service)');
+    mapfile -t configured_phps < <(find /etc/systemd -name 'php*.service' | grep -Po '[^/]*(?=.service)');
   else
-    mapfile -t configured_phps <(find /etc/rc.d/rc3.d/ -name 'S*php*fpm' | grep -Po '...\Kphp.*fpm');
+    mapfile -t configured_phps < <(find /etc/rc.d/rc3.d/ -name 'S*php*fpm' | grep -Po '...\Kphp.*fpm');
   fi
-  mapfile -t running_phps <(echo "$PROCESS_DATA" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$6); print $6}');
+  mapfile -t running_phps < <(echo "$PROCESS_DATA" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$6); print $6}');
 
   if (( ${#running_phps[@]} < ${#configured_phps[@]} )); then
 
@@ -129,11 +129,11 @@ _httpd () {
   local configured_httpd running_httpd;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_httpd <(find /etc/systemd -name 'httpd.service' );
+    mapfile -t configured_httpd < <(find /etc/systemd -name 'httpd.service' );
   else
-    mapfile -t configured_httpd <(find /etc/rc.d/rc3.d/ -name 'S*httpd' );
+    mapfile -t configured_httpd < <(find /etc/rc.d/rc3.d/ -name 'S*httpd' );
   fi
-  mapfile -t running_httpd <(echo "$PROCESS_DATA" | grep -Po "^root.*\Khttpd");
+  mapfile -t running_httpd < <(echo "$PROCESS_DATA" | grep -Po "^root.*\Khttpd");
 
   if (( ${#running_httpd[@]} < ${#configured_httpd[@]} )); then
 
@@ -148,8 +148,8 @@ _memcached() {
 
   local configured_memcached running_memcached x;
 
-  mapfile -t configured_memcached <(find /etc/{sysconfig,memcached-multi} -type f -not -name "*.rpmnew" 2> /dev/null | grep -Po '/etc/(sysconfig/\Kmemcached\.|memcached-multi/\K).*');
-  mapfile -t running_memcached <(echo "$PROCESS_DATA" | awk '{ if ($3=="memcached" && $8!="memcached"){print $0}}' | grep -Po '[^/]*(?=.pid.*)');
+  mapfile -t configured_memcached < <(find /etc/{sysconfig,memcached-multi} -type f -not -name "*.rpmnew" 2> /dev/null | grep -Po '/etc/(sysconfig/\Kmemcached\.|memcached-multi/\K).*');
+  mapfile -t running_memcached < <(echo "$PROCESS_DATA" | awk '{ if ($3=="memcached" && $8!="memcached"){print $0}}' | grep -Po '[^/]*(?=.pid.*)');
 
   if (( ${#running_memcached[@]} < ${#configured_memcached[@]} )); then
 
@@ -170,8 +170,8 @@ _redis() {
 
   local configured_redis running_redis x;
 
-  mapfile -t configured_redi <(grep -PoH '^\s*\Kport.*' /etc/redis-multi/* 2> /dev/null | sed -r 's|/etc/redis-multi/((redis-multi_)?.*).conf:port (\d*)|\1+\3|');
-  mapfile -t running_redis <(echo "$PROCESS_DATA" | grep -Po 'redis-server 127.0.0.1:\K\d*' );
+  mapfile -t configured_redi < <(grep -PoH '^\s*\Kport.*' /etc/redis-multi/* 2> /dev/null | sed -r 's|/etc/redis-multi/((redis-multi_)?.*).conf:port (\d*)|\1+\3|');
+  mapfile -t running_redis < <(echo "$PROCESS_DATA" | grep -Po 'redis-server 127.0.0.1:\K\d*' );
 
   if (( ${#running_redis[@]} < ${#configured_redis[@]} )); then
 
@@ -219,11 +219,11 @@ _mysqld() {
   local configured_mysqld running_mysqld;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_mysqld <(find /etc/systemd -name 'mysqld.service');
+    mapfile -t configured_mysqld < <(find /etc/systemd -name 'mysqld.service');
   else
-    mapfile -t configured_mysqld <(find /etc/rc.d/rc3.d/ -name 'S*mysqld');
+    mapfile -t configured_mysqld < <(find /etc/rc.d/rc3.d/ -name 'S*mysqld');
   fi
-  mapfile -t running_mysqld <(echo "$PROCESS_DATA" | grep -Po "\s*\K/usr/(libexec|sbin)/mysqld\s*");
+  mapfile -t running_mysqld < <(echo "$PROCESS_DATA" | grep -Po "\s*\K/usr/(libexec|sbin)/mysqld\s*");
 
   if (( ${#running_mysqld[@]} < ${#configured_mysqld[@]} )); then
 
@@ -239,11 +239,11 @@ _haproxy() {
   local configured_haproxy running_haproxy
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_haproxy <(find /etc/systemd -name 'haproxy.service');
+    mapfile -t configured_haproxy < <(find /etc/systemd -name 'haproxy.service');
   else
-    mapfile -t configured_haproxy <(find /etc/rc.d/rc3.d/ -name 'S*haproxy');
+    mapfile -t configured_haproxy < <(find /etc/rc.d/rc3.d/ -name 'S*haproxy');
   fi
-  mapfile -t running_haproxy <(echo "$PROCESS_DATA" | grep -Po "\S*haproxy ");
+  mapfile -t running_haproxy < <(echo "$PROCESS_DATA" | grep -Po "\S*haproxy ");
 
   if (( ${#running_haproxy[@]} < ${#configured_haproxy[@]} )); then
 
@@ -259,11 +259,11 @@ _varnish() {
   local configured_varnish running_varnish;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_varnish <(find /etc/systemd -name 'varnish.service');
+    mapfile -t configured_varnish < <(find /etc/systemd -name 'varnish.service');
   else
-    mapfile -t configured_varnish <(find /etc/rc.d/rc3.d/ -name 'S*varnish');
+    mapfile -t configured_varnish < <(find /etc/rc.d/rc3.d/ -name 'S*varnish');
   fi
-  mapfile -t running_varnish <(echo "$PROCESS_DATA" | grep -Po "\S*varnish ");
+  mapfile -t running_varnish < <(echo "$PROCESS_DATA" | grep -Po "\S*varnish ");
 
   if (( ${#running_varnish[@]} < ${#configured_varnish[@]} )); then
 
@@ -279,11 +279,11 @@ _pound() {
   local configured_pound running_pound;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_pound <(find /etc/systemd -name 'pound.service');
+    mapfile -t configured_pound < <(find /etc/systemd -name 'pound.service');
   else
-    mapfile -t configured_pound <(find /etc/rc.d/rc3.d/ -name 'S*pound');
+    mapfile -t configured_pound < <(find /etc/rc.d/rc3.d/ -name 'S*pound');
   fi
-  mapfile -t running_pound <(echo "$PROCESS_DATA" | grep -Po "\S*pound ");
+  mapfile -t running_pound < <(echo "$PROCESS_DATA" | grep -Po "\S*pound ");
 
   if (( ${#running_pound[@]} < ${#configured_pound[@]} )); then
 
@@ -299,11 +299,11 @@ _nginx() {
   local configured_nginx running_nginx;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_nginx <(find /etc/systemd -name 'nginx.service');
+    mapfile -t configured_nginx < <(find /etc/systemd -name 'nginx.service');
   else
-    mapfile -t configured_nginx <(find /etc/rc.d/rc3.d/ -name 'S*nginx');
+    mapfile -t configured_nginx < <(find /etc/rc.d/rc3.d/ -name 'S*nginx');
   fi
-  mapfile -t running_nginx <(echo "$PROCESS_DATA" | grep -Po "nginx:\s+master\s+process\s+\K/usr/sbin/nginx");
+  mapfile -t running_nginx < <(echo "$PROCESS_DATA" | grep -Po "nginx:\s+master\s+process\s+\K/usr/sbin/nginx");
 
   if (( ${#running_nginx[@]} < ${#configured_nginx[@]} )); then
 

@@ -39,7 +39,7 @@ _wpdbbackup () {
 }
 
 _wpdbinfo () {
-  mapfile -t dbconnect <(grep DB_ "$SITEPATH"/wp-config.php 2> /dev/null | cut -d\' -f4);
+  mapfile -t dbconnect < <(grep DB_ "$SITEPATH"/wp-config.php 2> /dev/null | cut -d\' -f4);
   dbname=${dbconnect[0]};
   dbuser="${dbconnect[1]}";
   dbpass="${dbconnect[2]}";

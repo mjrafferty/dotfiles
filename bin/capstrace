@@ -330,7 +330,7 @@ main () {
         exit 0;
         ;;
       f)
-        mapfile -t FILES <(echo "$OPTARG" | tr ',' ' ' );
+        mapfile -t FILES < <(echo "$OPTARG" | tr ',' ' ' );
 
         for x in ${FILES[*]}; do
 

@@ -18,7 +18,7 @@ main () {
 		return 0;
 	fi
 
-	mapfile -t connections <(cat $ARGS | grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))');
+	mapfile -t connections < <(cat $ARGS | grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))');
 
 	if [[ -z "$connections"  || -n ${ARGA[1]} ]]; then
 
@@ -35,7 +35,7 @@ main () {
 
 		local file_desc;
 
-		mapfile -t file_desc <(${x/:/ });
+		mapfile -t file_desc < <(${x/:/ });
 
 		tail -n +"${file_desc[0]}" "${ARGA[0]}" \
 			| grep -Po '(write|sendto)\('"${file_desc[1]}"', "\\?[^\\]*(\\[^\\]*){2}\\.(\\.)?\K[^"]*", ' \

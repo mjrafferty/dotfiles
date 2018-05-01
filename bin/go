@@ -179,7 +179,7 @@ _findDestination () {
   # If site not pointed at nexcess
   findsitelist=$(_findsite "$DOMAIN");
 
-  mapfile -t find_servers <(echo "${findsitelist}" | awk '{print $1}');
+  mapfile -t find_servers < <(echo "${findsitelist}" | awk '{print $1}');
 
   # Evaluate too few or too many domains
   if [ -z "${find_servers[0]}" ]; then

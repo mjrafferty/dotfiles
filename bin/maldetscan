@@ -170,7 +170,7 @@ _watchScan() {
   filepath="$1";
   scanpid="$2";
 
-  mapfile -t totals <(tail -n1 "$data_list" | awk '{print $1,$2}');
+  mapfile -t totals < <(tail -n1 "$data_list" | awk '{print $1,$2}');
   data_total_human="$(echo "${totals[1]}" | _humanReadable)"
 
   # Find clamd process id
@@ -240,7 +240,7 @@ _showResults () {
   hits_file="/usr/local/maldetect/sess/session.hits.$report_id"
 
 
-  mapfile -t bad_files <(awk '{print $3}' "$hits_file");
+  mapfile -t bad_files < <(awk '{print $3}' "$hits_file");
 
 
   cat <<- EOF > "$OUTPUT_FILE"

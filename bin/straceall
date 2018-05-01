@@ -73,7 +73,7 @@ main () {
     process_name="php-fpm";
   fi
 
-  mapfile -t pids <(pgrep -f "$process_name" -u "$user");
+  mapfile -t pids < <(pgrep -f "$process_name" -u "$user");
 
   if [[ -z "${pids[0]}" ]]; then
 
