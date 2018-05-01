@@ -128,7 +128,7 @@ _loadavgchk () {
 
   local avgs cpucount;
 
-  mapfile -t avgs < <(cut -d ' ' -f1-3 /proc/loadavg);
+  mapfile -t avgs < <(tr ' ' '\n' < /proc/loadavg)
 
   avgs[0]=$(printf "%.*f\n" 0 "${avgs[0]}")
   avgs[1]=$(printf "%.*f\n" 0 "${avgs[1]}")
