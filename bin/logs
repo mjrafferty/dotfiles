@@ -7,9 +7,13 @@ readonly ARGA=("$@")
 # Configurable Variables
 
 # Alias executables to prevent PATH issues
+alias find="/bin/find"
+alias grep="/bin/grep"
+alias tai64nlocal="/usr/bin/tai64nlocal"
+alias tail="/usr/bin/tail"
+alias zless="/usr/bin/zless"
 
 # Necessary Global Variables
-shopt -s nullglob;
 LOG_FILES=();
 
 # Print usage
