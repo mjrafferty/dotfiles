@@ -170,7 +170,7 @@ _watchScan() {
   filepath="$1";
   scanpid="$2";
 
-  totals=($(tail -n1 "$data_list" | awk '{print $1,$2}'))
+  mapfile -t totals <(tail -n1 "$data_list" | awk '{print $1,$2}');
   data_total_human="$(echo "${totals[1]}" | _humanReadable)"
 
   # Find clamd process id
@@ -192,7 +192,7 @@ _watchScan() {
       while read -r line; do
 
         if [[ "$line" =~ "$currentfile"$ ]]; then
-          scan_status=($line);
+          scan_status=("$line");
 
           scan_percentage="$((100 * scan_status[1]/totals[1]))"
           data_scanned_human="$(echo "${scan_status[1]}" | _humanReadable)"
@@ -240,7 +240,7 @@ _showResults () {
   hits_file="/usr/local/maldetect/sess/session.hits.$report_id"
 
 
-  bad_files=($(awk '{print $3}' "$hits_file"));
+  mapfile -t bad_files <(awk '{print $3}' "$hits_file");
 
 
   cat <<- EOF > "$OUTPUT_FILE"
@@ -328,6 +328,7 @@ main () {
       p)
         filepath="$OPTARG";
         ;;
+      *);;
     esac
 
   done

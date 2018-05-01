@@ -2,13 +2,16 @@
 
 # Gets list of recent DNS lookups from local requests
 
+list=();
+dug=();
+
 # list of domains queried
-list=($(parallel grep query -- /service/dnscache/log/main/* | cut -d\  -f6 | sort -u));
+mapfile -t list <(parallel grep query -- /service/dnscache/log/main/* | cut -d\  -f6 | sort -u);
 
 for ((i=0;i<${#list[@]};i++)); do
 
   # list of records  received for a domain
-  dug=($(dig +short "${list[$i]}"));
+  mapfile -t dug <(dig +short "${list[$i]}");
 
   for ((x=0;x<${#dug[@]};x++)); do
       printf "%s\t%s\n" "${list[$i]}" "${dug[$x]}";

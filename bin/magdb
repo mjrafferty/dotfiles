@@ -1,5 +1,7 @@
 #! /bin/bash
 
+ver=();
+
 ## Find Magento database connection info, and run common queries
 echo;
 runonce=0;
@@ -74,7 +76,7 @@ _magdbinfo () {
 		dbuser="$(echo 'cat /config/global/resources/default_setup/connection/username/text()' | xmllint --nocdata --shell "$SITEPATH"/app/etc/local.xml | sed '1d;$d')"
 		dbpass="$(echo 'cat /config/global/resources/default_setup/connection/password/text()' | xmllint --nocdata --shell "$SITEPATH"/app/etc/local.xml | sed '1d;$d')"
 		dbname="$(echo 'cat /config/global/resources/default_setup/connection/dbname/text()' | xmllint --nocdata --shell "$SITEPATH"/app/etc/local.xml | sed '1d;$d')"
-		ver=($(grep 'function getVersionInfo' -A8 "$SITEPATH"/app/Mage.php | grep major -A4 | cut -d\' -f4));
+		mapfile -t ver <(grep 'function getVersionInfo' -A8 "$SITEPATH"/app/Mage.php | grep major -A4 | cut -d\' -f4);
 		version="${ver[0]}.${ver[1]}.${ver[2]}.${ver[3]}"
 
 		if grep -E 'Enterprise Edition|Commercial Edition' "$SITEPATH"/app/Mage.php > /dev/null; then

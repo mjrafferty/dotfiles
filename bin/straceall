@@ -4,10 +4,13 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly OUTPUT_DIR="$HOME/straceall"
+
 _usage() {
+
   cat <<- EOF
   This is the usage
 EOF
+
 }
 
 _cmdline() {
@@ -39,6 +42,8 @@ _cmdline() {
 
 main () {
 
+  local pids user process_name outputfile x;
+
   while getopts "hu:p:" OPTION $(_cmdline); do
 
     case $OPTION in
@@ -52,6 +57,7 @@ main () {
       p)
 				process_name="$OPTARG"
         ;;
+      *);;
     esac
 
   done
@@ -67,7 +73,7 @@ main () {
     process_name="php-fpm";
   fi
 
-  pids=($(pgrep -f "$process_name" -u "$user"));
+  mapfile -t pids <(pgrep -f "$process_name" -u "$user");
 
   if [[ -z "${pids[0]}" ]]; then
 

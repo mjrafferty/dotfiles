@@ -3,6 +3,8 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+dbconnect=();
+
 _wpdbsum () {
   echo -e "${BRIGHT}$edition: ${RED}$version ($dbversion) ${NORMAL}\n${BRIGHT}Connection: ${RED}$dbuser:$dbname$(if [[ -n $prefix ]]; then echo ."$prefix"; fi)${NORMAL}\n";
 }
@@ -37,7 +39,7 @@ _wpdbbackup () {
 }
 
 _wpdbinfo () {
-  dbconnect=($(grep DB_ "$SITEPATH"/wp-config.php 2> /dev/null | cut -d\' -f4));
+  mapfile -t dbconnect <(grep DB_ "$SITEPATH"/wp-config.php 2> /dev/null | cut -d\' -f4);
   dbname=${dbconnect[0]};
   dbuser="${dbconnect[1]}";
   dbpass="${dbconnect[2]}";

@@ -1,38 +1,38 @@
 #! /bin/bash
 
-[[ -z $AWK ]] && readonly AWK='/bin/awk'
-[[ -z $CHECKQUOTA ]] && readonly CHECKQUOTA='/home/nexmrafferty/bin/checkquota'
-[[ -z $CHKCONFIG ]] && readonly CHKCONFIG='/sbin/chkconfig'
-[[ -z $CHOWN ]] && readonly CHOWN='/bin/chown'
-[[ -z $COLUMN ]] && readonly COLUMN='/usr/bin/column'
-[[ -z $CP ]] && readonly CP='/bin/cp'
-[[ -z $CURL ]] && readonly CURL='/usr/bin/curl'
-[[ -z $CUT ]] && readonly CUT='/bin/cut'
-[[ -z $DATE ]] && readonly DATE='/bin/date'
-[[ -z $DIG ]] && readonly DIG='/usr/bin/dig'
-[[ -z $FIND ]] && readonly FIND='/bin/find'
-[[ -z $GETUSR ]] && readonly GETUSR='/home/nexmrafferty/bin/getusr'
-[[ -z $GREP ]] && readonly GREP='/bin/grep'
-[[ -z $HEAD ]] && readonly HEAD='/usr/bin/head'
-[[ -z $IP ]] && readonly IP='/sbin/ip'
-[[ -z $LN ]] && readonly LN='/bin/ln'
-[[ -z $LS ]] && readonly LS='/bin/ls'
-[[ -z $MYSQL ]] && readonly MYSQL='/usr/bin/mysql'
-[[ -z $NODEWORX ]] && readonly NODEWORX='/usr/bin/nodeworx'
-[[ -z $NSLOOKUP ]] && readonly NSLOOKUP='/usr/bin/nslookup'
-[[ -z $PS ]] && readonly PS='/bin/ps'
-[[ -z $SED ]] && readonly SED='/bin/sed'
-[[ -z $SETFACL ]] && readonly SETFACL='/usr/bin/setfacl'
-[[ -z $SORT ]] && readonly SORT='/bin/sort'
-[[ -z $STATT ]] && readonly STATT='/usr/bin/stat'
-[[ -z $SUDO ]] && readonly SUDO='/usr/bin/sudo'
-[[ -z $SWAKS ]] && readonly SWAKS='/usr/bin/swaks'
-[[ -z $TOUCH ]] && readonly TOUCH='/bin/touch'
-[[ -z $TR ]] && readonly TR='/usr/bin/tr'
-[[ -z $UNIQ ]] && readonly UNIQ='/usr/bin/uniq'
-[[ -z $XARGS ]] && readonly XARGS='/usr/bin/xargs'
-[[ -z $ZLESS ]] && readonly ZLESS='/usr/bin/zless'
-[[ -z $MYSHELL ]] && readonly MYSHELL="$(readlink /proc/$$/exe)"
+[[  -z  $AWK         ]]  &&  readonly  AWK='/bin/awk'
+[[  -z  $CHECKQUOTA  ]]  &&  readonly  CHECKQUOTA='/home/nexmrafferty/bin/checkquota'
+[[  -z  $CHKCONFIG   ]]  &&  readonly  CHKCONFIG='/sbin/chkconfig'
+[[  -z  $CHOWN       ]]  &&  readonly  CHOWN='/bin/chown'
+[[  -z  $COLUMN      ]]  &&  readonly  COLUMN='/usr/bin/column'
+[[  -z  $CP          ]]  &&  readonly  CP='/bin/cp'
+[[  -z  $CURL        ]]  &&  readonly  CURL='/usr/bin/curl'
+[[  -z  $CUT         ]]  &&  readonly  CUT='/bin/cut'
+[[  -z  $DATE        ]]  &&  readonly  DATE='/bin/date'
+[[  -z  $DIG         ]]  &&  readonly  DIG='/usr/bin/dig'
+[[  -z  $FIND        ]]  &&  readonly  FIND='/bin/find'
+[[  -z  $GETUSR      ]]  &&  readonly  GETUSR='/home/nexmrafferty/bin/getusr'
+[[  -z  $GREP        ]]  &&  readonly  GREP='/bin/grep'
+[[  -z  $HEAD        ]]  &&  readonly  HEAD='/usr/bin/head'
+[[  -z  $IP          ]]  &&  readonly  IP='/sbin/ip'
+[[  -z  $LN          ]]  &&  readonly  LN='/bin/ln'
+[[  -z  $LS          ]]  &&  readonly  LS='/bin/ls'
+[[  -z  $MYSQL       ]]  &&  readonly  MYSQL='/usr/bin/mysql'
+[[  -z  $NODEWORX    ]]  &&  readonly  NODEWORX='/usr/bin/nodeworx'
+[[  -z  $NSLOOKUP    ]]  &&  readonly  NSLOOKUP='/usr/bin/nslookup'
+[[  -z  $PS          ]]  &&  readonly  PS='/bin/ps'
+[[  -z  $SED         ]]  &&  readonly  SED='/bin/sed'
+[[  -z  $SETFACL     ]]  &&  readonly  SETFACL='/usr/bin/setfacl'
+[[  -z  $SORT        ]]  &&  readonly  SORT='/bin/sort'
+[[  -z  $STATT       ]]  &&  readonly  STATT='/usr/bin/stat'
+[[  -z  $SUDO        ]]  &&  readonly  SUDO='/usr/bin/sudo'
+[[  -z  $SWAKS       ]]  &&  readonly  SWAKS='/usr/bin/swaks'
+[[  -z  $TOUCH       ]]  &&  readonly  TOUCH='/bin/touch'
+[[  -z  $TR          ]]  &&  readonly  TR='/usr/bin/tr'
+[[  -z  $UNIQ        ]]  &&  readonly  UNIQ='/usr/bin/uniq'
+[[  -z  $XARGS       ]]  &&  readonly  XARGS='/usr/bin/xargs'
+[[  -z  $ZLESS       ]]  &&  readonly  ZLESS='/usr/bin/zless'
+[[  -z  $MYSHELL     ]]  &&  readonly  MYSHELL="$(readlink /proc/$$/exe)"
 
 if [[ "$MYSHELL" =~ zsh ]]; then
   ARRAY_START="1";
@@ -683,20 +683,19 @@ u () {
 
   local user;
 
-  user="$(pwd | grep -Po "home/\K[^/]*")"
-
+  user="$(pwd | "$GREP" -Po "home/\K[^/]*")"
 
   # Give permissions on my home dir to new user
-	$SETFACL -R -m u:"$user":rX "$HOME" 2> /dev/null
-	$SETFACL -m u:"$user":rwX "$HOME"
-	$SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.vimfiles} 2> /dev/null
+  $SETFACL -R -m u:"$user":rX "$HOME" 2> /dev/null
+  $SETFACL -m u:"$user":rwX "$HOME"
+  $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.vimfiles} 2> /dev/null
 
   # Switch user
-	$SUDO HOME="$HOME" TMUX="$TMUX" -u "$user" "$MYSHELL"
+  $SUDO HOME="$HOME" TMUX="$TMUX" -u "$user" "$MYSHELL"
 
   # Give me permissions on any files the user created in my home dir
-	$SUDO -u "$user" find "$HOME" -user "$user" -exec $SETFACL -m u:"$USER":rwX {} +
+  $SUDO -u "$user" "$FIND" "$HOME" -user "$user" -exec $SETFACL -m u:"$USER":rwX {} +
 
   # Revoke the permissions given to that user
-	$SETFACL -R -x u:"$user" ~/
+  $SETFACL -R -x u:"$user" ~/
 }
