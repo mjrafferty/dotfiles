@@ -1,20 +1,21 @@
 #! /bin/bash
 
+# Script Arguments
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+# Configurable Variables
 readonly LOGDIR="/var/log/send"
-
 readonly DBNAME="mattmaildb"
 readonly DBUSER="mattmaildb"
 readonly DBPASS="SpawnedTypicalExaltNaked2284"
-
 readonly CREATE_DB="CREATE TABLE sender(row_id INTEGER PRIMARY KEY,date DATETIME,message_id INTEGER,sender VARCHAR(100)) ENGINE=MEMORY; \
   CREATE TABLE recipient(row_id INTEGER PRIMARY KEY,date DATETIME,delivery_id INTEGER,message_id INTEGER,queue_type VARCHAR(10),recipient VARCHAR(100)) ENGINE=MEMORY; \
   CREATE TABLE delivery(row_id INTEGER PRIMARY KEY AUTO_INCREMENT,date DATETIME,delivery_id INTEGER,response_type VARCHAR(10),response_msg TEXT) ENGINE=MEMORY; \
   CREATE VIEW mail AS select sender.date as created_date, recipient.date as sent_date, delivery.date as delivery_date, sender, recipient, queue_type, response_type,\
   response_msg from sender inner join recipient on recipient.message_id=sender.row_id inner join delivery on recipient.row_id=delivery.delivery_id;"
 
+# Alias executables to prevent PATH issues
 readonly AWK="/bin/awk"
 readonly CAT="/bin/cat"
 readonly MKTEMP="/bin/mktemp"
@@ -22,14 +23,19 @@ readonly MYSQL="/usr/bin/mysql"
 readonly RM="/bin/rm"
 readonly TAI64NLOCAL="/usr/bin/tai64nlocal"
 
-readonly options_file="$($MKTEMP)"
-readonly sender_file="$($MKTEMP)"
-readonly recipient_file="$($MKTEMP)"
-readonly delivery_file="$($MKTEMP)"
+# Necessary Global Variables
+readonly OPTIONS_FILE="$($MKTEMP)"
+readonly SENDER_FILE="$($MKTEMP)"
+readonly RECIPIENT_FILE="$($MKTEMP)"
+readonly DELIVERY_FILE="$($MKTEMP)"
 
 _usage() {
   $CAT <<- EOF
-  This is the usage
+
+  Converts email send logs into a much more friendly
+  MySQL database. Database is removed automatically after
+  exiting session.
+
 EOF
 }
 
@@ -70,7 +76,7 @@ grant all on \`${DBNAME}\`.* to '${DBUSER}'@'localhost';
 EOF
 
 echo "$CREATE_DB" \
-  | $MYSQL --defaults-extra-file="$options_file" --defaults-group-suffix="_maildb"
+  | $MYSQL --defaults-extra-file="$OPTIONS_FILE" --defaults-group-suffix="_maildb"
 
   printf "Done\n";
 
@@ -85,7 +91,7 @@ drop database ${DBNAME};
 drop user '${DBUSER}'@'localhost';
 EOF
 
-	$RM "$options_file";
+	$RM "$OPTIONS_FILE";
 
   printf "Done\n";
 
@@ -94,16 +100,16 @@ EOF
 _awkLogs () {
   $AWK "
   BEGIN {
-    sender_file=\"$sender_file\";
-    recipient_file=\"$recipient_file\";
-    delivery_file=\"$delivery_file\";
+    SENDER_FILE=\"$SENDER_FILE\";
+    RECIPIENT_FILE=\"$RECIPIENT_FILE\";
+    DELIVERY_FILE=\"$DELIVERY_FILE\";
 
     sender_row_id=0;
     recipient_row_id=0;
 
-    printf \"INSERT INTO sender VALUES \" >sender_file;
-    printf \"INSERT INTO recipient VALUES \" >recipient_file;
-    printf \"INSERT INTO delivery VALUES \" >delivery_file;
+    printf \"INSERT INTO sender VALUES \" >SENDER_FILE;
+    printf \"INSERT INTO recipient VALUES \" >RECIPIENT_FILE;
+    printf \"INSERT INTO delivery VALUES \" >DELIVERY_FILE;
   }
 
   {
@@ -123,7 +129,7 @@ _awkLogs () {
         sender_row_id++;
         message_ids[\$5]=sender_row_id;
 
-        printf \"('%s','%s %s','%s','%s'),\",sender_row_id,\$1,\$2,\$5,\$9 >sender_file;
+        printf \"('%s','%s %s','%s','%s'),\",sender_row_id,\$1,\$2,\$5,\$9 >SENDER_FILE;
       }
     else if (type==\"starting\")
       {
@@ -140,7 +146,7 @@ _awkLogs () {
           msg_fkey=message_ids[\$7];
         }
 
-        printf \"('%s','%s %s','%s','%s','%s','%s'),\",recipient_row_id,\$1,\$2,\$5,msg_fkey,\$9,\$10 >recipient_file;
+        printf \"('%s','%s %s','%s','%s','%s','%s'),\",recipient_row_id,\$1,\$2,\$5,msg_fkey,\$9,\$10 >RECIPIENT_FILE;
       }
     else if (type==\"delivery\")
       {
@@ -155,7 +161,7 @@ _awkLogs () {
           del_fkey=delivery_ids[\$4];
         }
 
-        printf \"(NULL,'%s %s','%s','%s','%s'),\",\$1,\$2,del_fkey,\$5,\$6 >delivery_file;
+        printf \"(NULL,'%s %s','%s','%s','%s'),\",\$1,\$2,del_fkey,\$5,\$6 >DELIVERY_FILE;
       }
 
     }
@@ -163,9 +169,9 @@ _awkLogs () {
     sender_row_id++;
     recipient_row_id++;
 
-    printf \"('%s','0000-00-00 00:00:00','NULLish','NULLish');\",sender_row_id >sender_file;
-    printf \"('%s','0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish');\",recipient_row_id >recipient_file;
-    printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish');\" >delivery_file;
+    printf \"('%s','0000-00-00 00:00:00','NULLish','NULLish');\",sender_row_id >SENDER_FILE;
+    printf \"('%s','0000-00-00 00:00:00','NULLish','NULLish','NULLish','NULLish');\",recipient_row_id >RECIPIENT_FILE;
+    printf \"(NULL,'0000-00-00 00:00:00','NULLish','NULLish','NULLish');\" >DELIVERY_FILE;
   }"
 }
 
@@ -185,11 +191,11 @@ _insertData () {
 
   printf "Inserting mail log data..."
 
-  for x in "$sender_file" "$recipient_file" "$delivery_file"; do
+  for x in "$SENDER_FILE" "$RECIPIENT_FILE" "$DELIVERY_FILE"; do
     $CAT "$x";
     $RM "$x";
   done \
-		| $MYSQL --defaults-extra-file="$options_file" --defaults-group-suffix="_maildb"
+		| $MYSQL --defaults-extra-file="$OPTIONS_FILE" --defaults-group-suffix="_maildb"
 
   printf "Done\n\n"
 
@@ -197,7 +203,7 @@ _insertData () {
 
 _makeOptionsFile () {
 
-  $CAT <<- EOF > "$options_file"
+  $CAT <<- EOF > "$OPTIONS_FILE"
 [client_maildb]
 database = $DBNAME
 user = $DBUSER
@@ -231,7 +237,7 @@ main () {
 
   _insertData;
 
-	$MYSQL --defaults-extra-file="$options_file" --defaults-group-suffix="_maildb"
+	$MYSQL --defaults-extra-file="$OPTIONS_FILE" --defaults-group-suffix="_maildb"
 
 }
 

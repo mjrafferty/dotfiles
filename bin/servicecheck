@@ -1,8 +1,13 @@
 #! /bin/bash
 
+# Script Arguments
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+# Configurable Variables
+readonly OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release);
+
+# Alias executables to prevent PATH issues
 alias awk='/bin/awk'
 alias cat='/bin/cat'
 alias cut='/bin/cut'
@@ -16,8 +21,6 @@ alias sed='/bin/sed'
 alias sort='/bin/sort'
 alias wc='/usr/bin/wc'
 
-readonly OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release);
-
 # Necessary Global Variables
 PROCESS_DATA=""
 
@@ -25,29 +28,19 @@ PROCESS_DATA=""
 _usage() {
   cat <<- EOF
 
-Serverhealth was created to be run upon login to a server
-and provide immediate information on potentially problematic
-conditions. With no arguments, it will run all tests simultaneously.
-Individual tests can be run with the options below.
+  Verify crucial services are running and report if they are not. If
+  no flags are specified, all are checked.
 
-Options:
+  Flags:
 
-  -l  --load          Report on high load average
-
-  -m  --memory        Report low RAM and/or swap space
-
-  -p  --php           Show users at/near max child processes
-
-  -a  --apache        Report if apache is at/near max clients
-
-  -d  --disk          Show disk partitions that are nearly full
-
-  -s  --services      Report important services that may be down. Monitored
-                      services are:
-
-                        php-fpm, apache, mysqld, memcached, redis
-
-  -q  --queries       Show long running query count if there are many
+    -p|--php-fpm
+    -a|--apache
+    -M|--memcached
+    -r|--redis
+    -m|--mysqld
+    -H|--haproxy
+    -v|--varnish
+    -P|--pound
 
 EOF
 }
