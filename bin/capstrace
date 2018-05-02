@@ -122,7 +122,7 @@ _cmdline() {
 # Insert code into target file
 _addCode () {
 
-  local file address addressstring uri uristring query querystring;
+  local file address address_string uri uri_string query query_string;
 
   file="$1";
   address="$2";
@@ -134,26 +134,26 @@ _addCode () {
   cp -a "$file""$TMP_EXT" "$file";
 
   if [[ "$uri" == "NULL" ]]; then
-    uristring="";
+    uri_string="";
   else
-    uristring=" and (strlen(strstr(\$_SERVER[\"REQUEST_URI\"],\"$uri\"))>0)";
+    uri_string=" and (strlen(strstr(\$_SERVER[\"REQUEST_URI\"],\"$uri\"))>0)";
   fi
 
   if [[ "$query" == "NULL" ]]; then
-    querystring="";
+    query_string="";
   else
-    querystring=" and (strlen(strstr(\$_SERVER[\"QUERY_STRING\"],\"$query\"))>0)";
+    query_string=" and (strlen(strstr(\$_SERVER[\"QUERY_STRING\"],\"$query\"))>0)";
   fi
 
   if [[ "$address" == "all" ]]; then
-    addressstring="1";
+    address_string="1";
   else
-    addressstring="\$_SERVER[\"REMOTE_ADDR\"] == \"$address\" || (strlen(strstr(\$_SERVER[\"HTTP_X_FORWARDED_FOR\"],\"$address\"))>0)";
+    address_string="\$_SERVER[\"REMOTE_ADDR\"] == \"$address\" || (strlen(strstr(\$_SERVER[\"HTTP_X_FORWARDED_FOR\"],\"$address\"))>0)";
   fi
 
   cat << EOF > "$file"
 <?php
-  if((@($addressstring)$uristring)$querystring){
+  if((@($address_string)$uri_string)$query_string){
 
     file_put_contents("$PIPE_NAME",getmypid() . "\n");
     usleep(100000);
