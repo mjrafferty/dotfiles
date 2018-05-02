@@ -91,6 +91,7 @@ set expandtab
 au FileType sh let g:sh_fold_enabled=5
 set foldmethod=syntax
 set foldenable
+let php_folding=2
 
 syntax enable
 filetype plugin indent on
