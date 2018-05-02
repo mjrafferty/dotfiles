@@ -192,7 +192,7 @@ _watchScan() {
       while read -r line; do
 
         if [[ "$line" =~ "$currentfile"$ ]]; then
-          scan_status=("$line");
+          scan_status=($line);
 
           scan_percentage="$((100 * scan_status[1]/totals[1]))"
           data_scanned_human="$(echo "${scan_status[1]}" | _humanReadable)"
