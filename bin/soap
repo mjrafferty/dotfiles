@@ -1,7 +1,42 @@
-<?php
-try {
+#!/usr/bin/env php
 
-  ; v1 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+<?php
+
+function _parseCmdLine () {
+
+  $shortopts  = "";
+  $shortopts .= "f:";  // Required value
+  $shortopts .= "v::"; // Optional value
+  $shortopts .= "abc"; // These options do not accept values
+
+  $longopts  = array(
+    "required:",     // Required value
+    "optional::",    // Optional value
+    "option",        // No value
+    "opt",           // No value
+  );
+
+  $cmdline = getopt($shortopts,$longopts);
+
+  foreach ($cmdline as $opt => $value) {
+
+    switch ($opt) {
+
+    case f:
+      echo "why";
+      break;
+    default:
+      echo "damn";
+      break;
+
+    }
+
+  }
+
+}
+
+function _soapv1 () {
+
   $client = new SoapClient('http://'.$argv[1].'/api/soap/?wsdl', array('trace' => 1, 'connection_timeout' => 120));
   $session = $client->login($argv[2], $argv[3]);
 
@@ -10,7 +45,10 @@ try {
 
   $result = $client->call($session, 'product.list');
 
-  ; v2 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+}
+
+function _soapv2 () {
+
   $client = new SoapClient('http://'.$argv[1].'/api/v2_soap?wsdl=1', array('trace' => 1, 'connection_timeout' => 120));
   $session = $client->login($argv[2], $argv[3]);
 
@@ -19,7 +57,10 @@ try {
 
   $result = $client->catalogProductList($session);
 
-  ; v2 wsi ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+}
+
+function _soapv2wsi () {
+
   $client = new SoapClient('http://'.$argv[1].'/api/v2_soap/?wsdl', array('trace' => 1, 'connection_timeout' => 120));
   $session = $client->login((object)array('username' => $argv[2], 'apiKey' => $argv[3]));
 
@@ -27,17 +68,35 @@ try {
   echo $client->__getLastResponse();
 
   $result = $client->catalogProductList((object)array('session' => $session->result, 'filters' => null));
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  var_dump($result->result);
-
-}
-catch (Exception $e) {
-
-  var_dump($e);
 
 }
 
-$client->endSession($session);
+function _doSoap () {
+
+  try {
+
+
+
+    var_dump($result->result);
+
+  }
+
+  catch (Exception $e) {
+
+    var_dump($e);
+
+  }
+
+  $client->endSession($session);
+
+}
+
+function _start () {
+
+  _parseCmdLine();
+
+}
+
+_start();
 
 ?>
