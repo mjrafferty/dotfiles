@@ -170,7 +170,7 @@ _watchScan() {
   filepath="$1";
   scanpid="$2";
 
-  mapfile -t totals < <(tail -n1 "$data_list" | awk '{print $1,$2}');
+  mapfile -t totals < <(tail -n1 "$data_list" | awk '{print $1"\t"$2}');
   data_total_human="$(echo "${totals[1]}" | _humanReadable)"
 
   # Find clamd process id
