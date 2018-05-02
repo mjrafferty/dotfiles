@@ -97,13 +97,9 @@ _uuid2ip () {
 
 _findsite () {
 
-  local query servers uuid;
+  local servers uuid;
 
-  query="[\"and\", [\"=\", \"name\", \"domains\" ], [\"=\", \"value\", \"$1\"]]"
-
-  servers=$(curl -sG 'http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/fact-contents' \
-    --data "query=$(_urlencode "$query")" \
-    | grep -oP '(?<=certname":")[^"]*');
+  servers=$(grep -P "\"value\":\"${1}\"" /home/domains.json | grep -oP '(?<=certname":")[^"]*')
 
   if [[ -z "$servers" ]]; then
 
