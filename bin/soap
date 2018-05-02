@@ -5,15 +5,18 @@
 function _parseCmdLine () {
 
   $shortopts  = "";
-  $shortopts .= "f:";  // Required value
-  $shortopts .= "v::"; // Optional value
-  $shortopts .= "abc"; // These options do not accept values
+  $shortopts .= "d:";   // Required value
+  $shortopts .= "u:";   // Required value
+  $shortopts .= "p:";   // Required value
+  $shortopts .= "m:";   // Required value
+  $shortopts .= "s";    // These options do not accept values
 
   $longopts  = array(
-    "required:",     // Required value
-    "optional::",    // Optional value
-    "option",        // No value
-    "opt",           // No value
+    "domain:",      // Required value
+    "user:",        // Required value
+    "pass:",        // Required value
+    "mode:",        // Required value
+    "secure",       // No value
   );
 
   $cmdline = getopt($shortopts,$longopts);
@@ -22,11 +25,27 @@ function _parseCmdLine () {
 
     switch ($opt) {
 
-    case f:
-      echo "why";
+    case d:
+    case domain:
+      $domain=$value;
+      break;
+    case u:
+    case user:
+      $user=$value;
+      break;
+    case p:
+    case pass:
+      $pass=$value;
+      break;
+    case s:
+    case secure:
+      $secure=1;
+      break;
+    case m:
+    case mode:
+      $mode=$value;
       break;
     default:
-      echo "damn";
       break;
 
     }
@@ -37,8 +56,8 @@ function _parseCmdLine () {
 
 function _soapv1 () {
 
-  $client = new SoapClient('http://'.$argv[1].'/api/soap/?wsdl', array('trace' => 1, 'connection_timeout' => 120));
-  $session = $client->login($argv[2], $argv[3]);
+  $client = new SoapClient('http://'.$domain.'/api/soap/?wsdl', array('trace' => 1, 'connection_timeout' => 120));
+  $session = $client->login($user, $pass);
 
   echo $client->__getLastRequest();
   echo $client->__getLastResponse();
@@ -49,8 +68,8 @@ function _soapv1 () {
 
 function _soapv2 () {
 
-  $client = new SoapClient('http://'.$argv[1].'/api/v2_soap?wsdl=1', array('trace' => 1, 'connection_timeout' => 120));
-  $session = $client->login($argv[2], $argv[3]);
+  $client = new SoapClient('http://'.$domain.'/api/v2_soap?wsdl=1', array('trace' => 1, 'connection_timeout' => 120));
+  $session = $client->login($user, $pass);
 
   echo $client->__getLastRequest();
   echo $client->__getLastResponse();
@@ -61,8 +80,8 @@ function _soapv2 () {
 
 function _soapv2wsi () {
 
-  $client = new SoapClient('http://'.$argv[1].'/api/v2_soap/?wsdl', array('trace' => 1, 'connection_timeout' => 120));
-  $session = $client->login((object)array('username' => $argv[2], 'apiKey' => $argv[3]));
+  $client = new SoapClient('http://'.$domain.'/api/v2_soap/?wsdl', array('trace' => 1, 'connection_timeout' => 120));
+  $session = $client->login((object)array('username' => $user, 'apiKey' => $pass));
 
   echo $client->__getLastRequest();
   echo $client->__getLastResponse();
@@ -71,11 +90,25 @@ function _soapv2wsi () {
 
 }
 
-function _doSoap () {
+function _doSoap ($version) {
 
   try {
 
+    switch ($version) {
 
+    case v1:
+      _soapv1();
+      break;
+
+    case v2:
+      _soapv1();
+      break;
+
+    case wsi:
+      _soapv2wsi();
+      break;
+
+    }
 
     var_dump($result->result);
 
@@ -94,6 +127,8 @@ function _doSoap () {
 function _start () {
 
   _parseCmdLine();
+
+  _doSoap();
 
 }
 
