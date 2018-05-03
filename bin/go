@@ -117,15 +117,16 @@ _findsite () {
 # Copy files and login to the destination
 _login () {
 
-  local ident_file cloud username;
+  local ident_file ssh_ver username;
 
-  cloud="$1";
+  ssh_ver=$(curl "${DESTINATION}:22" 2> /dev/null | $GREP -Po 'OpenSSH_\K\d');
 
-  if [[ -n "$cloud" ]]; then
+  if (( ssh_ver > 5 )); then
     username="$USER";
   else
     username="nex$USER";
   fi
+
   ident_file="${HOME}/.ssh/nex${USER}.id_rsa";
 
   if [[ -d "$HOME"/dotfiles/ ]]; then
