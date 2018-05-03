@@ -119,7 +119,7 @@ _login () {
 
   local ident_file ssh_ver username;
 
-  ssh_ver=$(curl "${DESTINATION}:22" 2> /dev/null | $GREP -Po 'OpenSSH_\K\d');
+  ssh_ver=$(curl "${DESTINATION}:22" 2> /dev/null | grep -Po 'OpenSSH_\K\d');
 
   if (( ssh_ver > 5 )); then
     username="$USER";
