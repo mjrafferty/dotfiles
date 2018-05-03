@@ -68,7 +68,6 @@ _usage () {
 
   Flags:
 
-    -c|--cloud          Necessary when logging into a cloudhost for now.
     -n|--no-cache       Skip cache lookup. Useful if incorrect server is cached.
     -p|--permanent      Permanently store domain in cache.
 
@@ -343,9 +342,6 @@ main () {
       "-h"|"--help")
         _usage;
         exit;
-        ;;
-      "-c"|"--cloud")
-        cloud="yes";
         ;;
       "-n"|"--no-cache")
         nocache="yes";
