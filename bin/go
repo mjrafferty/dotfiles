@@ -102,9 +102,7 @@ _findsite () {
   servers=$(grep "\"value\":\"${1}\"" /home/domains.json | cut -d\" -f4)
 
   if [[ -z "$servers" ]]; then
-
     return 1;
-
   fi
 
   for uuid in $servers; do
