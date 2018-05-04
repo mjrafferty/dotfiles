@@ -144,9 +144,8 @@ main () {
 
   _validateInput "$address" "$target"
 
-  target="${target%/}"
-  target_dir="${target%/*}"
-  target="${target##*/}"
+  target_dir="${${target%/}%/*}"
+  target="${${target%/}##*/}"
 
   cd "$target_dir" || return 1;
 
