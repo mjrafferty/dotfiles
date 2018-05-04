@@ -114,7 +114,7 @@ _cleanUp() {
 # Main
 main () {
 
-  local subject target address
+  local subject target address target_dir
 
   # Parse command line arguments
   for ((x=0;x<${#ARGA[@]};x++)); do
@@ -137,13 +137,18 @@ main () {
     [[ -z "$subject" ]] && subject="${ARGA[$x]}"
 
   done
-
   # Ask for any data not provided on command line
   [[ -z "$target" ]] && read -rp "File/Directory: " target;
   [[ -z "$subject" ]] && read -rp "Subject: " subject;
   [[ -z "$address" ]] && read -rp "Email: " address;
 
   _validateInput "$address" "$target"
+
+  target="${target%/}"
+  target_dir="${target%/*}"
+  target="${target##*/}"
+
+  cd "$target_dir" || return 1;
 
   _compressTarget "$target"
 
