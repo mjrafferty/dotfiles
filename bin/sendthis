@@ -137,6 +137,7 @@ main () {
     [[ -z "$subject" ]] && subject="${ARGA[$x]}"
 
   done
+
   # Ask for any data not provided on command line
   [[ -z "$target" ]] && read -rp "File/Directory: " target;
   [[ -z "$subject" ]] && read -rp "Subject: " subject;
@@ -144,8 +145,9 @@ main () {
 
   _validateInput "$address" "$target"
 
-  target_dir="${${target%/}%/*}"
-  target="${${target%/}##*/}"
+  target_tmp="${target%/}"
+  target_dir="${target_tmp%/*}"
+  target="${target_tmp##*/}"
 
   cd "$target_dir" || return 1;
 
