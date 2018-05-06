@@ -129,10 +129,50 @@ _cleanUp() {
 
 }
 
+_findDir() {
+
+  local longest_common_path word_array cd_dir y;
+
+  word_array=($(echo "${FILES[0]}" | sed 's/\//& /g'))
+  longest_common_path="${#word_array[@]}";
+
+  for ((y=1; y<${#FILES[@]};y++)); do
+
+    local word_array2 long;
+
+    word_array2=($(echo "${FILES[y]}" | sed 's/\//& /g'))
+
+    for((long=0;long < longest_common_path;long++)); do
+
+      if [[ "${word_array[long]}" == "${word_array2[long]}" ]]; then
+
+        continue;
+
+      else
+
+        longest_common_path=$long;
+        break;
+
+      fi
+    done
+  done
+
+  longest_common_path=$((longest_common_path - 1))
+
+  cd_dir="$(echo "${FILES[0]}" | grep -Po "^/([^/]*/){$longest_common_path}")";
+
+  for ((i=0; i<${#FILES[@]};i++)); do
+    FILES[i]=${FILES[i]##$cd_dir};
+  done
+
+  echo "$cd_dir";
+
+}
+
 # Main
 main () {
 
-  local subject address longest_common_path word_array
+  local subject address
 
 
   # Parse command line arguments
@@ -168,38 +208,9 @@ main () {
 
   _validateInput "$address"
 
-  word_array=($(echo "${FILES[0]}" | sed 's/\//& /g'))
-  longest_common_path="${#word_array[@]}";
-
   if [[ -n ${FILES[1]} ]]; then
-    for ((y=1; y<${#FILES[@]};y++)); do
 
-      local word_array2 long;
-
-      word_array2=($(echo "${FILES[y]}" | sed 's/\//& /g'))
-
-      for((long=0;long < longest_common_path;long++)); do
-
-        if [[ "${word_array[long]}" == "${word_array2[long]}" ]]; then
-
-          continue;
-
-        else
-
-          longest_common_path=$long;
-          break;
-
-        fi
-      done
-    done
-
-    longest_common_path=$((longest_common_path - 1))
-
-    cd_dir="$(echo "${FILES[0]}" | grep -Po "^/([^/]*/){$longest_common_path}")";
-
-    for ((i=0; i<${#FILES[@]};i++)); do
-      FILES[i]=${FILES[i]##$cd_dir};
-    done
+    cd_dir="$(_findDir)";
 
   else
 
