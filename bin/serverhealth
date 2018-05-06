@@ -198,8 +198,8 @@ _maxphpprocs () {
     | awk '/^php-fpm: pool/ && $NF != "www"{  a[$NF] += 1 } END {for(i in a){ printf "%-10s %d\n",i,a[i] } }' \
     | sort -k2nr);
 
-  mapfile -t numprocs < <(echo "$phprocs" | awk '{print $2}');
-  mapfile -t users < <(echo "$phprocs" | awk '{print $1}');
+  numprocs=($(echo "$phprocs" | awk '{print $2}'));
+  users=($(echo "$phprocs" | awk '{print $1}'));
 
   for ((x=0;x<"${#users[@]}";x++)); do
 
