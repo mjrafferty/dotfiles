@@ -24,11 +24,14 @@ else
   alias gzip='/bin/gzip';
 fi
 
+# Necessary Global Variables
+FILES=();
+
 # Print usage info
 _usage() {
   cat <<- EOF
 
-  Usage: sendthis <targetname> <subject> <emailaddr>
+  Usage: sendthis <filenames> <subject> <emailaddr>
 
 EOF
 }
@@ -37,64 +40,83 @@ EOF
 _validateInput() {
 
   address="$1"
-  target="$2"
 
   if ! echo "$address" | grep -Pq '\S+@\S+\.\S+'; then
     echo "Email address invalid";
     exit 1;
   fi
 
-  if [[ (  ! -e "${PWD}/$target" && ! -e "$target" ) || -z "$target" ]]; then
-    echo "Target does not exist";
-    exit 1;
+  if [[ -n ${FILES[0]} ]]; then
+
+    for x in ${#FILES[@]}; do
+
+      if [[ ! -e "${PWD}/${x}" && ! -e "$x" ]]; then
+        echo "$x does not exist";
+        exit 1;
+      fi
+
+    done
+  else
+
+    echo "No file given";
+
   fi
 
 }
 
-# Compress target file/directory and split if necessary
-_compressTarget() {
+# Compress FILES file/directory and split if necessary
+_compressFiles() {
 
-  local target size proceed
+  local size proceed
 
-  target="$1";
+  printf "Compressing files..."
 
-  printf "Compressing target..."
-
-  tar -cf - "$target" 2> /dev/null | pigz > "${target}${ARCHIVE_SUFFIX}"
+  tar -cf - ${FILES[*]} 2> /dev/null | pigz > "${FILES[0]}${ARCHIVE_SUFFIX}"
 
   printf "Done\n"
 
-  size="$(stat -c "%s" "${target}${ARCHIVE_SUFFIX}")";
-
+  size="$(stat -c "%s" "${FILES[0]}${ARCHIVE_SUFFIX}")";
 
   if (( size > (SPLIT_SIZE * 1024 * 1024) )); then
+
     read -rp "Archive is $((size / 1024 / 1024))M. Proceed? (N,y)" proceed;
+
     if [[ "$proceed" == "y" ]]; then
-      sha1sum "${target}${ARCHIVE_SUFFIX}" > "${target}${ARCHIVE_SUFFIX}.SHA1"
-      split -d -b "${SPLIT_SIZE}M" "${target}${ARCHIVE_SUFFIX}" "${target}${ARCHIVE_SUFFIX}." \
-        && rm "${target}${ARCHIVE_SUFFIX}"
+
+      sha1sum "${FILES[0]}${ARCHIVE_SUFFIX}" > "${FILES[0]}${ARCHIVE_SUFFIX}.SHA1"
+
+      split -d -b "${SPLIT_SIZE}M" "${FILES[0]}${ARCHIVE_SUFFIX}" "${FILES[0]}${ARCHIVE_SUFFIX}." \
+        && rm "${FILES[0]}${ARCHIVE_SUFFIX}"
+
     else
-      rm "${target}${ARCHIVE_SUFFIX}"
+
+      rm "${FILES[0]}${ARCHIVE_SUFFIX}"
       exit;
+
     fi
   fi
+
 }
 
-# Send target
+# Send FILES
 _send() {
 
-  local subject target address
+  local subject address
 
   subject="$1"
-  target="$2"
-  address="$3"
+  address="$2"
 
-  for x in ${target}${ARCHIVE_SUFFIX}*; do
+  for x in ${FILES[0]}${ARCHIVE_SUFFIX}*; do
+
     if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
+
       echo "See Attached" \
         | mail -s "$subject" -a "$x" "$address";
+
     else
+
       mail -s "$subject" "$address" < "$x";
+
     fi;
   done
 
@@ -103,57 +125,96 @@ _send() {
 # Clean up temporary files
 _cleanUp() {
 
-  local target
-
-  target="$1"
-
-  rm "${target}${ARCHIVE_SUFFIX}"*
+  rm "${FILES[0]}${ARCHIVE_SUFFIX}"*
 
 }
 
 # Main
 main () {
 
-  local subject target address target_dir
+  local subject address longest_common_path word_array
+
 
   # Parse command line arguments
   for ((x=0;x<${#ARGA[@]};x++)); do
 
-    if [[ -z "$target" ]]; then
-      if [[ -e "${PWD}/${ARGA[$x]}" ]]; then
-        target="${PWD}/${ARGA[$x]}";
-        continue;
-      elif [[ -e "${ARGA[$x]}" ]]; then
-        target="${ARGA[$x]}";
-        continue;
-      fi
+    if [[ -e "${PWD}/${ARGA[x]}" && ! "${ARGA[x]}" == "/"* ]]; then
+
+      FILES+=("${PWD}/${ARGA[x]}");
+      continue;
+
+    elif [[ -e "${ARGA[x]}" ]]; then
+
+      FILES+=("${ARGA[x]}");
+      continue;
+
     fi
 
     if [[ -z "$address" ]]; then
-      address="$(echo "${ARGA[$x]}" | grep -Po '\S+@\S+\.\S+')" \
+
+      address="$(echo "${ARGA[x]}" | grep -Po '\S+@\S+\.\S+')" \
         && continue;
+
     fi
 
-    [[ -z "$subject" ]] && subject="${ARGA[$x]}"
+    [[ -z "$subject" ]] && subject="${ARGA[x]}"
 
   done
+
   # Ask for any data not provided on command line
-  [[ -z "$target" ]] && read -rp "File/Directory: " target;
+  [[ -z "${FILES[0]}" ]] && read -rp "File/Directory: " FILES;
   [[ -z "$subject" ]] && read -rp "Subject: " subject;
   [[ -z "$address" ]] && read -rp "Email: " address;
 
-  _validateInput "$address" "$target"
+  _validateInput "$address"
 
-  target_dir="${${target%/}%/*}"
-  target="${${target%/}##*/}"
+  word_array=($(echo "${FILES[0]}" | sed 's/\//& /g'))
+  longest_common_path="${#word_array[@]}";
 
-  cd "$target_dir" || return 1;
+  if [[ -n ${FILES[1]} ]]; then
+    for ((y=1; y<${#FILES[@]};y++)); do
 
-  _compressTarget "$target"
+      local word_array2 long;
 
-  _send "$subject" "$target" "$address"
+      word_array2=($(echo "${FILES[y]}" | sed 's/\//& /g'))
 
-  _cleanUp "$target";
+      for((long=0;long < longest_common_path;long++)); do
+
+        if [[ "${word_array[long]}" == "${word_array2[long]}" ]]; then
+
+          continue;
+
+        else
+
+          longest_common_path=$long;
+          break;
+
+        fi
+      done
+    done
+
+    longest_common_path=$((longest_common_path - 1))
+
+    cd_dir="$(echo "${FILES[0]}" | grep -Po "^/([^/]*/){$longest_common_path}")";
+
+    for ((i=0; i<${#FILES[@]};i++)); do
+      FILES[i]=${FILES[i]##$cd_dir};
+    done
+
+  else
+
+    cd_dir="${FILES[0]%/*}";
+    FILES[0]="${FILES[0]##*/}"
+
+  fi
+
+  cd "$cd_dir" || return 1;
+
+  _compressFiles;
+
+  _send "$subject" "$address"
+
+  _cleanUp;
 
 }
 
