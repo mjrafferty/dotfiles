@@ -9,14 +9,35 @@ _usage() {
 EOF
 }
 
+_awkStuff() {
+  awk '
+  BEGIN {
+    print "Line\tFile_desc\tPort\tSocket/Address";
+    print "----\t---------\t----\t--------------";
+  }
+  {
+    gsub(/:/,"",$1);
+    gsub(/(connect\(|,)/,"",$2);
+    if (match($4,"sin_port")) {
+      gsub(/(.*\(|\),)/,"",$4);
+      gsub(/(.*\("|"\).*)/,"",$5);
+      print $1,$2,$4,$5
+    } else {
+      gsub(/(.*="|"}.*)/,"",$4);
+      print $1,$2,"0",$4
+    }
+  }
+  END {
+
+  }'
+}
+
 main () {
 
-  (printf "Destination\tPort\n"
   zless ${ARGA[*]} \
-    | grep -Poh 'connect\(.*sin_port=htons\(\K.*inet_addr\("[^"]*'  \
-    | sed -n '/127.0.0.1/b; s/\([0-9]*\)[^0-9]*\([0-9,\.]*\)/\2\t\1/p' \
-    | sort -u) \
-    | column -t;
+    | grep -no ' connect(.*'  \
+    | _awkStuff \
+    | column -t
 
 }
 
