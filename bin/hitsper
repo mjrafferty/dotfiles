@@ -66,6 +66,9 @@ END {
       ttemp[1]++;
       ttemp[2]=ttemp[2]%60;
     }
+    if(ttemp[1]>=24){
+      ttemp[1]=0;
+    }
 
     tinc=sprintf("%02s:%02s",ttemp[1],ttemp[2]);
   }
