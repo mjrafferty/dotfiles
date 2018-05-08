@@ -39,7 +39,7 @@ _compress () {
     tar -zcf  "$file" "$target";
 
   fi \
-    && echo -e "\nArchive created successfully!\n\n$PWD/\n$file\n";
+    && echo -e "\nArchive created successfully!\n\n$PWD/$file\n";
 }
 
 _chown () {
@@ -74,11 +74,11 @@ main () {
   fi
 
   target="${ARGA[0]}"
-  file=$(getusr).$(hostname | cut -d. -f1)--"${target/\//-}"-$(date +%Y.%m.%d-%H.%M).tgz;
+  file="${target/\//-}-$(date +%Y.%m.%d-%H.%M).tgz";
   size=$(du -sb "$target" | cut -f1);
   sizem=$(echo "scale=3;$size/1024/1024" | bc);
 
-  echo "Compressing ${sizem}M ... please be patient."
+  printf "Compressing %sM ... please be patient.\n" "$sizem"
 
   _compress "$target" "$file" "$size";
 
