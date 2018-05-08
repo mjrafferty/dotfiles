@@ -19,7 +19,7 @@ main () {
   echo;
 
   zgrep -h " = -1 E" ${ARGA[*]}\
-    | grep -Ev "(access|lstat)\(" \
+    | grep -Ev "( (access|lstat|stat)\(|(EAGAIN|EOPNOTSUPP|EINPROGRESS))" \
     | less -SF
 
   echo;
