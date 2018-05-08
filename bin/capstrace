@@ -184,14 +184,16 @@ _strace () {
   sleep 0.1;
 
   # Kill strace once php process becomes idle
-  if [[ -e /proc/"$str_pid" ]]; then
-    while(true); do
-      if tail | grep -qE "^$pid .*(accept\(0|\+\+\+ (killed|exited))"; then
-        kill "$str_pid" 2>/dev/null || echo "$pid exited";
-        break;
-      fi
-    done < "$output"
-  fi
+  while [[ -e /proc/"$str_pid" ]]; do
+
+    if tail | grep -qE "^$pid .*(accept\(0|\+\+\+ (killed|exited))"; then
+
+      kill "$str_pid" 2>/dev/null || echo "$pid exited";
+      break;
+
+    fi
+
+  done < "$output"
 
   kill "$str_pid" 2> /dev/null;
 
