@@ -37,6 +37,7 @@ _usage() {
       -e|--send       Mail send log
       -E|--smtp       SMTP log
       -O|--smtp2      SMTP2 log
+      -V|--mail       All mail logs
       -l|--letse      Let's Encrypt log
       -d|--domain     Domain's apache and php-fpm error logs
       -t|--transfer   Domain's transfer log
@@ -113,6 +114,9 @@ _cmdline() {
         ;;
       "--smtp2"|"-O")
         args="${args}-O "
+        ;;
+      "--mail"|"-V")
+        args="${args}-V "
         ;;
       "--letse"|"-l")
         args="${args}-l "
@@ -591,7 +595,7 @@ main () {
   local serverAll="NO"
   local userAll="NO"
 
-  while getopts "hfpsHmcMiPeEOldtA:TLCDSU" OPTION $(_cmdline); do
+  while getopts "hfpsHmcMiPeEOVldtA:TLCDSU" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -633,6 +637,9 @@ main () {
         ;;
       O)
         logFuncs+=(_smtp2);
+        ;;
+      V)
+        logFuncs+=(_imap _pop3 _send _smtp _smtp2);
         ;;
       l)
         logFuncs+=(_letse);
