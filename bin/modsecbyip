@@ -29,13 +29,13 @@ main () {
   logentries=$(sed -n 's/.*'"$ip"'.*\[uri \"\([^"]*\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
 
   # Find unique uris
-  mapfile -t uris < <(echo "$logentries" | cut -f2 | cut -d/ -f1-4 | sort -u );
+  uris=($(echo "$logentries" | cut -f2 | cut -d/ -f1-4 | sort -u ));
 
   echo "<IfModule mod_security2.c>";
   # Print LocationMatch block for each uri
   for ((i=0;i<${#uris[@]};i++)); do
 
-    mapfile -t uniqueid < <(echo "$logentries" | grep "${uris[$i]}"| cut -f1);
+    uniqueid=($(echo "$logentries" | grep "${uris[$i]}"| cut -f1));
 
     echo "  <LocationMatch ${uris[$i]} >";
     echo "    # Ticket ID: $TICKET"
