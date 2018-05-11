@@ -122,7 +122,7 @@ cdlogs () {
   vhosts=($($GREP -El "Server(Name|Alias).* $query" /etc/httpd/{conf.d/vhost_*.conf,tmpdomains.d/*.conf}));
 
   for (( i=ARRAY_START; i<${#vhosts[@]}+ARRAY_START; i++ )); do
-    logsdir[$i]=$($SED -nr 's_[^#]*ErrorLog (.*)/error.log_\1_p' "${vhosts[$i]}" \
+    logsdir[$i]=$($GREP -Poh '[^#]*ErrorLog.* \K/([^/]+/)+' "${vhosts[$i]}" \
       | $HEAD -n1);
   done;
 
