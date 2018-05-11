@@ -54,8 +54,8 @@ cdd () {
     query="$(pwd | $SED -e 's_.*home/[^/]*/\([^/]*\)/html.*_\1_' -e 's_.*home/[^/]*/var/\([^/]*\)/.*_\1_')";
   fi
   # Gather relevant domain information
-  domains=$($GREP -EH "Server(Name|Alias).* $query" /etc/httpd/conf.d/vhost_*.conf \
-    | $SED -r 's/.*vhost_(.*).conf:.* ('"$query"'[^ ]*).*/\1\t\2/' \
+  domains=$($GREP -EH "Server(Name|Alias).* $query" /etc/httpd/{conf.d/vhost_*.conf,tmpdomains.d/*.conf} \
+    | $SED -r 's/.*_(.*).conf:.* ('"$query"'[^ ]*).*/\1\t\2/' \
     | $SORT -u);
 
   domain=($(echo "$domains" \
@@ -65,7 +65,7 @@ cdd () {
     | $CUT -f2));
 
   for (( i=ARRAY_START; i<${#alias[@]}+ARRAY_START; i++ )); do
-    docroot[$i]=$($SED -nr 's/[^#]*DocumentRoot (.*)/\1/p' /etc/httpd/conf.d/vhost_"${domain[$i]}".conf \
+    docroot[$i]=$($SED -nr 's/[^#]*DocumentRoot (.*)/\1/p' /etc/httpd/{conf.d/vhost_,tmpdomains.d/*_}"${domain[$i]}".conf 2> /dev/null \
       | $HEAD -n1);
   done;
 
