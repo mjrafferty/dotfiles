@@ -73,7 +73,7 @@ main () {
 
   [[ -n "$user" ]] || user="$(pwd | grep -Po "home/\K[^\/]*")";
 
-  conf_file="$(find {/opt/nexcess/php*/root,}/etc/php-fpm.d/ -name "${user}.conf" | head -n1)";
+  conf_file="$(find {/etc/opt/remi/php*,{/opt/nexcess/php*/root,}/etc}/php-fpm.d/ -name "${user}.conf" 2> /dev/null | head -n1)";
 
   if [[ -z "$conf_file" ]]; then
     echo "Config file not found for $user";
