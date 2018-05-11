@@ -65,7 +65,7 @@ cdd () {
     | $CUT -f2));
 
   for (( i=ARRAY_START; i<${#alias[@]}+ARRAY_START; i++ )); do
-    docroot[$i]=$($GREP -Poh '[^#]*DocumentRoot.* \K/([^/]+/)+' /etc/httpd/{conf.d/vhost_,tmpdomains.d/*_}"${domain[$i]}".conf 2> /dev/null \
+    docroot[$i]=$($GREP -Poh '[^#]*DocumentRoot.* \K/([^/]+/?)+' /etc/httpd/{conf.d/vhost_,tmpdomains.d/*_}"${domain[$i]}".conf 2> /dev/null \
       | $HEAD -n1);
   done;
 
