@@ -439,7 +439,7 @@ blacklistcheck () {
   ip="$1";
 
   if [[ -z $ip ]]; then
-    ip="$(ifconfig | grep -Po '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n1)"
+    ip="$(curl ipv4.nexcess.net)"
 	fi
 
 	echo '++++++++++++++++++++++++++++';
