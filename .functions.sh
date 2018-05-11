@@ -435,31 +435,37 @@ addip () {
 
 # Check several email blacklists for the given ip
 blacklistcheck () {
-  for b in $1; do
-    echo '++++++++++++++++++++++++++++';
-    echo "$b";
-    echo 'PHONE: 866-639-2377';
-    $NSLOOKUP "$b" \
-      | $GREP addr;
-    echo 'http://multirbl.valli.org/lookup/'"$b"'.html';
-    echo 'http://www.senderbase.org/lookup/ip/?search_string='"$b";
-    echo 'https://www.senderscore.org/lookup.php?lookup='"$b";
-    echo '++++++++++++++++++++++++++++';
-    for x in hotmail.com yahoo.com aol.com earthlink.net verizon.net att.net sbcglobal.net comcast.net xmission.com cloudmark.com cox.net charter.net mac.me; do
-      echo;
-      echo $x;
-      echo '--------------------';
-      $SWAKS -q TO -t postmaster@$x -li "$b" \
-        | $GREP -iE 'block|rdns|550|521|554';
-    done ;
-    echo;
-    echo 'gmail.com';
-    echo '-----------------------';
-    $SWAKS -4 -t iflcars.com@gmail.com -li "$b"  \
-      | $GREP -iE 'block|rdns|550|521|554';
-    echo;
-    echo;
-  done;
+
+  ip="$1";
+
+  if [[ -z $ip ]]; then
+    ip="$(ifconfig | grep -Po '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n1)"
+	fi
+
+	echo '++++++++++++++++++++++++++++';
+	echo "$ip";
+	echo 'PHONE: 866-639-2377';
+	$NSLOOKUP "$ip" \
+		| $GREP addr;
+	echo 'http://multirbl.valli.org/lookup/'"$ip"'.html';
+	echo 'http://www.senderbase.org/lookup/ip/?search_string='"$ip";
+	echo 'https://www.senderscore.org/lookup.php?lookup='"$ip";
+	echo '++++++++++++++++++++++++++++';
+	for x in hotmail.com yahoo.com aol.com earthlink.net verizon.net att.net sbcglobal.net comcast.net xmission.com cloudmark.com cox.net charter.net mac.me; do
+		echo;
+		echo $x;
+		echo '--------------------';
+		$SWAKS -q TO -t postmaster@$x -li "$ip" \
+			| $GREP -iE 'block|rdns|550|521|554';
+	done ;
+	echo;
+	echo 'gmail.com';
+	echo '-----------------------';
+	$SWAKS -4 -t iflcars.com@gmail.com -li "$ip"  \
+		| $GREP -iE 'block|rdns|550|521|554';
+	echo;
+	echo;
+
 }
 
 
