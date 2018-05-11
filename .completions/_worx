@@ -32,7 +32,7 @@ _worx() {
 	'ftp\:list:Lists all FTP accounts and details about them.'
 	'mail\:clean:Finds and deletes mail older than the specified number of days.'
 	'mysql\:add:Add databases and/or users under an account.'
-	'mysql\:delete:Add databases and/or users under an account.'
+	'mysql\:delete:Delete databases and/or users under an account.'
 	'mysql\:list:Lists databases and/or users under an account.'
 	'mysql\:permissions:Grant MySQL users permission to a database.'
 	'ssl\:add:Add private keys, CSRs, chain certificates, and SSL certificates. You will be prompted to input the certificate information after issuing the command.'
