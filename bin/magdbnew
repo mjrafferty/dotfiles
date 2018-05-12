@@ -1,0 +1,417 @@
+#! /bin/bash
+
+# Script Arguments
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+# Configurable Variables
+
+# Alias executables to prevent PATH issues
+
+# Necessary Global Variables
+ver=();
+runonce=0;
+tables="core_cache core_cache_option core_cache_tag core_session dataflow_batch_import dataflow_batch_export\
+  index_process_event log_customer log_quote log_summary log_summary_type\
+  log_url log_url_info log_visitor log_visitor_info log_visitor_online\
+  report_viewed_product_index report_compared_product_index report_event catalog_compare_item"
+prefix="$(echo 'cat /config/global/resources/db/table_prefix/text()' | xmllint --nocdata --shell "$SITEPATH"/app/etc/local.xml | sed '1d;$d')"
+
+# Print usage
+_usage() {
+
+  cat <<- EOF
+
+  Usage: magdb [<path>] <option> [<query>]
+
+    -A | --admin       Add a new admin user into the database
+    -b | --base        Show all configured Base Urls
+    -c | --cron        Show Cron Jobs and Their Statuses
+    -e | --execute     Execute a custom query (use '*' and \\\")
+    -i | --info        Display user credentials for database
+    -l | --login       Log into database using user credentials
+    -L | --logsize     Show size of the log tables
+    -m | --multi       Show Multistore Information (Urls/Codes)
+    -O | --optimize    Truncate and optimize log tables
+    -P | --password    Update or reset password for user
+    -u | --users       Show all Admin Users' information
+    -x | --index       Show Current Status of all Re-Index Processes
+    -X | --reindex     Execute a reindex as the user (indexer php)
+
+    -h | --help        Display this help output and quit
+
+EOF
+
+}
+
+# Convert long command line options into short ones for getopts
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--admin"|"-A")
+        args="${args}-A "
+        ;;
+      "--base"|"-b")
+        args="${args}-b "
+        ;;
+      "--cron"|"-c")
+        args="${args}-c "
+        ;;
+      "--execute"|"-e")
+        args="${args}-e "
+        ;;
+      "--info"|"-i")
+        args="${args}-i "
+        ;;
+      "--login"|"-l")
+        args="${args}-l "
+        ;;
+      "--logsize"|"-L")
+        args="${args}-L "
+        ;;
+      "--multi"|"-m")
+        args="${args}-m "
+        ;;
+      "--optimize"|"-O")
+        args="${args}-O "
+        ;;
+      "--password"|"-P")
+        args="${args}-P "
+        ;;
+      "--users"|"-u")
+        args="${args}-u "
+        ;;
+      "--index"|"-x")
+        args="${args}-x "
+        ;;
+      "--reindex"|"-X")
+        args="${args}-X "
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+  done
+
+  echo "$args";
+
+}
+
+## Print some dashes
+dashes () {
+
+  local i;
+
+  for ((i=0;i<=$1;i++)); do
+    printf "-";
+  done;
+
+}
+
+_magdbinfo () {
+
+  if [[ -f $SITEPATH/app/etc/local.xml ]]; then #Magento
+
+    dbhost="$(echo 'cat /config/global/resources/default_setup/connection/host/text()' | xmllint --nocdata --shell "$SITEPATH"/app/etc/local.xml | sed '1d;$d')"
+    dbuser="$(echo 'cat /config/global/resources/default_setup/connection/username/text()' | xmllint --nocdata --shell "$SITEPATH"/app/etc/local.xml | sed '1d;$d')"
+    dbpass="$(echo 'cat /config/global/resources/default_setup/connection/password/text()' | xmllint --nocdata --shell "$SITEPATH"/app/etc/local.xml | sed '1d;$d')"
+    dbname="$(echo 'cat /config/global/resources/default_setup/connection/dbname/text()' | xmllint --nocdata --shell "$SITEPATH"/app/etc/local.xml | sed '1d;$d')"
+    mapfile -t ver < <(grep 'function getVersionInfo' -A8 "$SITEPATH"/app/Mage.php | grep major -A4 | cut -d\' -f4);
+    version="${ver[0]}.${ver[1]}.${ver[2]}.${ver[3]}"
+
+    if grep -E 'Enterprise Edition|Commercial Edition' "$SITEPATH"/app/Mage.php > /dev/null; then
+      edition="Enterprise Edition";
+    else
+      edition="Community Edition";
+    fi
+
+  else
+
+    echo "${RED}Could not find configuration file!${NORMAL}";
+    exit 1;
+
+  fi;
+}
+
+_magdbsum () {
+  echo -e "${BRIGHT}$edition: ${RED}$version ${NORMAL}\n${BRIGHT}Connection Summary: ${RED}$dbuser:$dbname$(if [[ -n $prefix ]]; then echo ."$prefix"; fi)${NORMAL}\n";
+}
+
+_magdbconnect () {
+
+  _magdbinfo;
+
+  if [[ $runonce -eq 0 ]]; then
+    _magdbsum;
+    runonce=1;
+  fi;
+
+  mysql -u"$dbuser" -p"$dbpass" -h "$dbhost" "$dbname" "$@" 2> /dev/null;
+}
+
+_admin () {
+
+  read -rp "Firstname: " firstname;
+  read -rp "Lastname: " lastname;
+  read -rp "Email: " emailaddr;
+  read -rp "Username: " username;
+
+  password=$(xkcd);
+
+  _magdbconnect -e "INSERT INTO ${prefix}admin_user SELECT NULL \`user_id\`, \"$firstname\" \`firstname\`, \"$lastname\" \`lastname\`, \"$emailaddr\" \`email\`, \"$username\" \`username\`, MD5(\"$password\") \`password\`, NOW() \`created\`, NULL \`modified\`, NULL \`logdate\`, 0 \`lognum\`, 0 \`reload_acl_flag\`, 1 \`is_active\`, NULL \`extra\`, NULL \`rp_token\`, NOW() \`rp_token_created_at\`";
+  _magdbconnect -e "INSERT INTO ${prefix}admin_role SELECT NULL \`role_id\`, (SELECT \`role_id\` FROM ${prefix}admin_role WHERE \`role_name\` = 'Administrators') \`parent_id\`, 2 \`tree_level\`, 0 \`sort_order\`, 'U' \`role_type\`, (SELECT \`user_id\` FROM ${prefix}admin_user WHERE \`username\` = \"$username\") \`user_id\`, 'admin' \`role_name\`;";
+  echo -e "Username: $username\nPassword: $password";
+
+}
+
+_base () {
+
+  _magdbconnect -e "SELECT * FROM ${prefix}core_config_data WHERE path RLIKE \"base.*url\";";
+
+}
+
+_cron () {
+
+  runonce=1;
+
+  if [[ -z $param ]]; then
+
+    _magdbconnect -e "SELECT * FROM ${prefix}cron_schedule;"
+
+  elif [[ $param =~ ^clear$ ]]; then
+
+    _magdbconnect -e "DELETE FROM ${prefix}cron_schedule WHERE status RLIKE \"success|missed\";"
+    echo "Cron_Schedule table has been cleared of old crons"
+
+  elif [[ $param =~ ^clear.*-f$ ]]; then
+
+    _magdbconnect -e "TRUNCATE ${prefix}cron_schedule;"
+    echo "Cron_Schedule table has been truncated"
+
+  fi;
+
+}
+
+_execute () {
+
+  _magdbconnect -e "${param};";
+
+}
+
+_info () {
+
+  _magdbinfo;
+
+  cat <<- EOF
+
+  Database Connection Info:
+
+  Loc.Conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $dbhost
+  Rem.Conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $(hostname)
+
+  Username: $dbuser
+  Password: $dbpass
+  Database: $dbname
+    Prefix: $prefix
+
+  Loc.Host: $dbhost
+  Rem.Host: $(hostname)
+
+EOF
+
+}
+
+_login () {
+
+  _magdbconnect;
+
+}
+
+_logsize () {
+
+  _magdbinfo;
+
+  _magdbsum;
+
+  datatotal=0;
+  indextotal=0;
+  rowtotal=0;
+
+  tables="dataflow_batch_import dataflow_batch_export log_visitor log_visitor_info log_visitor_online core_url_rewrite";
+
+  div='+------------------------------------------+-----------------+----------------+----------------+'
+
+  echo $div;
+
+  printf "| %-40s | %15s | %12s M | %12s M |\n" "Table Name" "Row Count" "Data Size" "Index Size";
+
+  echo $div
+
+  for x in $tables; do
+
+    datasize=$(_magdbconnect -e "SELECT data_length/1024000 FROM information_schema.TABLES WHERE table_name = \"${prefix}$x\";" | tail -1)
+    datatotal=$(echo "scale=3;$datatotal + $datasize" | bc)
+    indexsize=$(_magdbconnect -e "SELECT index_length/1024000 FROM information_schema.TABLES WHERE table_name = \"${prefix}$x\";" | tail -1)
+    indextotal=$(echo "scale=3;$indextotal+$indexsize" | bc)
+    rowcount=$(_magdbconnect -e "SELECT table_rows FROM information_schema.TABLES WHERE table_name = \"${prefix}$x\";" | tail -1)
+    rowtotal=$((rowcount+rowtotal))
+
+    printf "| %-40s | %15s | %12s M | %12s M |\n" "$x" "$rowcount" "$datasize" "$indexsize"
+
+  done
+
+  echo $div;
+
+  printf "| %-40s | %15s | %12s M | %12s M |\n" "Totals" "$rowtotal" "$datatotal" "$indextotal";
+
+  echo $div;
+
+}
+
+_multi () {
+
+  _magdbconnect -e "SELECT * FROM ${prefix}core_config_data WHERE path RLIKE \"base_url\"; SELECT * FROM ${prefix}core_website; SELECT * FROM ${prefix}core_store";
+
+}
+
+_optimize () {
+
+  runonce=1;
+
+
+  touch "$SITEPATH"/maintenance.flag && echo -e "Maintenance Flag set while cleaning tables\n";
+
+  for x in $tables; do
+    echo;
+    echo "Truncating/Optimizing ${prefix}$x";
+    _magdbconnect -e "TRUNCATE ${prefix}$x; OPTIMIZE TABLE ${prefix}$x;" >> /dev/null;
+  done;
+
+
+  if [[ -f $SITEPATH/maintenance.flag ]]; then
+    rm "$SITEPATH"/maintenance.flag \
+      && echo -e "\nTable cleaning complete, maintenance.flag removed";
+  fi;
+
+}
+
+_password () {
+
+  runonce=1;
+
+  if [[ -n $param ]]; then
+
+    username=$(echo "$param" | awk '{print $1}');
+    password=$(echo "$param" | awk '{print $2}');
+
+    if [ -z "$password" ]; then
+      password="$(xkcd)";
+    fi
+
+    _magdbconnect -e "UPDATE ${prefix}admin_user SET password = MD5(\"$password\") WHERE ${prefix}admin_user.username = \"$username\";"
+
+    echo -e "New Magento Login Credentials:\nUsername: $username\nPassword: $password"
+
+  elif [[ -z $param || $param == '-h' || $param == '--help' ]]; then
+
+    echo -e " Usage: magdb [<path>] <-P|--password> <username> <password>"
+
+  fi;
+
+}
+
+_users () {
+
+  _magdbconnect -e "select * from ${prefix}admin_user\G" \
+    | grep -v 'extra:';
+
+}
+
+_index () {
+
+  _magdbconnect -e "SELECT * FROM ${prefix}index_process";
+
+}
+
+_reindex () {
+
+  _magdbinfo;
+
+  _magdbsum;
+
+  DIR=$PWD;
+
+  cd "$SITEPATH" || exit;
+
+  sudo -u "$(getusr)" php -f shell/indexer.php -- "$index";
+
+  cd "$DIR" || exit;
+
+}
+
+# Main
+main () {
+
+  echo;
+
+  while getopts "hAbceilLmoPuxX" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      A)
+        _admin;
+        ;;
+      b)
+        _base;
+        ;;
+      c)
+        _cron;
+        ;;
+      e)
+        _execute;
+        ;;
+      i)
+        _info;
+        ;;
+      l)
+        _login;
+        ;;
+      L)
+        _logsize;
+        ;;
+      m)
+        _multi;
+        ;;
+      O)
+        _optimize;
+        ;;
+      P)
+        _password;
+        ;;
+      u)
+        _users;
+        ;;
+      x)
+        _index;
+        ;;
+      X)
+        _reindex;
+        ;;
+      *);;
+    esac
+  done
+
+  echo;
+}
+
+main;
