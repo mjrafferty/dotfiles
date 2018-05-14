@@ -5,8 +5,8 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 # Configurable Variables
-CONFIG_FILE="app/etc/local.xml"
-DEFAULTS_FILE="$HOME/.magdb_defaults"
+CONFIG_FILE="app/etc/env.php"
+DEFAULTS_FILE="$HOME/.magdb2_defaults"
 
 BRIGHT=$(tput bold);
 NORMAL=$(tput sgr0);
@@ -28,8 +28,6 @@ else
   SITEPATH="$(pwd | grep -Po '(/chroot)?/home(/[^/]+){2}')"
 fi
 
-PREFIX="$(echo 'cat /config/global/resources/db/table_prefix/text()' | xmllint --nocdata --shell "$SITEPATH"/$CONFIG_FILE | sed '1d;$d')"
-
 # Print usage
 _usage() {
 
@@ -42,9 +40,7 @@ _usage() {
     -c | --cron        Show Cron Jobs and Their Statuses
     -i | --info        Display user credentials for database
     -l | --login       Log into database using user credentials
-    -L | --logsize     Show size of the log tables
     -m | --multi       Show Multistore Information (Urls/Codes)
-    -O | --optimize    Truncate and optimize log tables
     -P | --password    Update or reset password for user
     -u | --users       Show all Admin Users' information
     -x | --index       Show Current Status of all Re-Index Processes
@@ -81,14 +77,8 @@ _cmdline() {
       "--login"|"-l")
         args="${args}-l "
         ;;
-      "--logsize"|"-L")
-        args="${args}-L "
-        ;;
       "--multi"|"-m")
         args="${args}-m "
-        ;;
-      "--optimize"|"-O")
-        args="${args}-O "
         ;;
       "--password"|"-P")
         args="${args}-P "
@@ -154,50 +144,6 @@ _xkcd () {
 
 }
 
-# Parse local.xml
-_awkConfig () {
-  awk '
-  BEGIN {
-    beginConfig=0;
-    endConfig=0;
-  }
-  {
-    if ( beginConfig == 0 ){
-      if (match($0,"<connection>")){
-
-        beginConfig=1;
-      }
-    } else if( endConfig == 0 ){
-
-      if (match($0,"</connection>")){
-        endConfig=1;
-      } else {
-      if (match($1,"<host>")) {
-        gsub(/(.*CDATA\[|\]\].*)/,"",$1);
-        config["host"]=$1
-      }
-      else if (match($1,"<username>")) {
-        gsub(/(.*CDATA\[|\]\].*)/,"",$1);
-        config["username"]=$1
-      }
-      else if (match($1,"<password>")) {
-        gsub(/(.*CDATA\[|\]\].*)/,"",$1);
-        config["password"]=$1
-      }
-      else if (match($1,"<dbname>")) {
-        gsub(/(.*CDATA\[|\]\].*)/,"",$1);
-        config["dbname"]=$1
-      }
-    }
-  }
-  }
-  END {
-
-    printf("%s\n%s\n%s\n%s\n",config["host"],config["username"],config["password"],config["dbname"]);
-
-  }'
-}
-
 # Grab data from local.xml
 _getConfig () {
 
@@ -205,12 +151,12 @@ _getConfig () {
 
   if [[ -f $SITEPATH/$CONFIG_FILE ]]; then #Magento
 
-    config=($(grep -Pv '^\s*(<!|\*)' $CONFIG_FILE | _awkConfig));
+    config="$(grep -A16 \'db\' "$SITEPATH/$CONFIG_FILE")"
 
-    DBHOST="${config[0]}"
-    DBUSER="${config[1]}"
-    DBPASS="${config[2]}"
-    DBNAME="${config[3]}"
+    DBHOST="$(echo "$config" | grep \'host\' | cut -d\' -f4)"
+    DBNAME="$(echo "$config" | grep \'dbname\' | cut -d\' -f4)"
+    DBUSER="$(echo "$config" | grep \'username\' | cut -d\' -f4)"
+    DBPASS="$(echo "$config" | grep \'password\' | cut -d\' -f4)"
 
   else
 
@@ -333,41 +279,6 @@ _login () {
 
 }
 
-# Show log table sizes
-_logsize () {
-
-  local datatotal indextotal rowtotal tables div datasize indexsize rowcount
-
-  _summary;
-
-  datatotal=0;
-  indextotal=0;
-  rowtotal=0;
-
-  tables="dataflow_batch_import dataflow_batch_export log_visitor log_visitor_info log_visitor_online log_url log_url_info core_url_rewrite";
-
-  div='+------------------------------------------+-----------------+----------------+----------------+'
-
-  printf "%s\n| %-40s | %15s | %12s M | %12s M |\n%s\n" "$div" "Table Name" "Row Count" "Data Size" "Index Size" "$div";
-
-  for x in $tables; do
-
-    datasize=$(_connect -e "SELECT data_length/1024000 FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\";" | tail -1)
-    indexsize=$(_connect -e "SELECT index_length/1024000 FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\";" | tail -1)
-    rowcount=$(_connect -e "SELECT table_rows FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\";" | tail -1)
-
-    datatotal=$(echo "scale=3;$datatotal + $datasize" | bc)
-    indextotal=$(echo "scale=3;$indextotal+$indexsize" | bc)
-    rowtotal=$((rowcount+rowtotal))
-
-    printf "| %-40s | %15s | %12s M | %12s M |\n" "$x" "$rowcount" "$datasize" "$indexsize"
-
-  done
-
-  printf "%s\n| %-40s | %15s | %12s M | %12s M |\n%s\n" "$div" "Totals" "$rowtotal" "$datatotal" "$indextotal" "$div";
-
-}
-
 # Print multistore config
 _multi () {
 
@@ -376,32 +287,6 @@ _multi () {
   SELECT * FROM ${PREFIX}core_website;
   SELECT * FROM ${PREFIX}core_store_group;
   SELECT * FROM ${PREFIX}core_store;"
-
-}
-
-# Truncate and optimize log tables
-_optimize () {
-
-  local tables;
-
-  tables="core_cache core_cache_option core_cache_tag core_session dataflow_batch_import dataflow_batch_export\
-    index_process_event log_customer log_quote log_summary log_summary_type\
-    log_url log_url_info log_visitor log_visitor_info log_visitor_online\
-    report_viewed_product_index report_compared_product_index report_event catalog_compare_item"
-
-  touch "$SITEPATH"/maintenance.flag && echo -e "Maintenance Flag set while cleaning tables\n";
-
-  for x in $tables; do
-    echo;
-    echo "Truncating/Optimizing ${PREFIX}$x";
-    _connect -e "TRUNCATE ${PREFIX}$x; OPTIMIZE TABLE ${PREFIX}$x;" >> /dev/null;
-  done;
-
-
-  if [[ -f $SITEPATH/maintenance.flag ]]; then
-    rm "$SITEPATH"/maintenance.flag \
-      && echo -e "\nTable cleaning complete, maintenance.flag removed";
-  fi;
 
 }
 
