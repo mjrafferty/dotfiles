@@ -203,9 +203,10 @@ _awkConfig () {
       }
     }
   }
-  if (match($1,"<table_prefix>")) {
-    gsub(/(.*CDATA\[|\]\].*)/,"",$1);
-    config["table_prefix"]=$1
+    if (match($1,"<table_prefix>")) {
+      gsub(/(.*CDATA\[|\]\].*)/,"",$1);
+      config["table_prefix"]=$1
+    }
   }
   END {
 
