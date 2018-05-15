@@ -112,6 +112,7 @@ _cleanUp() {
 
 }
 
+# Find PID of connecting process
 _findPid() {
 
   local port;
@@ -132,6 +133,7 @@ _findPid() {
 
 }
 
+# Log process info
 _logData() {
 
   local pid;
@@ -151,6 +153,7 @@ _logData() {
 
 }
 
+# Monitor and log traffic
 _monitor() {
 
   local address;
@@ -165,6 +168,7 @@ _monitor() {
 
 }
 
+# Main
 main () {
 
   local address daemon_time x main_pid start_time current_time;

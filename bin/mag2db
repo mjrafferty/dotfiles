@@ -16,6 +16,7 @@ GREEN=$(tput setaf 10);
 # Alias executables to prevent PATH issues
 alias awk="/bin/awk"
 alias cat="/bin/cat"
+alias chmod="/bin/chmod --preserve-root"
 alias cut="/bin/cut"
 alias fold="/usr/bin/fold"
 alias grep="/bin/grep"
@@ -207,6 +208,8 @@ user =  $DBUSER
 password = $DBPASS
 host = $DBHOST
 EOF
+
+  chmod 600 "$DEFAULTS_FILE";
 
 }
 

@@ -16,6 +16,7 @@ GREEN=$(tput setaf 10);
 # Alias executables to prevent PATH issues
 alias awk="/bin/awk"
 alias cat="/bin/cat"
+alias chmod="/bin/chmod --preserve-root"
 alias cut="/bin/cut"
 alias fold="/usr/bin/fold"
 alias grep="/bin/grep"
@@ -230,7 +231,6 @@ _getConfig () {
     DBNAME="${config[3]}"
     PREFIX="${config[4]}"
 
-
   else
 
     echo "${RED}Could not find configuration file!${NORMAL}";
@@ -243,8 +243,6 @@ _getConfig () {
 _summary () {
 
   local version edition ver
-
-  ver=();
 
   mapfile -t ver < <(grep 'function getVersionInfo' -A8 "$SITEPATH"/app/Mage.php | grep major -A4 | cut -d\' -f4);
   version="${ver[0]}.${ver[1]}.${ver[2]}.${ver[3]}"
@@ -274,6 +272,8 @@ user =  $DBUSER
 password = $DBPASS
 host = $DBHOST
 EOF
+
+  chmod 600 "$DEFAULTS_FILE"
 
 }
 
@@ -324,7 +324,7 @@ _base () {
 # Print cron table
 _cron () {
 
-    _connect -e "SELECT * FROM ${PREFIX}cron_schedule;"
+  _connect -e "SELECT * FROM ${PREFIX}cron_schedule;"
 
 }
 

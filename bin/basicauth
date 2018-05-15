@@ -50,18 +50,20 @@ EOF
 # Generate Password
 _xkcd () {
 
-  local wordList word rnd
+  local wordList word rnd pass matchList wcount
 
-  if [ -r /usr/local/interworx/lib/dict/words ]; then
+  if [[ -r /usr/local/interworx/lib/dict/words ]]; then
 
     wordList='/usr/local/interworx/lib/dict/words';
 
-  elif [ -r /usr/share/dict/words ]; then
+  elif [[ -r /usr/share/dict/words ]]; then
 
     wordList='/usr/share/dict/words';
 
   else
+
     return 1;
+
   fi
 
   if [[ -x /usr/bin/shuf ]]; then
@@ -117,8 +119,10 @@ Require valid-user
 EOF
 
   if [[ -e "$htaccess${TEMP_EXT}" ]]; then
+
     cat "$htaccess${TEMP_EXT}" >> "$htaccess"
     rm -f "$htaccess${TEMP_EXT}";
+
   fi
 
   chown "$owner". "$htaccess";
@@ -128,7 +132,7 @@ EOF
 # Main
 main () {
 
-  local user pass protected_dir site_dir auth_file htaccess owner;
+  local user pass protected_dir site_dir auth_file htaccess owner modify;
 
   # Parse command line arguments
   for ((x=0;x<${#ARGA[@]};x++)); do

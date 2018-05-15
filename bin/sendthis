@@ -131,7 +131,7 @@ _cleanUp() {
 
 _findDir() {
 
-  local longest_common_path word_array cd_dir y;
+  local longest_common_path word_array word_array2 long cd_dir y;
 
   word_array=($(echo "${FILES[0]}" | sed 's/\//& /g'))
   longest_common_path="${#word_array[@]}";
@@ -172,7 +172,7 @@ _findDir() {
 # Main
 main () {
 
-  local subject address
+  local subject address cd_dir
 
 
   # Parse command line arguments
