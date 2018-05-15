@@ -436,7 +436,7 @@ _password () {
 	salt="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 32 | head -n1)"
 
   _connect <<- EOF
-	UPDATE ${PREFIX}admin_user SET password = CONCAT(MD5("${salt}${password}"), ":${salt}:1") WHERE username = "$username";
+	UPDATE ${PREFIX}admin_user SET password = CONCAT(MD5("${salt}${password}"), ":${salt}") WHERE username = "$username";
 EOF
 
   cat <<- EOF
