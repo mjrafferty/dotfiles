@@ -267,10 +267,10 @@ _makeDefaultsFile () {
 
   cat <<- EOF > "$DEFAULTS_FILE"
 [client_magdb]
-database = $DBNAME
-user =  $DBUSER
-password = $DBPASS
-host = $DBHOST
+database = "$DBNAME"
+user =  "$DBUSER"
+password = "$DBPASS"
+host = "$DBHOST"
 EOF
 
   chmod 600 "$DEFAULTS_FILE"
