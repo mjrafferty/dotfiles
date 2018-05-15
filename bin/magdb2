@@ -169,22 +169,13 @@ _getConfig () {
 # Print summary
 _summary () {
 
-  local version edition ver
+  local version
 
-  ver=();
-
-  mapfile -t ver < <(grep 'function getVersionInfo' -A8 "$SITEPATH"/app/Mage.php | grep major -A4 | cut -d\' -f4);
-  version="${ver[0]}.${ver[1]}.${ver[2]}.${ver[3]}"
-
-  if grep -qE '(Enterprise|Commercial) Edition' "$SITEPATH"/app/Mage.php; then
-    edition="Enterprise Edition";
-  else
-    edition="Community Edition";
-  fi
+  version="$(grep "magento/product" "$SITEPATH/composer.json" | cut -d\" -f4)"
 
   cat <<-EOF
 
-  ${BRIGHT}$edition: ${GREEN}${version}${NORMAL}
+  ${BRIGHT}Magento: ${GREEN}${version}${NORMAL}
   ${BRIGHT}Connection Summary: ${GREEN}${DBUSER}:${DBNAME}${NORMAL}
 
 EOF
@@ -284,9 +275,9 @@ _multi () {
 
   _connect -e"
   SELECT * FROM ${PREFIX}core_config_data WHERE path RLIKE \"base_url\";
-  SELECT * FROM ${PREFIX}core_website;
-  SELECT * FROM ${PREFIX}core_store_group;
-  SELECT * FROM ${PREFIX}core_store;"
+  SELECT * FROM ${PREFIX}store_website;
+  SELECT * FROM ${PREFIX}store_group;
+  SELECT * FROM ${PREFIX}store;"
 
 }
 
