@@ -216,12 +216,8 @@ _admin () {
 
   password=$(_xkcd);
 
-  _connect <<- EOF
-  INSERT INTO ${PREFIX}admin_user (firstname,lastname,email,username,password)
-  VALUES ("$firstname","$lastname","$emailaddr","$username",md5("$password"));
-  INSERT INTO ${PREFIX}admin_role (parent_id,tree_level,sort_order,role_type,user_id,role_name)
-  VALUES (1,2,0,"U",(SELECT user_id FROM ${PREFIX}admin_user where username="$username"),"$username");
-EOF
+  php "$SITEPATH/bin/magento" --admin-user "$username" --admin-password "$password" \
+    --admin-email "$emailaddr" --admin-firstname "$firstname" --admin-lastname "$lastname"
 
   cat <<- EOF
 
@@ -294,8 +290,10 @@ _password () {
     password="$(_xkcd)";
   fi
 
+  salt="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 32 | head -n1)"
+
   _connect <<- EOF
-  UPDATE ${PREFIX}admin_user SET password = MD5("$password") WHERE ${PREFIX}admin_user.username = "$username";
+  UPDATE ${PREFIX}admin_user SET password = CONCAT(SHA2("${salt}${password}", 256), ":${salt}:1") WHERE username = "$username";
 EOF
 
   cat <<- EOF
@@ -312,7 +310,7 @@ EOF
 # Show admin users
 _users () {
 
-  _connect -e "select user_id,firstname,lastname,email,username,password,created,modified,logdate,lognum,is_active,failures_num from ${PREFIX}admin_user;"
+  _connect -e "select user_id,firstname,lastname,email,username,created,modified,logdate,lognum,is_active,failures_num from ${PREFIX}admin_user;"
 
 }
 
