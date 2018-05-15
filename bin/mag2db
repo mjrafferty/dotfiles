@@ -6,7 +6,7 @@ readonly ARGA=("$@")
 
 # Configurable Variables
 CONFIG_FILE="app/etc/env.php"
-DEFAULTS_FILE="$HOME/.magdb2_defaults"
+DEFAULTS_FILE="$HOME/.mag2db_defaults"
 
 BRIGHT=$(tput bold);
 NORMAL=$(tput sgr0);
@@ -51,7 +51,7 @@ _usage() {
 
   cat <<- EOF
 
-  Usage: magdb [<path>] <option> [<query>]
+  Usage: mag2db <option>
 
     -A | --admin       Add a new admin user into the database
     -b | --base        Show all configured Base Urls
@@ -260,7 +260,7 @@ _base () {
 # Print cron table
 _cron () {
 
-    _connect -e "SELECT * FROM ${PREFIX}cron_schedule;"
+  _connect -e "SELECT * FROM ${PREFIX}cron_schedule;"
 
 }
 
@@ -309,7 +309,9 @@ _password () {
   read -rp "New password (default: xkcd): " password;
 
   if [ -z "$password" ]; then
+
     password="$(_xkcd)";
+
   fi
 
   salt="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 32 | head -n1)"

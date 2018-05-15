@@ -17,6 +17,7 @@ GREEN=$(tput setaf 10);
 alias awk="/bin/awk"
 alias cat="/bin/cat"
 alias cut="/bin/cut"
+alias fold="/usr/bin/fold"
 alias grep="/bin/grep"
 alias head="/usr/bin/head"
 alias mysql="/usr/bin/mysql"
@@ -432,8 +433,10 @@ _password () {
     password="$(_xkcd)";
   fi
 
+	salt="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 32 | head -n1)"
+
   _connect <<- EOF
-  UPDATE ${PREFIX}admin_user SET password = MD5("$password") WHERE ${PREFIX}admin_user.username = "$username";
+	UPDATE ${PREFIX}admin_user SET password = CONCAT(MD5("${salt}${password}"), ":${salt}:1") WHERE username = "$username";
 EOF
 
   cat <<- EOF
