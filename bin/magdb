@@ -48,7 +48,7 @@ _usage() {
 
   cat <<- EOF
 
-  Usage: magdb [<path>] <option> [<query>]
+  Usage: magdb <option>
 
     -A | --admin       Add a new admin user into the database
     -b | --base        Show all configured Base Urls
@@ -218,7 +218,7 @@ _getConfig () {
 
   if [[ -f $SITEPATH/$CONFIG_FILE ]]; then #Magento
 
-    config=($(grep -Pv '^\s*(<!|\*)' $CONFIG_FILE | _awkConfig));
+    mapfile -t config < <(grep -Pv '^\s*(<!|\*)' $CONFIG_FILE | _awkConfig);
 
     DBHOST="${config[0]}"
     DBUSER="${config[1]}"
