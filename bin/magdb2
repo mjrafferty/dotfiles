@@ -153,6 +153,7 @@ _getConfig () {
     DBNAME="$(echo "$config" | grep \'dbname\' | cut -d\' -f4)"
     DBUSER="$(echo "$config" | grep \'username\' | cut -d\' -f4)"
     DBPASS="$(echo "$config" | grep \'password\' | cut -d\' -f4)"
+    PREFIX="$(echo "$config" | grep \'table_prefix\' | cut -d\' -f4)"
 
   else
 
