@@ -43,7 +43,6 @@ _usage() {
     -m | --multi       Show Multistore Information (Urls/Codes)
     -P | --password    Update or reset password for user
     -u | --users       Show all Admin Users' information
-    -x | --index       Show Current Status of all Re-Index Processes
 
     -h | --help        Display this help output and quit
 
@@ -85,9 +84,6 @@ _cmdline() {
         ;;
       "--users"|"-u")
         args="${args}-u "
-        ;;
-      "--index"|"-x")
-        args="${args}-x "
         ;;
       *)
         args="${args}${x} "
@@ -314,13 +310,6 @@ _users () {
 
 }
 
-# Show indexer status
-_index () {
-
-  _connect -e "SELECT * FROM ${PREFIX}index_process";
-
-}
-
 # Clean up before exit
 _cleanUp () {
 
@@ -335,7 +324,7 @@ main () {
 
   _makeDefaultsFile;
 
-  while getopts "hAbcilLmOP:ux" OPTION $(_cmdline); do
+  while getopts "hAbcilLmOP:u" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -371,9 +360,6 @@ main () {
         ;;
       u)
         _users;
-        ;;
-      x)
-        _index;
         ;;
       *);;
     esac
