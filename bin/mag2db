@@ -21,13 +21,17 @@ alias fold="/usr/bin/fold"
 alias grep="/bin/grep"
 alias head="/usr/bin/head"
 alias mysql="/usr/bin/mysql"
-alias php="/usr/bin/php"
-alias rm="/bin/rm"
 alias sed="/bin/sed"
 alias shuf="/usr/bin/shuf"
 alias tput="/usr/bin/tput"
 alias tr="/usr/bin/tr"
 alias wc="/usr/bin/wc"
+
+if [[ -e "/opt/nexcess/php70u/root/usr/bin/php" ]];then
+  PHP="/opt/nexcess/php70u/root/usr/bin/php";
+else
+  PHP="/opt/remi/php70/root/usr/bin/php";
+fi
 
 # Necessary Global Variables
 DBHOST=""
@@ -218,7 +222,7 @@ _connect () {
 # Add an administrator
 _admin () {
 
-  local firstname lastname emailaddr username;
+  local user firstname lastname emailaddr username;
 
   read -rp "Firstname: " firstname;
   read -rp "Lastname: " lastname;
@@ -227,8 +231,15 @@ _admin () {
 
   password=$(_xkcd);
 
-  php "$SITEPATH/bin/magento" admin:user:create --admin-user "$username" --admin-password "$password" \
-    --admin-email "$emailaddr" --admin-firstname "$firstname" --admin-lastname "$lastname"
+  user="$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*')"
+
+  if [[ "$USER" == "$user" ]]; then
+    php "$SITEPATH/bin/magento" admin:user:create --admin-user "$username" --admin-password "$password" \
+      --admin-email "$emailaddr" --admin-firstname "$firstname" --admin-lastname "$lastname"
+  else
+    sudo -u "$user" "$PHP" "$SITEPATH/bin/magento" admin:user:create --admin-user "$username" --admin-password "$password" \
+      --admin-email "$emailaddr" --admin-firstname "$firstname" --admin-lastname "$lastname"
+  fi
 
   cat <<- EOF
 
