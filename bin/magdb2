@@ -216,7 +216,7 @@ _admin () {
 
   password=$(_xkcd);
 
-  php "$SITEPATH/bin/magento" --admin-user "$username" --admin-password "$password" \
+  php "$SITEPATH/bin/magento" admin:user:create --admin-user "$username" --admin-password "$password" \
     --admin-email "$emailaddr" --admin-firstname "$firstname" --admin-lastname "$lastname"
 
   cat <<- EOF
