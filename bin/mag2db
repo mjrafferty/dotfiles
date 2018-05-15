@@ -14,6 +14,20 @@ RED=$(tput setaf 1);
 GREEN=$(tput setaf 10);
 
 # Alias executables to prevent PATH issues
+alias awk="/bin/awk"
+alias cat="/bin/cat"
+alias cut="/bin/cut"
+alias fold="/usr/bin/fold"
+alias grep="/bin/grep"
+alias head="/usr/bin/head"
+alias mysql="/usr/bin/mysql"
+alias php="/usr/bin/php"
+alias rm="/bin/rm"
+alias sed="/bin/sed"
+alias shuf="/usr/bin/shuf"
+alias tput="/usr/bin/tput"
+alias tr="/usr/bin/tr"
+alias wc="/usr/bin/wc"
 
 # Necessary Global Variables
 DBHOST=""

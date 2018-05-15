@@ -14,6 +14,20 @@ RED=$(tput setaf 1);
 GREEN=$(tput setaf 10);
 
 # Alias executables to prevent PATH issues
+alias awk="/bin/awk"
+alias cat="/bin/cat"
+alias cut="/bin/cut"
+alias grep="/bin/grep"
+alias head="/usr/bin/head"
+alias mysql="/usr/bin/mysql"
+alias rm="/bin/rm"
+alias sed="/bin/sed"
+alias shuf="/usr/bin/shuf"
+alias tail="/usr/bin/tail"
+alias touch="/bin/touch"
+alias tput="/usr/bin/tput"
+alias tr="/usr/bin/tr"
+alias wc="/usr/bin/wc"
 
 # Necessary Global Variables
 DBHOST=""
@@ -27,8 +41,6 @@ if [[ -e $CONFIG_FILE ]]; then
 else
   SITEPATH="$(pwd | grep -Po '(/chroot)?/home(/[^/]+){2}')"
 fi
-
-PREFIX="$(echo 'cat /config/global/resources/db/table_prefix/text()' | xmllint --nocdata --shell "$SITEPATH"/$CONFIG_FILE | sed '1d;$d')"
 
 # Print usage
 _usage() {
@@ -211,6 +223,8 @@ _getConfig () {
     DBUSER="${config[1]}"
     DBPASS="${config[2]}"
     DBNAME="${config[3]}"
+    PREFIX="$(echo 'cat /config/global/resources/db/table_prefix/text()' | xmllint --nocdata --shell "$SITEPATH"/$CONFIG_FILE | sed '1d;$d')"
+
 
   else
 
