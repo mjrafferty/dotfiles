@@ -14,7 +14,7 @@ function _parseCmdLine () {
 
   global $config;
 
-  $shortopts  = "d:u:p:m:s";
+  $shortopts  = "d:u:p:m:sh";
 
   $longopts  = array(
     "domain:",
@@ -22,6 +22,7 @@ function _parseCmdLine () {
     "pass:",
     "mode:",
     "secure",
+    "help"
   );
 
   $cmdline = getopt($shortopts,$longopts);
@@ -34,22 +35,40 @@ function _parseCmdLine () {
     case "domain":
       $config["domain"]=$value;
       break;
+
     case "u":
     case "user":
       $config["user"]=$value;
       break;
+
     case "p":
     case "pass":
       $config["pass"]=$value;
       break;
+
     case "s":
     case "secure":
       $config["secure"]="s";
       break;
+
     case "m":
     case "mode":
       $config["mode"]=$value;
       break;
+
+    case "h":
+    case "help":
+      echo <<<HELP
+  This is the help menu.
+
+    -d | --domain   Target domain name.
+    -u | --user     API user.
+
+
+HELP;
+      die;
+      break;
+
     default:
       break;
 
@@ -187,6 +206,10 @@ function _start () {
 
   case "wsi":
     _soapv2wsi();
+    break;
+
+  default:
+    die("\t" . $config["mode"] . " is not a valid mode selection.\n\n");
     break;
 
   }
