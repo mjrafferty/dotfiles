@@ -2,31 +2,19 @@
 
 <?php
 
-$domain="";
-$user="";
-$pass="";
-$secure="";
-$mode="";
-
-$client="";
-$session="";
-$result="";
-
+$config=array(
+  'domain' => "",
+  'user' => "",
+  'pass' => "",
+  'secure' => "",
+  'mode' => ""
+);
 
 function _parseCmdLine () {
 
-  global $domain;
-  global $user;
-  global $pass;
-  global $secure;
-  global $mode;
+  global $config;
 
-  $shortopts  = "";
-  $shortopts .= "d:";
-  $shortopts .= "u:";
-  $shortopts .= "p:";
-  $shortopts .= "m:";
-  $shortopts .= "s";
+  $shortopts  = "d:u:p:m:s";
 
   $longopts  = array(
     "domain:",
@@ -42,25 +30,25 @@ function _parseCmdLine () {
 
     switch ($opt) {
 
-    case d:
-    case domain:
-      $domain=$value;
+    case "d":
+    case "domain":
+      $config["domain"]=$value;
       break;
-    case u:
-    case user:
-      $user=$value;
+    case "u":
+    case "user":
+      $config["user"]=$value;
       break;
-    case p:
-    case pass:
-      $pass=$value;
+    case "p":
+    case "pass":
+      $config["pass"]=$value;
       break;
-    case s:
-    case secure:
-      $secure="s";
+    case "s":
+    case "secure":
+      $config["secure"]="s";
       break;
-    case m:
-    case mode:
-      $mode=$value;
+    case "m":
+    case "mode":
+      $config["mode"]=$value;
       break;
     default:
       break;
@@ -73,91 +61,85 @@ function _parseCmdLine () {
 
 function _soapv1 () {
 
-  global $client;
-  global $session;
-  global $result;
-  global $domain;
-  global $secure;
-  global $user;
-  global $pass;
-  global $result;
+  global $config;
 
-  $client = new SoapClient('http' . $secure . '://'.$domain.'/api/soap/?wsdl', array('trace' => 1, 'connection_timeout' => 120));
-  $session = $client->login($user, $pass);
+  $client="";
+  $session="";
+  $result="";
 
-  echo $client->__getLastRequest();
-  echo $client->__getLastResponse();
+  try {
 
-  $result = $client->call($session, 'product.list');
+    $client = new SoapClient('http'.$config["secure"].'://'.$config["domain"].'/api/soap/?wsdl', array('trace' => 1, 'connection_timeout' => 120));
+    $session = $client->login($config["user"], $config["pass"]);
+
+    echo $client->__getLastRequest();
+    echo $client->__getLastResponse();
+
+    $result = $client->call($session, 'product.list');
+
+    var_dump($result->result);
+
+  }
+
+  catch (Exception $e) {
+
+    var_dump($e);
+
+  }
+
+  $client->endSession($session);
 
 }
 
 function _soapv2 () {
 
-  global $client;
-  global $session;
-  global $result;
-  global $domain;
-  global $secure;
-  global $user;
-  global $pass;
-  global $result;
+  global $config;
 
-  $client = new SoapClient('http' . $secure . '://'.$domain.'/api/v2_soap?wsdl=1', array('trace' => 1, 'connection_timeout' => 120));
-  $session = $client->login($user, $pass);
+  $client="";
+  $session="";
+  $result="";
 
-  echo $client->__getLastRequest();
-  echo $client->__getLastResponse();
+  try {
 
-  $result = $client->catalogProductList($session);
+    $client = new SoapClient('http'.$config["secure"].'://'.$config["domain"].'/api/v2_soap?wsdl=1', array('trace' => 1, 'connection_timeout' => 120));
+    $session = $client->login($config["user"], $config["pass"]);
+
+    echo $client->__getLastRequest();
+    echo $client->__getLastResponse();
+
+    $result = $client->catalogProductList($session);
+
+    var_dump($result->result);
+
+  }
+
+  catch (Exception $e) {
+
+    var_dump($e);
+
+  }
+
+  $client->endSession($session);
 
 }
 
 function _soapv2wsi () {
 
-  global $client;
-  global $session;
-  global $result;
-  global $domain;
-  global $secure;
-  global $user;
-  global $pass;
-  global $result;
+  global $config;
 
-  $client = new SoapClient('http' . $secure . '://'.$domain.'/api/v2_soap/?wsdl', array('trace' => 1, 'connection_timeout' => 120));
-  $session = $client->login((object)array('username' => $user, 'apiKey' => $pass));
-
-  echo $client->__getLastRequest();
-  echo $client->__getLastResponse();
-
-  $result = $client->catalogProductList((object)array('session' => $session->result, 'filters' => null));
-
-}
-
-function _doSoap () {
-
-  global $mode;
-  global $result;
-  global $session;
-  global $client;
+  $client="";
+  $session="";
+  $result="";
 
   try {
 
-    switch ($mode) {
+    $client = new SoapClient('http'.$config["secure"].'://'.$config["domain"].'/api/v2_soap/?wsdl', array('trace' => 1, 'connection_timeout' => 120));
+    $session = $client->login((object)array('username' => $config["user"], 'apiKey' => $config["pass"]));
 
-    case v1:
-      _soapv1();
-      break;
+    echo $client->__getLastRequest();
+    echo $client->__getLastResponse();
 
-    case v2:
-      _soapv1();
-      break;
-
-    case wsi:
-      _soapv2wsi();
-      break;
-
-    }
+    $result = $client->catalogProductList((object)array('session' => $session->result, 'filters' => null));
 
     var_dump($result->result);
 
@@ -175,9 +157,25 @@ function _doSoap () {
 
 function _start () {
 
+  global $config;
+
   _parseCmdLine();
 
-  _doSoap();
+  switch ($config["mode"]) {
+
+  case "v1":
+    _soapv1();
+    break;
+
+  case "v2":
+    _soapv1();
+    break;
+
+  case "wsi":
+    _soapv2wsi();
+    break;
+
+  }
 
 }
 
