@@ -59,10 +59,13 @@ function _parseCmdLine () {
     case "h":
     case "help":
       echo <<<HELP
-  This is the help menu.
+  Test SOAP API connections for Magento 1.
 
-    -d | --domain   Target domain name.
-    -u | --user     API user.
+    -d | --domain   DOMAIN  Target domain name.
+    -u | --user     USER    API user.
+    -p | --pass     PASS    Password/Key
+    -s | --secure           Use https.
+    -m | --mode     MODE    Soap protocol to use: v1 v2 wsi
 
 
 HELP;
