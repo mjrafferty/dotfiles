@@ -72,11 +72,16 @@ function _soapv1 () {
     $client = new SoapClient('http'.$config["secure"].'://'.$config["domain"].'/api/soap/?wsdl', array('trace' => 1, 'connection_timeout' => 120));
     $session = $client->login($config["user"], $config["pass"]);
 
+    printf("Request:\n");
     echo $client->__getLastRequest();
+
+    printf("\nResponse:\n");
     echo $client->__getLastResponse();
 
     $result = $client->call($session, 'product.list');
 
+
+    printf("\nResult:\n");
     var_dump($result->result);
 
   }
@@ -104,11 +109,16 @@ function _soapv2 () {
     $client = new SoapClient('http'.$config["secure"].'://'.$config["domain"].'/api/v2_soap?wsdl=1', array('trace' => 1, 'connection_timeout' => 120));
     $session = $client->login($config["user"], $config["pass"]);
 
+    printf("Request:\n");
     echo $client->__getLastRequest();
+
+    printf("\nResponse:\n");
     echo $client->__getLastResponse();
 
     $result = $client->catalogProductList($session);
 
+
+    printf("\nResult:\n");
     var_dump($result->result);
 
   }
@@ -136,11 +146,15 @@ function _soapv2wsi () {
     $client = new SoapClient('http'.$config["secure"].'://'.$config["domain"].'/api/v2_soap/?wsdl', array('trace' => 1, 'connection_timeout' => 120));
     $session = $client->login((object)array('username' => $config["user"], 'apiKey' => $config["pass"]));
 
+    printf("Request:\n");
     echo $client->__getLastRequest();
+
+    printf("\nResponse:\n");
     echo $client->__getLastResponse();
 
     $result = $client->catalogProductList((object)array('session' => $session->result, 'filters' => null));
 
+    printf("\nResult:\n");
     var_dump($result->result);
 
   }
