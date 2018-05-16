@@ -160,6 +160,10 @@ _evaluateList () {
 
 }
 
+_scanDetails () {
+  cp "$data_list" /home/nexmrafferty/data_list
+}
+
 # Follow scan and output live data
 _watchScan() {
 
@@ -348,6 +352,8 @@ main () {
   fi
 
   _evaluateList "$scanpid";
+
+  _scanDetails;
 
   _watchScan "$filepath" "$scanpid";
 
