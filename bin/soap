@@ -152,7 +152,7 @@ function _soapv2wsi () {
     printf("\nResponse:\n");
     echo $client->__getLastResponse();
 
-    $result = $client->catalogProductList((object)array('session' => $session->result, 'filters' => null));
+    $result = $client->catalogProductList((object)array('sessionId' => $session->result, 'filters' => null));
 
     printf("\nResult:\n");
     var_dump($result->result);
