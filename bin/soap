@@ -82,7 +82,7 @@ function _soapv1 () {
 
 
     printf("\nResult:\n");
-    var_dump($result->result);
+    var_dump($result);
 
   }
 
@@ -119,7 +119,7 @@ function _soapv2 () {
 
 
     printf("\nResult:\n");
-    var_dump($result->result);
+    var_dump($result);
 
   }
 
