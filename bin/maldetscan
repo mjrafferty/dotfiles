@@ -25,9 +25,9 @@ alias tee='/usr/bin/tee'
 alias tput='/usr/bin/tput'
 alias xargs='/usr/bin/xargs'
 
-maldetoutput="$(mktemp)"
-data_list="$(mktemp)"
-scan_time=""
+MALDET_OUTPUT="$(mktemp)"
+DATA_LIST="$(mktemp)"
+SCAN_TIME=""
 totals=()
 
 # Print usage info
@@ -156,12 +156,36 @@ _evaluateList () {
 
   # Populate data list with info needed to track progress
   xargs --delimiter="\n" /usr/bin/du -sb < "$scanlist" 2> /dev/null \
-    | awk '{print NR,(sum += $1),$0}' > "$data_list";
+    | awk '{print NR,(sum += $1),$0}' > "$DATA_LIST";
+
+  totals=($(tail -n1 "$DATA_LIST" | awk '{print $1"\t"$2}'));
 
 }
 
+# Print scan details
 _scanDetails () {
-  cp "$data_list" /home/nexmrafferty/data_list
+
+  local data_total_human filepath
+
+  filepath="$1";
+
+  data_total_human="$(echo "${totals[1]}" | _humanReadable)"
+
+  cat <<- EOF
+
+  Scanning ${filepath}
+  Files: ${totals[0]}
+  Size: ${data_total_human}
+
+  Scan ouput going to ${OUTPUT_FILE}
+
+  Check status with one of the following:
+
+  cat ${OUTPUT_FILE}
+  $0 -a ${filepath}
+
+EOF
+
 }
 
 # Follow scan and output live data
@@ -174,14 +198,13 @@ _watchScan() {
   filepath="$1";
   scanpid="$2";
 
-  totals=($(tail -n1 "$data_list" | awk '{print $1"\t"$2}'));
   data_total_human="$(echo "${totals[1]}" | _humanReadable)"
 
   # Find clamd process id
   clamdpid=$(pgrep -u clamav clamd);
 
-  scan_time="$(ps h -o stime -p "$scanpid")"
-  start_time=$(date '+%s' -d "$scan_time")
+  SCAN_TIME="$(ps h -o stime -p "$scanpid")"
+  start_time=$(date '+%s' -d "$SCAN_TIME")
 
   while [ -d /proc/"$scanpid" ]; do
 
@@ -231,7 +254,7 @@ EOF
 
 sleep 1;
 
-  done < "$data_list";
+  done < "$DATA_LIST";
 
 }
 
@@ -240,7 +263,7 @@ _showResults () {
 
   local bad_files report_id hits_file;
 
-  report_id="$(grep -Po "report \K[0-9,\-,.]*" "$maldetoutput")"
+  report_id="$(grep -Po "report \K[0-9,\-,.]*" "$MALDET_OUTPUT")"
   hits_file="/usr/local/maldetect/sess/session.hits.$report_id"
 
 
@@ -256,7 +279,7 @@ Files Scanned: ${totals[0]}
          Hits: $(wc -l "$hits_file" | awk '{print $1}')
 
     Scan Date: $(date "+%F")
-   Start time: $scan_time
+   Start time: $SCAN_TIME
      End time: $(date "+%H:%M" )
 
      Hostname: $HOSTNAME
@@ -293,8 +316,8 @@ _cleanUp () {
     | xargs /bin/kill &> /dev/null
 
   # Clean up temp files
-  rm "$maldetoutput"
-  rm "$data_list"
+  rm "$MALDET_OUTPUT"
+  rm "$DATA_LIST"
 
 }
 
@@ -342,7 +365,7 @@ main () {
     [[ -n "$filepath" ]] || filepath="$(pwd)";
 
     # start maldet
-    maldet -a "$filepath" > "$maldetoutput" &
+    maldet -a "$filepath" > "$MALDET_OUTPUT" &
 
     # Find scan process ID and file list
     scanpid=$!;
@@ -353,7 +376,7 @@ main () {
 
   _evaluateList "$scanpid";
 
-  _scanDetails;
+  _scanDetails "$filepath";
 
   _watchScan "$filepath" "$scanpid";
 
