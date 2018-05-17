@@ -28,7 +28,7 @@ alias xargs='/usr/bin/xargs'
 MALDET_OUTPUT="$(mktemp)"
 DATA_LIST="$(mktemp)"
 SCAN_TIME=""
-totals=()
+TOTALS=()
 
 # Print usage info
 _usage() {
@@ -158,7 +158,7 @@ _evaluateList () {
   xargs --delimiter="\n" /usr/bin/du -sb < "$scanlist" 2> /dev/null \
     | awk '{print NR,(sum += $1),$0}' > "$DATA_LIST";
 
-  mapfile -t totals< <(tail -n1 "$DATA_LIST" | awk '{print $1"\n"$2}');
+  mapfile -t TOTALS< <(tail -n1 "$DATA_LIST" | awk '{print $1"\n"$2}');
 
 }
 
@@ -169,11 +169,11 @@ _scanDetails () {
 
   filepath="$1";
 
-  data_total_human="$(echo "${totals[1]}" | _humanReadable)"
+  data_total_human="$(echo "${TOTALS[1]}" | _humanReadable)"
 
   cat <<- EOF
 
-  Scanning ${filepath}    Files: ${totals[0]}   Size: ${data_total_human}
+  Scanning ${filepath}    Files: ${TOTALS[0]}   Size: ${data_total_human}
 
   Scan ouput going to ${OUTPUT_FILE}
 
@@ -216,7 +216,7 @@ _watchScan() {
   filepath="$1";
   scanpid="$2";
 
-  data_total_human="$(echo "${totals[1]}" | _humanReadable)"
+  data_total_human="$(echo "${TOTALS[1]}" | _humanReadable)"
 
   # Find clamd process id
   clamdpid=$(pgrep -u clamav clamd);
@@ -260,7 +260,7 @@ _watchScan() {
         if [[ "$line" =~ "$currentfile"$ ]]; then
           scan_status=($line);
 
-          scan_percentage="$((100 * scan_status[1]/totals[1]))"
+          scan_percentage="$((100 * scan_status[1]/TOTALS[1]))"
           data_scanned_human="$(echo "${scan_status[1]}" | _humanReadable)"
           current_file_size_human="$(echo "${scan_status[2]}" | _humanReadable)"
 
@@ -276,14 +276,14 @@ _watchScan() {
     rate="$(((scan_status[1] / elapsed_time) + 1))"
     rate_human="$(echo "$rate" | _humanReadable)"
 
-    remaining_time=$(((totals[1] - scan_status[1]) / rate ));
+    remaining_time=$(((TOTALS[1] - scan_status[1]) / rate ));
 
     tput clear;
 
     tee "$OUTPUT_FILE" <<- EOF
 Scanning $filepath
 
-${scan_percentage}%  File: ${scan_status[0]} of ${totals[0]}  $data_scanned_human of $data_total_human Scanned
+${scan_percentage}%  File: ${scan_status[0]} of ${TOTALS[0]}  $data_scanned_human of $data_total_human Scanned
 
 Current file: ${currentfile/$filepath\//}  $current_file_size_human
 
@@ -315,8 +315,8 @@ _showResults () {
                                             Maldet Report
 ==========================================================================================================
 
-Files Scanned: ${totals[0]}
- Data Scanned: $(echo "${totals[1]}" | _humanReadable)
+Files Scanned: ${TOTALS[0]}
+ Data Scanned: $(echo "${TOTALS[1]}" | _humanReadable)
          Hits: $(wc -l "$hits_file" | awk '{print $1}')
 
     Scan Date: $(date "+%F")
