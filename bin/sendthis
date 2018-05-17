@@ -131,7 +131,7 @@ _cleanUp() {
 
 _findDir() {
 
-  local longest_common_path word_array word_array2 long cd_dir y;
+  local longest_common_path word_array cd_dir y;
 
   word_array=($(echo "${FILES[0]}" | sed 's/\//& /g'))
   longest_common_path="${#word_array[@]}";
@@ -161,10 +161,6 @@ _findDir() {
 
   cd_dir="$(echo "${FILES[0]}" | grep -Po "^/([^/]*/){$longest_common_path}")";
 
-  for ((i=0; i<${#FILES[@]};i++)); do
-    FILES[i]=${FILES[i]##$cd_dir};
-  done
-
   echo "$cd_dir";
 
 }
@@ -172,7 +168,7 @@ _findDir() {
 # Main
 main () {
 
-  local subject address cd_dir
+  local subject address
 
 
   # Parse command line arguments
@@ -211,6 +207,10 @@ main () {
   if [[ -n ${FILES[1]} ]]; then
 
     cd_dir="$(_findDir)";
+
+    for ((i=0; i<${#FILES[@]};i++)); do
+      FILES[i]=${FILES[i]##$cd_dir};
+    done
 
   else
 
