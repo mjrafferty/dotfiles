@@ -255,8 +255,13 @@ _watchScan() {
           break;
         fi
 
-      done
+      done \
+        || user_files_complete="yes";
 
+    fi
+
+    if [[ "$user_files_complete" == "yes" ]]; then
+      scan_message="User files complete. Scanning /dev/shm..."
     fi
 
     # The +1's are to prevent divide by zero errors on small scans
