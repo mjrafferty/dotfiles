@@ -158,7 +158,7 @@ _evaluateList () {
   xargs --delimiter="\n" /usr/bin/du -sb < "$scanlist" 2> /dev/null \
     | awk '{print NR,(sum += $1),$0}' > "$DATA_LIST";
 
-  totals=($(tail -n1 "$DATA_LIST" | awk '{print $1"\t"$2}'));
+  mapfile -t totals< <(tail -n1 "$DATA_LIST" | awk '{print $1"\n"$2}');
 
 }
 
@@ -231,11 +231,23 @@ _watchScan() {
     duplicatescan="$(_duplicateScans)"
 
     if [[ "$duplicatescan" == "yes" ]]; then
+
       scan_message="Status not accurate while duplicate scan is running.";
+
     else
+
       # Check what is being currently scanned
       currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*"| tail -n1);
-      scan_message="";
+
+      if [[ -z "$currentfile" ]] && lsof -p "$clamdpid" -ad1-99 | grep -q /dev/shm; then
+
+        scan_message="Scanning /dev/shm, this may take a while...";
+
+      else
+
+        scan_message="";
+
+      fi
     fi
 
     # Find file location in list for rough idea of progress
@@ -255,13 +267,8 @@ _watchScan() {
           break;
         fi
 
-      done \
-        || user_files_complete="yes";
+      done
 
-    fi
-
-    if [[ "$user_files_complete" == "yes" ]]; then
-      scan_message="User files complete. Scanning /dev/shm..."
     fi
 
     # The +1's are to prevent divide by zero errors on small scans
