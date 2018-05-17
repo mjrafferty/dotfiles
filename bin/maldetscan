@@ -241,7 +241,7 @@ _watchScan() {
 
       if [[ -z "$currentfile" ]] && lsof -p "$clamdpid" -ad1-99 | grep -q /dev/shm; then
 
-        scan_message="Scanning /dev/shm, this may take a while...";
+        scan_message="User files finished. Scanning /dev/shm, this may take a while...";
 
       else
 
