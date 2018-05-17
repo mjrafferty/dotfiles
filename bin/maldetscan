@@ -182,7 +182,7 @@ _scanDetails () {
   Check status with one of the following:
 
   cat ${OUTPUT_FILE}
-  $0 -a ${filepath}
+  ${ARGA[0]} -a ${filepath}
 
 EOF
 
