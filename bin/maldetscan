@@ -173,18 +173,19 @@ _scanDetails () {
 
   cat <<- EOF
 
-  Scanning ${filepath}
-  Files: ${totals[0]}
-  Size: ${data_total_human}
+  Scanning ${filepath}    Files: ${totals[0]}   Size: ${data_total_human}
 
   Scan ouput going to ${OUTPUT_FILE}
 
   Check status with one of the following:
 
   cat ${OUTPUT_FILE}
-  ${ARGA[0]} -a ${filepath}
+
+  $0 -a ${filepath}
 
 EOF
+
+  read -rt20;
 
 }
 
