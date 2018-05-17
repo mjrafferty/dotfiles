@@ -189,6 +189,23 @@ EOF
 
 }
 
+# Check for duplicate scans
+_duplicateScans () {
+
+  local scanlist relevant_scans;
+
+  mapfile -t scanlist < <(pgrep -lf clamdscan | grep -Po ' -f \K\S*');
+
+  mapfile -t relevant_scans < <(grep -Hl "$filepath" ${scanlist[*]});
+
+  if [[ -n ${relevant_scans[1]} ]]; then
+    echo "yes";
+  else
+    echo "no";
+  fi
+
+}
+
 # Follow scan and output live data
 _watchScan() {
 
@@ -209,8 +226,16 @@ _watchScan() {
 
   while [ -d /proc/"$scanpid" ]; do
 
-    # Check what is being currently scanned
-    currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*"| tail -n1);
+    local duplicatescan scan_message;
+
+    duplicatescan="$(_duplicateScans)"
+
+    if [[ "$duplicatescan" == "yes" ]]; then
+      scan_message="Status not accurate while duplicate scan is running.";
+    else
+      # Check what is being currently scanned
+      currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*"| tail -n1);
+    fi
 
     # Find file location in list for rough idea of progress
     if [[ -n "$currentfile" && "$currentfile" != "$lastfile" ]]; then
@@ -250,6 +275,8 @@ ${scan_percentage}%  File: ${scan_status[0]} of ${totals[0]}  $data_scanned_huma
 Current file: ${currentfile/$filepath\//}  $current_file_size_human
 
 Elapsed Time: $(_convertTime $elapsed_time)  Rate: ${rate_human}/s  Remaining Time: $(_convertTime $remaining_time)
+
+${scan_message}
 
 EOF
 
