@@ -118,7 +118,13 @@ _findMerges() {
 # Combine merges that share a dependent plugin
 _recurseShared () {
 
-  local dupes x i d y;
+  local dupes x i d y e;
+
+    for e in $*; do
+
+      sed -i "/^$e$/d" "$1";
+
+    done
 
   # Iterate over each plugin that is a dependent of this one
   for x in $(cat "$1"); do

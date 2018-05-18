@@ -289,7 +289,7 @@ _connect () {
 # Add an administrator
 _admin () {
 
-  local firstname lastname emailaddr username;
+  local firstname lastname emailaddr username password salt;
 
   read -rp "Firstname: " firstname;
   read -rp "Lastname: " lastname;
@@ -297,10 +297,11 @@ _admin () {
   read -rp "Username: " username;
 
   password=$(_xkcd);
+	salt="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 32 | head -n1)"
 
   _connect <<- EOF
   INSERT INTO ${PREFIX}admin_user (firstname,lastname,email,username,password)
-  VALUES ("$firstname","$lastname","$emailaddr","$username",md5("$password"));
+  VALUES ("$firstname","$lastname","$emailaddr","$username",CONCAT(MD5("${salt}${password}"), ":${salt}"));
   INSERT INTO ${PREFIX}admin_role (parent_id,tree_level,sort_order,role_type,user_id,role_name)
   VALUES (1,2,0,"U",(SELECT user_id FROM ${PREFIX}admin_user where username="$username"),"$username");
 EOF
@@ -427,7 +428,7 @@ _optimize () {
 # Change admin user password
 _password () {
 
-  local username password;
+  local username password salt;
 
   username="$1"
 
