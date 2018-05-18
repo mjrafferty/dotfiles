@@ -123,7 +123,9 @@ _recurseShared () {
     for e in $*; do
 
       m="${e/.txt/}"
+      grep "^$m$" $1 >> log2
       sed -i "/^$m$/d" "$1";
+      grep "^$m$" $1 >> log2
 
     done
 
