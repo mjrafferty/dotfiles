@@ -118,11 +118,12 @@ _findMerges() {
 # Combine merges that share a dependent plugin
 _recurseShared () {
 
-  local dupes x i d y e;
+  local dupes x i d y e m;
 
     for e in $*; do
 
-      sed -i "/^$e$/d" "$1";
+      m="${e/.txt/}"
+      sed -i "/^$m$/d" "$1";
 
     done
 
