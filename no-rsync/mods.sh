@@ -118,7 +118,7 @@ _findMerges() {
 # Combine merges that share a dependent plugin
 _recurseShared () {
 
-  local dupes x i d y;
+  local dupes x i d y m;
 
   # Iterate over each plugin that is a dependent of this one
   for x in $(cat "$1"); do
@@ -132,7 +132,9 @@ _recurseShared () {
       for j in $*; do
         if [[ "$j" == "$i" ]]; then
 
-          sed -i "/^$j$/d" "$1";
+          m="${j/.txt/}";
+
+          sed -i "/^$m$/d" "$1";
           echo "skipping $x in $1 as it is already in $i" >> ~/log && continue 2;
 
         fi
