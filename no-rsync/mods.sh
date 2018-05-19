@@ -120,12 +120,10 @@ _recurseShared () {
 
   local dupes x i d y e m;
 
-    for e in $*; do
+    for e in "$@"; do
 
       m="${e/.txt/}"
-      grep "^$m$" $1 >> log2
       sed -i "/^$m$/d" "$1";
-      grep "^$m$" $1 >> log2
 
     done
 
@@ -296,18 +294,13 @@ main() {
 
   _combineMerges
 
-  _makeJson;
+  #_makeJson;
 
-  cat <<- EOF
-
-  Dependencies: $DEPENDENCIES
-  Masters:      $MASTERS_FILE
-  Easy Merge:   $EASY_MERGE
-  Dependents:   $DEPENDENTS
-
-  Final Merges: $FINAL_MERGES
-
-EOF
+  ln -sf "$DEPENDENCIES" ~/Dependencies
+  ln -sf "$MASTERS_FILE" ~/Masters_File
+  ln -sf "$EASY_MERGE" ~/Easy_Merge
+  ln -sf "$DEPENDENTS" ~/Dependents
+  ln -sf "$FINAL_MERGES" ~/Final_Merges
 
 }
 
