@@ -118,7 +118,7 @@ _findMerges() {
 # Combine merges that share a dependent plugin
 _recurseShared () {
 
-  local dupes x i d y;
+  local dupes x i d y m;
 
   # Iterate over each plugin that is a dependent of this one
   for x in $(cat "$1"); do
@@ -129,12 +129,16 @@ _recurseShared () {
     # If one of them is a parent of this plugin, just remove the entry from this list and skip to the next
     for i in ${dupes[*]}; do
 
-      if [[ "$*" == "$i" ]]; then
+      for j in $*; do
+        if [[ "$j" == "$i" ]]; then
 
-        sed -i "/^$x$/d" "$1";
-        echo "skipping $x in $1 as it is already in $i" >> ~/log && continue 2;
+          m="${j/.txt/}";
 
-      fi
+          sed -i "/^$m$/d" "$1";
+          echo "skipping $x in $1 as it is already in $i" >> ~/log && continue 2;
+
+        fi
+      done
     done
 
     # Remove all other instances of shared dependent, since the other lists will be merged with this one
@@ -287,18 +291,13 @@ main() {
 
   _combineMerges
 
-  _makeJson;
+  #_makeJson;
 
-  cat <<- EOF
-
-  Dependencies: $DEPENDENCIES
-  Masters:      $MASTERS_FILE
-  Easy Merge:   $EASY_MERGE
-  Dependents:   $DEPENDENTS
-
-  Final Merges: $FINAL_MERGES
-
-EOF
+  ln -sf "$DEPENDENCIES" ~/Dependencies
+  ln -sf "$MASTERS_FILE" ~/Masters_File
+  ln -sf "$EASY_MERGE" ~/Easy_Merge
+  ln -sf "$DEPENDENTS" ~/Dependents
+  ln -sf "$FINAL_MERGES" ~/Final_Merges
 
 }
 
