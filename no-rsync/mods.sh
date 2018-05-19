@@ -129,12 +129,14 @@ _recurseShared () {
     # If one of them is a parent of this plugin, just remove the entry from this list and skip to the next
     for i in ${dupes[*]}; do
 
-      if [[ "$x" == "$i" ]]; then
+      for j in $*; do;
+        if [[ "$j" == "$i" ]]; then
 
-        sed -i "/^$x$/d" "$1";
-        echo "skipping $x in $1 as it is already in $i" >> ~/log && continue 2;
+          sed -i "/^$x$/d" "$1";
+          echo "skipping $x in $1 as it is already in $i" >> ~/log && continue 2;
 
-      fi
+        fi
+      done
     done
 
     # Remove all other instances of shared dependent, since the other lists will be merged with this one
