@@ -129,7 +129,7 @@ _recurseShared () {
     # If one of them is a parent of this plugin, just remove the entry from this list and skip to the next
     for i in ${dupes[*]}; do
 
-      for j in $*; do;
+      for j in $*; do
         if [[ "$j" == "$i" ]]; then
 
           sed -i "/^$x$/d" "$1";
