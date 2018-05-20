@@ -238,44 +238,33 @@ _combineMerges () {
 # Create json output for MergePlugins utility
 _makeJson () {
 
-  cat <<- EOF | tr -d '\n'
-  {
-    "merges":[
-    {
-      "ignoredDependencies":[],
-      "method":"Overrides",
-      "dateBuilt":"12\/30\/1899",
-      "masters":[],
-      "filename":"NewMerge.esp",
-      "pluginHashes":[],
-      "bIgnoreNonContiguous":false,
-      "files":[],
-      "fails":[],
-      "name":"Errors",
-      "plugins":[
-      "MoonAndStar_MAS.esp"
-      ],
-      "renumbering":"Conflicting"
-    },
-    {
-      "ignoredDependencies":[],
-      "method":"Overrides",
-      "dateBuilt":"12\/30\/1899",
-      "masters":[],
-      "filename":"NewMerge1.esp",
-      "pluginHashes":[],
-      "bIgnoreNonContiguous":false,
-      "files":[],
-      "fails":[],
-      "name":"NewMerge",
-      "plugins":[
-      "ApachiiHair.esm"
-      ],
-      "renumbering":"Conflicting"
-    }
-    ]
-  }
-EOF
+# begin:
+printf '{"merges":[';
+
+for merge in list; do
+
+  printf '{"ignoredDependencies":[],"method":"Overrides","dateBuilt":"12\/30\/1899","masters":[],"filename":"%s.esp","pluginHashes":[],"bIgnoreNonContiguous":false,"files":[],"fails":[],"name":"%s","plugins":[' "$merge" "$merge";
+
+  for plugin in list2; do
+
+    printf'"%s"' "$plugin";
+
+    if [[ $test ]]; then
+      printf ",";
+    fi
+
+  done
+
+  printf'],"renumbering":"Conflicting"}';
+
+  if [[ $test ]]; then
+    printf ",";
+  fi
+
+done
+
+# end:
+printf ']}';
 
 }
 
