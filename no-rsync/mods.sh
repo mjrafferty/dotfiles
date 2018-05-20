@@ -21,22 +21,22 @@ FINAL_MERGES=$(mktemp -d);
 # Obtain dependency info from plugin files
 _checkMasters() {
 
-  local x i;
+  local plugin dependency;
 
   cd "$MOD_DIR" || exit 1;
 
   echo "Gathering plugin master data..."
 
-  for x in $(tail -n +2 "$LOAD_ORDER_UNIX" | grep -Ev "^($( tr '\n' '|' < "$NO_MERGE_FILE" | sed 's/|$//'))$"); do
+  for plugin in $(tail -n +2 "$LOAD_ORDER_UNIX" | grep -Ev "^($( tr '\n' '|' < "$NO_MERGE_FILE" | sed 's/|$//'))$"); do
 
-    touch "$DEPENDENCIES"/"${x/*\//}".txt;
+    touch "$DEPENDENCIES"/"${plugin/*\//}".txt;
 
-    for i in $(head -n50 -- */"$x" | grep -Poa "MAST..\K[[:print:]]*\.es."); do
+    for dependency in $(head -n50 -- */"$plugin" | grep -Poa "MAST..\K[[:print:]]*\.es."); do
 
       # Sanitizes masters that may not have correct capitalization
-      grep -i "^${i}$" "$LOAD_ORDER_UNIX"  \
+      grep -i "^${dependency}$" "$LOAD_ORDER_UNIX"  \
         | grep -Ev "^$( tr '\n' '|' < "$NO_MERGE_FILE" | sed 's/|$//')$" \
-        | tee -a "$DEPENDENCIES"/"${x/*\//}".txt;
+        | tee -a "$DEPENDENCIES"/"${plugin/*\//}".txt;
 
     done
   done \
@@ -47,20 +47,20 @@ _checkMasters() {
 # Plugins that have no masters that are to be merged, and no dependents, can be merged together easily
 _easyMerge(){
 
-  local x;
+  local dependency_list;
 
   cd "$DEPENDENCIES" || exit 1;
 
   echo "Creating list of easy to merge plugins..."
 
-  for x in *; do
+  for dependency_list in *; do
 
-    if [[ ! -s "$x" ]]; then
+    if [[ ! -s "$dependency_list" ]]; then
 
-      if ! (grep -q "^${x/.txt/}$" "$MASTERS_FILE"); then
+      if ! (grep -q "^${dependency_list/.txt/}$" "$MASTERS_FILE"); then
 
-        echo "${x/.txt/}";
-        rm "$x";
+        echo "${dependency_list/.txt/}";
+        rm "$dependency_list";
 
       fi
     fi
@@ -75,17 +75,17 @@ _easyMerge(){
 # Find logical merges based on masters and shared dependencies
 _findMerges() {
 
-  local x y z
+  local master dependents_list
 
   cd "$DEPENDENCIES" || exit 1;
 
   echo "Generating dependent info...";
 
   # For each master file that is to be included in a merge, find its dependents
-  for x in $(cat "$MASTERS_FILE"); do
+  for master in $(cat "$MASTERS_FILE"); do
 
-    grep -l "^${x}$" -- * \
-      | sed 's/.txt//' > "$DEPENDENTS"/"$x".txt;
+    grep -l "^${master}$" -- * \
+      | sed 's/.txt//' > "$DEPENDENTS"/"$master".txt;
 
   done
 
@@ -93,22 +93,22 @@ _findMerges() {
 
   echo "Combining merges with masters..."
 
-  for y in *; do
+  for dependents_list in *; do
 
-    if [[ -e "$y" ]]; then
+    if [[ -e "$dependents_list" ]]; then
 
-      _recurseMasters "$y";
+      _recurseMasters "$dependents_list";
 
     fi
   done
 
   echo "Combining merges based on shared dependents..."
 
-  for z in *; do
+  for dependents_list in *; do
 
-    if [[ -e "$z" ]]; then
+    if [[ -e "$dependents_list" ]]; then
 
-      _recurseShared "$z";
+      _recurseShared "$dependents_list";
 
     fi
   done
@@ -118,23 +118,23 @@ _findMerges() {
 # Combine merges that share a dependent plugin
 _recurseShared () {
 
-  local dupes x i d y m;
+  local shares_a_dependent dependent parent dependent_list;
 
   # Iterate over each plugin that is a dependent of this one
-  for x in $(cat "$1"); do
+  for dependent in $(cat "$1"); do
 
     # Find other plugins that contain the same dependent
-    mapfile -t dupes < <(grep -l "^${x}$" -- * | grep -v "$1");
+    mapfile -t shares_a_dependent < <(grep -l "^${dependent}$" -- * | grep -v "$1");
 
     # If one of them is a parent of this plugin, just remove the entry from this list and skip to the next
-    for ((i=0; i<${#dupes[@]}; i++)); do
+    for ((dependent_list=0; dependent_list<${#shares_a_dependent[@]}; dependent_list++)); do
 
-      for j in $*; do
-        if [[ "$j" == "${dupes[i]}" ]]; then
+      for parent in $*; do
+        if [[ "$parent" == "${shares_a_dependent[dependent_list]}" ]]; then
 
-          sed -i "/^$x$/d" "$1";
-          dupes[i]="NULL"
-          echo "skipping $x in $1 as it is already in ${dupes[i]}" >> ~/log && continue 2;
+          sed -i "/^$dependent$/d" "$1";
+          shares_a_dependent[dependent_list]="NULL"
+          echo "skipping $dependent in $1 as it is already in ${shares_a_dependent[dependent_list]}" >> ~/log && continue 2;
 
 
         fi
@@ -142,30 +142,30 @@ _recurseShared () {
     done
 
     # Remove all other instances of shared dependent, since the other lists will be merged with this one
-    for d in ${dupes[*]}; do
+    for dependent_list in ${shares_a_dependent[*]}; do
 
-      [[ "$d" == "NULL" ]] && continue;
+      [[ "$dependent_list" == "NULL" ]] && continue;
 
-      sed -i "/^$x$/d" "$d";
+      sed -i "/^$dependent$/d" "$dependent_list";
 
     done
 
-    [[ -n "${dupes[0]}" ]] && echo "$1 shares $x with ${dupes[*]}" >> ~/log;
+    [[ -n "${shares_a_dependent[0]}" ]] && echo "$1 shares $dependent with ${shares_a_dependent[*]}" >> ~/log;
 
     # Merge the other shared plugin lists into this one
-    for y in ${dupes[*]}; do
+    for dependent_list in ${shares_a_dependent[*]}; do
 
-      if [[ -e "$y" ]]; then
+      if [[ -e "$dependent_list" ]]; then
 
         # Do the same check on the next file before merging
         # "$y" is the plugin file to check, "$* will contain all of its parents including this one
-        _recurseShared "$y" "$*";
+        _recurseShared "$dependent_list" "$*";
 
-        echo "Merging $y into $1" >> ~/log
+        echo "Merging $dependent_list into $1" >> ~/log
 
-        echo "${y/.txt/}" >> "$1";
-        cat "$y" >> "$1";
-        rm "$y";
+        echo "${dependent_list/.txt/}" >> "$1";
+        cat "$dependent_list" >> "$1";
+        rm "$dependent_list";
 
       fi
     done
@@ -176,18 +176,18 @@ _recurseShared () {
 # Comibine merges into same merge as their masters
 _recurseMasters () {
 
-  local x;
+  local master;
 
-  for x in $(grep -l "^${1/.txt/}$" -- *); do
+  for master in $(grep -l "^${1/.txt/}$" -- *); do
 
-    echo "Merging $1 into master $x" >> ~/log
+    echo "Merging $1 into master $master" >> ~/log
 
-    cat "$1" >> "$x";
+    cat "$1" >> "$master";
     rm "$1";
 
-    sort -u "$x" -o "$x";
+    sort -u "$master" -o "$master";
 
-    _recurseMasters "$x";
+    _recurseMasters "$master";
 
   done
 
