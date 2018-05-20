@@ -3,7 +3,7 @@
 # Minimum merge size formula (Algebra) : (load_order - no_merge) / (254 - no_merge - ((load_order - no_merge) / minimum) = minimum
 
 readonly MOD_DIR="/mnt/f/Skyrim_Tools/LE mods"
-readonly LOAD_ORDER="/mnt/f/Skyrim_Tools/Mod Organizer/profiles/Test/loadorder.txt"
+readonly LOAD_ORDER="/mnt/d/Documents/ModOrganizer/Skyrim/profiles/Test/loadorder.txt"
 readonly NO_MERGE_FILE="$HOME/no_merge.txt"
 
 readonly MERGE_SIZE="50";
@@ -127,15 +127,15 @@ _recurseShared () {
     mapfile -t dupes < <(grep -l "^${x}$" -- * | grep -v "$1");
 
     # If one of them is a parent of this plugin, just remove the entry from this list and skip to the next
-    for i in ${dupes[*]}; do
+    for ((i=0; i<${#dupes[@]}; i++)); do
 
       for j in $*; do
-        if [[ "$j" == "$i" ]]; then
+        if [[ "$j" == "${dupes[i]}" ]]; then
 
-          m="${j/.txt/}";
+          sed -i "/^$x$/d" "$1";
+          dupes[i]="NULL"
+          echo "skipping $x in $1 as it is already in ${dupes[i]}" >> ~/log && continue 2;
 
-          sed -i "/^$m$/d" "$1";
-          echo "skipping $x in $1 as it is already in $i" >> ~/log && continue 2;
 
         fi
       done
@@ -143,6 +143,8 @@ _recurseShared () {
 
     # Remove all other instances of shared dependent, since the other lists will be merged with this one
     for d in ${dupes[*]}; do
+
+      [[ "$d" == "NULL" ]] && continue;
 
       sed -i "/^$x$/d" "$d";
 
@@ -298,6 +300,7 @@ main() {
   ln -sf "$EASY_MERGE" ~/Easy_Merge
   ln -sf "$DEPENDENTS" ~/Dependents
   ln -sf "$FINAL_MERGES" ~/Final_Merges
+  ln -sf "$LOAD_ORDER_UNIX" ~/Load_Order
 
 }
 
