@@ -292,7 +292,7 @@ main() {
 
   _combineMerges
 
-  #_makeJson;
+  _makeJson;
 
   ln -sf "$DEPENDENCIES" ~/Dependencies
   ln -sf "$MASTERS_FILE" ~/Masters_File
