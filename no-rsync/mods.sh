@@ -42,7 +42,7 @@ _checkMasters() {
   done \
     | sort -u > "$MASTERS_FILE"
 
-}
+  }
 
 # Plugins that have no masters that are to be merged, and no dependents, can be merged together easily
 _easyMerge(){
@@ -112,6 +112,8 @@ _findMerges() {
 
     fi
   done
+
+  mv ./* "$FINAL_MERGES";
 
 }
 
@@ -238,33 +240,41 @@ _combineMerges () {
 # Create json output for MergePlugins utility
 _makeJson () {
 
-# begin:
-printf '{"merges":[';
+  local merges merge;
 
-for merge in list; do
+  cd "$FINAL_MERGES" || exit 1;
 
-  printf '{"ignoredDependencies":[],"method":"Overrides","dateBuilt":"12\/30\/1899","masters":[],"filename":"%s.esp","pluginHashes":[],"bIgnoreNonContiguous":false,"files":[],"fails":[],"name":"%s","plugins":[' "$merge" "$merge";
+  printf '{"merges":[';
 
-  for plugin in list2; do
+  mapfile -t merges < <(find . -maxdepth 1 -type f);
 
-    printf'"%s"' "$plugin";
+  for ((merge=1; merge <= ${#merges[*]}; merge++)); do
 
-    if [[ $test ]]; then
+    local plugin plugins
+
+    mapfile -t plugins < <(cat "${merges[merge]}");
+
+    printf '{"ignoredDependencies":[],"method":"Overrides","dateBuilt":"12\/30\/1899","masters":[],"filename":"%s.esp","pluginHashes":[],"bIgnoreNonContiguous":false,"files":[],"fails":[],"name":"%s","plugins":[' "${merges[merge]}" "${merges[merge]}";
+
+    for ((plugin=1; plugin <= ${#plugins[*]}; plugin++)); do
+
+      printf '"%s"' "$plugin";
+
+      if (( plugin != ${#plugins[@]} )); then
+        printf ",";
+      fi
+
+    done
+
+    printf '],"renumbering":"Conflicting"}';
+
+    if (( merge != ${#merges[@]} )); then
       printf ",";
     fi
 
   done
 
-  printf'],"renumbering":"Conflicting"}';
-
-  if [[ $test ]]; then
-    printf ",";
-  fi
-
-done
-
-# end:
-printf ']}';
+  printf ']}';
 
 }
 
