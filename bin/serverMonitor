@@ -17,7 +17,6 @@ alias sed='/bin/sed'
 alias sort='/bin/sort'
 alias wc='/usr/bin/wc'
 
-
 LAST_EMAIL=0;
 
 
@@ -98,7 +97,7 @@ _cmdline() {
 # Connect to mysql
 _m () {
 
-	mysql --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root "$@"
+  mysql --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root "$@"
 
 }
 
@@ -225,10 +224,6 @@ _maxphpprocs () {
 
       echo "${users[$x]} at max children";
 
-    elif (( numprocs[x] >= (9*max/10) )); then
-
-      echo "${users[$x]} near max children";
-
     fi
 
   done
@@ -247,10 +242,6 @@ _maxclients () {
 
     echo "Apache at MaxClients";
 
-  elif (( count >= ( 9 * max / 10 ) )); then
-
-    echo "Apache near MaxClients";
-
   fi
 
 }
@@ -264,7 +255,7 @@ _mailSupport () {
 
     LAST_EMAIL="$curr_time";
 
-  mail -s "$HOSTNAME: $*" mrafferty@nexcess.net <<- EOF
+    mail -s "$HOSTNAME: $*" mrafferty@nexcess.net <<- EOF
 
 $HOSTNAME: $*
 
@@ -328,7 +319,7 @@ main () {
     for x in ${func_list[*]}; do
 
       local message;
-      message="$x";
+      message="$($x)";
 
       _mailSupport "$message";
 
