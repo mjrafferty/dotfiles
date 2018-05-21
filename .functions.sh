@@ -203,7 +203,7 @@ typebymb () {
 # Show total bandwidth usage
 totalmb () {
   $ZLESS -f "$@" \
-    | $GREP '" [0-9][0-9][0-9] [0-9]*' \
+    | $GREP -o '" [0-9][0-9][0-9] [0-9]*' \
     | $AWK '{sum+=$3} END {print sum/1048576 " M"}'
 }
 
