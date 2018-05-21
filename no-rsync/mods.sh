@@ -113,7 +113,6 @@ _findMerges() {
     fi
   done
 
-  mv ./* "$FINAL_MERGES";
 
 }
 
@@ -235,6 +234,8 @@ _combineMerges () {
     fi
   done
 
+  mv ./* "$FINAL_MERGES";
+
 }
 
 # Create json output for MergePlugins utility
@@ -248,19 +249,19 @@ _makeJson () {
 
   mapfile -t merges < <(find . -maxdepth 1 -type f);
 
-  for ((merge=1; merge <= ${#merges[*]}; merge++)); do
+  for ((merge=0; merge < ${#merges[*]}; merge++)); do
 
     local plugin plugins
 
-    mapfile -t plugins < <(cat "${merges[merge]}");
+    mapfile -t plugins < <(cat "${merges[merge]}") || echo "${merges[merge]}"
 
     printf '{"ignoredDependencies":[],"method":"Overrides","dateBuilt":"12\/30\/1899","masters":[],"filename":"%s.esp","pluginHashes":[],"bIgnoreNonContiguous":false,"files":[],"fails":[],"name":"%s","plugins":[' "${merges[merge]}" "${merges[merge]}";
 
-    for ((plugin=1; plugin <= ${#plugins[*]}; plugin++)); do
+    for ((plugin=0; plugin < ${#plugins[*]}; plugin++)); do
 
-      printf '"%s"' "$plugin";
+      printf '"%s"' "$(echo "${plugins[plugin]}" | sed 's/ /\ /g')";
 
-      if (( plugin != ${#plugins[@]} )); then
+      if (( plugin != ( ${#plugins[@]} - 1 ) )); then
         printf ",";
       fi
 
@@ -268,7 +269,7 @@ _makeJson () {
 
     printf '],"renumbering":"Conflicting"}';
 
-    if (( merge != ${#merges[@]} )); then
+    if (( merge != ( ${#merges[@]} -1 ) )); then
       printf ",";
     fi
 
@@ -292,7 +293,7 @@ main() {
 
   _combineMerges
 
-  _makeJson;
+  _makeJson >> ~/merges.txt
 
   ln -sf "$DEPENDENCIES" ~/Dependencies
   ln -sf "$MASTERS_FILE" ~/Masters_File
