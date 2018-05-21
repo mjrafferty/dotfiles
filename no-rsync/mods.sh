@@ -255,11 +255,11 @@ _makeJson () {
 
     mapfile -t plugins < <(cat "${merges[merge]}") || echo "${merges[merge]}"
 
-    printf '{"ignoredDependencies":[],"method":"Overrides","dateBuilt":"12\/30\/1899","masters":[],"filename":"%s.esp","pluginHashes":[],"bIgnoreNonContiguous":false,"files":[],"fails":[],"name":"%s","plugins":[' "${merges[merge]}" "${merges[merge]}";
+    printf '{"ignoredDependencies":[],"method":"Overrides","dateBuilt":"12\/30\/1899","masters":[],"filename":"%s.esp","pluginHashes":[],"bIgnoreNonContiguous":false,"files":[],"fails":[],"name":"%s","plugins":[' "$(echo "${merges[merge]}" | sed 's/ /\\ /g')" "$(echo "${merges[merge]}" | sed 's/ /\\ /g')";
 
     for ((plugin=0; plugin < ${#plugins[*]}; plugin++)); do
 
-      printf '"%s"' "$(echo "${plugins[plugin]}" | sed 's/ /\ /g')";
+      printf '"%s"' "$(echo "${plugins[plugin]}" | sed 's/ /\\ /g')";
 
       if (( plugin != ( ${#plugins[@]} - 1 ) )); then
         printf ",";
@@ -293,7 +293,7 @@ main() {
 
   _combineMerges
 
-  _makeJson >> ~/merges.txt
+  _makeJson > ~/Merges.json
 
   ln -sf "$DEPENDENCIES" ~/Dependencies
   ln -sf "$MASTERS_FILE" ~/Masters_File
