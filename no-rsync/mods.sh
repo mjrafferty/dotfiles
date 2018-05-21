@@ -68,7 +68,7 @@ _easyMerge(){
 
   cd "$FINAL_MERGES" || exit 1;
 
-  split -l  "$MERGE_SIZE" "$EASY_MERGE" "easymerge_";
+  split -dl  "$MERGE_SIZE" "$EASY_MERGE" "easymerge_";
 
 }
 
