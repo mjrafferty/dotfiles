@@ -113,6 +113,12 @@ _findMerges() {
     fi
   done
 
+  # Add the main plugin to its own list so that it will be included in the merge properly
+  for dependents_list in *; do
+
+    echo ${dependents_list/.txt/} >> ${dependents_list};
+
+  done
 
 }
 
@@ -247,7 +253,7 @@ _makeJson () {
 
   printf '{"merges":[';
 
-  mapfile -t merges < <(find . -maxdepth 1 -type f);
+  mapfile -t merges < <(find . -maxdepth 1 -type f -printf '%P\n');
 
   for ((merge=0; merge < ${#merges[*]}; merge++)); do
 
@@ -255,7 +261,7 @@ _makeJson () {
 
     mapfile -t plugins < <(cat "${merges[merge]}") || echo "${merges[merge]}"
 
-    printf '{"ignoredDependencies":[],"method":"Overrides","dateBuilt":"12\/30\/1899","masters":[],"filename":"%s.esp","pluginHashes":[],"bIgnoreNonContiguous":false,"files":[],"fails":[],"name":"%s","plugins":[' "${merges[merge]}" "${merges[merge]}";
+    printf '{"ignoredDependencies":[],"method":"Overrides","dateBuilt":"12\/30\/1899","masters":[],"filename":"%s.esp","pluginHashes":[],"bIgnoreNonContiguous":false,"files":[],"fails":[],"name":"%s","plugins":[' "${merges[merge]/.txt/}" "${merges[merge]/.esp.txt/}";
 
     for ((plugin=0; plugin < ${#plugins[*]}; plugin++)); do
 
