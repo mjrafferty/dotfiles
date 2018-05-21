@@ -261,7 +261,8 @@ _makeJson () {
 
     mapfile -t plugins < <(cat "${merges[merge]}") || echo "${merges[merge]}"
 
-    printf '{"ignoredDependencies":[],"method":"Overrides","dateBuilt":"12\/30\/1899","masters":[],"filename":"%s","pluginHashes":[],"bIgnoreNonContiguous":false,"files":[],"fails":[],"name":"%s","plugins":[' "${merges[merge]/.txt/}" "${merges[merge]/.es[m,p].txt/}";
+    printf '{"ignoredDependencies":[],"method":"Overrides","dateBuilt":"12\/30\/1899","masters":[],"filename":"%s.esp","pluginHashes":[],"bIgnoreNonContiguous":false,"files":[],"fails":[],"name":"%s","plugins":[' "${merges[merge]/.es[m,p].txt/}" "${merges[merge]/.es[m,p].txt/}";
+
 
     for ((plugin=0; plugin < ${#plugins[*]}; plugin++)); do
 
