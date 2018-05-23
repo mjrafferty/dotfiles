@@ -335,7 +335,7 @@ _theHardWay() {
 # Main
 main () {
 
-  local ip_addr whoisinfo host rdns query cloud nocache permanent timestamp;
+  local ip_addr whoisinfo host rdns query cloud nocache permanent timestamp dont_cache;
 
   for ((x=0;x<${#ARGA[@]};x++)); do
     case "${ARGA[$x]}" in
@@ -360,6 +360,10 @@ main () {
   done
 
   [[ -z "$nocache" ]] && _getCache;
+
+  if [[ -n "$DESTINATION" ]]; then
+    dont_cache="1";
+  fi
 
   # If destination was not in cache, see if it is an abbreviated domain
   [[ -z "$DESTINATION" ]] && _abbrevDest;
@@ -397,9 +401,11 @@ main () {
       timestamp="9999999999"
     fi
 
-    # Add to cache
-    query=$(printf "INSERT OR REPLACE INTO LOCATIONS VALUES ('%s','%s','%s');" "${DOMAIN}" "${DESTINATION}" "${timestamp}")
-    sqlite3 "$DOMAIN_DB_FILE" "$query" || _checkDB;
+    if [[ -z "$dont_cache" ]]; then
+      # Add to cache
+      query=$(printf "INSERT OR REPLACE INTO LOCATIONS VALUES ('%s','%s','%s');" "${DOMAIN}" "${DESTINATION}" "${timestamp}")
+      sqlite3 "$DOMAIN_DB_FILE" "$query" || _checkDB;
+    fi
 
     if [[ -n $TICKET ]]; then
       query=$(printf "INSERT OR REPLACE INTO TICKETS VALUES ('%s','%s');" "${TICKET}" "${DOMAIN}");
