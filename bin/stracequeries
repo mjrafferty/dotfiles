@@ -3,20 +3,9 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-_usage() {
-	cat <<- EOF
-	This is the usage
-EOF
-}
-
 main () {
 
   local x connections;
-
-	if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-		_usage;
-		return 0;
-	fi
 
 	mapfile -t connections < <(cat $ARGS | grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))');
 

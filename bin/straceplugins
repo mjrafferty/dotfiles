@@ -3,18 +3,7 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-_usage() {
-  cat <<- EOF
-  This is the usage
-EOF
-}
-
 main () {
-
-  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
-  fi
 
   straceopened ${ARGA[*]} \
     | sed -n \

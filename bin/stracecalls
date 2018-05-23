@@ -3,12 +3,6 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-_usage() {
-	cat <<- EOF
-	This is the usage
-EOF
-}
-
 _awkStuff () {
 	awk '
 	{
