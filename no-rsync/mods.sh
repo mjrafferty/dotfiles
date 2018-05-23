@@ -224,7 +224,6 @@ _combineMerges () {
         # Make sure second file still exists and see if its size will fit well with current merge file
         if [[ -e "${merge_name[y]}" && $(( merge_quantity[x] + merge_quantity[y] )) -le "$MERGE_SIZE" ]]; then
 
-          echo "${merge_name[y]/.txt/}" >> "${merge_name[x]}";
           cat "${merge_name[y]}" >> "${merge_name[x]}";
           rm "${merge_name[y]}";
 
@@ -286,6 +285,7 @@ _makeJson () {
 
 }
 
+# Main
 main() {
 
   #Make load order unix friendly
