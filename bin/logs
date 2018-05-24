@@ -13,6 +13,8 @@ alias tai64nlocal="/usr/bin/tai64nlocal"
 alias tail="/usr/bin/tail"
 alias zless="/usr/bin/zless"
 
+[[ -z "$PAGER" ]] && PAGER="/usr/bin/less"
+
 # Necessary Global Variables
 LOG_FILES=();
 
