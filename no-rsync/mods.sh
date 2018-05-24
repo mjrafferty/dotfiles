@@ -3,8 +3,11 @@
 # Minimum merge size formula (Algebra) : (load_order - no_merge) / (254 - no_merge - ((load_order - no_merge) / minimum) = minimum
 
 readonly MOD_DIR="/mnt/f/Skyrim_Tools/LE mods"
-readonly LOAD_ORDER="/mnt/d/Documents/ModOrganizer/Skyrim/profiles/Test/loadorder.txt"
-readonly NO_MERGE_FILE="$HOME/no_merge.txt"
+readonly PROFILE_DIR="/mnt/d/Documents/ModOrganizer/Skyrim/profiles"
+readonly STARTING_PROFILE="${PROFILE_DIR}/Test"
+readonly LOAD_ORDER="${STARTING_PROFILE}/plugins.txt"
+readonly NO_MERGE_PROFILE="${PROFILE_DIR}/No_Merge"
+readonly NO_MERGE_FILE="${NO_MERGE_PROFILE}/plugins.txt"
 
 readonly MERGE_SIZE="50";
 
@@ -27,7 +30,7 @@ _checkMasters() {
 
   echo "Gathering plugin master data..."
 
-  for plugin in $(tail -n +2 "$LOAD_ORDER_UNIX" | grep -Ev "^($( tr '\n' '|' < "$NO_MERGE_FILE" | sed 's/|$//'))$"); do
+  for plugin in $(tail -n +2 "$LOAD_ORDER_UNIX" | grep -Ev "^($( tail -n +2 "$NO_MERGE_FILE" | tr '\n' '|' | sed 's/|$//'))$"); do
 
     touch "$DEPENDENCIES"/"${plugin/*\//}".txt;
 
@@ -35,7 +38,7 @@ _checkMasters() {
 
       # Sanitizes masters that may not have correct capitalization
       grep -i "^${dependency}$" "$LOAD_ORDER_UNIX"  \
-        | grep -Ev "^$( tr '\n' '|' < "$NO_MERGE_FILE" | sed 's/|$//')$" \
+        | grep -Ev "^$( tail -n +2 "$NO_MERGE_FILE" | tr '\n' '|' | sed 's/|$//')$" \
         | tee -a "$DEPENDENCIES"/"${plugin/*\//}".txt;
 
     done
@@ -285,6 +288,29 @@ _makeJson () {
 
 }
 
+# Make merge profiles
+_makeProfiles () {
+
+  local merges merge;
+
+  cd "$FINAL_MERGES" || exit 1;
+
+  mapfile -t merges < <(find . -maxdepth 1 -type f -printf '%P\n' | sed 's/\.es.\.txt//');
+
+  for merge in ${merges[*]}; do
+
+    if [[ -e "${PROFILE_DIR}/${merge}" ]]; then
+
+      rm -r "${PROFILE_DIR}/${merge}"
+
+    fi
+
+    cp -a "$merge" "${PROFILE_DIR}/${merge}"
+
+  done
+
+}
+
 # Main
 main() {
 
@@ -298,9 +324,11 @@ main() {
 
   _findMerges;
 
-  _combineMerges
+  _combineMerges;
 
   _makeJson > ~/Merges.json
+
+  _makeProfiles;
 
   ln -sf "$DEPENDENCIES" ~/Dependencies
   ln -sf "$MASTERS_FILE" ~/Masters_File
