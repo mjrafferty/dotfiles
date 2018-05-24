@@ -119,7 +119,7 @@ cdlogs () {
   fi
 
   # Gather relevant domain information
-  vhosts=($($GREP -El "Server(Name|Alias).* $query" /etc/httpd/{conf.d/vhost_*.conf,tmpdomains.d/*.conf}));
+  vhosts=($($GREP -El "Server(Name|Alias).* $query" /etc/httpd/{conf.d/vhost_*.conf,tmpdomains.d/*.conf} 2> /dev/null));
 
   for (( i=ARRAY_START; i<${#vhosts[@]}+ARRAY_START; i++ )); do
     logsdir[$i]=$($GREP -Poh '[^#]*ErrorLog.* \K/([^/]+/)+' "${vhosts[$i]}" \

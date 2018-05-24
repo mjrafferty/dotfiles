@@ -8,6 +8,7 @@ alias column='/usr/bin/column'
 alias grep='/bin/grep'
 alias sed='/bin/sed'
 alias tr='/usr/bin/tr'
+alias nano='/bin/nano'
 
 _usage() {
   cat <<- EOF
@@ -65,7 +66,7 @@ main () {
 
   fi;
 
-  "$EDITOR" "${vhost[0]}";
+  "${EDITOR:-nano}" "${vhost[0]}";
 
   echo "${vhost[0]}";
 

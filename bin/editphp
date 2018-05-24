@@ -8,6 +8,7 @@ readonly ARGA=("$@")
 alias find='/bin/find'
 alias grep='/bin/grep'
 alias head='/usr/bin/head'
+alias nano='/bin/nano'
 
 # Print usage
 _usage() {
@@ -80,7 +81,7 @@ main () {
     exit 1;
   fi
 
-  $EDITOR "$conf_file";
+  ${EDITOR:-nano} "$conf_file";
 
   echo "$conf_file";
 
