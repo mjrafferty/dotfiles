@@ -30,7 +30,7 @@ _checkMasters() {
 
   echo "Gathering plugin master data..."
 
-  for plugin in $(tail -n +2 "$LOAD_ORDER_UNIX" | grep -Ev "^($( tail -n +2 "$NO_MERGE_FILE" | tr '\n' '|' | sed 's/|$//'))$"); do
+  for plugin in $(tail -n +3 "$LOAD_ORDER_UNIX" | grep -Ev "^($( tail -n +2 "$NO_MERGE_FILE" | tr '\n' '|' | sed 's/|$//'))$"); do
 
     touch "$DEPENDENCIES"/"${plugin/*\//}".txt;
 
