@@ -54,7 +54,7 @@ cdd () {
     query="$(pwd | $SED -e 's_.*home/[^/]*/\([^/]*\)/html.*_\1_' -e 's_.*home/[^/]*/var/\([^/]*\)/.*_\1_')";
   fi
   # Gather relevant domain information
-  domains=$($GREP -EH "Server(Name|Alias).* $query" /etc/httpd/{conf.d/vhost_*.conf,tmpdomains.d/*.conf} \
+  domains=$($GREP -EH "Server(Name|Alias).* $query" /etc/httpd/{conf.d/vhost_*.conf,tmpdomains.d/*.conf} 2> /dev/null \
     | $SED -r 's/.*_(.*).conf:.* ('"$query"'[^ ]*).*/\1\t\2/' \
     | $SORT -u);
 
