@@ -36,7 +36,7 @@ main () {
 
   else
 
-    domain="$(pwd | sed -e 's_\(.*home/[^/]*/[^/]*\)/html.*_\1_' -e 's_\(.*home/[^/]*/var/[^/]*\)/.*_\1_')";
+    domain="$(pwd | grep -Po '(/chroot)?/home/([^/]*/)\K[^/]*')";
 
   fi
 
