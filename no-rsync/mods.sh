@@ -305,7 +305,9 @@ _makeProfiles () {
 
     fi
 
-    cp -a "$merge" "${PROFILE_DIR}/${merge}"
+    cp -a "${NO_MERGE_PROFILE}" "${PROFILE_DIR}/${merge}"
+
+    cat "$merge" > "${PROFILE_DIR}/${merge}/plugins.txt"
 
   done
 
