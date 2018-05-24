@@ -12,5 +12,5 @@ alias rm='rm -r'
 unalias chown;
 unalias chmod;
 
-export PATH=/usr/local/bin:$PATH:/Users/matthewrafferty/bin
+export PATH="/usr/local/bin:/usr/local/Cellar/php@7.1/7.1.17/bin:$PATH:/Users/matthewrafferty/bin"
 
