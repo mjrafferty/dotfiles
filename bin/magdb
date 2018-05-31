@@ -372,9 +372,9 @@ _logsize () {
 
   for x in $tables; do
 
-    datasize=$(_connect -e "SELECT data_length/1024000 FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\";" | tail -1)
-    indexsize=$(_connect -e "SELECT index_length/1024000 FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\";" | tail -1)
-    rowcount=$(_connect -e "SELECT table_rows FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\";" | tail -1)
+    datasize=$(_connect -e "SELECT data_length/1024000 FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\" and TABLE_SCHEMA=\"$DBNAME\";")
+    indexsize=$(_connect -e "SELECT index_length/1024000 FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\" and TABLE_SCHEMA=\"$DBNAME\";")
+    rowcount=$(_connect -e "SELECT table_rows FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\" and TABLE_SCHEMA=\"$DBNAME\";")
 
     datatotal=$(echo "scale=3;$datatotal + $datasize" | bc)
     indextotal=$(echo "scale=3;$indextotal+$indexsize" | bc)
