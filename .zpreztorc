@@ -90,7 +90,7 @@ zstyle ':prezto:module:git:alias' skip 'yes'
 #
 
 # Set the Pacman frontend.
-zstyle ':prezto:module:pacman' frontend 'pacaur'
+#zstyle ':prezto:module:pacman' frontend 'pacaur'
 
 #
 # Prompt
