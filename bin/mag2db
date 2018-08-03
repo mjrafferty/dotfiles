@@ -168,11 +168,11 @@ _getConfig () {
 
     config="$(grep -A16 \'db\' "$SITEPATH/$CONFIG_FILE")"
 
-    DBHOST="$(echo "$config" | grep \'host\' | cut -d\' -f4)"
-    DBNAME="$(echo "$config" | grep \'dbname\' | cut -d\' -f4)"
-    DBUSER="$(echo "$config" | grep \'username\' | cut -d\' -f4)"
-    DBPASS="$(echo "$config" | grep \'password\' | cut -d\' -f4)"
-    PREFIX="$(echo "$config" | grep \'table_prefix\' | cut -d\' -f4)"
+    DBHOST="$(echo "$config" | grep \'host\' | cut -d\' -f4 | head -n1)"
+    DBNAME="$(echo "$config" | grep \'dbname\' | cut -d\' -f4 | head -n1)"
+    DBUSER="$(echo "$config" | grep \'username\' | cut -d\' -f4 | head -n1)"
+    DBPASS="$(echo "$config" | grep \'password\' | cut -d\' -f4 | head -n1)"
+    PREFIX="$(echo "$config" | grep \'table_prefix\' | cut -d\' -f4 | head -n1)"
 
   else
 
