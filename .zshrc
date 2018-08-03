@@ -19,7 +19,7 @@ if (( $OS_VERSION == 7 )); then
           alias "${y/*\//}"="sudo $y";
 
         done
-      else
+      elif [[ "$x" != "^-"* ]]; then
 
         alias "${x/*\//}"="sudo $x";
 

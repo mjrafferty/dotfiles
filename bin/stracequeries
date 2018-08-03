@@ -27,7 +27,7 @@ main () {
 		file_desc=(${x/:/ });
 
 		tail -n +"${file_desc[0]}" "${ARGA[0]}" \
-			| grep -Po '(write|sendto)\('"${file_desc[1]}"', "\\?[^\\]*(\\[^\\]*){2}\\.(\\.)?\K[^"]*", ' \
+			| grep -Po '(write|sendto)\('"${file_desc[1]}"', "\\?[^\\]*(\\[^\\]*){2}\\.(\\.)?\K.*", ' \
 			| sed -e 's_", $_;_' -e 's/\\r/ /g' -e 's/\\n/ /g' -e 's/\\t/ /g'
 
 	done \

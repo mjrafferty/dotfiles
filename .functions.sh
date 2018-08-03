@@ -492,7 +492,7 @@ resellers () {
 
 # Lookup Siteworx account details
 acctdetail () {
-  $NODEWORX -u -n -c Siteworx -a querySiteworxAccountDetails --domain "$(~iworx/bin/listaccounts.pex | $AWK "/$($GETUSR)/"'{print $2}')"\
+  $NODEWORX -u -n -c Siteworx -a querySiteworxAccountDetails --domain $(~iworx/bin/listaccounts.pex | $AWK "/$($GETUSR)/"'{print $2}') \
     | $SED 's:\([a-zA-Z]\) \([a-zA-Z]\):\1_\2:g;s:\b1\b:YES:g;s:\b0\b:NO:g' \
     | $COLUMN -t
 }
