@@ -128,7 +128,7 @@ function _soapv2 () {
 
   try {
 
-    $client = new SoapClient('http'.$config["secure"].'://'.$config["domain"].'/wc-api/v2/orders?wc-api/v2/orders?page=1&filter[updated_at_min]=07%2F31%2F2018%2C%2012%3A00%20AM%20UTC&filter[updated_at_max]=08%2F02%2F2018%2C%2012%3A00%20AM%20UTC&filter[status]=completed%2C%20refunded&consumer_key=ck_a401c038156f8ef1f4a4b9a15deb9a9f40f14926&consumer_secret=cs_c7702381451d900dbad1f452341f1c5b2ce3158b', array('trace' => 1, 'connection_timeout' => 120));
+    $client = new SoapClient('http'.$config["secure"].'://'.$config["domain"].'/api/v2_soap?wsdl=1', array('trace' => 1, 'connection_timeout' => 120));
     $session = $client->login($config["user"], $config["pass"]);
 
     printf("Request:\n");
