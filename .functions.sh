@@ -21,6 +21,7 @@
 [[  -z  $NODEWORX    ]]  &&  readonly  NODEWORX='/usr/bin/nodeworx'
 [[  -z  $NSLOOKUP    ]]  &&  readonly  NSLOOKUP='/usr/bin/nslookup'
 [[  -z  $PS          ]]  &&  readonly  PS='/bin/ps'
+[[  -z  $READLINK    ]]  &&  readonly  READLINK='/bin/readlink'
 [[  -z  $SED         ]]  &&  readonly  SED='/bin/sed'
 [[  -z  $SETFACL     ]]  &&  readonly  SETFACL='/usr/bin/setfacl'
 [[  -z  $SORT        ]]  &&  readonly  SORT='/bin/sort'
@@ -32,7 +33,7 @@
 [[  -z  $UNIQ        ]]  &&  readonly  UNIQ='/usr/bin/uniq'
 [[  -z  $XARGS       ]]  &&  readonly  XARGS='/usr/bin/xargs'
 [[  -z  $ZLESS       ]]  &&  readonly  ZLESS='/usr/bin/zless'
-[[  -z  $MYSHELL     ]]  &&  readonly  MYSHELL="$(readlink /proc/$$/exe)"
+[[  -z  $MYSHELL     ]]  &&  readonly  MYSHELL="$("$READLINK" /proc/$$/exe)"
 
 if [[ "$MYSHELL" =~ zsh ]]; then
   ARRAY_START="1";
@@ -706,3 +707,22 @@ u () {
   # Revoke the permissions given to that user
   $SETFACL -R -x u:"$user" ~/
 }
+
+## Find broken symbolic links
+brokenlinks () {
+
+  local tifs x;
+
+  tifs="$IFS";
+  IFS="
+  "
+
+	for x in $("$FIND" "$PATH" -type l); do
+		[[ -e $("$READLINK" "$x") ]] \
+			|| echo "$x";
+	done
+
+  IFS="$tifs";
+
+}
+
