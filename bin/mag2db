@@ -256,7 +256,7 @@ _connect () {
 
   _summary;
 
-  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t "$@" | less -RSF;
+  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t "$@";
 
 }
 
@@ -294,14 +294,18 @@ EOF
 # Print base url's
 _base () {
 
-  _connect -e "SELECT * FROM ${PREFIX}core_config_data WHERE path RLIKE \"base.*url\";";
+  _connect -e "SELECT * FROM ${PREFIX}core_config_data WHERE path RLIKE \"base.*url\";" \
+    | less -RSF;
+
 
 }
 
 # Print cron table
 _cron () {
 
-  _connect -e "SELECT * FROM ${PREFIX}cron_schedule;"
+  _connect -e "SELECT * FROM ${PREFIX}cron_schedule;" \
+    | less -RSF;
+
 
 }
 
@@ -336,7 +340,9 @@ _multi () {
   SELECT * FROM ${PREFIX}core_config_data WHERE path RLIKE \"base_url\";
   SELECT * FROM ${PREFIX}store_website;
   SELECT * FROM ${PREFIX}store_group;
-  SELECT * FROM ${PREFIX}store;"
+  SELECT * FROM ${PREFIX}store;" \
+    | less -RSF;
+
 
 }
 
@@ -380,53 +386,72 @@ _users () {
 	from ${PREFIX}authorization_role u
 	inner join ${PREFIX}authorization_role p on u.parent_id=p.role_id
 	inner join ${PREFIX}admin_user on u.user_id=admin_user.user_id
-	order by role_name,lognum desc;"
+	order by role_name,lognum desc;" \
+    | less -RSF;
 
 }
 
 # List product info
 _products () {
-  _connect -e ""
+  _connect -e "" \
+    | less -RSF;
+
 }
 
 # List order info
 _orders () {
-  _connect -e ""
+  _connect -e "" \
+    | less -RSF;
+
 }
 
 # List shipment info
 _shipment () {
-  _connect -e ""
+  _connect -e "" \
+    | less -RSF;
+
 }
 
 # List cookie info
 _cookie () {
-  _connect -e ""
+  _connect -e "" \
+    | less -RSF;
+
 }
 
 # List quotes info
 _quotes () {
-  _connect -e ""
+  _connect -e "" \
+    | less -RSF;
+
 }
 
 # List invoice info
 _invoices() {
-  _connect -e ""
+  _connect -e "" \
+    | less -RSF;
+
 }
 
 # List category info
 _categories () {
-  _connect -e ""
+  _connect -e "" \
+    | less -RSF;
+
 }
 
 # List customers info
 _customers () {
-  _connect -e ""
+  _connect -e "" \
+    | less -RSF;
+
 }
 
 # List address info
 _address () {
-  _connect -e ""
+  _connect -e "" \
+    | less -RSF;
+
 }
 
 # Clean up before exit
