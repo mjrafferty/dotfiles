@@ -395,7 +395,29 @@ _users () {
 
 # List product info
 _products () {
-  _connect -e ""
+  _connect -e "select entity_id,store_id,group_concat(value SEPARATOR '\t|\t')
+	from
+	(
+		select attribute_id,store_id,entity_id,value
+		from ${PREFIX}catalog_product_entity_int
+		UNION
+		select attribute_id,store_id,entity_id,value
+		from ${PREFIX}catalog_product_entity_decimal
+		UNION
+		select attribute_id,store_id,entity_id,value
+		from ${PREFIX}catalog_product_entity_text
+		UNION
+		select attribute_id,store_id,entity_id,value
+		from ${PREFIX}catalog_product_entity_varchar
+	) as ATTS
+	inner join (
+		select EA.attribute_id, EA.attribute_code
+		from ${PREFIX}eav_attribute as EA
+		inner join ${PREFIX}eav_entity_type EAT on EAT.entity_type_id=EA.entity_type_id
+		where EAT.entity_type_code=\"catalog_product\"
+		and EA.attribute_code in (\"name\",\"status\",\"visibility\",\"image\",\"url_key\")
+	) ATT on ATT.attribute_id=ATTS.attribute_id
+	group by entity_id,store_id;"
 }
 
 # List order info
