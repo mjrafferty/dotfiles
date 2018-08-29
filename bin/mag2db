@@ -379,7 +379,8 @@ _users () {
 	from ${PREFIX}authorization_role u
 	inner join ${PREFIX}authorization_role p on u.parent_id=p.role_id
 	inner join ${PREFIX}admin_user on u.user_id=admin_user.user_id
-	order by role_name,lognum desc;"
+	order by role_name,lognum desc;" \
+    | less -SF
 
 }
 
