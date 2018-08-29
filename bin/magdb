@@ -21,6 +21,7 @@ alias cut="/bin/cut"
 alias fold="/usr/bin/fold"
 alias grep="/bin/grep"
 alias head="/usr/bin/head"
+alias less="/bin/less"
 alias mysql="/usr/bin/mysql"
 alias rm="/bin/rm"
 alias sed="/bin/sed"
@@ -321,7 +322,7 @@ _connect () {
 
   _summary;
 
-  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" "$@";
+  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t "$@" | less -RSF;
 
 }
 
