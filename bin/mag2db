@@ -21,6 +21,7 @@ alias cut="/bin/cut"
 alias fold="/usr/bin/fold"
 alias grep="/bin/grep"
 alias head="/usr/bin/head"
+alias less="/bin/less"
 alias mysql="/usr/bin/mysql"
 alias sed="/bin/sed"
 alias shuf="/usr/bin/shuf"
@@ -255,7 +256,7 @@ _connect () {
 
   _summary;
 
-  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" "$@";
+  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t "$@" | less -RSF;
 
 }
 
@@ -379,8 +380,7 @@ _users () {
 	from ${PREFIX}authorization_role u
 	inner join ${PREFIX}authorization_role p on u.parent_id=p.role_id
 	inner join ${PREFIX}admin_user on u.user_id=admin_user.user_id
-	order by role_name,lognum desc;" \
-    | less -SF
+	order by role_name,lognum desc;"
 
 }
 
