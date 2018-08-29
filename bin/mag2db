@@ -374,7 +374,12 @@ EOF
 # Show admin users
 _users () {
 
-  _connect -e "select user_id,firstname,lastname,email,username,created,modified,logdate,lognum,is_active,failures_num from ${PREFIX}admin_user;"
+	_connect -e "select p.role_name,username,firstname,lastname,email,created,
+	modified,logdate,lognum,is_active,failures_num
+	from ${PREFIX}authorization_role u
+	inner join ${PREFIX}authorization_role p on u.parent_id=p.role_id
+	inner join ${PREFIX}admin_user on u.user_id=admin_user.user_id
+	order by role_name,lognum desc;"
 
 }
 
