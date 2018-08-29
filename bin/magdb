@@ -220,7 +220,7 @@ _awkConfig () {
       }
     } else if( endConfig == 0 ){
       gsub(/(<!\[CDATA\[|\]\]>)/,"",$1);
-``
+
       if (match($0,"</connection>")){
         endConfig=1;
       } else {
