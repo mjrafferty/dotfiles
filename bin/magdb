@@ -219,30 +219,32 @@ _awkConfig () {
         beginConfig=1;
       }
     } else if( endConfig == 0 ){
-
+      gsub(/(<!\[CDATA\[|\]\]>)/,"",$1);
+``
       if (match($0,"</connection>")){
         endConfig=1;
       } else {
       if (match($1,"<host>")) {
-        gsub(/(.*CDATA\[|\]\].*)/,"",$1);
+        gsub(/(.*<host>|</host>.*)/,"",$1);
         config["host"]=$1
       }
       else if (match($1,"<username>")) {
-        gsub(/(.*CDATA\[|\]\].*)/,"",$1);
+        gsub(/(.*<username>|</username>.*)/,"",$1);
         config["username"]=$1
       }
       else if (match($1,"<password>")) {
-        gsub(/(.*CDATA\[|\]\].*)/,"",$1);
+        gsub(/(.*<password>|</password>.*)/,"",$1);
         config["password"]=$1
       }
       else if (match($1,"<dbname>")) {
-        gsub(/(.*CDATA\[|\]\].*)/,"",$1);
+        gsub(/(.*<dbname>|</dbname>.*)/,"",$1);
         config["dbname"]=$1
       }
     }
   }
     if (match($1,"<table_prefix>")) {
-      gsub(/(.*CDATA\[|\]\].*)/,"",$1);
+      gsub(/(<!\[CDATA\[|\]\]>)/,"",$1);
+      gsub(/(.*<table_prefix>|</table_prefix>.*)/,"",$1);
       config["table_prefix"]=$1
     }
   }
