@@ -256,7 +256,16 @@ _connect () {
 
   _summary;
 
-  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t "$@";
+  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t "$@" | less -RSF;
+
+}
+
+# Connect to the database interactively
+_connecti () {
+
+  _summary;
+
+  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb";
 
 }
 
@@ -294,18 +303,14 @@ EOF
 # Print base url's
 _base () {
 
-  _connect -e "SELECT * FROM ${PREFIX}core_config_data WHERE path RLIKE \"base.*url\";" \
-    | less -RSF;
-
+  _connect -e "SELECT * FROM ${PREFIX}core_config_data WHERE path RLIKE \"base.*url\";";
 
 }
 
 # Print cron table
 _cron () {
 
-  _connect -e "SELECT * FROM ${PREFIX}cron_schedule;" \
-    | less -RSF;
-
+  _connect -e "SELECT * FROM ${PREFIX}cron_schedule;"
 
 }
 
@@ -329,7 +334,7 @@ EOF
 # Login to database
 _login () {
 
-  _connect;
+  _connecti;
 
 }
 
@@ -340,9 +345,7 @@ _multi () {
   SELECT * FROM ${PREFIX}core_config_data WHERE path RLIKE \"base_url\";
   SELECT * FROM ${PREFIX}store_website;
   SELECT * FROM ${PREFIX}store_group;
-  SELECT * FROM ${PREFIX}store;" \
-    | less -RSF;
-
+  SELECT * FROM ${PREFIX}store;"
 
 }
 
@@ -386,72 +389,53 @@ _users () {
 	from ${PREFIX}authorization_role u
 	inner join ${PREFIX}authorization_role p on u.parent_id=p.role_id
 	inner join ${PREFIX}admin_user on u.user_id=admin_user.user_id
-	order by role_name,lognum desc;" \
-    | less -RSF;
+	order by role_name,lognum desc;"
 
 }
 
 # List product info
 _products () {
-  _connect -e "" \
-    | less -RSF;
-
+  _connect -e ""
 }
 
 # List order info
 _orders () {
-  _connect -e "" \
-    | less -RSF;
-
+  _connect -e ""
 }
 
 # List shipment info
 _shipment () {
-  _connect -e "" \
-    | less -RSF;
-
+  _connect -e ""
 }
 
 # List cookie info
 _cookie () {
-  _connect -e "" \
-    | less -RSF;
-
+  _connect -e ""
 }
 
 # List quotes info
 _quotes () {
-  _connect -e "" \
-    | less -RSF;
-
+  _connect -e ""
 }
 
 # List invoice info
 _invoices() {
-  _connect -e "" \
-    | less -RSF;
-
+  _connect -e ""
 }
 
 # List category info
 _categories () {
-  _connect -e "" \
-    | less -RSF;
-
+  _connect -e ""
 }
 
 # List customers info
 _customers () {
-  _connect -e "" \
-    | less -RSF;
-
+  _connect -e ""
 }
 
 # List address info
 _address () {
-  _connect -e "" \
-    | less -RSF;
-
+  _connect -e ""
 }
 
 # Clean up before exit

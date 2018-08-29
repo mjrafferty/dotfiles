@@ -326,6 +326,15 @@ _connect () {
 
 }
 
+# Connect to the database interactively
+_connecti () {
+
+  _summary;
+
+  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb";
+
+}
+
 # Add an administrator
 _admin () {
 
@@ -389,7 +398,7 @@ EOF
 # Login to database
 _login () {
 
-  _connect;
+  _connecti;
 
 }
 
