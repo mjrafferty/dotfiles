@@ -58,10 +58,20 @@ _usage() {
     -l | --login       Log into database using user credentials
     -L | --logsize     Show size of the log tables
     -m | --multi       Show Multistore Information (Urls/Codes)
-    -O | --optimize    Truncate and optimize log tables
+    -T | --truncate    Truncate and optimize log tables
     -P | --password    Update or reset password for user
     -u | --users       Show all Admin Users' information
     -x | --index       Show Current Status of all Re-Index Processes
+
+    -p | --products    Show products
+    -o | --orders      Show recent orders
+    -s | --shipment    Show recent shipments
+    -O | --cookie      Show cookie configuration
+    -q | --quotes      Show recent quotes
+    -I | --invoices    Show recent invoices
+    -g | --categories  Show category information
+    -C | --customers   Show customers
+    -a | --address     Show customer address info
 
     -h | --help        Display this help output and quit
 
@@ -101,8 +111,8 @@ _cmdline() {
       "--multi"|"-m")
         args="${args}-m "
         ;;
-      "--optimize"|"-O")
-        args="${args}-O "
+      "--truncate"|"-T")
+        args="${args}-T "
         ;;
       "--password"|"-P")
         args="${args}-P "
@@ -112,6 +122,33 @@ _cmdline() {
         ;;
       "--index"|"-x")
         args="${args}-x "
+        ;;
+      "--products"|"-p")
+        args="${args}-p "
+        ;;
+      "--orders"|"-o")
+        args="${args}-o "
+        ;;
+      "--shipment"|"-s")
+        args="${args}-s "
+        ;;
+      "--cookie"|"-O")
+        args="${args}-O "
+        ;;
+      "--quotes"|"-q")
+        args="${args}-q "
+        ;;
+      "--invoices"|"-I")
+        args="${args}-I "
+        ;;
+      "--categories"|"-g")
+        args="${args}-g "
+        ;;
+      "--customers"|"-C")
+        args="${args}-C "
+        ;;
+      "--address"|"-a")
+        args="${args}-a "
         ;;
       *)
         args="${args}${x} "
@@ -400,7 +437,7 @@ _multi () {
 }
 
 # Truncate and optimize log tables
-_optimize () {
+_truncate () {
 
   local tables;
 
@@ -461,6 +498,51 @@ _users () {
   _connect -e "select user_id,firstname,lastname,email,username,password,created,modified,logdate,lognum,is_active from ${PREFIX}admin_user;"
 
 }
+#
+# List product info
+_products () {
+  _connect -e ""
+}
+
+# List order info
+_orders () {
+  _connect -e ""
+}
+
+# List shipment info
+_shipment () {
+  _connect -e ""
+}
+
+# List cookie info
+_cookie () {
+  _connect -e ""
+}
+
+# List quotes info
+_quotes () {
+  _connect -e ""
+}
+
+# List invoice info
+_invoices() {
+  _connect -e ""
+}
+
+# List category info
+_categories () {
+  _connect -e ""
+}
+
+# List customers info
+_customers () {
+  _connect -e ""
+}
+
+# List address info
+_address () {
+  _connect -e ""
+}
 
 # Show indexer status
 _index () {
@@ -483,7 +565,7 @@ main () {
 
   _makeDefaultsFile;
 
-  while getopts "hAbcilLmOP:ux" OPTION $(_cmdline); do
+  while getopts "hAbcilLmTP:uxposOqIgCa" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -511,8 +593,8 @@ main () {
       m)
         _multi;
         ;;
-      O)
-        _optimize;
+      T)
+        _truncate;
         ;;
       P)
         _password "$OPTARG";
@@ -522,6 +604,30 @@ main () {
         ;;
       x)
         _index;
+        ;;
+      p)
+        _products;
+        ;;
+      o)
+        _orders;
+        ;;
+      s)
+        _shipment;
+        ;;
+      O)
+        _cookie;
+        ;;
+      q)
+        _quotes;
+        ;;
+      I)
+        _invoices;
+        ;;
+      g)
+        _categories;
+        ;;
+      C)
+        _customers;
         ;;
       *);;
     esac

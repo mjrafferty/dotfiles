@@ -63,6 +63,16 @@ _usage() {
     -P | --password    Update or reset password for user
     -u | --users       Show all Admin Users' information
 
+    -p | --products    Show products
+    -o | --orders      Show recent orders
+    -s | --shipment    Show recent shipments
+    -O | --cookie      Show cookie configuration
+    -q | --quotes      Show recent quotes
+    -I | --invoices    Show recent invoices
+    -g | --categories  Show category information
+    -C | --customers   Show customers
+    -a | --address     Show customer address info
+
     -h | --help        Display this help output and quit
 
 EOF
@@ -103,6 +113,33 @@ _cmdline() {
         ;;
       "--users"|"-u")
         args="${args}-u "
+        ;;
+      "--products"|"-p")
+        args="${args}-p "
+        ;;
+      "--orders"|"-o")
+        args="${args}-o "
+        ;;
+      "--shipment"|"-s")
+        args="${args}-s "
+        ;;
+      "--cookie"|"-O")
+        args="${args}-O "
+        ;;
+      "--quotes"|"-q")
+        args="${args}-q "
+        ;;
+      "--invoices"|"-I")
+        args="${args}-I "
+        ;;
+      "--categories"|"-g")
+        args="${args}-g "
+        ;;
+      "--customers"|"-C")
+        args="${args}-C "
+        ;;
+      "--address"|"-a")
+        args="${args}-a "
         ;;
       *)
         args="${args}${x} "
@@ -341,6 +378,51 @@ _users () {
 
 }
 
+# List product info
+_products () {
+  _connect -e ""
+}
+
+# List order info
+_orders () {
+  _connect -e ""
+}
+
+# List shipment info
+_shipment () {
+  _connect -e ""
+}
+
+# List cookie info
+_cookie () {
+  _connect -e ""
+}
+
+# List quotes info
+_quotes () {
+  _connect -e ""
+}
+
+# List invoice info
+_invoices() {
+  _connect -e ""
+}
+
+# List category info
+_categories () {
+  _connect -e ""
+}
+
+# List customers info
+_customers () {
+  _connect -e ""
+}
+
+# List address info
+_address () {
+  _connect -e ""
+}
+
 # Clean up before exit
 _cleanUp () {
 
@@ -355,7 +437,7 @@ main () {
 
   _makeDefaultsFile;
 
-  while getopts "hAbcilLmOP:u" OPTION $(_cmdline); do
+  while getopts "hAbcilLmP:uposOqIgCa" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -383,14 +465,38 @@ main () {
       m)
         _multi;
         ;;
-      O)
-        _optimize;
-        ;;
       P)
         _password "$OPTARG";
         ;;
       u)
         _users;
+        ;;
+      p)
+        _products;
+        ;;
+      o)
+        _orders;
+        ;;
+      s)
+        _shipment;
+        ;;
+      O)
+        _cookie;
+        ;;
+      q)
+        _quotes;
+        ;;
+      I)
+        _invoices;
+        ;;
+      g)
+        _categories;
+        ;;
+      C)
+        _customers;
+        ;;
+      a)
+        _address;
         ;;
       *);;
     esac
