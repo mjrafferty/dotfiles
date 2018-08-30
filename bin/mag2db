@@ -481,7 +481,23 @@ _products () {
 
 # List order info
 _orders () {
-  _connect -e ""
+  _connect -e "select
+	increment_id as \"Order ID\"
+	entity_id,
+	store_id,
+	customer_id,
+	customer_email,
+	email_sent,
+	total_invoiced as \"Total\",
+	remote_ip,
+	x_forwarded_for,
+	shipping_method,
+	total_item_count,
+	created_at,
+	updated_at
+	from ${PREFIX}sales_order
+	order by created_at desc
+	limit 100;"
 }
 
 # List shipment info
