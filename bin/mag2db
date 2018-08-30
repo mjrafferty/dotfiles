@@ -458,6 +458,8 @@ _products () {
 	inner join ${PREFIX}eav_attribute_set as EAS on EAS.attribute_set_id=CPE.attribute_set_id
 	inner join ${PREFIX}eav_entity_type as EAT on EAT.entity_type_id=EAS.entity_type_id;
 
+  drop view ATT;
+
 	select
 	PROD_DATA.store_id as \"Store ID\",
 	PROD.entity_id as \"Entity ID\",
@@ -474,6 +476,7 @@ _products () {
 	from PROD
 	inner join PROD_DATA on PROD.entity_id=PROD_DATA.entity_id
 	order by PROD_DATA.store_id,PROD.entity_id;"
+
 }
 
 # List order info
