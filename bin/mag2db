@@ -577,7 +577,40 @@ _quotes () {
 
 # List invoice info
 _invoices() {
-  _connect -e ""
+
+  local columns select where s w;
+
+  columns=("increment_id" "entity_id" "store_id" "email_sent" "send_email" "grand_total"
+  "shipping_address_id" "billing_address_id" "created_at" "updated_at")
+
+  select="select"
+
+  for((s=0;s<${#columns[*]};s++)); do
+    select+=" ${columns[s]}"
+    if (( s < (${#columns[*]} - 1) )); then
+      select+=","
+    fi
+  done
+
+  read -rp "Search value: " search
+
+  if [[ -n "$search" ]]; then
+    where="where"
+
+    for((w=0;w<${#columns[*]};w++)); do
+      where+=" ${columns[w]} rlike \"${search}\""
+      if (( w < (${#columns[*]} - 1) )); then
+        where+=" or"
+      fi
+    done
+  fi
+
+  _connect -e"
+  ${select}
+	from ${PREFIX}sales_invoice
+  ${where}
+	order by created_at desc
+	limit 100;"
 }
 
 # List category info
