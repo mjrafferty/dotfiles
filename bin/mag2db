@@ -525,7 +525,15 @@ _shipment () {
 
 # List cookie info
 _cookie () {
-  _connect -e ""
+
+  _connect -e"
+  select *
+  from ${PREFIX}core_config_data
+  where path rlike \"^web/cookie\";
+  select *
+  from ${PREFIX}core_config_data
+  where path rlike \"^web/session\";"
+
 }
 
 # List quotes info
