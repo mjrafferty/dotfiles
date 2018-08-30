@@ -507,7 +507,7 @@ _orders () {
     fi
   done
 
-  echo "
+  _connect -e"
   ${select}
 	from ${PREFIX}sales_order
   ${where}
