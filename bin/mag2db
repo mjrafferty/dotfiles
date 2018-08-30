@@ -482,7 +482,7 @@ _products () {
 # List order info
 _orders () {
   _connect -e "select
-	increment_id as \"Order ID\"
+	increment_id as \"Order ID\",
 	entity_id,
 	store_id,
 	customer_id,
