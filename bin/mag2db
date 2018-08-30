@@ -538,7 +538,41 @@ _cookie () {
 
 # List quotes info
 _quotes () {
-  _connect -e ""
+
+  local columns select where s w;
+
+  columns=("entity_id" "store_id" "is_active" "checkout_method" "customer_id" "customer_email"
+  "remote_ip" "created_at" "updated_at")
+
+  select="select"
+
+  for((s=0;s<${#columns[*]};s++)); do
+    select+=" ${columns[s]}"
+    if (( s < (${#columns[*]} - 1) )); then
+      select+=","
+    fi
+  done
+
+  read -rp "Search value: " search
+
+  if [[ -n "$search" ]]; then
+    where="where"
+
+    for((w=0;w<${#columns[*]};w++)); do
+      where+=" ${columns[w]} rlike \"${search}\""
+      if (( w < (${#columns[*]} - 1) )); then
+        where+=" or"
+      fi
+    done
+  fi
+
+  _connect -e"
+  ${select}
+	from ${PREFIX}quote
+  ${where}
+	order by created_at desc
+	limit 100;"
+
 }
 
 # List invoice info
