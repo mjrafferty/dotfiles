@@ -580,7 +580,7 @@ _invoices() {
 
   local columns select where s w;
 
-  columns=("increment_id" "entity_id" "store_id" "email_sent" "send_email" "grand_total"
+  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "send_email" "grand_total"
   "shipping_address_id" "billing_address_id" "created_at" "updated_at")
 
   select="select"
@@ -611,6 +611,7 @@ _invoices() {
   ${where}
 	order by created_at desc
 	limit 100;"
+
 }
 
 # List category info
