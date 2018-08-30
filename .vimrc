@@ -33,6 +33,7 @@ Plugin 'tpope/vim-fugitive'
 Plugin 'itchyny/lightline.vim'
 Plugin 'junegunn/rainbow_parentheses.vim'
 Plugin 'morhetz/gruvbox'
+Plugin 'mjrafferty/vim-papyrus'
 call vundle#end()                       " required
 
 "-------------------------

@@ -481,23 +481,39 @@ _products () {
 
 # List order info
 _orders () {
-  _connect -e "select
-	increment_id as \"Order ID\",
-	entity_id,
-	store_id,
-	customer_id,
-	customer_email,
-	email_sent,
-	total_invoiced as \"Total\",
-	remote_ip,
-	x_forwarded_for,
-	shipping_method,
-	total_item_count,
-	created_at,
-	updated_at
+
+  local columns,where;
+
+  columns=("increment_id" "entity_id" "store_id" "customer_id" "customer_email" "email_sent" "total_invoiced"
+  "remote_ip" "x_forwarded_for" "shipping_method" "total_item_count" "created_at" "updated_at")
+
+  search="2018"
+
+  select="select"
+
+  for((s=0;s<${#columns[*]};s++)); do
+    select+=" ${columns[s]}"
+    if (( s < (${#columns[*]} - 1) )); then
+      select+=","
+    fi
+  done
+
+  where="where"
+
+  for((w=0;w<${#columns[*]};w++)); do
+    where+=" ${columns[w]} rlike ${search}"
+    if (( w < (${#columns[*]} - 1) )); then
+      where+=" or"
+    fi
+  done
+
+  echo "
+  ${select}
 	from ${PREFIX}sales_order
+  ${where}
 	order by created_at desc
 	limit 100;"
+
 }
 
 # List shipment info
