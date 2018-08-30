@@ -482,7 +482,7 @@ _products () {
 # List order info
 _orders () {
 
-  local columns,where;
+  local columns where;
 
   columns=("increment_id" "entity_id" "store_id" "customer_id" "customer_email" "email_sent" "total_invoiced"
   "remote_ip" "x_forwarded_for" "shipping_method" "total_item_count" "created_at" "updated_at")
@@ -501,7 +501,7 @@ _orders () {
   where="where"
 
   for((w=0;w<${#columns[*]};w++)); do
-    where+=" ${columns[w]} rlike ${search}"
+    where+=" ${columns[w]} rlike \"${search}\""
     if (( w < (${#columns[*]} - 1) )); then
       where+=" or"
     fi
