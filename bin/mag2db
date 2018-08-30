@@ -482,12 +482,10 @@ _products () {
 # List order info
 _orders () {
 
-  local columns where;
+  local columns select where s w;
 
   columns=("increment_id" "entity_id" "store_id" "customer_id" "customer_email" "email_sent" "total_invoiced"
   "remote_ip" "x_forwarded_for" "shipping_method" "total_item_count" "created_at" "updated_at")
-
-  search="2018"
 
   select="select"
 
@@ -498,14 +496,18 @@ _orders () {
     fi
   done
 
-  where="where"
+  read -rp "Search value: " search
 
-  for((w=0;w<${#columns[*]};w++)); do
-    where+=" ${columns[w]} rlike \"${search}\""
-    if (( w < (${#columns[*]} - 1) )); then
-      where+=" or"
-    fi
-  done
+  if [[ -n "$search" ]]; then
+    where="where"
+
+    for((w=0;w<${#columns[*]};w++)); do
+      where+=" ${columns[w]} rlike \"${search}\""
+      if (( w < (${#columns[*]} - 1) )); then
+        where+=" or"
+      fi
+    done
+  fi
 
   _connect -e"
   ${select}
