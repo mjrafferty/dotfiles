@@ -72,7 +72,6 @@ _usage() {
     -I | --invoices    Show recent invoices
     -g | --categories  Show category information
     -C | --customers   Show customers
-    -a | --address     Show customer address info
 
     -h | --help        Display this help output and quit
 
@@ -138,9 +137,6 @@ _cmdline() {
         ;;
       "--customers"|"-C")
         args="${args}-C "
-        ;;
-      "--address"|"-a")
-        args="${args}-a "
         ;;
       *)
         args="${args}${x} "
@@ -654,13 +650,42 @@ _categories () {
 }
 
 # List customers info
-_customers () {
-  _connect -e ""
-}
+_customers() {
 
-# List address info
-_address () {
-  _connect -e ""
+  local columns select where s w;
+
+  columns=("entity_id" "store_id" "website_id" "email" "group_id" "is_active" "default_billing"
+  "default_shipping" "failures_num" "first_failure" "lock_expires" "created_at" "updated_at")
+
+  select="select"
+
+  for((s=0;s<${#columns[*]};s++)); do
+    select+=" ${columns[s]}"
+    if (( s < (${#columns[*]} - 1) )); then
+      select+=","
+    fi
+  done
+
+  read -rp "Search value: " search
+
+  if [[ -n "$search" ]]; then
+    where="where"
+
+    for((w=0;w<${#columns[*]};w++)); do
+      where+=" ${columns[w]} rlike \"${search}\""
+      if (( w < (${#columns[*]} - 1) )); then
+        where+=" or"
+      fi
+    done
+  fi
+
+  _connect -e"
+  ${select}
+	from ${PREFIX}customer_entity
+  ${where}
+	order by created_at desc
+	limit 100;"
+
 }
 
 # Clean up before exit
@@ -677,7 +702,7 @@ main () {
 
   _makeDefaultsFile;
 
-  while getopts "hAbcilLmP:uposOqIgCa" OPTION $(_cmdline); do
+  while getopts "hAbcilLmP:uposOqIgC" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -734,9 +759,6 @@ main () {
         ;;
       C)
         _customers;
-        ;;
-      a)
-        _address;
         ;;
       *);;
     esac
