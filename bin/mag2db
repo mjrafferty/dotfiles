@@ -646,7 +646,83 @@ _invoices() {
 
 # List category info
 _categories () {
-  _connect -e ""
+
+  _connect -e "create view ATT as
+	select EA.attribute_id as id, EA.attribute_code as code
+	from ${PREFIX}eav_attribute as EA
+	inner join ${PREFIX}eav_entity_type EAT on EAT.entity_type_id=EA.entity_type_id
+	where EAT.entity_type_code=\"catalog_category\"
+	and EA.attribute_code in (\"name\",\"status\",\"visibility\",\"image\",\"url_key\");
+
+	create temporary table CAT_DATA
+	select
+	NAME.store_id as store_id,
+	NAME.entity_id as entity_id,
+	NAME.name
+  V.custom_design
+  V.display_mode
+	V.page_layout
+  NAME.url_key
+  NAME.url_path
+	I.include_in_menu
+	I.is_active
+	I.landing_page
+	from (
+		select store_id,entity_id,value
+		from ${PREFIX}catalog_category_entity_varchar as CCEV
+		inner join ATT on ATT.id=CCEV.attribute_id
+		where ATT.code=\"\"
+	) NAME
+	inner join (
+		select store_id,entity_id,value
+		from ${PREFIX}catalog_category_entity_varchar as CCEV
+		inner join ATT on ATT.id=CCEV.attribute_id
+		where ATT.code=\"\"
+	) IMAGE on IMAGE.entity_id=NAME.entity_id
+	and IMAGE.store_id=NAME.store_id
+	inner join (
+		select store_id,entity_id,value
+		from ${PREFIX}catalog_category_entity_varchar as CCEV
+		inner join ATT on ATT.id=CCEV.attribute_id
+		where ATT.code=\"\"
+	) URL_KEY on URL_KEY.entity_id=NAME.entity_id
+	and URL_KEY.store_id=NAME.store_id
+	inner join (
+		select store_id,entity_id,value
+		from ${PREFIX}catalog_category_entity_int as CCEI
+		inner join ATT on ATT.id=CCEI.attribute_id
+		where ATT.code=\"\"
+	) STATUS on STATUS.entity_id=NAME.entity_id
+	and STATUS.store_id=NAME.store_id
+	inner join (
+		select store_id,entity_id,value
+		from ${PREFIX}catalog_category_entity_int as CCEI
+		inner join ATT on ATT.id=CCEI.attribute_id
+		where ATT.code=\"\"
+	) VISIBILITY on VISIBILITY.entity_id=NAME.entity_id
+	and VISIBILITY.store_id=NAME.store_id;
+
+	create temporary table CAT
+	select
+	CCE.entity_id,
+	EAS.attribute_set_name,
+	CCE.parent_id,
+	CCE.path,
+	CCE.position,
+	CCE.children_count,
+	CCE.created_at,
+	CCE.updated_at
+	from ${PREFIX}catalog_category_entity CCE
+	inner join ${PREFIX}eav_attribute_set as EAS on EAS.attribute_set_id=CCE.attribute_set_id
+	inner join ${PREFIX}eav_entity_type as EAT on EAT.entity_type_id=EAS.entity_type_id;
+
+  drop view ATT;
+
+	select *
+	from CAT
+	inner join CAT_DATA on CAT.entity_id=CAT_DATA.entity_id
+	order by CAT_DATA.store_id,CAT.entity_id;"
+
 }
 
 # List customers info
