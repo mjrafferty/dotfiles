@@ -1,0 +1,19 @@
+source ~/dotfiles/.commonrc
+
+# Find orphan files not owned by any package
+alias orphanfiles="find / \( \
+  -path /boot -o \
+  -path /usr/src -o \
+  -path /proc -o \
+  -path /run -o \
+  -path /sys -o \
+  -path /dev -o \
+  -path /home -o \
+  -path /etc/ca-certificates -o \
+  -path /var/cache -o \
+  -path /usr/share/mime -o \
+  -path /var/lib/pacman \) \
+  -prune -o -type f -exec pacman -Qo {} + 2>&1 >&- > /dev/null | sed 's/.*owns //'"
+
+export SSH_ASKPASS=/usr/bin/ksshaskpass
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
