@@ -652,7 +652,7 @@ _categories () {
   attributes=( "name" "custom_design" "display_mode" "page_layout" "url_key" "url_path" "include_in_menu" "is_active" "landing_page" )
 
   for((a=0;a<${#attributes[*]};a++)); do
-    atts+=" \"${a}\""
+    atts+=" \"${attributes[a]}\""
     if (( a < (${#attributes[*]} - 1) )); then
       atts+=",";
     fi
