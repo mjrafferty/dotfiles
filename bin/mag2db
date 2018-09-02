@@ -647,25 +647,36 @@ _invoices() {
 # List category info
 _categories () {
 
+  local attributes atts a;
+
+  attributes=( "name" "custom_design" "display_mode" "page_layout" "url_key" "url_path" "include_in_menu" "is_active" "landing_page" )
+
+  for((a=0;a<${#attributes[*]};a++)); do
+    atts+=" \"${a}\""
+    if (( a < (${#attributes[*]} - 1) )); then
+      atts+=",";
+    fi
+  done
+
   _connect -e"
   create temporary table ATT
 	select EA.attribute_id as id, EA.attribute_code as code
 	from ${PREFIX}eav_attribute as EA
 	inner join ${PREFIX}eav_entity_type EAT on EAT.entity_type_id=EA.entity_type_id
 	where EAT.entity_type_code=\"catalog_category\"
-	and EA.attribute_code in (\"name\",\"status\",\"visibility\",\"image\",\"url_key\");
+	and EA.attribute_code in (${atts});
 
   create temporary table CAT_VARCHAR
   select store_id,entity_id,ATT.code,value
   from ${PREFIX}catalog_category_entity_varchar as CCEV
 	inner join ATT on ATT.id=CCEV.attribute_id
-  where ATT.code in (\"name\",\"custome_design\",\"display_mode\",\"page_layout\",\"url_key\",\"url_path\");
+  where ATT.code in (${atts});
 
   create temporary table CAT_INT
   select store_id,entity_id,ATT.code,value
   from ${PREFIX}catalog_category_entity_int as CCEI
 	inner join ATT on ATT.id=CCEI.attribute_id
-  where ATT.code in (\"include_in_menu\",\"is_active\",\"landing_page\");
+  where ATT.code in (${atts});
 
 	create temporary table CAT
 	select
