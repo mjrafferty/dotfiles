@@ -416,7 +416,7 @@ _products () {
   GROUP_CONCAT(if(ATT.code=\"name\",value,NULL)) as name,
   GROUP_CONCAT(if(ATT.code=\"url_key\",value,NULL)) as url_key,
   GROUP_CONCAT(if(ATT.code=\"image\",value,NULL)) as image
-  from ${PREFIX}catalog_prodcut_entity_varchar as CPEV
+  from ${PREFIX}catalog_product_entity_varchar as CPEV
 	inner join ATT on ATT.id=CPEV.attribute_id
   where ATT.code in (${atts})
   group by store_id,entity_id;
