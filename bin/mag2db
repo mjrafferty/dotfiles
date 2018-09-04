@@ -667,16 +667,30 @@ _categories () {
 	and EA.attribute_code in (${atts});
 
   create temporary table CAT_VARCHAR
-  select store_id,entity_id,ATT.code as code,value
+  select
+  store_id,
+  entity_id,
+  GROUP_CONCAT(if(ATT.code=\"name\",value,NULL)) as name,
+  GROUP_CONCAT(if(ATT.code=\"url_key\",value,NULL)) as url_key,
+  GROUP_CONCAT(if(ATT.code=\"url_path\",value,NULL)) as url_path,
+  GROUP_CONCAT(if(ATT.code=\"custom_design\",value,NULL)) as custom_design,
+  GROUP_CONCAT(if(ATT.code=\"display_mode\",value,NULL)) as display_mode,
   from ${PREFIX}catalog_category_entity_varchar as CCEV
 	inner join ATT on ATT.id=CCEV.attribute_id
-  where ATT.code in (${atts});
+  where ATT.code in (${atts})
+  group by store_id,entity_id;
 
   create temporary table CAT_INT
-  select store_id,entity_id,ATT.code as code,value
+  select
+  store_id,
+  entity_id,
+  GROUP_CONCAT(if(ATT.code=\"include_in_menu\",value,NULL)) as include_in_menu,
+  GROUP_CONCAT(if(ATT.code=\"is_active\",value,NULL)) as is_active,
+  GROUP_CONCAT(if(ATT.code=\"landing_page\",value,NULL)) as landing_page,
   from ${PREFIX}catalog_category_entity_int as CCEI
 	inner join ATT on ATT.id=CCEI.attribute_id
-  where ATT.code in (${atts});
+  where ATT.code in (${atts})
+  group by store_id,entity_id;
 
 	create temporary table CAT
 	select
@@ -701,20 +715,20 @@ _categories () {
 	select
   CAT_VARCHAR.store_id,
   CAT.entity_id,
-  GROUP_CONCAT(if(CAT_VARCHAR.code=\"name\",CAT_VARCHAR.value,NULL)) as name,
+  CAT_VARCHAR.name,
   CAT_COUNTS.product_count,
   CAT.attribute_set_name,
   CAT.path,
   CAT.position,
   CAT.children_count,
-  GROUP_CONCAT(if(CAT_VARCHAR.code=\"url_key\",CAT_VARCHAR.value,NULL)) as url_key,
-  GROUP_CONCAT(if(CAT_VARCHAR.code=\"url_path\",CAT_VARCHAR.value,NULL)) as url_path,
-  GROUP_CONCAT(if(CAT_VARCHAR.code=\"custom_design\",CAT_VARCHAR.value,NULL)) as custom_design,
-  GROUP_CONCAT(if(CAT_VARCHAR.code=\"display_mode\",CAT_VARCHAR.value,NULL)) as display_mode,
-  GROUP_CONCAT(if(CAT_VARCHAR.code=\"page_layout\",CAT_VARCHAR.value,NULL)) as page_layout,
-  GROUP_CONCAT(if(CAT_INT.code=\"include_in_menu\",CAT_INT.value,NULL)) as include_in_menu,
-  GROUP_CONCAT(if(CAT_INT.code=\"is_active\",CAT_INT.value,NULL)) as is_active,
-  GROUP_CONCAT(if(CAT_INT.code=\"landing_page\",CAT_INT.value,NULL)) as landing_page,
+  CAT_VARCHAR.url_key,
+  CAT_VARCHAR.url_path,
+  CAT_VARCHAR.custom_design,
+  CAT_VARCHAR.display_mode,
+  CAT_VARCHAR.page_layout,
+  CAT_INT.include_in_menu,
+  CAT_INT.is_active,
+  CAT_INT.landing_page,
   CAT.created_at,
   CAT.updated_at
 	from CAT
