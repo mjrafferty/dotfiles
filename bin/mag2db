@@ -719,8 +719,8 @@ _categories () {
 	from CAT
 	left join CAT_ATTS on CAT.entity_id=CAT_ATTS.entity_id
 	left join CAT_COUNTS on CAT.entity_id=CAT_COUNTS.category_id
-  group by CAT_VARCHAR.store_id,CAT.entity_id
-	order by CAT_VARCHAR.store_id,CAT.entity_id;"
+  group by CAT_ATTS.store_id,CAT.entity_id
+	order by CAT_ATTS.store_id,CAT.entity_id;"
 
 }
 
