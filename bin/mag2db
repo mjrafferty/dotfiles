@@ -682,7 +682,7 @@ _categories () {
 	inner join ${PREFIX}eav_attribute as EA
 	inner join ${PREFIX}eav_entity_type EAT on EAT.entity_type_id=EA.entity_type_id
 	where EAT.entity_type_code=\"catalog_category\"
-	and EA.attribute_code in (${atts});
+	and EA.attribute_code in (${atts})
   group by store_id,entity_id;
 
 	create temporary table CAT
