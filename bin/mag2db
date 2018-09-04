@@ -671,6 +671,7 @@ _categories () {
 		GROUP_CONCAT(if(EA.attribute_code=\"include_in_menu\",value,NULL)) as include_in_menu,
 		GROUP_CONCAT(if(EA.attribute_code=\"is_active\",value,NULL)) as is_active,
 		GROUP_CONCAT(if(EA.attribute_code=\"landing_page\",value,NULL)) as landing_page
+    from
   (
     select *
     from ${PREFIX}catalog_category_entity_int
