@@ -391,56 +391,46 @@ _users () {
 
 # List product info
 _products () {
-  _connect -e "create view ATT as
+
+  attributes=( "name" "status" "visibility" "image" "url_key" )
+
+  for((a=0;a<${#attributes[*]};a++)); do
+    atts+=" \"${attributes[a]}\""
+    if (( a < (${#attributes[*]} - 1) )); then
+      atts+=",";
+    fi
+  done
+
+  _connect -e"
+  create temporary table ATT
 	select EA.attribute_id as id, EA.attribute_code as code
 	from ${PREFIX}eav_attribute as EA
 	inner join ${PREFIX}eav_entity_type EAT on EAT.entity_type_id=EA.entity_type_id
 	where EAT.entity_type_code=\"catalog_product\"
-	and EA.attribute_code in (\"name\",\"status\",\"visibility\",\"image\",\"url_key\");
+	and EA.attribute_code in (${atts});
 
-	create temporary table PROD_DATA
-	select
-	NAME.store_id as store_id,
-	NAME.entity_id as entity_id,
-	NAME.value as name,
-	IMAGE.value as image,
-	STATUS.value as status,
-	VISIBILITY.value as visibility,
-	URL_KEY.value as url_Key
-	from (
-		select store_id,entity_id,value
-		from ${PREFIX}catalog_product_entity_varchar as CPEV
-		inner join ATT on ATT.id=CPEV.attribute_id
-		where ATT.code=\"name\"
-	) NAME
-	inner join (
-		select store_id,entity_id,value
-		from ${PREFIX}catalog_product_entity_varchar as CPEV
-		inner join ATT on ATT.id=CPEV.attribute_id
-		where ATT.code=\"image\"
-	) IMAGE on IMAGE.entity_id=NAME.entity_id
-	and IMAGE.store_id=NAME.store_id
-	inner join (
-		select store_id,entity_id,value
-		from ${PREFIX}catalog_product_entity_varchar as CPEV
-		inner join ATT on ATT.id=CPEV.attribute_id
-		where ATT.code=\"url_key\"
-	) URL_KEY on URL_KEY.entity_id=NAME.entity_id
-	and URL_KEY.store_id=NAME.store_id
-	inner join (
-		select store_id,entity_id,value
-		from ${PREFIX}catalog_product_entity_int as CPEI
-		inner join ATT on ATT.id=CPEI.attribute_id
-		where ATT.code=\"status\"
-	) STATUS on STATUS.entity_id=NAME.entity_id
-	and STATUS.store_id=NAME.store_id
-	inner join (
-		select store_id,entity_id,value
-		from ${PREFIX}catalog_product_entity_int as CPEI
-		inner join ATT on ATT.id=CPEI.attribute_id
-		where ATT.code=\"visibility\"
-	) VISIBILITY on VISIBILITY.entity_id=NAME.entity_id
-	and VISIBILITY.store_id=NAME.store_id;
+  create temporary table PROD_VARCHAR
+  select
+  store_id,
+  entity_id,
+  GROUP_CONCAT(if(ATT.code=\"name\",value,NULL)) as name,
+  GROUP_CONCAT(if(ATT.code=\"url_key\",value,NULL)) as url_key,
+  GROUP_CONCAT(if(ATT.code=\"image\",value,NULL)) as image
+  from ${PREFIX}catalog_prodcut_entity_varchar as CPEV
+	inner join ATT on ATT.id=CPEV.attribute_id
+  where ATT.code in (${atts})
+  group by store_id,entity_id;
+
+  create temporary table PROD_INT
+  select
+  store_id,
+  entity_id,
+  GROUP_CONCAT(if(ATT.code=\"status\",value,NULL)) as status,
+  GROUP_CONCAT(if(ATT.code=\"visibility\",value,NULL)) as visibility
+  from ${PREFIX}catalog_product_entity_int as CPEI
+	inner join ATT on ATT.id=CPEI.attribute_id
+  where ATT.code in (${atts})
+  group by store_id,entity_id;
 
 	create temporary table PROD
 	select
@@ -448,30 +438,38 @@ _products () {
 	EAS.attribute_set_name,
 	CPE.type_id,
 	CPE.sku,
+	CPE.has_options,
 	CPE.created_at,
 	CPE.updated_at
 	from ${PREFIX}catalog_product_entity CPE
 	inner join ${PREFIX}eav_attribute_set as EAS on EAS.attribute_set_id=CPE.attribute_set_id
 	inner join ${PREFIX}eav_entity_type as EAT on EAT.entity_type_id=EAS.entity_type_id;
 
-  drop view ATT;
+  create temporary table CAT_COUNTS
+  select category_id, count(category_id) as product_count
+  from ${PREFIX}catalog_category_product
+  group by category_id
+  order by category_id;
 
 	select
-	PROD_DATA.store_id as \"Store ID\",
-	PROD.entity_id as \"Entity ID\",
-	PROD.sku as \"SKU\",
-	PROD_DATA.name as \"Name\",
-	PROD.type_id as \"Type\",
-	PROD.attribute_set_name as \"Attribute Set\",
-	PROD_DATA.status as \"Status\",
-	PROD_DATA.visibility as \"Visibility\",
-	PROD_DATA.url_key as \"URL Key\",
-	PROD_DATA.image as \"Image\",
-	PROD.created_at as \"Created at\",
-	PROD.updated_at as \"Updated at\"
+  PROD_VARCHAR.store_id,
+  PROD.entity_id,
+  PROD_VARCHAR.name,
+  PROD.sku,
+  PROD.type_id,
+  PROD.attribute_set_name,
+  PROD_VARCHAR.url_key,
+  PROD_VARCHAR.image,
+  PROD_INT.visibility,
+  PROD_INT.status,
+  PROD.has_options,
+  PROD.created_at,
+  PROD.updated_at
 	from PROD
-	inner join PROD_DATA on PROD.entity_id=PROD_DATA.entity_id
-	order by PROD_DATA.store_id,PROD.entity_id;"
+	left join PROD_VARCHAR on PROD.entity_id=PROD_VARCHAR.entity_id
+	left join PROD_INT on PROD.entity_id=PROD_INT.entity_id
+  group by PROD_VARCHAR.store_id,PROD.entity_id
+	order by PROD_VARCHAR.store_id,PROD.entity_id;"
 
 }
 
