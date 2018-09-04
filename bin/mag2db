@@ -657,82 +657,66 @@ _categories () {
   done
 
   _connect -e"
-  create temporary table ATT
-	select EA.attribute_id as id, EA.attribute_code as code
-	from ${PREFIX}eav_attribute as EA
+
+  create temporary table CAT_ATTS
+  select
+		store_id,
+		entity_id,
+		GROUP_CONCAT(if(EA.attribute_code=\"name\",value,NULL)) as name,
+		GROUP_CONCAT(if(EA.attribute_code=\"url_key\",value,NULL)) as url_key,
+		GROUP_CONCAT(if(EA.attribute_code=\"url_path\",value,NULL)) as url_path,
+		GROUP_CONCAT(if(EA.attribute_code=\"custom_design\",value,NULL)) as custom_design,
+		GROUP_CONCAT(if(EA.attribute_code=\"page_layout\",value,NULL)) as page_layout,
+		GROUP_CONCAT(if(EA.attribute_code=\"display_mode\",value,NULL)) as display_mode,
+		GROUP_CONCAT(if(EA.attribute_code=\"include_in_menu\",value,NULL)) as include_in_menu,
+		GROUP_CONCAT(if(EA.attribute_code=\"is_active\",value,NULL)) as is_active,
+		GROUP_CONCAT(if(EA.attribute_code=\"landing_page\",value,NULL)) as landing_page
+  (
+    select *
+    from ${PREFIX}catalog_category_entity_int
+    union
+    select *
+    from ${PREFIX}catalog_category_entity_varchar
+  ) CCEA
+	inner join ${PREFIX}eav_attribute as EA
 	inner join ${PREFIX}eav_entity_type EAT on EAT.entity_type_id=EA.entity_type_id
 	where EAT.entity_type_code=\"catalog_category\"
 	and EA.attribute_code in (${atts});
-
-  create temporary table CAT_VARCHAR
-  select
-  store_id,
-  entity_id,
-  GROUP_CONCAT(if(ATT.code=\"name\",value,NULL)) as name,
-  GROUP_CONCAT(if(ATT.code=\"url_key\",value,NULL)) as url_key,
-  GROUP_CONCAT(if(ATT.code=\"url_path\",value,NULL)) as url_path,
-  GROUP_CONCAT(if(ATT.code=\"custom_design\",value,NULL)) as custom_design,
-  GROUP_CONCAT(if(ATT.code=\"page_layout\",value,NULL)) as page_layout,
-  GROUP_CONCAT(if(ATT.code=\"display_mode\",value,NULL)) as display_mode
-  from ${PREFIX}catalog_category_entity_varchar as CCEV
-	inner join ATT on ATT.id=CCEV.attribute_id
-  where ATT.code in (${atts})
-  group by store_id,entity_id;
-
-  create temporary table CAT_INT
-  select
-  store_id,
-  entity_id,
-  GROUP_CONCAT(if(ATT.code=\"include_in_menu\",value,NULL)) as include_in_menu,
-  GROUP_CONCAT(if(ATT.code=\"is_active\",value,NULL)) as is_active,
-  GROUP_CONCAT(if(ATT.code=\"landing_page\",value,NULL)) as landing_page
-  from ${PREFIX}catalog_category_entity_int as CCEI
-	inner join ATT on ATT.id=CCEI.attribute_id
-  where ATT.code in (${atts})
   group by store_id,entity_id;
 
 	create temporary table CAT
 	select
-	CCE.entity_id,
-	EAS.attribute_set_name,
-	CCE.parent_id,
-	CCE.path,
-	CCE.position,
-	CCE.children_count,
-	CCE.created_at,
-	CCE.updated_at
+		CCE.entity_id,
+		EAS.attribute_set_name,
+		CCE.parent_id,
+		CCE.path,
+		CCE.position,
+		CCE.children_count,
+		CCE.created_at,
+		CCE.updated_at
 	from ${PREFIX}catalog_category_entity CCE
 	inner join ${PREFIX}eav_attribute_set as EAS on EAS.attribute_set_id=CCE.attribute_set_id
 	inner join ${PREFIX}eav_entity_type as EAT on EAT.entity_type_id=EAS.entity_type_id;
 
   create temporary table CAT_COUNTS
-  select category_id, count(category_id) as product_count
+  select
+		category_id, count(category_id) as product_count
   from ${PREFIX}catalog_category_product
   group by category_id
   order by category_id;
 
 	select
-  CAT_VARCHAR.store_id,
-  CAT.entity_id,
-  CAT_VARCHAR.name,
-  CAT_COUNTS.product_count,
-  CAT.attribute_set_name,
-  CAT.path,
-  CAT.position,
-  CAT.children_count,
-  CAT_VARCHAR.url_key,
-  CAT_VARCHAR.url_path,
-  CAT_VARCHAR.custom_design,
-  CAT_VARCHAR.display_mode,
-  CAT_VARCHAR.page_layout,
-  CAT_INT.include_in_menu,
-  CAT_INT.is_active,
-  CAT_INT.landing_page,
-  CAT.created_at,
-  CAT.updated_at
+		CAT_ATTS.store_id, CAT.entity_id,
+		CAT_ATTS.name, CAT_COUNTS.product_count,
+		CAT.attribute_set_name, CAT.path,
+		CAT.position, CAT.children_count,
+		CAT_ATTS.url_key, CAT_ATTS.url_path,
+		CAT_ATTS.custom_design, CAT_ATTS.display_mode,
+		CAT_ATTS.page_layout, CAT_ATTS.include_in_menu,
+		CAT_ATTS.is_active, CAT_ATTS.landing_page,
+		CAT.created_at, CAT.updated_at
 	from CAT
-	left join CAT_VARCHAR on CAT.entity_id=CAT_VARCHAR.entity_id
-	left join CAT_INT on CAT.entity_id=CAT_INT.entity_id
+	left join CAT_ATTS on CAT.entity_id=CAT_ATTS.entity_id
 	left join CAT_COUNTS on CAT.entity_id=CAT_COUNTS.category_id
   group by CAT_VARCHAR.store_id,CAT.entity_id
 	order by CAT_VARCHAR.store_id,CAT.entity_id;"
