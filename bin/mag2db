@@ -696,6 +696,9 @@ _categories () {
 	from CAT
 	inner join CAT_VARCHAR on CAT.entity_id=CAT_VARCHAR.entity_id
 	inner join CAT_INT on CAT.entity_id=CAT_INT.entity_id
+  inner join (
+		select category_id,count(category_id) as product_count from ${PREFIX}catalog_category_product group by category_id order by category_id;
+  )
 	order by CAT_VARHCAR.store_id,CAT.entity_id;"
 
 }
