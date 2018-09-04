@@ -674,6 +674,7 @@ _categories () {
   GROUP_CONCAT(if(ATT.code=\"url_key\",value,NULL)) as url_key,
   GROUP_CONCAT(if(ATT.code=\"url_path\",value,NULL)) as url_path,
   GROUP_CONCAT(if(ATT.code=\"custom_design\",value,NULL)) as custom_design,
+  GROUP_CONCAT(if(ATT.code=\"page_layout\",value,NULL)) as page_layout,
   GROUP_CONCAT(if(ATT.code=\"display_mode\",value,NULL)) as display_mode
   from ${PREFIX}catalog_category_entity_varchar as CCEV
 	inner join ATT on ATT.id=CCEV.attribute_id
