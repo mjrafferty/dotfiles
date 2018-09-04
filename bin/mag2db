@@ -698,11 +698,30 @@ _categories () {
   group by category_id
   order by category_id;
 
-	select *
+	select
+  CAT_VARCHAR.store_id,
+ CAT.entity_id,
+ CAT.attribute_set_name,
+ CAT.parent_id,
+ CAT.path,
+ CAT.position,
+ CAT.children_count,
+ CAT.created_at,
+ CAT.updated_at,
+ GROUP_CONCAT(if(CAT_VARCHAR.code=\"name\",CAT_VARCHAR.value,NULL)) as name,
+ GROUP_CONCAT(if(CAT_VARCHAR.code=\"custom_design\",CAT_VARCHAR.value,NULL)) as custom_design,
+ GROUP_CONCAT(if(CAT_VARCHAR.code=\"display_mode\",CAT_VARCHAR.value,NULL)) as display_mode,
+ GROUP_CONCAT(if(CAT_VARCHAR.code=\"page_layout\",CAT_VARCHAR.value,NULL)) as page_layout,
+ GROUP_CONCAT(if(CAT_VARCHAR.code=\"url_key\",CAT_VARCHAR.value,NULL)) as url_key,
+ GROUP_CONCAT(if(CAT_VARCHAR.code=\"url_path\",CAT_VARCHAR.value,NULL)) as url_path,
+ GROUP_CONCAT(if(CAT_INT.code=\"include_in_menu\",CAT_INT.value,NULL)) as include_in_menu,
+ GROUP_CONCAT(if(CAT_INT.code=\"is_active\",CAT_INT.value,NULL)) as is_active,
+ GROUP_CONCAT(if(CAT_INT.code=\"landing_page\",CAT_INT.value,NULL)) as landing_page
 	from CAT
 	inner join CAT_VARCHAR on CAT.entity_id=CAT_VARCHAR.entity_id
 	inner join CAT_INT on CAT.entity_id=CAT_INT.entity_id
 	inner join CAT_COUNTS on CAT.entity_id=CAT_COUNTS.category_id
+  group by CAT_VARCHAR.store_id,CAT.entity_id
 	order by CAT_VARCHAR.store_id,CAT.entity_id;"
 
 }
