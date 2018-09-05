@@ -444,7 +444,14 @@ _products () {
 
   _connect <<- EOF
 
-  create temporary table PROD_ATTS ENGINE=MEMORY
+  create temporary table CPEA
+    select *
+    from ${PREFIX}catalog_product_entity_varchar
+    union
+    select *
+    from ${PREFIX}catalog_product_entity_int;
+
+  create temporary table PROD_ATTS
   select
     store_id,
     entity_id,
@@ -453,21 +460,14 @@ _products () {
     GROUP_CONCAT(if(EA.attribute_code="image",value,NULL)) as image,
     GROUP_CONCAT(if(EA.attribute_code="status",value,NULL)) as status,
     GROUP_CONCAT(if(EA.attribute_code="visibility",value,NULL)) as visibility
-  from
-  (
-    select *
-    from ${PREFIX}catalog_product_entity_varchar
-    union
-    select *
-    from ${PREFIX}catalog_product_entity_int
-  ) CPEA
+  from CPEA
 	inner join ${PREFIX}eav_attribute as EA on EA.attribute_id=CPEA.attribute_id
 	inner join ${PREFIX}eav_entity_type EAT on EAT.entity_type_id=EA.entity_type_id
 	where EAT.entity_type_code="catalog_product"
 	and EA.attribute_code in (${atts})
   group by store_id,entity_id;
 
-	create temporary table PROD ENGINE=MEMORY
+	create temporary table PROD
 	select
     CPE.entity_id,
     EAS.attribute_set_name,
