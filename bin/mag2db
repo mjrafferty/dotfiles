@@ -303,8 +303,8 @@ _base () {
 
 	SELECT *
 	FROM ${PREFIX}core_config_data
-	WHERE path like \"web/secure%\"
-	or path like \"web/unsecure%\"
+	WHERE path like "web/secure%"
+	or path like "web/unsecure%"
 	order by scope_id asc,path desc;
 
 EOF
@@ -354,7 +354,7 @@ _multi () {
 
   SELECT *
   FROM ${PREFIX}core_config_data
-  WHERE path LIKE \"%base_url\"
+  WHERE path LIKE "%base_url"
   order by scope_id asc,path desc;
 
   SELECT *
@@ -445,11 +445,11 @@ _products () {
   select
     store_id,
     entity_id,
-    GROUP_CONCAT(if(EA.attribute_code=\"name\",value,NULL)) as name,
-    GROUP_CONCAT(if(EA.attribute_code=\"url_key\",value,NULL)) as url_key,
-    GROUP_CONCAT(if(EA.attribute_code=\"image\",value,NULL)) as image,
-    GROUP_CONCAT(if(EA.attribute_code=\"status\",value,NULL)) as status,
-    GROUP_CONCAT(if(EA.attribute_code=\"visibility\",value,NULL)) as visibility
+    GROUP_CONCAT(if(EA.attribute_code="name",value,NULL)) as name,
+    GROUP_CONCAT(if(EA.attribute_code="url_key",value,NULL)) as url_key,
+    GROUP_CONCAT(if(EA.attribute_code="image",value,NULL)) as image,
+    GROUP_CONCAT(if(EA.attribute_code="status",value,NULL)) as status,
+    GROUP_CONCAT(if(EA.attribute_code="visibility",value,NULL)) as visibility
   from
   (
     select *
@@ -460,7 +460,7 @@ _products () {
   ) CPEA
 	inner join ${PREFIX}eav_attribute as EA on EA.attribute_id=CPEA.attribute_id
 	inner join ${PREFIX}eav_entity_type EAT on EAT.entity_type_id=EA.entity_type_id
-	where EAT.entity_type_code=\"catalog_product\"
+	where EAT.entity_type_code="catalog_product"
 	and EA.attribute_code in (${atts})
   group by store_id,entity_id;
 
@@ -584,10 +584,10 @@ _cookie () {
   _connect <<- EOF
   select *
   from ${PREFIX}core_config_data
-  where path rlike \"^web/cookie\";
+  where path rlike "^web/cookie";
   select *
   from ${PREFIX}core_config_data
-  where path rlike \"^web/session\";
+  where path rlike "^web/session";
 
 EOF
 
@@ -697,15 +697,15 @@ _categories () {
   select
 		store_id,
 		entity_id,
-		GROUP_CONCAT(if(EA.attribute_code=\"name\",value,NULL)) as name,
-		GROUP_CONCAT(if(EA.attribute_code=\"url_key\",value,NULL)) as url_key,
-		GROUP_CONCAT(if(EA.attribute_code=\"url_path\",value,NULL)) as url_path,
-		GROUP_CONCAT(if(EA.attribute_code=\"custom_design\",value,NULL)) as custom_design,
-		GROUP_CONCAT(if(EA.attribute_code=\"page_layout\",value,NULL)) as page_layout,
-		GROUP_CONCAT(if(EA.attribute_code=\"display_mode\",value,NULL)) as display_mode,
-		GROUP_CONCAT(if(EA.attribute_code=\"include_in_menu\",value,NULL)) as include_in_menu,
-		GROUP_CONCAT(if(EA.attribute_code=\"is_active\",value,NULL)) as is_active,
-		GROUP_CONCAT(if(EA.attribute_code=\"landing_page\",value,NULL)) as landing_page
+		GROUP_CONCAT(if(EA.attribute_code="name",value,NULL)) as name,
+		GROUP_CONCAT(if(EA.attribute_code="url_key",value,NULL)) as url_key,
+		GROUP_CONCAT(if(EA.attribute_code="url_path",value,NULL)) as url_path,
+		GROUP_CONCAT(if(EA.attribute_code="custom_design",value,NULL)) as custom_design,
+		GROUP_CONCAT(if(EA.attribute_code="page_layout",value,NULL)) as page_layout,
+		GROUP_CONCAT(if(EA.attribute_code="display_mode",value,NULL)) as display_mode,
+		GROUP_CONCAT(if(EA.attribute_code="include_in_menu",value,NULL)) as include_in_menu,
+		GROUP_CONCAT(if(EA.attribute_code="is_active",value,NULL)) as is_active,
+		GROUP_CONCAT(if(EA.attribute_code="landing_page",value,NULL)) as landing_page
     from
   (
     select *
@@ -716,7 +716,7 @@ _categories () {
   ) CCEA
 	inner join ${PREFIX}eav_attribute as EA on EA.attribute_id=CCEA.attribute_id
 	inner join ${PREFIX}eav_entity_type EAT on EAT.entity_type_id=EA.entity_type_id
-	where EAT.entity_type_code=\"catalog_category\"
+	where EAT.entity_type_code="catalog_category"
 	and EA.attribute_code in (${atts})
   group by store_id,entity_id;
 
