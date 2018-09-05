@@ -705,6 +705,7 @@ _categories () {
   _connect <<- EOF
 
   CREATE TEMPORARY TABLE CCEA (
+    PRIMARY KEY (store_id,entity_id,attribute_id),
     KEY (attribute_id)
   ) as
   (
