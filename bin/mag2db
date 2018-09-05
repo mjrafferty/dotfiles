@@ -446,7 +446,7 @@ _products () {
 
 	CREATE TEMPORARY TABLE CPEA (
     KEY (attribute_id)
-  ) ENGINE=MEMORY
+  )
     select *
     from ${PREFIX}catalog_product_entity_varchar
     union
