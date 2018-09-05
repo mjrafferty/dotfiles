@@ -670,7 +670,7 @@ _shipment () {
 
   local columns select where s w;
 
-  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "send_email"
+  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent"
   "shipping_address_id" "billing_address_id" "created_at" "updated_at")
 
   select="select"
@@ -769,7 +769,7 @@ _invoices() {
 
   local columns select where s w;
 
-  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "send_email" "grand_total"
+  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "grand_total"
   "shipping_address_id" "billing_address_id" "created_at" "updated_at")
 
   select="select"
@@ -895,8 +895,8 @@ _customers() {
 
   local columns select where s w;
 
-  columns=("entity_id" "store_id" "website_id" "email" "group_id" "is_active" "default_billing"
-  "failures_num" "first_failure" "lock_expires" "created_at" "updated_at")
+  columns=("entity_id" "store_id" "website_id" "email" "group_id" "is_active"
+  "created_at" "updated_at")
 
   select="select"
 
