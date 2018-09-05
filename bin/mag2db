@@ -710,13 +710,13 @@ _categories () {
   (
     select *
     from ${PREFIX}catalog_category_entity_int
-  )
+  );
 
   INSERT INTO CCEA
   (
     select *
     from ${PREFIX}catalog_category_entity_varchar
-  )
+  );
 
   create temporary table CAT_ATTS (
     KEY (entity_id)
