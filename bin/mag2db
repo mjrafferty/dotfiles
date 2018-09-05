@@ -445,20 +445,19 @@ _products () {
   _connect <<- EOF
 
 	CREATE TEMPORARY TABLE CPEA (
-		"value_id" int(11),
-		"attribute_id" smallint(6),
-		"store_id" smallint(6),
-		"entity_id" int(11),
-		"value" varchar(255),
-		KEY ("attribute_id"),
-	) ENGINE=MEMORY
+    KEY (attribute_id)
+  ) ENGINE=MEMORY
     select *
     from ${PREFIX}catalog_product_entity_varchar
     union
     select *
     from ${PREFIX}catalog_product_entity_int;
 
-  create temporary table PROD_ATTS
+
+
+  create temporary table PROD_ATTS (
+    KEY (entity_id)
+  )
   select
     store_id,
     entity_id,
@@ -474,7 +473,9 @@ _products () {
 	and EA.attribute_code in (${atts})
   group by store_id,entity_id;
 
-	create temporary table PROD
+  create temporary table PROD (
+    KEY (entity_id)
+  )
 	select
     CPE.entity_id,
     EAS.attribute_set_name,
