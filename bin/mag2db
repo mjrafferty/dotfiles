@@ -299,19 +299,27 @@ EOF
 # Print base url's
 _base () {
 
-  _connect -e "
+  _connect <<- EOF
+
 	SELECT *
 	FROM ${PREFIX}core_config_data
 	WHERE path like \"web/secure%\"
 	or path like \"web/unsecure%\"
-	order by scope_id asc,path desc;";
+	order by scope_id asc,path desc;
+
+EOF;
 
 }
 
 # Print cron table
 _cron () {
 
-  _connect -e "SELECT * FROM ${PREFIX}cron_schedule;"
+  _connect <<- EOF
+
+  SELECT *
+  FROM ${PREFIX}cron_schedule;
+
+EOF
 
 }
 
@@ -342,11 +350,23 @@ _login () {
 # Print multistore config
 _multi () {
 
-  _connect -e"
-  SELECT * FROM ${PREFIX}core_config_data WHERE path LIKE \"%base_url\" order by scope_id asc,path desc;
-  SELECT * FROM ${PREFIX}store_website;
-  SELECT * FROM ${PREFIX}store_group;
-  SELECT * FROM ${PREFIX}store;"
+  _connect <<- EOF
+
+  SELECT *
+  FROM ${PREFIX}core_config_data
+  WHERE path LIKE \"%base_url\"
+  order by scope_id asc,path desc;
+
+  SELECT *
+  FROM ${PREFIX}store_website;
+
+  SELECT *
+  FROM ${PREFIX}store_group;
+
+  SELECT *
+  FROM ${PREFIX}store;
+
+EOF
 
 }
 
@@ -368,7 +388,11 @@ _password () {
   salt="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 32 | head -n1)"
 
   _connect <<- EOF
-  UPDATE ${PREFIX}admin_user SET password = CONCAT(SHA2("${salt}${password}", 256), ":${salt}:1") WHERE username = "$username";
+
+  UPDATE ${PREFIX}admin_user
+  SET password = CONCAT(SHA2("${salt}${password}", 256), ":${salt}:1")
+  WHERE username = "$username";
+
 EOF
 
   cat <<- EOF
@@ -385,12 +409,21 @@ EOF
 # Show admin users
 _users () {
 
-	_connect -e "select p.role_name,username,firstname,lastname,email,created,
-	modified,logdate,lognum,is_active,failures_num
-	from ${PREFIX}authorization_role u
-	inner join ${PREFIX}authorization_role p on u.parent_id=p.role_id
-	inner join ${PREFIX}admin_user on u.user_id=admin_user.user_id
-	order by role_name,lognum desc;"
+	_connect <<- EOF
+
+  select
+    P.role_name, username,
+    firstname,lastname,
+    email,created,
+	  modified,logdate,
+    lognum,is_active,
+    failures_num
+	from ${PREFIX}authorization_role U
+	inner join ${PREFIX}authorization_role P on U.parent_id=P.role_id
+	inner join ${PREFIX}admin_user on U.user_id=admin_user.user_id
+	order by role_name,lognum desc;
+
+EOF
 
 }
 
@@ -406,7 +439,7 @@ _products () {
     fi
   done
 
-  _connect -e"
+  _connect <<- EOF
 
   create temporary table PROD_ATTS
   select
@@ -455,7 +488,9 @@ _products () {
 	from PROD
 	left join PROD_ATTS on PROD.entity_id=PROD_ATTS.entity_id
   group by PROD_ATTS.store_id,PROD.entity_id
-	order by PROD_ATTS.store_id,PROD.entity_id;"
+	order by PROD_ATTS.store_id,PROD.entity_id;
+
+EOF
 
 }
 
@@ -489,12 +524,15 @@ _orders () {
     done
   fi
 
-  _connect -e"
+  _connect <<- EOF
+
   ${select}
 	from ${PREFIX}sales_order
   ${where}
 	order by created_at desc
-	limit 100;"
+	limit 100;
+
+EOF
 
 }
 
@@ -528,25 +566,30 @@ _shipment () {
     done
   fi
 
-  _connect -e"
+  _connect <<- EOF
+
   ${select}
 	from ${PREFIX}sales_shipment
   ${where}
 	order by created_at desc
-	limit 100;"
+	limit 100;
+
+EOF
 
 }
 
 # List cookie info
 _cookie () {
 
-  _connect -e"
+  _connect <<- EOF
   select *
   from ${PREFIX}core_config_data
   where path rlike \"^web/cookie\";
   select *
   from ${PREFIX}core_config_data
-  where path rlike \"^web/session\";"
+  where path rlike \"^web/session\";
+
+EOF
 
 }
 
@@ -580,12 +623,15 @@ _quotes () {
     done
   fi
 
-  _connect -e"
+  _connect <<- EOF
+
   ${select}
 	from ${PREFIX}quote
   ${where}
 	order by created_at desc
-	limit 100;"
+	limit 100;
+
+EOF
 
 }
 
@@ -619,12 +665,15 @@ _invoices() {
     done
   fi
 
-  _connect -e"
+  _connect <<- EOF
+
   ${select}
 	from ${PREFIX}sales_invoice
   ${where}
 	order by created_at desc
-	limit 100;"
+	limit 100;
+
+EOF
 
 }
 
@@ -642,7 +691,7 @@ _categories () {
     fi
   done
 
-  _connect -e"
+  _connect <<- EOF
 
   create temporary table CAT_ATTS
   select
@@ -706,7 +755,9 @@ _categories () {
 	left join CAT_ATTS on CAT.entity_id=CAT_ATTS.entity_id
 	left join CAT_COUNTS on CAT.entity_id=CAT_COUNTS.category_id
   group by CAT_ATTS.store_id,CAT.entity_id
-	order by CAT_ATTS.store_id,CAT.entity_id;"
+	order by CAT_ATTS.store_id,CAT.entity_id;
+
+EOF
 
 }
 
@@ -740,12 +791,15 @@ _customers() {
     done
   fi
 
-  _connect -e"
+  _connect <<- EOF
+
   ${select}
 	from ${PREFIX}customer_entity
   ${where}
 	order by created_at desc
-	limit 100;"
+	limit 100;
+
+EOF
 
 }
 
