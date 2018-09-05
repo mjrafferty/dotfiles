@@ -402,74 +402,55 @@ _products () {
   done
 
   _connect -e"
-  create temporary table ATT
-	select EA.attribute_id as id, EA.attribute_code as code
-	from ${PREFIX}eav_attribute as EA
+
+  create temporary table PROD_ATTS
+  select
+    store_id,
+    entity_id,
+    GROUP_CONCAT(if(ATT.code=\"name\",value,NULL)) as name,
+    GROUP_CONCAT(if(ATT.code=\"url_key\",value,NULL)) as url_key,
+    GROUP_CONCAT(if(ATT.code=\"image\",value,NULL)) as image,
+    GROUP_CONCAT(if(ATT.code=\"status\",value,NULL)) as status,
+    GROUP_CONCAT(if(ATT.code=\"visibility\",value,NULL)) as visibility
+  from
+  (
+    select *
+    from ${PREFIX}catalog_product_entity_varchar
+    union
+    select *
+    from ${PREFIX}catalog_product_entity_int
+  ) CPEA
+	inner join ${PREFIX}eav_attribute as EA on EA.attribute_id=CPEA.attribute_id
 	inner join ${PREFIX}eav_entity_type EAT on EAT.entity_type_id=EA.entity_type_id
 	where EAT.entity_type_code=\"catalog_product\"
-	and EA.attribute_code in (${atts});
-
-  create temporary table PROD_VARCHAR
-  select
-  store_id,
-  entity_id,
-  GROUP_CONCAT(if(ATT.code=\"name\",value,NULL)) as name,
-  GROUP_CONCAT(if(ATT.code=\"url_key\",value,NULL)) as url_key,
-  GROUP_CONCAT(if(ATT.code=\"image\",value,NULL)) as image
-  from ${PREFIX}catalog_product_entity_varchar as CPEV
-	inner join ATT on ATT.id=CPEV.attribute_id
-  where ATT.code in (${atts})
-  group by store_id,entity_id;
-
-  create temporary table PROD_INT
-  select
-  store_id,
-  entity_id,
-  GROUP_CONCAT(if(ATT.code=\"status\",value,NULL)) as status,
-  GROUP_CONCAT(if(ATT.code=\"visibility\",value,NULL)) as visibility
-  from ${PREFIX}catalog_product_entity_int as CPEI
-	inner join ATT on ATT.id=CPEI.attribute_id
-  where ATT.code in (${atts})
+	and EA.attribute_code in (${atts})
   group by store_id,entity_id;
 
 	create temporary table PROD
 	select
-	CPE.entity_id,
-	EAS.attribute_set_name,
-	CPE.type_id,
-	CPE.sku,
-	CPE.has_options,
-	CPE.created_at,
-	CPE.updated_at
+    CPE.entity_id,
+    EAS.attribute_set_name,
+    CPE.type_id,
+    CPE.sku,
+    CPE.has_options,
+    CPE.created_at,
+    CPE.updated_at
 	from ${PREFIX}catalog_product_entity CPE
 	inner join ${PREFIX}eav_attribute_set as EAS on EAS.attribute_set_id=CPE.attribute_set_id
 	inner join ${PREFIX}eav_entity_type as EAT on EAT.entity_type_id=EAS.entity_type_id;
 
-  create temporary table CAT_COUNTS
-  select category_id, count(category_id) as product_count
-  from ${PREFIX}catalog_category_product
-  group by category_id
-  order by category_id;
-
 	select
-  PROD_VARCHAR.store_id,
-  PROD.entity_id,
-  PROD_VARCHAR.name,
-  PROD.sku,
-  PROD.type_id,
-  PROD.attribute_set_name,
-  PROD_VARCHAR.url_key,
-  PROD_VARCHAR.image,
-  PROD_INT.visibility,
-  PROD_INT.status,
-  PROD.has_options,
-  PROD.created_at,
-  PROD.updated_at
+    PROD_ATTS.store_id, PROD.entity_id,
+    PROD_ATTS.name, PROD.sku,
+    PROD.type_id, PROD.attribute_set_name,
+    PROD_ATTS.url_key, PROD_ATTS.image,
+    PROD_ATTS.visibility, PROD_ATTS.status,
+    PROD.has_options, PROD.created_at,
+    PROD.updated_at
 	from PROD
-	left join PROD_VARCHAR on PROD.entity_id=PROD_VARCHAR.entity_id
-	left join PROD_INT on PROD.entity_id=PROD_INT.entity_id
-  group by PROD_VARCHAR.store_id,PROD.entity_id
-	order by PROD_VARCHAR.store_id,PROD.entity_id;"
+	left join PROD_ATTS on PROD.entity_id=PROD_ATTS.entity_id
+  group by PROD_ATTS.store_id,PROD.entity_id
+	order by PROD_ATTS.store_id,PROD.entity_id;"
 
 }
 
