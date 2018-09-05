@@ -446,12 +446,13 @@ _products () {
 
 	CREATE TEMPORARY TABLE CPEA (
     KEY (attribute_id)
-  )
-    select *
-    from ${PREFIX}catalog_product_entity_varchar
-    union
-    select *
-    from ${PREFIX}catalog_product_entity_int;
+  ) as
+    (select *
+    from ${PREFIX}catalog_product_entity_varchar);
+
+  INSERT INTO CPEA
+    (select *
+    from ${PREFIX}catalog_product_entity_int);
 
 
 
