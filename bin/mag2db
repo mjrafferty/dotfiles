@@ -407,11 +407,11 @@ _products () {
   select
     store_id,
     entity_id,
-    GROUP_CONCAT(if(ATT.code=\"name\",value,NULL)) as name,
-    GROUP_CONCAT(if(ATT.code=\"url_key\",value,NULL)) as url_key,
-    GROUP_CONCAT(if(ATT.code=\"image\",value,NULL)) as image,
-    GROUP_CONCAT(if(ATT.code=\"status\",value,NULL)) as status,
-    GROUP_CONCAT(if(ATT.code=\"visibility\",value,NULL)) as visibility
+    GROUP_CONCAT(if(EA.attribute_code=\"name\",value,NULL)) as name,
+    GROUP_CONCAT(if(EA.attribute_code=\"url_key\",value,NULL)) as url_key,
+    GROUP_CONCAT(if(EA.attribute_code=\"image\",value,NULL)) as image,
+    GROUP_CONCAT(if(EA.attribute_code=\"status\",value,NULL)) as status,
+    GROUP_CONCAT(if(EA.attribute_code=\"visibility\",value,NULL)) as visibility
   from
   (
     select *
