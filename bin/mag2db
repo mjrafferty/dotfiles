@@ -299,7 +299,12 @@ EOF
 # Print base url's
 _base () {
 
-  _connect -e "SELECT * FROM ${PREFIX}core_config_data WHERE path RLIKE \"base.*url\";";
+  _connect -e "
+	SELECT *
+	FROM ${PREFIX}core_config_data
+	WHERE path like \"web/secure%\"
+	or path like \"web/unsecure%\"
+	order by scope_id asc,path desc;";
 
 }
 
@@ -338,7 +343,7 @@ _login () {
 _multi () {
 
   _connect -e"
-  SELECT * FROM ${PREFIX}core_config_data WHERE path RLIKE \"base_url\";
+  SELECT * FROM ${PREFIX}core_config_data WHERE path LIKE \"%base_url\" order by scope_id asc,path desc;
   SELECT * FROM ${PREFIX}store_website;
   SELECT * FROM ${PREFIX}store_group;
   SELECT * FROM ${PREFIX}store;"
