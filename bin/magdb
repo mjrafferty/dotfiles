@@ -52,27 +52,30 @@ _usage() {
 
   Usage: magdb <option>
 
-    -A | --admin       Add a new admin user into the database
-    -b | --base        Show all configured Base Urls
-    -c | --cron        Show Cron Jobs and Their Statuses
     -i | --info        Display user credentials for database
     -l | --login       Log into database using user credentials
-    -L | --logsize     Show size of the log tables
-    -m | --multi       Show Multistore Information (Urls/Codes)
-    -T | --truncate    Truncate and optimize log tables
+
+    -A | --admin       Add a new admin user into the database
     -P | --password    Update or reset password for user
     -u | --users       Show all Admin Users' information
-    -x | --index       Show Current Status of all Re-Index Processes
+
+    -b | --base        Show all configured Base Urls
+    -m | --multi       Show Multistore Information (Urls/Codes)
+    -O | --cookie      Show cookie configuration
+
+    -c | --cron        Show Cron Jobs and Their Statuses
 
     -p | --products    Show products
     -o | --orders      Show recent orders
     -s | --shipment    Show recent shipments
-    -O | --cookie      Show cookie configuration
     -q | --quotes      Show recent quotes
     -I | --invoices    Show recent invoices
     -g | --categories  Show category information
     -C | --customers   Show customers
-    -a | --address     Show customer address info
+
+    -L | --logsize     Show size of the log tables
+    -T | --truncate    Truncate and optimize log tables
+    -x | --index       Show Current Status of all Re-Index Processes
 
     -h | --help        Display this help output and quit
 
