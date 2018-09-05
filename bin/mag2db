@@ -708,13 +708,13 @@ _categories () {
     KEY (attribute_id)
   ) as
   (
-    select *
+    select attribute_id,store_id,entity_id,value
     from ${PREFIX}catalog_category_entity_int
   );
 
   INSERT INTO CCEA
   (
-    select *
+    select attribute_id,store_id,entity_id,value
     from ${PREFIX}catalog_category_entity_varchar
   );
 
