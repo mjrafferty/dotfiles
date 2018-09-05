@@ -656,7 +656,7 @@ _orders () {
   _connect <<- EOF
 
   ${select}
-	from ${PREFIX}sales_order
+	from ${PREFIX}sales_flat_order
   ${where}
 	order by created_at desc
 	limit 100;
@@ -698,7 +698,7 @@ _shipment () {
   _connect <<- EOF
 
   ${select}
-	from ${PREFIX}sales_shipment
+	from ${PREFIX}sales_flat_shipment
   ${where}
 	order by created_at desc
 	limit 100;
@@ -755,7 +755,7 @@ _quotes () {
   _connect <<- EOF
 
   ${select}
-	from ${PREFIX}quote
+	from ${PREFIX}sales_flat_quote
   ${where}
 	order by created_at desc
 	limit 100;
@@ -797,7 +797,7 @@ _invoices() {
   _connect <<- EOF
 
   ${select}
-	from ${PREFIX}sales_invoice
+	from ${PREFIX}sales_flat_invoice
   ${where}
 	order by created_at desc
 	limit 100;
@@ -896,7 +896,7 @@ _customers() {
   local columns select where s w;
 
   columns=("entity_id" "store_id" "website_id" "email" "group_id" "is_active" "default_billing"
-  "default_shipping" "failures_num" "first_failure" "lock_expires" "created_at" "updated_at")
+  "failures_num" "first_failure" "lock_expires" "created_at" "updated_at")
 
   select="select"
 
