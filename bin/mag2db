@@ -444,7 +444,7 @@ _products () {
 
   _connect <<- EOF
 
-  create temporary table PROD_ATTS
+  create temporary table PROD_ATTS ENGINE=MEMORY
   select
     store_id,
     entity_id,
@@ -467,7 +467,7 @@ _products () {
 	and EA.attribute_code in (${atts})
   group by store_id,entity_id;
 
-	create temporary table PROD
+	create temporary table PROD ENGINE=MEMORY
 	select
     CPE.entity_id,
     EAS.attribute_set_name,
