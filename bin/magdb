@@ -463,7 +463,7 @@ _multi () {
   order by scope_id asc,path desc;
 
   SELECT *
-  FROM ${PREFIX}core_store_website;
+  FROM ${PREFIX}core_website;
 
   SELECT *
   FROM ${PREFIX}core_store_group;
