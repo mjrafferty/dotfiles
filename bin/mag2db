@@ -252,7 +252,7 @@ _connect () {
 
   _summary;
 
-  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t "$@" | less -RSF;
+  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t | less -RSF;
 
 }
 
@@ -307,7 +307,7 @@ _base () {
 	or path like \"web/unsecure%\"
 	order by scope_id asc,path desc;
 
-EOF;
+EOF
 
 }
 
