@@ -433,29 +433,24 @@ EOF
 # List product info
 _products () {
 
-  local attributes atts a search where;
+  local attributes atts a pivot_atts where columns;
 
   attributes=( "name" "status" "visibility" "image" "url_key" )
+  columns=("store_id" "entity_id" "sku" "type_id" "attribute_set_name" "has_options" "created_at" "updated_at")
 
   for((a=0;a<${#attributes[*]};a++)); do
+
     atts+=" \"${attributes[a]}\""
+    pivot_atts+="GROUP_CONCAT(if(EA.attribute_code=\"${attributes[a]}\",value,NULL)) AS ${attributes[a]}"
+
     if (( a < (${#attributes[*]} - 1) )); then
       atts+=",";
+      pivot_atts+=",";
     fi
+
   done
 
-  read -rp "Search value: " search
-
-  if [[ -n "$search" ]]; then
-    where="WHERE"
-
-    for((w=0;w<${#attributes[*]};w++)); do
-      where+=" ${attributes[w]} RLIKE \"${search}\""
-      if (( w < (${#attributes[*]} - 1) )); then
-        where+=" OR"
-      fi
-    done
-  fi
+  where="$(__whereBuilder ${columns[*]} ${attributes[*]})"
 
   _connect <<- EOF
 
@@ -476,12 +471,9 @@ _products () {
     KEY (entity_id)
   )
   SELECT
-    store_id,   entity_id,
-    GROUP_CONCAT(if(EA.attribute_code="name",value,NULL))       AS name,
-    GROUP_CONCAT(if(EA.attribute_code="url_key",value,NULL))    AS url_key,
-    GROUP_CONCAT(if(EA.attribute_code="image",value,NULL))      AS image,
-    GROUP_CONCAT(if(EA.attribute_code="status",value,NULL))     AS status,
-    GROUP_CONCAT(if(EA.attribute_code="visibility",value,NULL)) AS visibility
+    store_id,
+    entity_id,
+    ${pivot_atts}
   FROM CPEA
 	INNER JOIN ${PREFIX}eav_attribute AS EA ON EA.attribute_id=CPEA.attribute_id
 	INNER JOIN ${PREFIX}eav_entity_type EAT ON EAT.entity_type_id=EA.entity_type_id
@@ -517,6 +509,7 @@ _products () {
 
 EOF
 
+
 }
 
 # List order info
@@ -530,24 +523,16 @@ _orders () {
   select="select"
 
   for((s=0;s<${#columns[*]};s++)); do
+
     select+=" ${columns[s]}"
+
     if (( s < (${#columns[*]} - 1) )); then
       select+=","
     fi
+
   done
 
-  read -rp "Search value: " search
-
-  if [[ -n "$search" ]]; then
-    where="WHERE"
-
-    for((w=0;w<${#columns[*]};w++)); do
-      where+=" ${columns[w]} RLIKE \"${search}\""
-      if (( w < (${#columns[*]} - 1) )); then
-        where+=" OR"
-      fi
-    done
-  fi
+  where="$(__whereBuilder ${columns[*]})";
 
   _connect <<- EOF
 
@@ -572,24 +557,16 @@ _shipment () {
   select="select"
 
   for((s=0;s<${#columns[*]};s++)); do
+
     select+=" ${columns[s]}"
+
     if (( s < (${#columns[*]} - 1) )); then
       select+=","
     fi
+
   done
 
-  read -rp "Search value: " search
-
-  if [[ -n "$search" ]]; then
-    where="WHERE"
-
-    for((w=0;w<${#columns[*]};w++)); do
-      where+=" ${columns[w]} RLIKE \"${search}\""
-      if (( w < (${#columns[*]} - 1) )); then
-        where+=" OR"
-      fi
-    done
-  fi
+  where="$(__whereBuilder ${columns[*]})";
 
   _connect <<- EOF
 
@@ -629,24 +606,16 @@ _quotes () {
   select="select"
 
   for((s=0;s<${#columns[*]};s++)); do
+
     select+=" ${columns[s]}"
+
     if (( s < (${#columns[*]} - 1) )); then
       select+=","
     fi
+
   done
 
-  read -rp "Search value: " search
-
-  if [[ -n "$search" ]]; then
-    where="WHERE"
-
-    for((w=0;w<${#columns[*]};w++)); do
-      where+=" ${columns[w]} RLIKE \"${search}\""
-      if (( w < (${#columns[*]} - 1) )); then
-        where+=" OR"
-      fi
-    done
-  fi
+  where="$(__whereBuilder ${columns[*]})";
 
   _connect <<- EOF
 
@@ -671,24 +640,16 @@ _invoices() {
   select="select"
 
   for((s=0;s<${#columns[*]};s++)); do
+
     select+=" ${columns[s]}"
+
     if (( s < (${#columns[*]} - 1) )); then
       select+=","
     fi
+
   done
 
-  read -rp "Search value: " search
-
-  if [[ -n "$search" ]]; then
-    where="WHERE"
-
-    for((w=0;w<${#columns[*]};w++)); do
-      where+=" ${columns[w]} RLIKE \"${search}\""
-      if (( w < (${#columns[*]} - 1) )); then
-        where+=" OR"
-      fi
-    done
-  fi
+  where="$(__whereBuilder ${columns[*]})";
 
   _connect <<- EOF
 
@@ -828,24 +789,16 @@ _customers() {
   select="select"
 
   for((s=0;s<${#columns[*]};s++)); do
+
     select+=" ${columns[s]}"
+
     if (( s < (${#columns[*]} - 1) )); then
       select+=","
     fi
+
   done
 
-  read -rp "Search value: " search
-
-  if [[ -n "$search" ]]; then
-    where="WHERE"
-
-    for((w=0;w<${#columns[*]};w++)); do
-      where+=" ${columns[w]} RLIKE \"${search}\""
-      if (( w < (${#columns[*]} - 1) )); then
-        where+=" OR"
-      fi
-    done
-  fi
+  where="$(__whereBuilder ${columns[*]})";
 
   _connect <<- EOF
 
