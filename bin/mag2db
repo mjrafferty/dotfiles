@@ -707,12 +707,14 @@ EOF
 # List category info
 _categories () {
 
-  local attributes atts a search where;
+  local attributes atts a search where columns;
 
   attributes=( "name" "custom_design" "display_mode" "page_layout" "url_key" "url_path" "include_in_menu" "is_active" "landing_page" )
+  columns=( "entity_id" "store_id" "attribute_set_name" "parent_id" "path" "position" "children_count" "created_at" "updated_at" )
 
   for((a=0;a<${#attributes[*]};a++)); do
     atts+=" \"${attributes[a]}\""
+    columns+=("${attributes[a]}")
     if (( a < (${#attributes[*]} - 1) )); then
       atts+=",";
     fi
@@ -723,9 +725,9 @@ _categories () {
   if [[ -n "$search" ]]; then
     where="where"
 
-    for((w=0;w<${#attributes[*]};w++)); do
-      where+=" ${attributes[w]} rlike \"${search}\""
-      if (( w < (${#attributes[*]} - 1) )); then
+    for((w=0;w<${#columns[*]};w++)); do
+      where+=" ${columns[w]} rlike \"${search}\""
+      if (( w < (${#columns[*]} - 1) )); then
         where+=" or"
       fi
     done
