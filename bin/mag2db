@@ -449,7 +449,7 @@ _products () {
   if [[ -n "$search" ]]; then
     where="where"
 
-    for((w=0;w<${#columns[*]};w++)); do
+    for((w=0;w<${#attributes[*]};w++)); do
       where+=" ${attributes[w]} rlike \"${search}\""
       if (( w < (${#attributes[*]} - 1) )); then
         where+=" or"
@@ -723,7 +723,7 @@ _categories () {
   if [[ -n "$search" ]]; then
     where="where"
 
-    for((w=0;w<${#columns[*]};w++)); do
+    for((w=0;w<${#attributes[*]};w++)); do
       where+=" ${attributes[w]} rlike \"${search}\""
       if (( w < (${#attributes[*]} - 1) )); then
         where+=" or"
