@@ -702,21 +702,12 @@ EOF
 
 }
 
-# List category info
-_categories () {
+# Build WHERE statement
+__whereBuilder() {
 
-  local attributes atts a search where columns;
+  local where columns
 
-  attributes=( "name" "custom_design" "display_mode" "page_layout" "url_key" "url_path" "include_in_menu" "is_active" "landing_page" )
-  columns=( "CAT.entity_id" "product_count" "store_id" "attribute_set_name" "parent_id" "path" "position" "children_count" "created_at" "updated_at" )
-
-  for((a=0;a<${#attributes[*]};a++)); do
-    atts+=" \"${attributes[a]}\""
-    columns+=("${attributes[a]}")
-    if (( a < (${#attributes[*]} - 1) )); then
-      atts+=",";
-    fi
-  done
+  columns=($*);
 
   read -rp "Search value: " search
 
@@ -730,6 +721,34 @@ _categories () {
       fi
     done
   fi
+
+  echo "$where";
+
+}
+
+# List category info
+_categories () {
+
+  local attributes atts a search where columns pivot_atts;
+
+  attributes=( "name" "custom_design" "display_mode" "page_layout" "url_key" "url_path" "include_in_menu" "is_active" "landing_page" )
+  columns=( "CAT.entity_id" "product_count" "store_id" "attribute_set_name" "parent_id" "path" "position" "children_count" "created_at" "updated_at" )
+
+  for((a=0;a<${#attributes[*]};a++)); do
+
+    atts+=" \"${attributes[a]}\""
+    pivot_atts+="GROUP_CONCAT(if(EA.attribute_code=\"${attributes[a]}\",value,NULL)) AS ${attributes[a]}"
+
+    if (( a < (${#attributes[*]} - 1) )); then
+      atts+=",";
+      pivot_atts+=",";
+    fi
+
+    pivot_atts+="\n";
+
+  done
+
+  where="$(__whereBuilder ${columns[*]} ${attributes[*]})"
 
   _connect <<- EOF
 
@@ -748,16 +767,9 @@ _categories () {
     KEY (entity_id)
   )
   SELECT
-		store_id,   entity_id,
-		GROUP_CONCAT(if(EA.attribute_code="name",value,NULL))             AS name,
-		GROUP_CONCAT(if(EA.attribute_code="url_key",value,NULL))          AS url_key,
-		GROUP_CONCAT(if(EA.attribute_code="url_path",value,NULL))         AS url_path,
-		GROUP_CONCAT(if(EA.attribute_code="custom_design",value,NULL))    AS custom_design,
-		GROUP_CONCAT(if(EA.attribute_code="page_layout",value,NULL))      AS page_layout,
-		GROUP_CONCAT(if(EA.attribute_code="display_mode",value,NULL))     AS display_mode,
-		GROUP_CONCAT(if(EA.attribute_code="include_in_menu",value,NULL))  AS include_in_menu,
-		GROUP_CONCAT(if(EA.attribute_code="is_active",value,NULL))        AS is_active,
-		GROUP_CONCAT(if(EA.attribute_code="landing_page",value,NULL))     AS landing_page
+		store_id,
+    entity_id,
+    ${pivot_atts}
   FROM CCEA
 	INNER JOIN ${PREFIX}eav_attribute AS EA   ON  EA.attribute_id=CCEA.attribute_id
 	INNER JOIN ${PREFIX}eav_entity_type EAT   ON  EAT.entity_type_id=EA.entity_type_id
@@ -788,7 +800,7 @@ _categories () {
 
 	SELECT
 		CAT_ATTS.store_id,      CAT.entity_id,
-		CAT_ATTS.name,          CAT_COUNTS.product_count,
+    CAT_ATTS.name,          if(CAT_COUNTS.product_count is NULL,0,CAT_COUNTS.product_count) as product_count,
 		CAT.attribute_set_name, CAT.path,
 		CAT.position,           CAT.children_count,
 		CAT_ATTS.url_key,       CAT_ATTS.url_path,
