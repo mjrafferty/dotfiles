@@ -6,7 +6,7 @@ readonly ARGA=("$@")
 
 # Configurable Variables
 readonly TMP_EXT=".nexcess.bak"
-readonly OUTPUT_DIR="$(pwd | grep -Po "home/\K[^/]*")/nex_strace"
+readonly OUTPUT_DIR="/home/$(pwd | grep -Po "home/\K[^/]*")/nex_strace"
 readonly TEMP_DIR="${OUTPUT_DIR}"
 readonly PIPE_PREFIX="${TEMP_DIR}/nexcess_strace_pipe-"
 readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
