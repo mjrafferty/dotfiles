@@ -562,6 +562,8 @@ EOF
 # List product info
 _products () {
 
+  local attributes atts a search where;
+
   attributes=( "name" "status" "visibility" "image" "url_key" )
 
   for((a=0;a<${#attributes[*]};a++)); do
@@ -571,9 +573,35 @@ _products () {
     fi
   done
 
+  read -rp "Search value: " search
+
+  if [[ -n "$search" ]]; then
+    where="where"
+
+    for((w=0;w<${#attributes[*]};w++)); do
+      where+=" ${attributes[w]} rlike \"${search}\""
+      if (( w < (${#attributes[*]} - 1) )); then
+        where+=" or"
+      fi
+    done
+  fi
+
   _connect <<- EOF
 
-  create temporary table PROD_ATTS
+	CREATE TEMPORARY TABLE CPEA (
+    KEY (attribute_id)
+  ) as
+    (select *
+    from ${PREFIX}catalog_product_entity_varchar);
+
+  INSERT INTO CPEA
+    (select *
+    from ${PREFIX}catalog_product_entity_int);
+
+
+  create temporary table PROD_ATTS (
+    KEY (entity_id)
+  )
   select
     store_id,
     entity_id,
@@ -582,21 +610,16 @@ _products () {
     GROUP_CONCAT(if(EA.attribute_code="image",value,NULL)) as image,
     GROUP_CONCAT(if(EA.attribute_code="status",value,NULL)) as status,
     GROUP_CONCAT(if(EA.attribute_code="visibility",value,NULL)) as visibility
-  from
-  (
-    select *
-    from ${PREFIX}catalog_product_entity_varchar
-    union
-    select *
-    from ${PREFIX}catalog_product_entity_int
-  ) CPEA
+  from CPEA
 	inner join ${PREFIX}eav_attribute as EA on EA.attribute_id=CPEA.attribute_id
 	inner join ${PREFIX}eav_entity_type EAT on EAT.entity_type_id=EA.entity_type_id
 	where EAT.entity_type_code="catalog_product"
 	and EA.attribute_code in (${atts})
   group by store_id,entity_id;
 
-	create temporary table PROD
+  create temporary table PROD (
+    KEY (entity_id)
+  )
 	select
     CPE.entity_id,
     EAS.attribute_set_name,
@@ -619,6 +642,7 @@ _products () {
     PROD.updated_at
 	from PROD
 	left join PROD_ATTS on PROD.entity_id=PROD_ATTS.entity_id
+  ${where}
   group by PROD_ATTS.store_id,PROD.entity_id
 	order by PROD_ATTS.store_id,PROD.entity_id;
 
