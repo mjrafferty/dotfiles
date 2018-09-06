@@ -836,7 +836,7 @@ EOF
 # List category info
 _categories () {
 
-  local attributes atts a;
+  local attributes atts a search where;
 
   attributes=( "name" "custom_design" "display_mode" "page_layout" "url_key" "url_path" "include_in_menu" "is_active" "landing_page" )
 
@@ -847,9 +847,38 @@ _categories () {
     fi
   done
 
+  read -rp "Search value: " search
+
+  if [[ -n "$search" ]]; then
+    where="where"
+
+    for((w=0;w<${#attributes[*]};w++)); do
+      where+=" ${attributes[w]} rlike \"${search}\""
+      if (( w < (${#attributes[*]} - 1) )); then
+        where+=" or"
+      fi
+    done
+  fi
+
   _connect <<- EOF
 
-  create temporary table CAT_ATTS
+  CREATE TEMPORARY TABLE CCEA (
+    KEY (attribute_id)
+  ) as
+  (
+    select *
+    from ${PREFIX}catalog_category_entity_varchar
+  );
+
+  INSERT INTO CCEA
+  (
+    select *
+    from ${PREFIX}catalog_category_entity_int
+  );
+
+  create temporary table CAT_ATTS (
+    KEY (entity_id)
+  )
   select
 		store_id,
 		entity_id,
@@ -862,21 +891,16 @@ _categories () {
 		GROUP_CONCAT(if(EA.attribute_code="include_in_menu",value,NULL)) as include_in_menu,
 		GROUP_CONCAT(if(EA.attribute_code="is_active",value,NULL)) as is_active,
 		GROUP_CONCAT(if(EA.attribute_code="landing_page",value,NULL)) as landing_page
-    from
-  (
-    select *
-    from ${PREFIX}catalog_category_entity_int
-    union
-    select *
-    from ${PREFIX}catalog_category_entity_varchar
-  ) CCEA
+  from CCEA
 	inner join ${PREFIX}eav_attribute as EA on EA.attribute_id=CCEA.attribute_id
 	inner join ${PREFIX}eav_entity_type EAT on EAT.entity_type_id=EA.entity_type_id
 	where EAT.entity_type_code="catalog_category"
 	and EA.attribute_code in (${atts})
   group by store_id,entity_id;
 
-	create temporary table CAT
+	create temporary table CAT (
+    KEY (entity_id)
+  )
 	select
 		CCE.entity_id,
 		EAS.attribute_set_name,
@@ -890,7 +914,9 @@ _categories () {
 	inner join ${PREFIX}eav_attribute_set as EAS on EAS.attribute_set_id=CCE.attribute_set_id
 	inner join ${PREFIX}eav_entity_type as EAT on EAT.entity_type_id=EAS.entity_type_id;
 
-  create temporary table CAT_COUNTS
+  create temporary table CAT_COUNTS (
+    KEY (category_id)
+  )
   select
 		category_id, count(category_id) as product_count
   from ${PREFIX}catalog_category_product
@@ -910,6 +936,7 @@ _categories () {
 	from CAT
 	left join CAT_ATTS on CAT.entity_id=CAT_ATTS.entity_id
 	left join CAT_COUNTS on CAT.entity_id=CAT_COUNTS.category_id
+  ${where}
   group by CAT_ATTS.store_id,CAT.entity_id
 	order by CAT_ATTS.store_id,CAT.entity_id;
 
