@@ -797,7 +797,7 @@ _categories () {
   order by category_id;
 
 	select
-		CAT_ATTS.store_id, CAT.entity_id,
+		CAT_ATTS.store_id, CAT.entity_id as entity_id,
 		CAT_ATTS.name, CAT_COUNTS.product_count,
 		CAT.attribute_set_name, CAT.path,
 		CAT.position, CAT.children_count,
