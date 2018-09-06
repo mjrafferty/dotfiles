@@ -433,6 +433,8 @@ EOF
 # List product info
 _products () {
 
+  local attributes atts a search where;
+
   attributes=( "name" "status" "visibility" "image" "url_key" )
 
   for((a=0;a<${#attributes[*]};a++)); do
@@ -441,6 +443,19 @@ _products () {
       atts+=",";
     fi
   done
+
+  read -rp "Search value: " search
+
+  if [[ -n "$search" ]]; then
+    where="where"
+
+    for((w=0;w<${#columns[*]};w++)); do
+      where+=" ${attributes[w]} rlike \"${search}\""
+      if (( w < (${#attributes[*]} - 1) )); then
+        where+=" or"
+      fi
+    done
+  fi
 
   _connect <<- EOF
 
@@ -498,6 +513,7 @@ _products () {
     PROD.updated_at
 	from PROD
 	left join PROD_ATTS on PROD.entity_id=PROD_ATTS.entity_id
+  ${where}
   group by PROD_ATTS.store_id,PROD.entity_id
 	order by PROD_ATTS.store_id,PROD.entity_id;
 
@@ -691,7 +707,7 @@ EOF
 # List category info
 _categories () {
 
-  local attributes atts a;
+  local attributes atts a search where;
 
   attributes=( "name" "custom_design" "display_mode" "page_layout" "url_key" "url_path" "include_in_menu" "is_active" "landing_page" )
 
@@ -701,6 +717,19 @@ _categories () {
       atts+=",";
     fi
   done
+
+  read -rp "Search value: " search
+
+  if [[ -n "$search" ]]; then
+    where="where"
+
+    for((w=0;w<${#columns[*]};w++)); do
+      where+=" ${attributes[w]} rlike \"${search}\""
+      if (( w < (${#attributes[*]} - 1) )); then
+        where+=" or"
+      fi
+    done
+  fi
 
   _connect <<- EOF
 
@@ -778,6 +807,7 @@ _categories () {
 	from CAT
 	left join CAT_ATTS on CAT.entity_id=CAT_ATTS.entity_id
 	left join CAT_COUNTS on CAT.entity_id=CAT_COUNTS.category_id
+  ${where}
   group by CAT_ATTS.store_id,CAT.entity_id
 	order by CAT_ATTS.store_id,CAT.entity_id;
 
