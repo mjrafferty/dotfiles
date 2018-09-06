@@ -744,8 +744,6 @@ _categories () {
       pivot_atts+=",";
     fi
 
-    pivot_atts+="\n";
-
   done
 
   where="$(__whereBuilder ${columns[*]} ${attributes[*]})"
