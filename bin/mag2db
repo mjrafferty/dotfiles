@@ -705,18 +705,17 @@ _categories () {
   _connect <<- EOF
 
   CREATE TEMPORARY TABLE CCEA (
-    PRIMARY KEY (store_id,entity_id,attribute_id),
     KEY (attribute_id)
   ) as
   (
-    select attribute_id,store_id,entity_id,value
-    from ${PREFIX}catalog_category_entity_int
+    select *
+    from ${PREFIX}catalog_category_entity_varchar
   );
 
   INSERT INTO CCEA
   (
-    select attribute_id,store_id,entity_id,value
-    from ${PREFIX}catalog_category_entity_varchar
+    select *
+    from ${PREFIX}catalog_category_entity_int
   );
 
   create temporary table CAT_ATTS (
