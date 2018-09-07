@@ -346,22 +346,16 @@ EOF
 # Send results via email
 _email () {
 
-  local filename_stripped_path
+  gzip "${OUTPUT_FILE}"
 
-  filename_stripped_path="${OUTPUT_FILE##*/}"
-
-  cd "${OUTPUT_FILE%/*}" || exit 1;
-
-  tar -czf "${filename_stripped_path}.gz" "${filename_stripped_path}"
-
-  mail -s "Malware Results for $TICKET" -a "${filename_stripped_path}.gz" "$1" <<- EOF
+  mail -s "Malware Results for $TICKET" -a "${OUTPUT_FILE}.gz" "$1" <<- EOF
 Scan complete for ticket https://nocworx.nexcess.net/ticket/${TICKET}
 
 Results attached.
 
 EOF
 
-  rm "${OUTPUT_FILE}.gz"
+   gunzip "${OUTPUT_FILE}.gz"
 
 }
 
