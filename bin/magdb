@@ -551,7 +551,7 @@ _users () {
     lognum,is_active
 	from ${PREFIX}admin_role U
 	inner join ${PREFIX}admin_role P on U.parent_id=P.role_id
-	inner join ${PREFIX}admin_user on U.user_id=admin_user.user_id
+	inner join ${PREFIX}admin_user on U.user_id=${PREFIX}admin_user.user_id
 	order by role_name,lognum desc;
 
 EOF
