@@ -3,8 +3,6 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-readonly OS_VERSION=$("$GREP" -Po 'release \K\d' /etc/centos-release);
-
 readonly AWK='/bin/awk'
 readonly CAT='/bin/cat'
 readonly DF='/bin/df'
@@ -18,6 +16,7 @@ readonly SORT='/bin/sort'
 readonly TR='/usr/bin/tr'
 readonly WC='/usr/bin/wc'
 
+readonly OS_VERSION=$("$GREP" -Po 'release \K\d' /etc/centos-release);
 
 # Show usage
 _usage() {

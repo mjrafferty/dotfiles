@@ -8,11 +8,6 @@ readonly ARGA=("$@")
 CONFIG_FILE="app/etc/env.php"
 DEFAULTS_FILE="$HOME/.mag2db_defaults"
 
-BRIGHT=$("$TPUT" bold);
-NORMAL=$("$TPUT" sgr0);
-RED=$("$TPUT" setaf 1);
-GREEN=$("$TPUT" setaf 10);
-
 # Alias executables to prevent PATH issues
 readonly AWK="/bin/awk"
 readonly CAT="/bin/cat"
@@ -28,6 +23,11 @@ readonly SHUF="/usr/bin/shuf"
 readonly TPUT="/usr/bin/tput"
 readonly TR="/usr/bin/tr"
 readonly WC="/usr/bin/wc"
+
+BRIGHT=$("$TPUT" bold);
+NORMAL=$("$TPUT" sgr0);
+RED=$("$TPUT" setaf 1);
+GREEN=$("$TPUT" setaf 10);
 
 if [[ -e "/opt/nexcess/php70u/root/usr/bin/php" ]];then
   PHP="/opt/nexcess/php70u/root/usr/bin/php";

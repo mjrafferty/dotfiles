@@ -3,9 +3,6 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-readonly OUTPUT_FILE="${TICKETDIR-$HOME}maldetscan_$("$DATE" "+%F-%T")"
-readonly DEFAULT_EMAIL="support@nexcess.net";
-
 readonly AWK='/bin/awk'
 readonly CAT='/bin/cat'
 readonly DATE='/bin/date'
@@ -24,6 +21,9 @@ readonly TEE='/usr/bin/tee'
 readonly TPUT='/usr/bin/tput'
 readonly XARGS='/usr/bin/xargs'
 readonly WC='/usr/bin/wc'
+
+readonly OUTPUT_FILE="${TICKETDIR-$HOME}maldetscan_$("$DATE" "+%F-%T")"
+readonly DEFAULT_EMAIL="support@nexcess.net";
 
 MALDET_OUTPUT="$("$MKTEMP")"
 DATA_LIST="$("$MKTEMP")"
