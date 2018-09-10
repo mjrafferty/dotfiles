@@ -41,20 +41,20 @@ _rules() {
 	$IPTABLES -A icmp_allowed -p icmp -j DROP
 
 	#Incoming traffic
-	echo "Creating incoming ssh traffic chain"
+	echo "Creating incoming "$SSH" traffic chain"
 	$IPTABLES -N allow-ssh-traffic-in
 	$IPTABLES -F allow-ssh-traffic-in
 	#Flood protection
-	$IPTABLES -A allow-ssh-traffic-in -m limit --limit 1/second -p tcp --tcp-flags ALL RST --dport ssh -j ACCEPT
-	$IPTABLES -A allow-ssh-traffic-in -m limit --limit 1/second -p tcp --tcp-flags ALL FIN --dport ssh -j ACCEPT
-	$IPTABLES -A allow-ssh-traffic-in -m limit --limit 1/second -p tcp --tcp-flags ALL SYN --dport ssh -j ACCEPT
-	$IPTABLES -A allow-ssh-traffic-in -m state --state RELATED,ESTABLISHED -p tcp --dport ssh -j ACCEPT
+	$IPTABLES -A allow-ssh-traffic-in -m limit --limit 1/second -p tcp --tcp-flags ALL RST --dport "$SSH" -j ACCEPT
+	$IPTABLES -A allow-ssh-traffic-in -m limit --limit 1/second -p tcp --tcp-flags ALL FIN --dport "$SSH" -j ACCEPT
+	$IPTABLES -A allow-ssh-traffic-in -m limit --limit 1/second -p tcp --tcp-flags ALL SYN --dport "$SSH" -j ACCEPT
+	$IPTABLES -A allow-ssh-traffic-in -m state --state RELATED,ESTABLISHED -p tcp --dport "$SSH" -j ACCEPT
 
 	#outgoing traffic
-	echo "Creating outgoing ssh traffic chain"
+	echo "Creating outgoing "$SSH" traffic chain"
 	$IPTABLES -N allow-ssh-traffic-out
 	$IPTABLES -F allow-ssh-traffic-out
-	$IPTABLES -A allow-ssh-traffic-out -p tcp --dport ssh -j ACCEPT
+	$IPTABLES -A allow-ssh-traffic-out -p tcp --dport "$SSH" -j ACCEPT
 
 	echo "Creating outgoing dns traffic chain"
 	$IPTABLES -N allow-dns-traffic-out

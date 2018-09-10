@@ -3,6 +3,9 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly GREP='/bin/grep'
+readonly LESS='/bin/less'
+
 main () {
 
   if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
@@ -13,8 +16,8 @@ main () {
   echo;
 
   zgrep -h " = -1 E" ${ARGA[*]}\
-    | grep -Ev "( (access|lstat|stat)\(|(EAGAIN|EOPNOTSUPP|EINPROGRESS))" \
-    | less -SF
+    | "$GREP" -Ev "( (access|lstat|stat)\(|(EAGAIN|EOPNOTSUPP|EINPROGRESS))" \
+    | "$LESS" -SF
 
   echo;
 

@@ -4,29 +4,23 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-# Configurable Variables
-readonly OS_VERSION=$(grep -Po 'release \K\d' /etc/centos-release);
-
 # Alias executables to prevent PATH issues
-alias awk='/bin/awk'
-alias cat='/bin/cat'
-alias cut='/bin/cut'
-alias df='/bin/df'
-alias find='/bin/find'
-alias grep='/bin/grep'
-alias head='/usr/bin/head'
-alias mysql='/usr/bin/mysql'
-alias ps='/bin/ps'
-alias sed='/bin/sed'
-alias sort='/bin/sort'
-alias wc='/usr/bin/wc'
+readonly AWK='/bin/awk'
+readonly CAT='/bin/cat'
+readonly FIND='/bin/find'
+readonly GREP='/bin/grep'
+readonly PS='/bin/ps'
+readonly SED='/bin/sed'
+
+# Configurable Variables
+readonly OS_VERSION=$("$GREP" -Po 'release \K\d' /etc/centos-release);
 
 # Necessary Global Variables
 PROCESS_DATA=""
 
 # Show usage
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Verify crucial services are running and report if they are not. If
   no flags are specified, all are checked.
@@ -97,23 +91,23 @@ _php() {
   local configured_phps running_phps php_instances x
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_phps < <(find /etc/systemd -name 'php*.service' | grep -Po '[^/]*(?=.service)');
+    mapfile -t configured_phps < <("$FIND" /etc/systemd -name 'php*.service' | "$GREP" -Po '[^/]*(?=.service)');
   else
-    mapfile -t configured_phps < <(find /etc/rc.d/rc3.d/ -name 'S*php*fpm' | grep -Po '...\Kphp.*fpm');
+    mapfile -t configured_phps < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*php*fpm' | "$GREP" -Po '...\Kphp.*fpm');
   fi
-  mapfile -t running_phps < <(echo "$PROCESS_DATA" | awk '/php-fpm.*master/ { gsub(/\(|\)/,"",$6); print $6}');
+  mapfile -t running_phps < <(echo "$PROCESS_DATA" | "$AWK" '/php-fpm.*master/ { gsub(/\(|\)/,"",$6); print $6}');
 
   if (( ${#running_phps[@]} < ${#configured_phps[@]} )); then
 
     if (( OS_VERSION == 7 )); then
-      php_instances=$(echo "$PROCESS_DATA" | grep -Po 'php-fpm: master process.*\(\K\S*php-fpm.conf' | sed -r -e 's/.*(php[0-9]{2}).*/\1-php-fpm/' -e 's/^\/etc\/(php-fpm).*/\1/')
+      php_instances=$(echo "$PROCESS_DATA" | "$GREP" -Po 'php-fpm: master process.*\(\K\S*php-fpm.conf' | "$SED" -r -e 's/.*(php[0-9]{2}).*/\1-php-fpm/' -e 's/^\/etc\/(php-fpm).*/\1/')
     else
-      php_instances=$(echo "$PROCESS_DATA" | grep -Po "php-fpm: master process \(\K.*" | sed -rn -e 's/.*(php[0-9]{2}u).*(php-fpm).*/\1-\2/p' -e 's/^\/etc\/(php-fpm).*/\1/p')
+      php_instances=$(echo "$PROCESS_DATA" | "$GREP" -Po "php-fpm: master process \(\K.*" | "$SED" -rn -e 's/.*(php[0-9]{2}u).*(php-fpm).*/\1-\2/p' -e 's/^\/etc\/(php-fpm).*/\1/p')
     fi
 
     for x in ${configured_phps[*]}; do
 
-      if ! echo "$php_instances" | grep -qx "$x"; then
+      if ! echo "$php_instances" | "$GREP" -qx "$x"; then
 
         echo "$x is DOWN";
 
@@ -129,11 +123,11 @@ _httpd () {
   local configured_httpd running_httpd;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_httpd < <(find /etc/systemd -name 'httpd.service' );
+    mapfile -t configured_httpd < <("$FIND" /etc/systemd -name 'httpd.service' );
   else
-    mapfile -t configured_httpd < <(find /etc/rc.d/rc3.d/ -name 'S*httpd' );
+    mapfile -t configured_httpd < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*httpd' );
   fi
-  mapfile -t running_httpd < <(echo "$PROCESS_DATA" | grep -Po "^root.*\Khttpd");
+  mapfile -t running_httpd < <(echo "$PROCESS_DATA" | "$GREP" -Po "^root.*\Khttpd");
 
   if (( ${#running_httpd[@]} < ${#configured_httpd[@]} )); then
 
@@ -148,14 +142,14 @@ _memcached() {
 
   local configured_memcached running_memcached x;
 
-  mapfile -t configured_memcached < <(find /etc/{sysconfig,memcached-multi} -type f -not -name "*.rpmnew" 2> /dev/null | grep -Po '/etc/(sysconfig/\Kmemcached\.|memcached-multi/\K).*');
-  mapfile -t running_memcached < <(echo "$PROCESS_DATA" | awk '{ if ($3=="memcached" && $8!="memcached"){print $0}}' | grep -Po '[^/]*(?=.pid.*)');
+  mapfile -t configured_memcached < <("$FIND" /etc/{sysconfig,memcached-multi} -type f -not -name "*.rpmnew" 2> /dev/null | "$GREP" -Po '/etc/(sysconfig/\Kmemcached\.|memcached-multi/\K).*');
+  mapfile -t running_memcached < <(echo "$PROCESS_DATA" | "$AWK" '{ if ($3=="memcached" && $8!="memcached"){print $0}}' | "$GREP" -Po '[^/]*(?=.pid.*)');
 
   if (( ${#running_memcached[@]} < ${#configured_memcached[@]} )); then
 
     for x in ${configured_memcached[*]}; do
 
-      if ! echo "${running_memcached[*]}" | grep -Pq "\s*${x}\s*"; then
+      if ! echo "${running_memcached[*]}" | "$GREP" -Pq "\s*${x}\s*"; then
 
         echo "Memcached instance $x is DOWN";
 
@@ -170,8 +164,8 @@ _redis() {
 
   local configured_redis running_redis x;
 
-  mapfile -t configured_redis < <(grep -PoH '^\s*\Kport.*' /etc/redis-multi/* 2> /dev/null | sed -r 's|/etc/redis-multi/((redis-multi_)?.*).conf:port (\d*)|\1+\3|');
-  mapfile -t running_redis < <(echo "$PROCESS_DATA" | grep -Po 'redis-server 127.0.0.1:\K\d*' );
+  mapfile -t configured_redis < <("$GREP" -PoH '^\s*\Kport.*' /etc/redis-multi/* 2> /dev/null | "$SED" -r 's|/etc/redis-multi/((redis-multi_)?.*).conf:port (\d*)|\1+\3|');
+  mapfile -t running_redis < <(echo "$PROCESS_DATA" | "$GREP" -Po 'redis-server 127.0.0.1:\K\d*' );
 
   if (( ${#running_redis[@]} < ${#configured_redis[@]} )); then
 
@@ -181,13 +175,13 @@ _redis() {
 
         if [[ ${x/*+/} != "0" ]]; then
 
-          if ! echo "${running_redis[*]}" | grep -Pq "^${x}$"; then
+          if ! echo "${running_redis[*]}" | "$GREP" -Pq "^${x}$"; then
 
             echo "Redis instance ${x/+[0-9]*/} is DOWN";
 
           fi
 
-        elif ! grep -Pq "\s+/var/run/redis-multi-${x/+[0-9]*/}/redis.sock" /proc/net/unix; then
+        elif ! "$GREP" -Pq "\s+/var/run/redis-multi-${x/+[0-9]*/}/redis.sock" /proc/net/unix; then
 
           echo "Redis instance ${x/+[0-9]*/} is DOWN";
 
@@ -196,13 +190,13 @@ _redis() {
 
         if [[ ${x/*+/} != "0" ]]; then
 
-          if ! echo "${running_redis[*]}" | grep -Pq "^${x}$"; then
+          if ! echo "${running_redis[*]}" | "$GREP" -Pq "^${x}$"; then
 
             echo "Redis instance ${x/+[0-9]*/} is DOWN";
 
           fi
 
-        elif ! grep -Pq "\s+/var/(tmp|run/redis-multi)/${x/+[0-9]*/}.sock" /proc/net/unix; then
+        elif ! "$GREP" -Pq "\s+/var/(tmp|run/redis-multi)/${x/+[0-9]*/}.sock" /proc/net/unix; then
 
           echo "Redis instance ${x/+[0-9]*/} is DOWN";
 
@@ -219,11 +213,11 @@ _mysqld() {
   local configured_mysqld running_mysqld;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_mysqld < <(find /etc/systemd -name 'mysqld.service');
+    mapfile -t configured_mysqld < <("$FIND" /etc/systemd -name 'mysqld.service');
   else
-    mapfile -t configured_mysqld < <(find /etc/rc.d/rc3.d/ -name 'S*mysqld');
+    mapfile -t configured_mysqld < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*mysqld');
   fi
-  mapfile -t running_mysqld < <(echo "$PROCESS_DATA" | grep -Po "\s*\K/usr/(libexec|sbin)/mysqld\s*");
+  mapfile -t running_mysqld < <(echo "$PROCESS_DATA" | "$GREP" -Po "\s*\K/usr/(libexec|sbin)/mysqld\s*");
 
   if (( ${#running_mysqld[@]} < ${#configured_mysqld[@]} )); then
 
@@ -239,11 +233,11 @@ _haproxy() {
   local configured_haproxy running_haproxy
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_haproxy < <(find /etc/systemd -name 'haproxy.service');
+    mapfile -t configured_haproxy < <("$FIND" /etc/systemd -name 'haproxy.service');
   else
-    mapfile -t configured_haproxy < <(find /etc/rc.d/rc3.d/ -name 'S*haproxy');
+    mapfile -t configured_haproxy < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*haproxy');
   fi
-  mapfile -t running_haproxy < <(echo "$PROCESS_DATA" | grep -Po "\S*haproxy ");
+  mapfile -t running_haproxy < <(echo "$PROCESS_DATA" | "$GREP" -Po "\S*haproxy ");
 
   if (( ${#running_haproxy[@]} < ${#configured_haproxy[@]} )); then
 
@@ -259,11 +253,11 @@ _varnish() {
   local configured_varnish running_varnish;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_varnish < <(find /etc/systemd -name 'varnish.service');
+    mapfile -t configured_varnish < <("$FIND" /etc/systemd -name 'varnish.service');
   else
-    mapfile -t configured_varnish < <(find /etc/rc.d/rc3.d/ -name 'S*varnish');
+    mapfile -t configured_varnish < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*varnish');
   fi
-  mapfile -t running_varnish < <(echo "$PROCESS_DATA" | grep -Po "\S*varnish ");
+  mapfile -t running_varnish < <(echo "$PROCESS_DATA" | "$GREP" -Po "\S*varnish ");
 
   if (( ${#running_varnish[@]} < ${#configured_varnish[@]} )); then
 
@@ -279,11 +273,11 @@ _pound() {
   local configured_pound running_pound;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_pound < <(find /etc/systemd -name 'pound.service');
+    mapfile -t configured_pound < <("$FIND" /etc/systemd -name 'pound.service');
   else
-    mapfile -t configured_pound < <(find /etc/rc.d/rc3.d/ -name 'S*pound');
+    mapfile -t configured_pound < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*pound');
   fi
-  mapfile -t running_pound < <(echo "$PROCESS_DATA" | grep -Po "\S*pound ");
+  mapfile -t running_pound < <(echo "$PROCESS_DATA" | "$GREP" -Po "\S*pound ");
 
   if (( ${#running_pound[@]} < ${#configured_pound[@]} )); then
 
@@ -299,11 +293,11 @@ _nginx() {
   local configured_nginx running_nginx;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_nginx < <(find /etc/systemd -name 'nginx.service');
+    mapfile -t configured_nginx < <("$FIND" /etc/systemd -name 'nginx.service');
   else
-    mapfile -t configured_nginx < <(find /etc/rc.d/rc3.d/ -name 'S*nginx');
+    mapfile -t configured_nginx < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*nginx');
   fi
-  mapfile -t running_nginx < <(echo "$PROCESS_DATA" | grep -Po "nginx:\s+master\s+process\s+\K/usr/sbin/nginx");
+  mapfile -t running_nginx < <(echo "$PROCESS_DATA" | "$GREP" -Po "nginx:\s+master\s+process\s+\K/usr/sbin/nginx");
 
   if (( ${#running_nginx[@]} < ${#configured_nginx[@]} )); then
 
@@ -316,7 +310,7 @@ _nginx() {
 # Main
 main () {
 
-  PROCESS_DATA=$(ps -C php-fpm,httpd,memcached,redis-server,mysqld,haproxy,varnishd,pound,nginx -o user,pid,cmd);
+  PROCESS_DATA=$("$PS" -C php-fpm,httpd,memcached,redis-server,mysqld,haproxy,varnishd,pound,nginx -o user,pid,cmd);
 
   while getopts "hpaMrmHvP" OPTION $(_cmdline); do
 

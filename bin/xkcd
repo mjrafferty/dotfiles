@@ -3,8 +3,17 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly AWK='/bin/awk'
+readonly CAT='/bin/cat'
+readonly GREP='/bin/grep'
+readonly HEAD='/usr/bin/head'
+readonly SED='/bin/sed'
+readonly SHUF='/usr/bin/shuf'
+readonly TR='/usr/bin/tr'
+readonly WC='/usr/bin/wc'
+
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Usage: xkcd [-l <length>]
 
@@ -35,7 +44,7 @@ main () {
 
   if [[ -x /usr/bin/shuf ]]; then
 
-    pass=$(shuf -n1000 "$wordList" | grep -E '^[a-z,A-Z]{4,12}$' | head -n4 | sed 's/^\([a-z]\)/\u\1/' | tr -d '\n| ');
+    pass=$("$SHUF" -n1000 "$wordList" | "$GREP" -E '^[a-z,A-Z]{4,12}$' | "$HEAD" -n4 | "$SED" 's/^\([a-z]\)/\u\1/' | "$TR" -d '\n| ');
 
     echo "$pass"$(( (RANDOM % 9000) + 1000 ));
 
@@ -43,15 +52,15 @@ main () {
 
     word=();
 
-    matchList=$(grep -E '^[a-z,A-Z]{4,12}$' $wordList);
+    matchList=$("$GREP" -E '^[a-z,A-Z]{4,12}$' $wordList);
     IFS=" "
-    wcount=$(echo "$matchList" | wc -l | awk '{print $1}')
+    wcount=$(echo "$matchList" | "$WC" -l | "$AWK" '{print $1}')
 
     for ((x=0;x<4;x++)) do
 
       rnd=$((RANDOM % wcount))
 
-      word[$x]=$(echo "$matchList" | sed -n "${rnd}p" | sed 's/^\([a-z]\)/\u\1/');
+      word[$x]=$(echo "$matchList" | "$SED" -n "${rnd}p" | "$SED" 's/^\([a-z]\)/\u\1/');
 
     done;
 

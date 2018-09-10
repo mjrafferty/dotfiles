@@ -2,6 +2,18 @@
 
 ## Show backupserver and disk usage for current home directory
 
+readonly AWK='/bin/awk'
+readonly CURL='/usr/bin/curl'
+readonly CUT='/bin/cut'
+readonly DIG='/usr/bin/dig'
+readonly GREP='/bin/grep'
+readonly HEAD='/usr/bin/head'
+readonly SED='/bin/sed'
+readonly SORT='/bin/sort'
+readonly TAIL='/usr/bin/tail'
+readonly TR='/usr/bin/tr'
+
+
 ## Print some dashes
 dashes () {
 
@@ -21,16 +33,16 @@ _printbackupsvr () {
 
     for x in $internal; do
 
-      internal=$(curl -s http://mdsc.info/r1bs-internal);
+      internal=$("$CURL" -s http://mdsc.info/r1bs-internal);
       echo -n "$x" \
-        | awk -F_ "/$1/"'{printf "R1Soft IP..: https://"$3":8001\n" "R1Soft rDNS: https://"$2":8001\n"}';
+        | "$AWK" -F_ "/$1/"'{printf "R1Soft IP..: https://"$3":8001\n" "R1Soft rDNS: https://"$2":8001\n"}';
 
     done
 
   else
 
     ip=$1;
-    rdns=$(dig +short -x "$1" 2> /dev/null);
+    rdns=$("$DIG" +short -x "$1" 2> /dev/null);
 
     echo "R1Soft IP..: https://${ip}:8001";
 
@@ -47,21 +59,21 @@ main () {
 
   local new_ipaddr all_ipaddr firstseen lastseen ipaddr;
 
-  new_ipaddr=$(awk -F/ '/server.allow/ {print $NF}' /usr/sbin/r1soft/log/cdp.log \
-    | tail -1 \
-    | tr -d \' \
-    | sed 's/10\.17\./178\.17\./g; s/10\.1\./103\.1\./g; s/10\.240\./192\.240\./g');
+  new_ipaddr=$("$AWK" -F/ '/server.allow/ {print $NF}' /usr/sbin/r1soft/log/cdp.log \
+    | "$TAIL" -1 \
+    | "$TR" -d \' \
+    | "$SED" 's/10\.17\./178\.17\./g; s/10\.1\./103\.1\./g; s/10\.240\./192\.240\./g');
 
-  all_ipaddr=$(awk -F/ '/server.allow/ {print $NF}' /usr/sbin/r1soft/log/cdp.log \
-    | sort \
+  all_ipaddr=$("$AWK" -F/ '/server.allow/ {print $NF}' /usr/sbin/r1soft/log/cdp.log \
+    | "$SORT" \
     | uniq \
-    | tr -d \' \
-    | sed 's/10\.17\./178\.17\./g; s/10\.1\./103\.1\./g; s/10\.240\./192\.240\./g');
+    | "$TR" -d \' \
+    | "$SED" 's/10\.17\./178\.17\./g; s/10\.1\./103\.1\./g; s/10\.240\./192\.240\./g');
 
-  firstseen=$(grep "$(echo "$new_ipaddr" \
-    | cut -d. -f2-)" /usr/sbin/r1soft/log/cdp.log \
-    | head -1 \
-    | awk '{print $1}');
+  firstseen=$("$GREP" "$(echo "$new_ipaddr" \
+    | "$CUT" -d. -f2-)" /usr/sbin/r1soft/log/cdp.log \
+    | "$HEAD" -1 \
+    | "$AWK" '{print $1}');
 
   echo "----- Current R1Soft Server ----- $firstseen] $(dashes 32)";
 
@@ -71,7 +83,7 @@ main () {
 
     if [[ $ipaddr != "$new_ipaddr" ]]; then
 
-      lastseen=$(grep "$(echo "$ipaddr" | cut -d. -f2-)" /usr/sbin/r1soft/log/cdp.log | tail -1 | awk '{print $1}');
+      lastseen=$("$GREP" "$(echo "$ipaddr" | "$CUT" -d. -f2-)" /usr/sbin/r1soft/log/cdp.log | "$TAIL" -1 | "$AWK" '{print $1}');
 
       echo "----- Previous R1Soft Server ----- $lastseen] $(dashes 31)"; _printbackupsvr "$ipaddr"
 

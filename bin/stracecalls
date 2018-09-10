@@ -3,8 +3,14 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly AWK='/bin/awk'
+readonly COLUMN='/usr/bin/column'
+readonly HEAD='/usr/bin/head'
+readonly SORT='/bin/sort'
+readonly ZLESS='/usr/bin/zless'
+
 _awkStuff () {
-	awk '
+	"$AWK" '
 	{
 		gsub(/<|>/,"",$(NF));
 
@@ -41,11 +47,11 @@ main () {
 
 	echo;
 	(printf "syscall\ttime\tquantity\n%s\t%s\t%s\n" "----------" "----------" "----------"
-	zless ${ARGA[*]} \
+	"$ZLESS" ${ARGA[*]} \
 		| _awkStuff  \
-		| sort -k2nr) \
-		| head -n30 \
-		| column -t
+		| "$SORT" -k2nr) \
+		| "$HEAD" -n30 \
+		| "$COLUMN" -t
 
 	echo;
 

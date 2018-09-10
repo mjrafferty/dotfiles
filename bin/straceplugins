@@ -3,16 +3,19 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly SED='/bin/sed'
+readonly SORT='/bin/sort'
+
 main () {
 
   straceopened ${ARGA[*]} \
-    | sed -n \
+    | "$SED" -n \
     -e 's_app/code/local/\([^/]*/[^/]*\)/.*_\1_p' \
     -e 's_app/code/community/\([^/]*/[^/]*\)/.*_\1_p' \
     -e 's_wp-content/plugins/\([^/]*\)/.*_\1_p' \
-    | sort \
+    | "$SORT" \
     | uniq -c \
-    | sort -hr
+    | "$SORT" -hr
 
 
 }

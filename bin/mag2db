@@ -8,26 +8,26 @@ readonly ARGA=("$@")
 CONFIG_FILE="app/etc/env.php"
 DEFAULTS_FILE="$HOME/.mag2db_defaults"
 
-BRIGHT=$(tput bold);
-NORMAL=$(tput sgr0);
-RED=$(tput setaf 1);
-GREEN=$(tput setaf 10);
+BRIGHT=$("$TPUT" bold);
+NORMAL=$("$TPUT" sgr0);
+RED=$("$TPUT" setaf 1);
+GREEN=$("$TPUT" setaf 10);
 
 # Alias executables to prevent PATH issues
-alias awk="/bin/awk"
-alias cat="/bin/cat"
-alias chmod="/bin/chmod --preserve-root"
-alias cut="/bin/cut"
-alias fold="/usr/bin/fold"
-alias grep="/bin/grep"
-alias head="/usr/bin/head"
-alias less="/bin/less"
-alias mysql="/usr/bin/mysql"
-alias sed="/bin/sed"
-alias shuf="/usr/bin/shuf"
-alias tput="/usr/bin/tput"
-alias tr="/usr/bin/tr"
-alias wc="/usr/bin/wc"
+readonly AWK="/bin/awk"
+readonly CAT="/bin/cat"
+readonly CHMOD="/bin/chmod --preserve-root"
+readonly CUT="/bin/cut"
+readonly FOLD="/usr/bin/fold"
+readonly GREP="/bin/grep"
+readonly HEAD="/usr/bin/head"
+readonly LESS="/bin/less"
+readonly MYSQL="/usr/bin/mysql"
+readonly SED="/bin/sed"
+readonly SHUF="/usr/bin/shuf"
+readonly TPUT="/usr/bin/tput"
+readonly TR="/usr/bin/tr"
+readonly WC="/usr/bin/wc"
 
 if [[ -e "/opt/nexcess/php70u/root/usr/bin/php" ]];then
   PHP="/opt/nexcess/php70u/root/usr/bin/php";
@@ -45,13 +45,13 @@ PREFIX=""
 if [[ -e $CONFIG_FILE ]]; then
   SITEPATH="$PWD"
 else
-  SITEPATH="$(pwd | grep -Po '(/chroot)?/home(/[^/]+){2}')"
+  SITEPATH="$(pwd | "$GREP" -Po '(/chroot)?/home(/[^/]+){2}')"
 fi
 
 # Print usage
 _usage() {
 
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Usage: mag2db <option>
 
@@ -170,7 +170,7 @@ _xkcd () {
 
   if [[ -x /usr/bin/shuf ]]; then
 
-    pass=$(shuf -n1000 "$wordList" | grep -E '^[a-z,A-Z]{4,12}$' | head -n4 | sed 's/^\([a-z]\)/\u\1/' | tr -d '\n| ');
+    pass=$("$SHUF" -n1000 "$wordList" | "$GREP" -E '^[a-z,A-Z]{4,12}$' | "$HEAD" -n4 | "$SED" 's/^\([a-z]\)/\u\1/' | "$TR" -d '\n| ');
 
     echo "$pass"$(( (RANDOM % 9000) + 1000 ));
 
@@ -178,15 +178,15 @@ _xkcd () {
 
     word=();
 
-    matchList=$(grep -E '^[a-z,A-Z]{4,12}$' $wordList);
+    matchList=$("$GREP" -E '^[a-z,A-Z]{4,12}$' $wordList);
     IFS=" "
-    wcount=$(echo "$matchList" | wc -l | awk '{print $1}')
+    wcount=$(echo "$matchList" | "$WC" -l | "$AWK" '{print $1}')
 
     for ((x=0;x<4;x++)) do
 
       rnd=$((RANDOM % wcount))
 
-      word[$x]=$(echo "$matchList" | sed -n "${rnd}p" | sed 's/^\([a-z]\)/\u\1/');
+      word[$x]=$(echo "$matchList" | "$SED" -n "${rnd}p" | "$SED" 's/^\([a-z]\)/\u\1/');
 
     done;
 
@@ -203,13 +203,13 @@ _getConfig () {
 
   if [[ -f $SITEPATH/$CONFIG_FILE ]]; then #Magento
 
-    config="$(grep -A16 \'db\' "$SITEPATH/$CONFIG_FILE")"
+    config="$("$GREP" -A16 \'db\' "$SITEPATH/$CONFIG_FILE")"
 
-    DBHOST="$(echo "$config" | grep \'host\' | cut -d\' -f4 | head -n1)"
-    DBNAME="$(echo "$config" | grep \'dbname\' | cut -d\' -f4 | head -n1)"
-    DBUSER="$(echo "$config" | grep \'username\' | cut -d\' -f4 | head -n1)"
-    DBPASS="$(echo "$config" | grep \'password\' | cut -d\' -f4 | head -n1)"
-    PREFIX="$(echo "$config" | grep \'table_prefix\' | cut -d\' -f4 | head -n1)"
+    DBHOST="$(echo "$config" | "$GREP" \'host\' | "$CUT" -d\' -f4 | "$HEAD" -n1)"
+    DBNAME="$(echo "$config" | "$GREP" \'dbname\' | "$CUT" -d\' -f4 | "$HEAD" -n1)"
+    DBUSER="$(echo "$config" | "$GREP" \'username\' | "$CUT" -d\' -f4 | "$HEAD" -n1)"
+    DBPASS="$(echo "$config" | "$GREP" \'password\' | "$CUT" -d\' -f4 | "$HEAD" -n1)"
+    PREFIX="$(echo "$config" | "$GREP" \'table_prefix\' | "$CUT" -d\' -f4 | "$HEAD" -n1)"
 
   else
 
@@ -224,9 +224,9 @@ _summary () {
 
   local version
 
-  version="$(grep "magento/product" "$SITEPATH/composer.json" | cut -d\" -f4)"
+  version="$("$GREP" "magento/product" "$SITEPATH/composer.json" | "$CUT" -d\" -f4)"
 
-  cat <<-EOF
+  "$CAT" <<-EOF
 
   ${BRIGHT}Magento: ${GREEN}${version}${NORMAL}
   ${BRIGHT}Connection Summary: ${GREEN}${DBUSER}:${DBNAME}${NORMAL}
@@ -235,10 +235,10 @@ EOF
 
 }
 
-# Make mysql defaults file
+# Make "$MYSQL" defaults file
 _makeDefaultsFile () {
 
-  cat <<- EOF > "$DEFAULTS_FILE"
+  "$CAT" <<- EOF > "$DEFAULTS_FILE"
 [client_magdb]
 database = "$DBNAME"
 user =  "$DBUSER"
@@ -246,7 +246,7 @@ password = "$DBPASS"
 host = "$DBHOST"
 EOF
 
-  chmod 600 "$DEFAULTS_FILE";
+  "$CHMOD" 600 "$DEFAULTS_FILE";
 
 }
 
@@ -255,7 +255,7 @@ _connect () {
 
   _summary;
 
-  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t | less -RSF;
+  "$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t | "$LESS" -RSF;
 
 }
 
@@ -264,7 +264,7 @@ _connecti () {
 
   _summary;
 
-  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb";
+  "$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb";
 
 }
 
@@ -280,7 +280,7 @@ _admin () {
 
   password=$(_xkcd);
 
-  user="$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*')"
+  user="$(pwd | "$GREP" -Po '^(/chroot)?/home/\K[^/]*')"
 
   if [[ "$USER" == "$user" ]]; then
     php "$SITEPATH/bin/magento" admin:user:create --admin-user "$username" --admin-password "$password" \
@@ -290,7 +290,7 @@ _admin () {
       --admin-email "$emailaddr" --admin-firstname "$firstname" --admin-lastname "$lastname"
   fi
 
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Username: $username
   Password: $password
@@ -330,7 +330,7 @@ EOF
 _info () {
 
 
-  cat <<- EOF
+  "$CAT" <<- EOF
   ${BRIGHT}Database Info:${NORMAL}
 
   ${BRIGHT}Username:${NORMAL} $DBUSER
@@ -388,7 +388,7 @@ _password () {
 
   fi
 
-  salt="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 32 | head -n1)"
+  salt="$("$TR" -dc 'a-zA-Z0-9' < /dev/urandom | "$FOLD" -w 32 | "$HEAD" -n1)"
 
   _connect <<- EOF
 
@@ -398,7 +398,7 @@ _password () {
 
 EOF
 
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   New Magento Login Credentials:
 
@@ -815,7 +815,7 @@ EOF
 # Clean up before exit
 _cleanUp () {
 
-  rm "$DEFAULTS_FILE";
+  "$RM" "$DEFAULTS_FILE";
 
 }
 

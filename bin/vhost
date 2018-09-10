@@ -3,15 +3,15 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-alias cat='/bin/cat'
-alias column='/usr/bin/column'
-alias grep='/bin/grep'
-alias sed='/bin/sed'
-alias tr='/usr/bin/tr'
-alias nano='/bin/nano'
+readonly CAT='/bin/cat'
+readonly COLUMN='/usr/bin/column'
+readonly GREP='/bin/grep'
+readonly SED='/bin/sed'
+readonly TR='/usr/bin/tr'
+readonly NANO='/bin/nano'
 
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
 When run with no arguments, it will attempt to open the vhost relevant
 to your current working directory. If run from a user's home directory,
@@ -32,15 +32,15 @@ main () {
 
   if [  -n "${ARGA[0]}" ]; then
 
-    domain=$(echo "${ARGA[0]}" | sed -r -e 's_https?://__' -e 's_/$__' | tr "[:upper:]" "[:lower:]");
+    domain=$(echo "${ARGA[0]}" | "$SED" -r -e 's_https?://__' -e 's_/$__' | "$TR" "[:upper:]" "[:lower:]");
 
   else
 
-    domain="$(pwd | grep -o '/home/[^/]*/[^/]*')";
+    domain="$(pwd | "$GREP" -o '/home/[^/]*/[^/]*')";
 
   fi
 
-  mapfile -t vhost < <(grep -l "$domain" /etc/httpd/conf.d/vhost*);
+  mapfile -t vhost < <("$GREP" -l "$domain" /etc/httpd/conf.d/vhost*);
 
   if [ -z "${vhost[0]}" ]; then
 
@@ -56,7 +56,7 @@ main () {
       echo "$i  ${vhost[$i]}";
 
     done \
-      | column -t;
+      | "$COLUMN" -t;
 
     echo;
 

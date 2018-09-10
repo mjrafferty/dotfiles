@@ -2,12 +2,20 @@
 
 ## Check/Enable/Disable Local Delivery for domain(s)
 
-
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly AWK='/bin/awk'
+readonly CAT='/bin/cat'
+readonly COLUMN='/usr/bin/column'
+readonly CUT='/bin/cut'
+readonly GREP='/bin/grep'
+readonly HEAD='/usr/bin/head'
+readonly SED='/bin/sed'
+
+
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Usage: localDelivery [option] [domain]
     -c | --check [domain|all] . Check Local Delivery status for domain(s)
@@ -25,10 +33,10 @@ _localDeliveryCheck(){
 
   echo;
   echo "----- Local Delivery Status -----"
-  sudo -u "$unixuser" -- siteworx -u -n -c EmailRemotesetup -a listLocalDeliveryStatus | awk '{print $1,$NF}' \
-    | grep -E "^${domain}"\
-    | sed "s/0$/${BRIGHT}${RED}Disabled${NORMAL}/g;s/1$/${BRIGHT}${GREEN}Enabled${NORMAL}/g" \
-    | column -t;
+  sudo -u "$unixuser" -- siteworx -u -n -c EmailRemotesetup -a listLocalDeliveryStatus | "$AWK" '{print $1,$NF}' \
+    | "$GREP" -E "^${domain}"\
+    | "$SED" "s/0$/Disabled/g;s/1$/Enabled/g" \
+    | "$COLUMN" -t;
   echo
 
 }
@@ -43,15 +51,15 @@ main () {
   elif [[ -n ${ARGA[1]} ]]; then
     domain="${ARGA[1]/\//}";
   else
-    domain=$(pwd | sed 's:^/chroot::' | cut -d/ -f4);
+    domain=$(pwd | "$SED" 's:^/chroot::' | "$CUT" -d/ -f4);
   fi
 
 
   # Sets user variable
   if [[ -n ${ARGA[1]} && ${#ARGA[1]} -gt 3 ]]; then
 
-    vhostfile=$(grep -l " $(echo "$domain" | sed 's/\(.*\)/\L\1/g')" /etc/httpd/conf.d/vhost_*);
-    unixuser=$(awk '/SuexecUserGroup/ {print $2}' "$vhostfile" | head -1);
+    vhostfile=$("$GREP" -l " $(echo "$domain" | "$SED" 's/\(.*\)/\L\1/g')" /etc/httpd/conf.d/vhost_*);
+    unixuser=$("$AWK" '/SuexecUserGroup/ {print $2}' "$vhostfile" | "$HEAD" -1);
 
   else
 

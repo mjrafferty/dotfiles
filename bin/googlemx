@@ -5,8 +5,13 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly AWK='/bin/awk'
+readonly CAT='/bin/cat'
+readonly COLUMN='/usr/bin/column'
+readonly SORT='/bin/sort'
+
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Usage: googlemx OPTION DOMAIN
   EX: googlemx -a DOMAIN
@@ -25,7 +30,7 @@ _removeRecords () {
   local zoneid mxrecord
 
   zoneid="$1";
-  mxrecord=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid" | awk '($4 ~ /MX/) {print $1}')
+  mxrecord=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid" | "$AWK" '($4 ~ /MX/) {print $1}')
 
   echo "Removing old records";
   for x in $mxrecord; do
@@ -52,9 +57,9 @@ _listRecords () {
 
   echo;
   (sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid") \
-    | awk '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' \
-    | sort -nk3 \
-    | column -t;
+    | "$AWK" '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' \
+    | "$SORT" -nk3 \
+    | "$COLUMN" -t;
   echo;
 
 }
@@ -68,7 +73,7 @@ main () {
 
   local zoneid;
 
-  zoneid=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a listZones | awk "/${ARGA[1]}/"'{print $1}')
+  zoneid=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a listZones | "$AWK" "/${ARGA[1]}/"'{print $1}')
 
   if [[ ${ARGA[0]} = '-c' && -n ${ARGA[1]} ]]; then
 

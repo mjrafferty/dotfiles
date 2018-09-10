@@ -12,24 +12,26 @@ readonly PIPE_PREFIX="${TEMP_DIR}/nexcess_strace_pipe-"
 readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
 
 # Alias executables to prevent PATH issues
-alias cat='/bin/cat'
-alias chmod='/bin/chmod --preserve-root'
-alias chown='/bin/chown --preserve-root'
-alias dd='/bin/dd'
-alias find='/bin/find'
-alias grep='/bin/grep'
-alias mkdir='/bin/mkdir'
-alias mkfifo='/usr/bin/mkfifo'
-alias mv='/bin/mv'
-alias pkill='/usr/bin/pkill'
-alias rm='/bin/rm --preserve-root'
-alias sleep='/bin/sleep'
-alias strace='/usr/bin/strace'
+readonly CAT='/bin/cat'
+readonly CHMOD='/bin/chmod --preserve-root'
+readonly DATE='/bin/date'
+readonly DD='/bin/dd'
+readonly FIND='/bin/find'
+readonly GREP='/bin/grep'
+readonly MKDIR='/bin/mkdir'
+readonly MKFIFO='/usr/bin/mkfifo'
+readonly MV='/bin/mv'
+readonly PKILL='/usr/bin/pkill'
+readonly RM='/bin/rm --preserve-root'
+readonly SLEEP='/bin/sleep'
+readonly STRACE='/usr/bin/strace'
+readonly TAIL='/usr/bin/tail'
+readonly TR='/usr/bin/tr'
 
 if [[ -e /usr/bin/pigz ]]; then
-  alias gzip='/usr/bin/pigz';
+  readonly GZIP='/usr/bin/pigz';
 else
-  alias gzip='/bin/gzip';
+  readonly GZIP='/bin/gzip';
 fi
 
 # Necessary Global Variables
@@ -42,9 +44,9 @@ FILES_USED=()
 
 # Print usage
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
-  Captures strace and php GLOBALS variable information of one or matching
+  Captures "$STRACE" and php GLOBALS variable information of one or matching
   requests to a website. Outputs data to "$OUTPUT_DIR". Can also be run on each
   node of a cluster without conflict.
 
@@ -130,7 +132,7 @@ _addCode () {
   uri="$3";
   query="$4"
 
-  mv "$file"{,"$TMP_EXT"} || return 1;
+  "$MV" "$file"{,"$TMP_EXT"} || return 1;
 
   cp -a "$file""$TMP_EXT" "$file";
 
@@ -152,7 +154,7 @@ _addCode () {
     address_string="\$_SERVER[\"REMOTE_ADDR\"] == \"$address\" || (strlen(strstr(\$_SERVER[\"HTTP_X_FORWARDED_FOR\"],\"$address\"))>0)";
   fi
 
-  cat << EOF > "$file"
+  "$CAT" << EOF > "$file"
 <?php
   if((@($address_string)$uri_string)$query_string){
 
@@ -163,11 +165,11 @@ _addCode () {
 ?>
 EOF
 
-cat "$file""$TMP_EXT" >> "$file";
+"$CAT" "$file""$TMP_EXT" >> "$file";
 
 }
 
-# Perform strace of request
+# Perform "$STRACE" of request
 _strace () {
 
   local output pid str_pid daemon_time
@@ -175,19 +177,19 @@ _strace () {
   pid="$1";
   daemon_time="$2";
 
-  output="${OUTPUT_DIR}/$(date "+%F-%T")-$pid-strace";
+  output="${OUTPUT_DIR}/$("$DATE" "+%F-%T")-$pid-strace";
 
-  strace -fTrvs200000 -o "$output" -p"$pid" &
+  "$STRACE" -fTrvs200000 -o "$output" -p"$pid" &
 
   str_pid="$!"
 
   trap 'break' INT QUIT TERM;
-  sleep 0.1;
+  "$SLEEP" 0.1;
 
-  # Kill strace once php process becomes idle
+  # Kill "$STRACE" once php process becomes idle
   while [[ -e /proc/"$str_pid" ]]; do
 
-    if tail | grep -qE "^$pid .*(accept\(0|\+\+\+ (killed|exited))"; then
+    if "$TAIL" | "$GREP" -qE "^$pid .*(accept\(0|\+\+\+ (killed|exited))"; then
 
       kill "$str_pid" 2>/dev/null || echo "$pid exited";
       break;
@@ -198,13 +200,13 @@ _strace () {
 
   kill "$str_pid" 2> /dev/null;
 
-  find "${TEMP_DIR}/" -name "*-GLOBALS" -user "$(pwd | grep -Po "home/\K[^/]*")" -exec /bin/mv -t "$OUTPUT_DIR" {} + 2>/dev/null
+  "$FIND" "${TEMP_DIR}/" -name "*-GLOBALS" -user "$(pwd | "$GREP" -Po "home/\K[^/]*")" -exec /bin/mv -t "$OUTPUT_DIR" {} + 2>/dev/null
 
   if [[ "$daemon_time" ]]; then
-    gzip "$output";
+    "$GZIP" "$output";
   fi
 
-  chmod 600 "${OUTPUT_DIR}"/*
+  "$CHMOD" 600 "${OUTPUT_DIR}"/*
 
 }
 
@@ -233,17 +235,17 @@ _monitor () {
 
   if [[ $daemon_time ]]; then
 
-    start_time="$(date "+%s")"
+    start_time="$("$DATE" "+%s")"
 
     while [[ -e /proc/"$MONITOR_PID" ]]; do
 
-      current_time="$(date "+%s")"
+      current_time="$("$DATE" "+%s")"
 
       if (( current_time > (start_time + daemon_time) )) ; then
         return;
       fi
 
-      sleep 5;
+      "$SLEEP" 5;
 
     done
   else
@@ -268,8 +270,8 @@ _setup() {
   query="$3"
 
   # Create output directory if necessary and restrict perms
-  [[ -d $OUTPUT_DIR ]] || mkdir "${OUTPUT_DIR}";
-  chmod 700 "${OUTPUT_DIR}"
+  [[ -d $OUTPUT_DIR ]] || "$MKDIR" "${OUTPUT_DIR}";
+  "$CHMOD" 700 "${OUTPUT_DIR}"
 
   # Add the needed code to any files that don't currently have it
   for x in ${FILES[*]}; do
@@ -279,7 +281,7 @@ _setup() {
       continue;
     fi
 
-    if ! grep -Fq "${PIPE_NAME}" "$x"; then
+    if ! "$GREP" -Fq "${PIPE_NAME}" "$x"; then
       _addCode "$x" "${address}" "${uri}" "${query}" \
         && FILES_USED+=("$x");
     fi
@@ -288,7 +290,7 @@ _setup() {
 
   # Create pipe if not already present
   if [[ ! -e "$PIPE_NAME" ]]; then
-    mkfifo -m 666 "$PIPE_NAME";
+    "$MKFIFO" -m 666 "$PIPE_NAME";
     REMOVE_PIPE="yes";
   fi
 
@@ -302,16 +304,16 @@ _cleanUp() {
   for x in ${FILES_USED[*]}; do
 
     if [[ ! -L "$x" && -e "${x}${TMP_EXT}" ]]; then
-      mv -f "$x"{"$TMP_EXT",}
+      "$MV" -f "$x"{"$TMP_EXT",}
     fi
 
   done
 
   # Flush pipe to prevent any remaining PHP processes from hanging
   if [[ "$REMOVE_PIPE" == "yes" ]]; then
-    sleep 0.1;
-    dd if="$PIPE_NAME" iflag=nonblock of=/dev/null &> /dev/null
-    rm -f "$PIPE_NAME";
+    "$SLEEP" 0.1;
+    "$DD" if="$PIPE_NAME" iflag=nonblock of=/dev/null &> /dev/null
+    "$RM" -f "$PIPE_NAME";
   fi
 
   kill "$MONITOR_PID" 2> /dev/null
@@ -332,7 +334,7 @@ main () {
         exit 0;
         ;;
       f)
-        mapfile -t FILES < <(echo "$OPTARG" | tr ',' '\n' );
+        mapfile -t FILES < <(echo "$OPTARG" | "$TR" ',' '\n' );
 
         for x in ${FILES[*]}; do
 
@@ -354,10 +356,10 @@ main () {
         query="$OPTARG";
         ;;
       d)
-        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
+        daemon_time="$(( $(echo "$OPTARG" | "$GREP" -Po '\d*') * 3600 ))";
         ;;
       k)
-        pkill capstrace -P 1
+        "$PKILL" capstrace -P 1
         exit;
         ;;
       *);;
@@ -376,7 +378,7 @@ main () {
   fi
 
   # Check if we already have a pipe id in the file ( Mainly for clusters )
-  PIPE_NAME=$(grep -Po "${PIPE_PREFIX}[^\"]*" "${FILES[0]}") \
+  PIPE_NAME=$("$GREP" -Po "${PIPE_PREFIX}[^\"]*" "${FILES[0]}") \
     || PIPE_NAME="${PIPE_PREFIX}$(uuidgen)"
 
   trap "_cleanUp" EXIT;
@@ -390,7 +392,7 @@ main () {
 }
 
 # Background script if run in daemon mode
-if echo "$ARGS" | grep -Pq '\s*(-d|--daemonize) \d*'; then
+if echo "$ARGS" | "$GREP" -Pq '\s*(-d|--daemonize) \d*'; then
   main &
 else
   main;

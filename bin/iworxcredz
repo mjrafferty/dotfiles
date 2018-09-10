@@ -17,8 +17,16 @@ _genPass(){
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly AWK='/bin/awk'
+readonly CAT='/bin/cat'
+readonly CUT='/bin/cut'
+readonly COLUMN='/usr/bin/column'
+readonly GREP='/bin/grep'
+readonly SED='/bin/sed'
+
+
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Usage: iworxcredz OPTION [--list] [USER/ID] PASSWORD [newPassword]
   Ex: iworxcredz -d secondaryDomain -f ftpUserName -m
@@ -51,7 +59,7 @@ main () {
     shift;
     shift;
   else
-    primaryDomain=$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}');
+    primaryDomain=$(~iworx/bin/listaccounts.pex | "$AWK" "/$(getusr)/"'{print $2}');
   fi
 
   # Execute request
@@ -63,7 +71,7 @@ main () {
 
         for x in /home/$(getusr)/var/*/mail/*/Maildir/; do
           echo "$x" \
-            | awk -F/ '{print $7"@"$5}';
+            | "$AWK" -F/ '{print $7"@"$5}';
         done;
 
         echo;
@@ -83,7 +91,7 @@ main () {
         echo;
         (echo "ShortName FullName";
         sudo -u "$(getusr)" siteworx -unc Ftp -a list) \
-          | column -t;
+          | "$COLUMN" -t;
         echo;
 
       elif [[ $2 == '.' ]]; then
@@ -114,9 +122,9 @@ main () {
         echo;
         (echo "EmailAddress Name Status";
         sudo -u "$(getusr)" siteworx -unc Users -a listUsers \
-          | sed 's/ /_/g' \
-          | awk '{print $2,$3,$5}') \
-          | column -t;
+          | "$SED" 's/ /_/g' \
+          | "$AWK" '{print $2,$3,$5}') \
+          | "$COLUMN" -t;
         echo;
 
       elif [[ $2 == '.' ]]; then # Lookup primary domain and primary email address
@@ -148,9 +156,9 @@ main () {
         echo;
         (echo "ID Reseller_Email Name";
         nodeworx -unc Reseller -a listResellers \
-          | sed 's/ /_/g' \
-          | awk '{print $1,$2,$3}') \
-          | column -t;
+          | "$SED" 's/ /_/g' \
+          | "$AWK" '{print $1,$2,$3}') \
+          | "$COLUMN" -t;
         echo;
       else # Update Password for specific Reseller
 
@@ -160,7 +168,7 @@ main () {
 
         nodeworx -unc Reseller -a edit --reseller_id "$resellerID" --password "$newPass" --confirm_password "$newPass"
 
-        emailAddress=$(nodeworx -unc Reseller -a listResellers | grep "^$resellerID" | awk '{print $2}')
+        emailAddress=$(nodeworx -unc Reseller -a listResellers | "$GREP" "^$resellerID" | "$AWK" '{print $2}')
 
         echo -e "\nFor Testing:\nnodeworx --login_email $emailAddress --login_password $newPass"
         echo -e "\nLoginURL: https://$(serverName):2443/nodeworx/\nUsername: $emailAddress\nPassword: $newPass\n\n"
@@ -173,19 +181,19 @@ main () {
         echo;
         ( echo -e "Username   Databases"
         sudo -u "$(getusr)" siteworx -unc Mysqluser -a listMysqlUsers \
-          | awk '{print $2,$3}' ) \
-          | column -t;
+          | "$AWK" '{print $2,$3}' ) \
+          | "$COLUMN" -t;
         echo;
 
       else
 
         _genPass "$3" "$4"
 
-        dbs=$(sudo -u "$(getusr)" siteworx -unc Mysqluser -a listMysqlUsers | grep "$2" | awk '{print $3}' | sed 's/,/, /')
+        dbs=$(sudo -u "$(getusr)" siteworx -unc Mysqluser -a listMysqlUsers | "$GREP" "$2" | "$AWK" '{print $3}' | "$SED" 's/,/, /')
 
         sudo -u "$(getusr)" siteworx -unc MysqlUser -a edit --name "${2/$(getusr)/}" --password "$newPass" --confirm_password "$newPass"
 
-        echo -e "\nFor Testing: \nmysql -u'$2' -p'$newPass' $(echo "$dbs" | cut -d, -f1)"
+        echo -e "\nFor Testing: \nmysql -u'$2' -p'$newPass' $(echo "$dbs" | "$CUT" -d, -f1)"
         echo -e "\nUsername: $2\nPassword: $newPass\nDatabases: $dbs\n"
 
       fi;;
@@ -196,9 +204,9 @@ main () {
         echo;
         (echo "Email_Address Name";
         nodeworx -unc Users -a list \
-          | grep -v nexcess.net \
-          | sed 's/ /_/g') \
-          | column -t;
+          | "$GREP" -v nexcess.net \
+          | "$SED" 's/ /_/g') \
+          | "$COLUMN" -t;
         echo;
 
       elif [[ ! $2 =~ nexcess\.net$ ]]; then # Update Password for specific Nodeworx user

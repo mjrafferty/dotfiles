@@ -3,14 +3,14 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-alias awk='/bin/awk'
-alias cat='/bin/cat'
-alias lsof='/usr/sbin/lsof'
-alias mail='/bin/mail'
-alias pgrep='/usr/bin/pgrep'
-alias sleep='/bin/sleep'
-alias stat='/usr/bin/stat'
-alias tail='/usr/bin/tail'
+readonly AWK='/bin/awk'
+readonly CAT='/bin/cat'
+readonly LSOF='/usr/sbin/lsof'
+readonly MAIL='/bin/mail'
+readonly PGREP='/usr/bin/pgrep'
+readonly SLEEP='/bin/sleep'
+readonly STAT='/usr/bin/stat'
+readonly TAIL='/usr/bin/tail'
 
 readonly EMAIL_SUBJECT="Restore Complete"
 readonly DEFAULT_ADDR="support@nexcess.net"
@@ -19,7 +19,7 @@ readonly EMAIL_ADDR="${1-$DEFAULT_ADDR}"
 
 # Show usage
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
 Simple script to send a notification email out when a restore is complete. It
 will automatically detect the most recently started restore on the server.
@@ -60,7 +60,7 @@ _cmdline() {
 _wait () {
 
   while [[ -d /proc/$1 ]]; do
-    sleep 5;
+    "$SLEEP" 5;
   done;
 
 }
@@ -68,7 +68,7 @@ _wait () {
 # Send notification email
 _notify () {
 
-  mail -s "$EMAIL_SUBJECT" "$EMAIL_ADDR" <<- EOF
+  "$MAIL" -s "$EMAIL_SUBJECT" "$EMAIL_ADDR" <<- EOF
 Restore for user $1 complete on $HOSTNAME
 
 See ticket https://nocworx.nexcess.net/ticket/${TICKET}
@@ -83,22 +83,22 @@ main () {
   local restorepid currentfile restoreuser;
 
   for ((x=0;x<60;x++)); do
-    restorepid=$(pgrep -P "$(pgrep -fo cdp)" -fn cdp);
+    restorepid=$("$PGREP" -P "$("$PGREP" -fo cdp)" -fn cdp);
     [[ -n "$restorepid" ]] && break;
-    sleep 5;
+    "$SLEEP" 5;
   done
 
   [[ -n "$restorepid" ]] || exit 1;
 
   for ((x=0;x<60;x++)); do
-    currentfile=$(lsof -p "$restorepid" -ad0 | tail -n1 | awk '{print $NF}')
+    currentfile=$("$LSOF" -p "$restorepid" -ad0 | "$TAIL" -n1 | "$AWK" '{print $NF}')
     [[ -n "$currentfile" ]] && break;
-    sleep 5;
+    "$SLEEP" 5;
   done
 
   [[ -n "$currentfile" ]] || exit 1;
 
-  restoreuser=$(stat -c "%U" "$currentfile")
+  restoreuser=$("$STAT" -c "%U" "$currentfile")
 
   _wait "$restorepid";
 

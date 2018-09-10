@@ -6,8 +6,16 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly AWK='/bin/awk'
+readonly CAT='/bin/cat'
+readonly COLUMN='/usr/bin/column'
+readonly GREP='/bin/grep'
+readonly SED='/bin/sed'
+readonly SORT='/bin/sort'
+
+
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
   This is the usage
 EOF
 }
@@ -19,17 +27,17 @@ main () {
     return 0;
   fi
 
-  if ss -ant | grep -q "ffff.*:80"; then # Pseudo IPv6
+  if ss -ant | "$GREP" -q "ffff.*:80"; then # Pseudo IPv6
 
     if [[ ${ARGA[0]} =~ -q ]]; then # Established Connections
 
       ss -ant \
-        | awk -F: '/EST.*ffff.*:80/{print $4,"<--",$8}'
+        | "$AWK" -F: '/EST.*ffff.*:80/{print $4,"<--",$8}'
 
     else # Verbose (EST and WAIT Connections)
 
       ss -ant \
-        | awk -F: '/ffff.*:80/{print $4,"<--",$8}'
+        | "$AWK" -F: '/ffff.*:80/{print $4,"<--",$8}'
 
     fi
   else # IPv4
@@ -37,21 +45,21 @@ main () {
     if [[ ${ARGA[0]} =~ -q ]]; then # Established Connections
 
       ss -ant \
-        | awk '/EST/ && ($4 ~ /:80/) && !/*/ {print $4,"<--",$5}' \
-        | sed 's/:80//g; s/:.*$//g'
+        | "$AWK" '/EST/ && ($4 ~ /:80/) && !/*/ {print $4,"<--",$5}' \
+        | "$SED" 's/:80//g; s/:.*$//g'
 
     else # Verbose (EST and WAIT Connections)
 
       ss -ant \
-        | awk '($4 ~ /:80/) && !/*/ {print $4,"<--",$5}' \
-        | sed 's/:80//g; s/:.*$//g'
+        | "$AWK" '($4 ~ /:80/) && !/*/ {print $4,"<--",$5}' \
+        | "$SED" 's/:80//g; s/:.*$//g'
 
     fi
   fi \
-    | column -t \
-    | sort \
+    | "$COLUMN" -t \
+    | "$SORT" \
     | uniq -c \
-    | sort -rn
+    | "$SORT" -rn
 
 }
 

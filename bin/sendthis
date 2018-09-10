@@ -9,19 +9,20 @@ readonly SPLIT_SIZE="20"
 readonly ARCHIVE_SUFFIX=".tgz"
 
 # Alias executables to prevent PATH issues
-alias cat="/bin/cat"
-alias grep="/bin/grep"
-alias mail="/bin/mail"
-alias rm='/bin/rm --preserve-root'
-alias sha1sum="/usr/bin/sha1sum"
-alias split="/usr/bin/split"
-alias stat="/usr/bin/stat"
-alias tar="/bin/tar"
+readonly CAT="/bin/cat"
+readonly GREP="/bin/grep"
+readonly MAIL="/bin/mail"
+readonly RM='/bin/rm --preserve-root'
+readonly SED='/bin/sed'
+readonly SHA1SUM="/usr/bin/sha1sum"
+readonly SPLIT="/usr/bin/split"
+readonly STAT="/usr/bin/stat"
+readonly TAR="/bin/tar"
 
 if [[ -e /usr/bin/pigz ]]; then
-  alias gzip='/usr/bin/pigz';
+  readonly GZIP='/usr/bin/pigz';
 else
-  alias gzip='/bin/gzip';
+  readonly GZIP='/bin/gzip';
 fi
 
 # Necessary Global Variables
@@ -29,7 +30,7 @@ FILES=();
 
 # Print usage info
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Usage: sendthis <filenames> <subject> <emailaddr>
 
@@ -41,7 +42,7 @@ _validateInput() {
 
   address="$1"
 
-  if ! echo "$address" | grep -Pq '\S+@\S+\.\S+'; then
+  if ! echo "$address" | "$GREP" -Pq '\S+@\S+\.\S+'; then
     echo "Email address invalid";
     exit 1;
   fi
@@ -64,18 +65,18 @@ _validateInput() {
 
 }
 
-# Compress FILES file/directory and split if necessary
+# Compress FILES file/directory and "$SPLIT" if necessary
 _compressFiles() {
 
   local size proceed
 
   printf "Compressing files..."
 
-  tar -cf - ${FILES[*]} 2> /dev/null | pigz > "${FILES[0]}${ARCHIVE_SUFFIX}"
+  "$TAR" -cf - ${FILES[*]} 2> /dev/null | pigz > "${FILES[0]}${ARCHIVE_SUFFIX}"
 
   printf "Done\n"
 
-  size="$(stat -c "%s" "${FILES[0]}${ARCHIVE_SUFFIX}")";
+  size="$("$STAT" -c "%s" "${FILES[0]}${ARCHIVE_SUFFIX}")";
 
   if (( size > (SPLIT_SIZE * 1024 * 1024) )); then
 
@@ -83,14 +84,14 @@ _compressFiles() {
 
     if [[ "$proceed" == "y" ]]; then
 
-      sha1sum "${FILES[0]}${ARCHIVE_SUFFIX}" > "${FILES[0]}${ARCHIVE_SUFFIX}.SHA1"
+      "$SHA1SUM" "${FILES[0]}${ARCHIVE_SUFFIX}" > "${FILES[0]}${ARCHIVE_SUFFIX}.SHA1"
 
-      split -d -b "${SPLIT_SIZE}M" "${FILES[0]}${ARCHIVE_SUFFIX}" "${FILES[0]}${ARCHIVE_SUFFIX}." \
-        && rm "${FILES[0]}${ARCHIVE_SUFFIX}"
+      "$SPLIT" -d -b "${SPLIT_SIZE}M" "${FILES[0]}${ARCHIVE_SUFFIX}" "${FILES[0]}${ARCHIVE_SUFFIX}." \
+        && "$RM" "${FILES[0]}${ARCHIVE_SUFFIX}"
 
     else
 
-      rm "${FILES[0]}${ARCHIVE_SUFFIX}"
+      "$RM" "${FILES[0]}${ARCHIVE_SUFFIX}"
       exit;
 
     fi
@@ -108,14 +109,14 @@ _send() {
 
   for x in ${FILES[0]}${ARCHIVE_SUFFIX}*; do
 
-    if grep -Fqi 'CentOS release 6' /etc/redhat-release; then
+    if "$GREP" -Fqi 'CentOS release 6' /etc/redhat-release; then
 
       echo "See Attached" \
-        | mail -s "$subject" -a "$x" "$address";
+        | "$MAIL" -s "$subject" -a "$x" "$address";
 
     else
 
-      mail -s "$subject" "$address" < "$x";
+      "$MAIL" -s "$subject" "$address" < "$x";
 
     fi;
   done
@@ -125,7 +126,7 @@ _send() {
 # Clean up temporary files
 _cleanUp() {
 
-  rm "${FILES[0]}${ARCHIVE_SUFFIX}"*
+  "$RM" "${FILES[0]}${ARCHIVE_SUFFIX}"*
 
 }
 
@@ -133,14 +134,14 @@ _findDir() {
 
   local longest_common_path word_array cd_dir y;
 
-  word_array=($(echo "${FILES[0]}" | sed 's/\//& /g'))
+  word_array=($(echo "${FILES[0]}" | "$SED" 's/\//& /g'))
   longest_common_path="${#word_array[@]}";
 
   for ((y=1; y<${#FILES[@]};y++)); do
 
     local word_array2 long;
 
-    word_array2=($(echo "${FILES[y]}" | sed 's/\//& /g'))
+    word_array2=($(echo "${FILES[y]}" | "$SED" 's/\//& /g'))
 
     for((long=0;long < longest_common_path;long++)); do
 
@@ -159,7 +160,7 @@ _findDir() {
 
   longest_common_path=$((longest_common_path - 1))
 
-  cd_dir="$(echo "${FILES[0]}" | grep -Po "^/([^/]*/){$longest_common_path}")";
+  cd_dir="$(echo "${FILES[0]}" | "$GREP" -Po "^/([^/]*/){$longest_common_path}")";
 
   echo "$cd_dir";
 
@@ -188,7 +189,7 @@ main () {
 
     if [[ -z "$address" ]]; then
 
-      address="$(echo "${ARGA[x]}" | grep -Po '\S+@\S+\.\S+')" \
+      address="$(echo "${ARGA[x]}" | "$GREP" -Po '\S+@\S+\.\S+')" \
         && continue;
 
     fi

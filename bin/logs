@@ -7,11 +7,13 @@ readonly ARGA=("$@")
 # Configurable Variables
 
 # Alias executables to prevent PATH issues
-alias find="/bin/find"
-alias grep="/bin/grep"
-alias tai64nlocal="/usr/bin/tai64nlocal"
-alias tail="/usr/bin/tail"
-alias zless="/usr/bin/zless"
+readonly CAT='/bin/cat'
+readonly DATE='/bin/date'
+readonly FIND="/bin/find"
+readonly GREP="/bin/grep"
+readonly TAI64NLOCAL="/usr/bin/tai64nlocal"
+readonly TAIL="/usr/bin/tail"
+readonly ZLESS="/usr/bin/zless"
 
 [[ -z "$PAGER" ]] && PAGER="/usr/bin/less"
 
@@ -21,7 +23,7 @@ LOG_FILES=();
 # Print usage
 _usage() {
 
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Obtain data from various logs
 
@@ -168,9 +170,9 @@ _ftp() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/proftpd/{auth,xfer}* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/proftpd/{auth,xfer}* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find /var/log/proftpd/{auth,xfer}.log -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/proftpd/{auth,xfer}.log -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -187,9 +189,9 @@ _php() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error.log -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" {/var/opt/remi/php*,{/opt/{remi,nexcess}/php*/root,}/var}/log/php-fpm/error.log -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -206,9 +208,9 @@ _ssh(){
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/secure* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/secure* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find /var/log/secure -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/secure -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -225,9 +227,9 @@ _httpd() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/httpd/error_log* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/httpd/error_log* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find /var/log/httpd/error_log -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/httpd/error_log -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -244,9 +246,9 @@ _mysqld() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/mysqld.log* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/mysqld.log* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find /var/log/mysqld.log -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/mysqld.log -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -263,9 +265,9 @@ _cron() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/cron* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/cron* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find /var/log/cron -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/cron -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -282,9 +284,9 @@ _messages() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/messages* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/messages* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find /var/log/messages -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/messages -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -301,9 +303,9 @@ _imap() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/imap4-ssl/* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/imap4-ssl/* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find /var/log/imap4-ssl/current -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/imap4-ssl/current -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -320,9 +322,9 @@ _pop3() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/pop3-ssl/* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/pop3-ssl/* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find /var/log/pop3-ssl/current -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/pop3-ssl/current -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -339,9 +341,9 @@ _send() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/send/* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/send/* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find /var/log/send/current -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/send/current -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -358,9 +360,9 @@ _smtp() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/smtp/* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/smtp/* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find /var/log/smtp/current -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/smtp/current -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -377,9 +379,9 @@ _smtp2() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/smtp2/* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/smtp2/* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find /var/log/smtp2/current -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/smtp2/current -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -396,9 +398,9 @@ _letse() {
   deep="$1";
 
   if [[ "$deep" == "YES" ]]; then
-    mapfile -t files < <(find /var/log/letsencrypt/letsencrypt.log* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/letsencrypt/letsencrypt.log* -type f 2> /dev/null)
   else
-    mapfile -t files < <(find /var/log/letsencrypt/letsencrypt.log -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /var/log/letsencrypt/letsencrypt.log -type f 2> /dev/null)
   fi
 
   for f in ${files[*]}; do
@@ -413,8 +415,8 @@ _magento(){
   local f=();
   local l x user domain;
 
-  user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
-  domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
+  user=$(pwd | "$GREP" -Po '^(/chroot)?/home/\K[^/]*');
+  domain=$(pwd | "$GREP" -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
 
   l="$1"
 
@@ -450,39 +452,39 @@ _transfer() {
   serverAll="$2"
   userAll="$3"
 
-  user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
-  domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
+  user=$(pwd | "$GREP" -Po '^(/chroot)?/home/\K[^/]*');
+  domain=$(pwd | "$GREP" -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
 
   if [[ "$serverAll" == "YES" && "$deep" == "YES" ]]; then
 
-    mapfile -t files < <(find /home/*/var/*/logs/transfer* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /home/*/var/*/logs/transfer* -type f 2> /dev/null)
 
   elif [[ "$serverAll" == "YES" && "$deep" == "NO" ]]; then
 
-    mapfile -t files < <(find /home/*/var/*/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /home/*/var/*/logs/transfer{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
 
   elif [[ "$userAll" == "YES" && "$deep" == "YES" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/*/logs/transfer* -type f 2> /dev/null)
+      mapfile -t files < <("$FIND" /home/"$user"/var/*/logs/transfer* -type f 2> /dev/null)
     fi
 
   elif [[ "$userAll" == "YES" && "$deep" == "NO" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/*/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
+      mapfile -t files < <("$FIND" /home/"$user"/var/*/logs/transfer{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
     fi
 
   elif [[ "$deep" == "YES" ]]; then
 
     if [[ -n "$domain" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/"$domain"/logs/transfer* -type f 2> /dev/null)
+      mapfile -t files < <("$FIND" /home/"$user"/var/"$domain"/logs/transfer* -type f 2> /dev/null)
     fi
 
   else
 
     if [[ -n "$domain" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/"$domain"/logs/transfer{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
+      mapfile -t files < <("$FIND" /home/"$user"/var/"$domain"/logs/transfer{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
     fi
 
   fi
@@ -505,39 +507,39 @@ _domain(){
   serverAll="$2";
   userAll="$3"
 
-  user=$(pwd | grep -Po '^(/chroot)?/home/\K[^/]*');
-  domain=$(pwd | grep -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
+  user=$(pwd | "$GREP" -Po '^(/chroot)?/home/\K[^/]*');
+  domain=$(pwd | "$GREP" -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
 
   if [[ "$serverAll" == "YES" && "$deep" == "YES" ]]; then
 
-    mapfile -t files < <(find /home/*/var/{php-fpm,*/logs}/error* -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /home/*/var/{php-fpm,*/logs}/error* -type f 2> /dev/null)
 
   elif [[ "$serverAll" == "YES" && "$deep" == "NO" ]]; then
 
-    mapfile -t files < <(find /home/*/var/{php-fpm,*/logs}/error{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /home/*/var/{php-fpm,*/logs}/error{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
 
   elif [[ "$userAll" == "YES" && "$deep" == "YES" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/{php-fpm,*/logs}/error* -type f 2> /dev/null)
+      mapfile -t files < <("$FIND" /home/"$user"/var/{php-fpm,*/logs}/error* -type f 2> /dev/null)
     fi
 
   elif [[ "$userAll" == "YES" && "$deep" == "NO" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/{php-fpm,*/logs}/error{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
+      mapfile -t files < <("$FIND" /home/"$user"/var/{php-fpm,*/logs}/error{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
     fi
 
   elif [[ "$deep" == "YES" ]]; then
 
     if [[ -n "$domain" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/{php-fpm,"$domain"/logs}/error* -type f 2> /dev/null)
+      mapfile -t files < <("$FIND" /home/"$user"/var/{php-fpm,"$domain"/logs}/error* -type f 2> /dev/null)
     fi
 
   else
 
     if [[ -n "$domain" ]]; then
-      mapfile -t files < <(find /home/"$user"/var/{php-fpm,"$domain"/logs}/error{,-{,ssl-}"$(date "+%F")"}.log -type f 2> /dev/null)
+      mapfile -t files < <("$FIND" /home/"$user"/var/{php-fpm,"$domain"/logs}/error{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
     fi
 
   fi
@@ -563,21 +565,21 @@ _act() {
     case $cmd in
 
       "tail")
-        tail -fn0 ${LOG_FILES[*]} | tai64nlocal;
+        "$TAIL" -fn0 ${LOG_FILES[*]} | tai64nlocal;
         ;;
 
       "less")
         for log in ${LOG_FILES[*]}; do
-          tai64nlocal < <(zless $log) | $PAGER;
+          "$TAI64NLOCAL" < <("$ZLESS" $log) | $PAGER;
         done
         ;;
 
       "cat")
-        tai64nlocal < <(zless ${LOG_FILES[*]});
+        "$TAI64NLOCAL" < <("$ZLESS" ${LOG_FILES[*]});
         ;;
 
       *)
-        tail -n10 ${LOG_FILES[*]} | tai64nlocal | $PAGER;
+        "$TAIL" -n10 ${LOG_FILES[*]} | "$TAI64NLOCAL" | $PAGER;
         ;;
     esac
 

@@ -1,9 +1,11 @@
 #! /bin/bash
 
+readonly GREP='/bin/grep'
+
 main () {
 
 pwd \
-  | grep -Po "home/\K[^/]*"
+  | "$GREP" -Po "(/chroot)?/home/\K[^/]*"
 
 }
 

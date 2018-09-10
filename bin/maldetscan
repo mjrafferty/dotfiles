@@ -3,38 +3,38 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-readonly OUTPUT_FILE="${TICKETDIR-$HOME}maldetscan_$(date "+%F-%T")"
+readonly OUTPUT_FILE="${TICKETDIR-$HOME}maldetscan_$("$DATE" "+%F-%T")"
 readonly DEFAULT_EMAIL="support@nexcess.net";
 
-alias awk='/bin/awk'
-alias cat='/bin/cat'
-alias date='/bin/date'
-alias du='/usr/bin/du'
-alias grep='/bin/grep'
-alias lsof='/usr/sbin/lsof'
-alias mail='/bin/mail'
-alias maldet='/usr/sbin/maldet'
-alias mktemp='/bin/mktemp'
-alias pgrep='/usr/bin/pgrep'
-alias ps='/bin/ps'
-alias rm='/bin/rm --preserve-root'
-alias sleep='/bin/sleep'
-alias stat='/usr/bin/stat'
-alias tail='/usr/bin/tail'
-alias tee='/usr/bin/tee'
-alias tput='/usr/bin/tput'
-alias xargs='/usr/bin/xargs'
+readonly AWK='/bin/awk'
+readonly CAT='/bin/cat'
+readonly DATE='/bin/date'
+readonly GREP='/bin/grep'
+readonly LSOF='/usr/sbin/lsof'
+readonly MAIL='/bin/mail'
+readonly MALDET='/usr/sbin/maldet'
+readonly MKTEMP='/bin/mktemp'
+readonly PGREP='/usr/bin/pgrep'
+readonly PS='/bin/ps'
+readonly RM='/bin/rm --preserve-root'
+readonly SLEEP='/bin/sleep'
+readonly STAT='/usr/bin/stat'
+readonly TAIL='/usr/bin/tail'
+readonly TEE='/usr/bin/tee'
+readonly TPUT='/usr/bin/tput'
+readonly XARGS='/usr/bin/xargs'
+readonly WC='/usr/bin/wc'
 
-MALDET_OUTPUT="$(mktemp)"
-DATA_LIST="$(mktemp)"
+MALDET_OUTPUT="$("$MKTEMP")"
+DATA_LIST="$("$MKTEMP")"
 SCAN_TIME=""
 TOTALS=()
 
 # Print usage info
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
-Mainly just a wrapper for maldet to provide some much needed verbosity. Can
+Mainly just a wrapper for "$MALDET" to provide some much needed verbosity. Can
 be used to start a scan by specifying the file path with the -p flag. It can
 also attach to an existing scan with the -a flag.
 
@@ -92,7 +92,7 @@ _cmdline() {
 
 # Print human readable sizes
 _humanReadable() {
-  awk '{ H=$1;
+  "$AWK" '{ H=$1;
   $1="";
   if ( H >= 1073741824  )
     {
@@ -135,14 +135,14 @@ _waitForList () {
 
   local findpid
 
-  # Wait for maldet to start find, and then identify that PID
+  # Wait for "$MALDET" to start find, and then identify that PID
   while [ -z "$findpid" ]; do
-    findpid="$(pgrep -nf "find.*./lmd_find/.*$1")"
+    findpid="$("$PGREP" -nf "find.*./lmd_find/.*$1")"
   done
 
   # Wait until file list is complete
   while [[ -e /proc/"$findpid" ]]; do
-    sleep 0.1;
+    "$SLEEP" 0.1;
   done
 
 }
@@ -155,10 +155,10 @@ _evaluateList () {
   scanlist="/usr/local/maldetect/tmp/.find.$1"
 
   # Populate data list with info needed to track progress
-  xargs --delimiter="\n" /usr/bin/du -sb < "$scanlist" 2> /dev/null \
-    | awk '{print NR,(sum += $1),$0}' > "$DATA_LIST";
+  "$XARGS" --delimiter="\n" /usr/bin/du -sb < "$scanlist" 2> /dev/null \
+    | "$AWK" '{print NR,(sum += $1),$0}' > "$DATA_LIST";
 
-  mapfile -t TOTALS< <(tail -n1 "$DATA_LIST" | awk '{print $1"\n"$2}');
+  mapfile -t TOTALS< <("$TAIL" -n1 "$DATA_LIST" | "$AWK" '{print $1"\n"$2}');
 
 }
 
@@ -171,7 +171,7 @@ _scanDetails () {
 
   data_total_human="$(echo "${TOTALS[1]}" | _humanReadable)"
 
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Scanning ${filepath}    Files: ${TOTALS[0]}   Size: ${data_total_human}
 
@@ -179,7 +179,7 @@ _scanDetails () {
 
   Check status with one of the following:
 
-  cat ${OUTPUT_FILE}
+  "$CAT" ${OUTPUT_FILE}
 
   $0 -a ${filepath}
 
@@ -194,9 +194,9 @@ _duplicateScans () {
 
   local scanlist relevant_scans;
 
-  mapfile -t scanlist < <(pgrep -lf clamdscan | grep -Po ' -f \K\S*');
+  mapfile -t scanlist < <("$PGREP" -lf clamdscan | "$GREP" -Po ' -f \K\S*');
 
-  mapfile -t relevant_scans < <(grep -Hl "$filepath" ${scanlist[*]});
+  mapfile -t relevant_scans < <("$GREP" -Hl "$filepath" ${scanlist[*]});
 
   if [[ -n ${relevant_scans[1]} ]]; then
     echo "yes";
@@ -219,10 +219,10 @@ _watchScan() {
   data_total_human="$(echo "${TOTALS[1]}" | _humanReadable)"
 
   # Find clamd process id
-  clamdpid=$(pgrep -u clamav clamd);
+  clamdpid=$("$PGREP" -u clamav clamd);
 
-  SCAN_TIME="$(ps h -o stime -p "$scanpid")"
-  start_time=$(date '+%s' -d "$SCAN_TIME")
+  SCAN_TIME="$("$PS" h -o stime -p "$scanpid")"
+  start_time=$("$DATE" '+%s' -d "$SCAN_TIME")
 
   while [ -d /proc/"$scanpid" ]; do
 
@@ -237,9 +237,9 @@ _watchScan() {
     else
 
       # Check what is being currently scanned
-      currentfile=$(lsof -p "$clamdpid" -ad1-99 | grep -o "$filepath.*"| tail -n1);
+      currentfile=$("$LSOF" -p "$clamdpid" -ad1-99 | "$GREP" -o "$filepath.*"| "$TAIL" -n1);
 
-      if [[ -z "$currentfile" ]] && lsof -p "$clamdpid" -ad1-99 | grep -q /dev/shm; then
+      if [[ -z "$currentfile" ]] && "$LSOF" -p "$clamdpid" -ad1-99 | "$GREP" -q /dev/shm; then
 
         scan_message="User files finished. Scanning /dev/shm, this may take a while...";
 
@@ -272,15 +272,15 @@ _watchScan() {
     fi
 
     # The +1's are to prevent divide by zero errors on small scans
-    elapsed_time=$(($(date '+%s') - start_time + 1));
+    elapsed_time=$(($("$DATE" '+%s') - start_time + 1));
     rate="$(((scan_status[1] / elapsed_time) + 1))"
     rate_human="$(echo "$rate" | _humanReadable)"
 
     remaining_time=$(((TOTALS[1] - scan_status[1]) / rate ));
 
-    tput clear;
+    "$TPUT" clear;
 
-    tee "$OUTPUT_FILE" <<- EOF
+    "$TEE" "$OUTPUT_FILE" <<- EOF
 Scanning $filepath
 
 ${scan_percentage}%  File: ${scan_status[0]} of ${TOTALS[0]}  $data_scanned_human of $data_total_human Scanned
@@ -293,7 +293,7 @@ ${scan_message}
 
 EOF
 
-sleep 1;
+"$SLEEP" 1;
 
   done < "$DATA_LIST";
 
@@ -304,24 +304,24 @@ _showResults () {
 
   local bad_files report_id hits_file;
 
-  report_id="$(grep -Po "report \K[0-9,\-,.]*" "$MALDET_OUTPUT")"
+  report_id="$("$GREP" -Po "report \K[0-9,\-,.]*" "$MALDET_OUTPUT")"
   hits_file="/usr/local/maldetect/sess/session.hits.$report_id"
 
 
-  mapfile -t bad_files < <(awk '{print $3}' "$hits_file");
+  mapfile -t bad_files < <("$AWK" '{print $3}' "$hits_file");
 
 
-  cat <<- EOF > "$OUTPUT_FILE"
+  "$CAT" <<- EOF > "$OUTPUT_FILE"
                                             Maldet Report
 ==========================================================================================================
 
 Files Scanned: ${TOTALS[0]}
  Data Scanned: $(echo "${TOTALS[1]}" | _humanReadable)
-         Hits: $(wc -l "$hits_file" | awk '{print $1}')
+         Hits: $("$WC" -l "$hits_file" | "$AWK" '{print $1}')
 
-    Scan Date: $(date "+%F")
+    Scan Date: $("$DATE" "+%F")
    Start time: $SCAN_TIME
-     End time: $(date "+%H:%M" )
+     End time: $("$DATE" "+%H:%M" )
 
      Hostname: $HOSTNAME
     Scan path: $1
@@ -331,13 +331,13 @@ Files Scanned: ${TOTALS[0]}
 
                                                 Hits:
 
-$(cat "$hits_file")
+$("$CAT" "$hits_file")
 
 ==========================================================================================================
 
                                         Modification Times:
 
-$(for (( x=0; x<=${#bad_files[@]}; x++ )); do stat "${bad_files[$x]}" 2> /dev/null; done)
+$(for (( x=0; x<=${#bad_files[@]}; x++ )); do "$STAT" "${bad_files[$x]}" 2> /dev/null; done)
 
 EOF
 
@@ -346,9 +346,9 @@ EOF
 # Send results via email
 _email () {
 
-  gzip "${OUTPUT_FILE}"
+  "$GZIP" "${OUTPUT_FILE}"
 
-  mail -s "Malware Results for $TICKET" -a "${OUTPUT_FILE}.gz" "$1" <<- EOF
+  "$MAIL" -s "Malware Results for $TICKET" -a "${OUTPUT_FILE}.gz" "$1" <<- EOF
 Scan complete for ticket https://nocworx.nexcess.net/ticket/${TICKET}
 
 Results attached.
@@ -363,13 +363,13 @@ EOF
 _cleanUp () {
 
   # Kill any processes that are still running
-  pgrep -g "$$" \
-    | grep -v "$$" \
-    | xargs /bin/kill &> /dev/null
+  "$PGREP" -g "$$" \
+    | "$GREP" -v "$$" \
+    | "$XARGS" /bin/kill &> /dev/null
 
   # Clean up temp files
-  rm "$MALDET_OUTPUT"
-  rm "$DATA_LIST"
+  "$RM" "$MALDET_OUTPUT"
+  "$RM" "$DATA_LIST"
 
 }
 
@@ -396,13 +396,13 @@ main () {
         addr="$OPTARG";
         ;;
       a)
-        scanpid=$(pgrep -nf "maldet -a .*$OPTARG");
+        scanpid=$("$PGREP" -nf "maldet -a .*$OPTARG");
         if [[ -z $scanpid ]]; then
           echo "No scans found";
           _cleanUp;
           exit;
         fi
-        filepath=$(ps -p "$scanpid" -o command | grep -Po "\-a \K.*")
+        filepath=$("$PS" -p "$scanpid" -o command | "$GREP" -Po "\-a \K.*")
         ;;
       p)
         filepath="$OPTARG";
@@ -416,8 +416,8 @@ main () {
 
     [[ -n "$filepath" ]] || filepath="$(pwd)";
 
-    # start maldet
-    maldet -a "$filepath" > "$MALDET_OUTPUT" &
+    # start "$MALDET"
+    "$MALDET" -a "$filepath" > "$MALDET_OUTPUT" &
 
     # Find scan process ID and file list
     scanpid=$!;

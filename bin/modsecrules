@@ -5,8 +5,12 @@ readonly ARGA=("$@")
 
 readonly EXCLUDE_RULES="^981176$|^4011015$|^4049";
 
+readonly CAT='/bin/cat'
+readonly GREP='/bin/grep'
+readonly SORT='/bin/sort'
+
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Prints out mod security rules triggered by the provided
   unique id.
@@ -23,9 +27,9 @@ main () {
   fi
 
   modgrep -s "${ARGA[0]}" -f /var/log/httpd/modsec_audit.log \
-    | grep -Po '.*\[id[^"]*"\K[0-9]*'  \
-    | sort -u \
-    | grep -Ev "$EXCLUDE_RULES";
+    | "$GREP" -Po '.*\[id[^"]*"\K[0-9]*'  \
+    | "$SORT" -u \
+    | "$GREP" -Ev "$EXCLUDE_RULES";
 
 }
 

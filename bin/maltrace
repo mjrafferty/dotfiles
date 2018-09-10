@@ -4,31 +4,31 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+# Alias executables to prevent PATH issues
+readonly CAT='/bin/cat'
+readonly CHMOD='/bin/chmod --preserve-root'
+readonly DATE='/bin/date'
+readonly GREP='/bin/grep'
+readonly HEAD='/usr/bin/head'
+readonly LSOF='/usr/sbin/lsof'
+readonly MKDIR='/bin/mkdir'
+readonly PGREP='/usr/bin/pgrep'
+readonly PKILL='/usr/bin/pkill'
+readonly PS='/bin/ps'
+readonly SLEEP='/bin/sleep'
+readonly STRACE='/usr/bin/strace'
+readonly TEE='/usr/bin/tee'
+
 # Configurable Variables
 readonly OUTPUT_DIR="${HOME}/clients/maltrace"
 readonly TRAFFIC_LOG="${OUTPUT_DIR}/traffic.log"
 readonly PROCESS_LOG="${OUTPUT_DIR}/process.log"
-readonly MAIN_IP="$(ifconfig | grep -Po 'inet addr:\K\S+' | head -n1)"
-
-# Alias executables to prevent PATH issues
-alias cat='/bin/cat'
-alias chmod='/bin/chmod --preserve-root'
-alias chown='/bin/chown --preserve-root'
-alias dd='/bin/dd'
-alias find='/bin/find'
-alias grep='/bin/grep'
-alias mkdir='/bin/mkdir'
-alias mkfifo='/usr/bin/mkfifo'
-alias mv='/bin/mv'
-alias pkill='/usr/bin/pkill'
-alias rm='/bin/rm --preserve-root'
-alias sleep='/bin/sleep'
-alias strace='/usr/bin/strace'
+readonly MAIN_IP="$(ifconfig | "$GREP" -Po 'inet addr:\K\S+' | "$HEAD" -n1)"
 
 if [[ -e /usr/bin/pigz ]]; then
-  alias gzip='/usr/bin/pigz';
+  readonly GZIP='/usr/bin/pigz';
 else
-  alias gzip='/bin/gzip';
+  readonly GZIP='/bin/gzip';
 fi
 
 # Necessary Global Variables
@@ -36,9 +36,9 @@ MONITOR_PID=""
 
 # Print usage
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
-  Captures strace and php GLOBALS variable information of one or matching
+  Captures "$STRACE" and php GLOBALS variable information of one or matching
   requests to a website. Outputs data to "$OUTPUT_DIR". Can also be run on each
   node of a cluster without conflict.
 
@@ -99,15 +99,15 @@ _cmdline() {
 _setup() {
 
   # Create output directory if necessary and restrict perms
-  [[ -d "$OUTPUT_DIR" ]] || mkdir -p "${OUTPUT_DIR}";
-  chmod 700 "${OUTPUT_DIR}"
+  [[ -d "$OUTPUT_DIR" ]] || "$MKDIR" -p "${OUTPUT_DIR}";
+  "$CHMOD" 700 "${OUTPUT_DIR}"
 
 }
 
 # Clean up any changes made
 _cleanUp() {
 
-  pkill -P "$MONITOR_PID" &> /dev/null
+  "$PKILL" -P "$MONITOR_PID" &> /dev/null
   kill "$MONITOR_PID" &> /dev/null
 
 }
@@ -122,7 +122,7 @@ _findPid() {
     read -r port;
 
     netstat -tnap \
-      | grep -Po "${MAIN_IP}:${port}.*\s+\K\d+(?=/\S+\s+$)"
+      | "$GREP" -Po "${MAIN_IP}:${port}.*\s+\K\d+(?=/\S+\s+$)"
 
     # Flush stdin
     while read -re -t 0.1; do
@@ -142,11 +142,11 @@ _logData() {
 
     read -r pid;
 
-    date "+%F-%T";
-    ps -lf -p "$pid"
+    "$DATE" "+%F-%T";
+    "$PS" -lf -p "$pid"
 
     echo;
-    lsof -Pn -p "$pid"
+    "$LSOF" -Pn -p "$pid"
     printf "\n\n\n"
 
   done >> "$PROCESS_LOG"
@@ -161,8 +161,8 @@ _monitor() {
   address="$1"
 
   tcpdump -l -nn dst "$address" \
-    | tee -a "$TRAFFIC_LOG" \
-    | grep -Po --line-buffered "${MAIN_IP}.\K\d+" \
+    | "$TEE" -a "$TRAFFIC_LOG" \
+    | "$GREP" -Po --line-buffered "${MAIN_IP}.\K\d+" \
     | _findPid \
     | _logData;
 
@@ -185,11 +185,11 @@ main () {
         address="$OPTARG";
         ;;
       d)
-        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
+        daemon_time="$(( $(echo "$OPTARG" | "$GREP" -Po '\d*') * 3600 ))";
         ;;
       k)
-        main_pid="$(pgrep -o maltrace -P 1)";
-        MONITOR_PID="$(pgrep -oP "$main_pid")";
+        main_pid="$("$PGREP" -o maltrace -P 1)";
+        MONITOR_PID="$("$PGREP" -oP "$main_pid")";
         _cleanUp;
         exit;
         ;;
@@ -208,17 +208,17 @@ main () {
 
   if [[ $daemon_time ]]; then
 
-    start_time="$(date "+%s")"
+    start_time="$("$DATE" "+%s")"
 
     while [[ -e /proc/"$MONITOR_PID" ]]; do
 
-      current_time="$(date "+%s")"
+      current_time="$("$DATE" "+%s")"
 
       if (( current_time > (start_time + daemon_time) )) ; then
         break;
       fi
 
-      sleep 5;
+      "$SLEEP" 5;
 
     done
 
@@ -237,7 +237,7 @@ main () {
 }
 
 # Background script if run in daemon mode
-if echo "$ARGS" | grep -Pq '\s*(-d|--daemonize) \d*'; then
+if echo "$ARGS" | "$GREP" -Pq '\s*(-d|--daemonize) \d*'; then
   main &> /dev/null &
 else
   main;

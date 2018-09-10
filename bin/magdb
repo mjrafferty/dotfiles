@@ -8,29 +8,29 @@ readonly ARGA=("$@")
 CONFIG_FILE="app/etc/local.xml"
 DEFAULTS_FILE="$HOME/.magdb_defaults"
 
-BRIGHT=$(tput bold);
-NORMAL=$(tput sgr0);
-RED=$(tput setaf 1);
-GREEN=$(tput setaf 10);
+BRIGHT=$("$TPUT" bold);
+NORMAL=$("$TPUT" sgr0);
+RED=$("$TPUT" setaf 1);
+GREEN=$("$TPUT" setaf 10);
 
 # Alias executables to prevent PATH issues
-alias awk="/bin/awk"
-alias cat="/bin/cat"
-alias chmod="/bin/chmod --preserve-root"
-alias cut="/bin/cut"
-alias fold="/usr/bin/fold"
-alias grep="/bin/grep"
-alias head="/usr/bin/head"
-alias less="/bin/less"
-alias mysql="/usr/bin/mysql"
-alias rm="/bin/rm"
-alias sed="/bin/sed"
-alias shuf="/usr/bin/shuf"
-alias tail="/usr/bin/tail"
-alias touch="/bin/touch"
-alias tput="/usr/bin/tput"
-alias tr="/usr/bin/tr"
-alias wc="/usr/bin/wc"
+readonly AWK="/bin/awk"
+readonly CAT="/bin/cat"
+readonly CHMOD="/bin/chmod --preserve-root"
+readonly CUT="/bin/cut"
+readonly FOLD="/usr/bin/fold"
+readonly GREP="/bin/grep"
+readonly HEAD="/usr/bin/head"
+readonly LESS="/bin/less"
+readonly MYSQL="/usr/bin/mysql"
+readonly RM="/bin/rm"
+readonly SED="/bin/sed"
+readonly SHUF="/usr/bin/shuf"
+readonly TAIL="/usr/bin/tail"
+readonly TOUCH="/bin/touch"
+readonly TPUT="/usr/bin/tput"
+readonly TR="/usr/bin/tr"
+readonly WC="/usr/bin/wc"
 
 # Necessary Global Variables
 DBHOST=""
@@ -42,13 +42,13 @@ PREFIX=""
 if [[ -e $CONFIG_FILE ]]; then
   SITEPATH="$PWD"
 else
-  SITEPATH="$(pwd | grep -Po '(/chroot)?/home(/[^/]+){2}')"
+  SITEPATH="$(pwd | "$GREP" -Po '(/chroot)?/home(/[^/]+){2}')"
 fi
 
 # Print usage
 _usage() {
 
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Usage: magdb <option>
 
@@ -183,7 +183,7 @@ _xkcd () {
 
   if [[ -x /usr/bin/shuf ]]; then
 
-    pass=$(shuf -n1000 "$wordList" | grep -E '^[a-z,A-Z]{4,12}$' | head -n4 | sed 's/^\([a-z]\)/\u\1/' | tr -d '\n| ');
+    pass=$("$SHUF" -n1000 "$wordList" | "$GREP" -E '^[a-z,A-Z]{4,12}$' | "$HEAD" -n4 | "$SED" 's/^\([a-z]\)/\u\1/' | "$TR" -d '\n| ');
 
     echo "$pass"$(( (RANDOM % 9000) + 1000 ));
 
@@ -191,15 +191,15 @@ _xkcd () {
 
     word=();
 
-    matchList=$(grep -E '^[a-z,A-Z]{4,12}$' $wordList);
+    matchList=$("$GREP" -E '^[a-z,A-Z]{4,12}$' $wordList);
     IFS=" "
-    wcount=$(echo "$matchList" | wc -l | awk '{print $1}')
+    wcount=$(echo "$matchList" | "$WC" -l | "$AWK" '{print $1}')
 
     for ((x=0;x<4;x++)) do
 
       rnd=$((RANDOM % wcount))
 
-      word[$x]=$(echo "$matchList" | sed -n "${rnd}p" | sed 's/^\([a-z]\)/\u\1/');
+      word[$x]=$(echo "$matchList" | "$SED" -n "${rnd}p" | "$SED" 's/^\([a-z]\)/\u\1/');
 
     done;
 
@@ -211,7 +211,7 @@ _xkcd () {
 
 # Parse local.xml
 _awkConfig () {
-  awk '
+  "$AWK" '
   BEGIN {
     beginConfig=0;
     endConfig=0;
@@ -266,7 +266,7 @@ _getConfig () {
 
   if [[ -f $SITEPATH/$CONFIG_FILE ]]; then #Magento
 
-    mapfile -t config < <(grep -Pv '^\s*(<!|\*)' $CONFIG_FILE | _awkConfig);
+    mapfile -t config < <("$GREP" -Pv '^\s*(<!|\*)' $CONFIG_FILE | _awkConfig);
 
     DBHOST="${config[0]}"
     DBUSER="${config[1]}"
@@ -287,16 +287,16 @@ _summary () {
 
   local version edition ver
 
-  mapfile -t ver < <(grep 'function getVersionInfo' -A8 "$SITEPATH"/app/Mage.php | grep major -A4 | cut -d\' -f4);
+  mapfile -t ver < <("$GREP" 'function getVersionInfo' -A8 "$SITEPATH"/app/Mage.php | "$GREP" major -A4 | "$CUT" -d\' -f4);
   version="${ver[0]}.${ver[1]}.${ver[2]}.${ver[3]}"
 
-  if grep -qE '(Enterprise|Commercial) Edition' "$SITEPATH"/app/Mage.php; then
+  if "$GREP" -qE '(Enterprise|Commercial) Edition' "$SITEPATH"/app/Mage.php; then
     edition="Enterprise Edition";
   else
     edition="Community Edition";
   fi
 
-  cat <<-EOF
+  "$CAT" <<-EOF
 
   ${BRIGHT}$edition: ${GREEN}${version}${NORMAL}
   ${BRIGHT}Connection Summary: ${GREEN}${DBUSER}:${DBNAME}${NORMAL}
@@ -305,10 +305,10 @@ EOF
 
 }
 
-# Make mysql defaults file
+# Make "$MYSQL" defaults file
 _makeDefaultsFile () {
 
-  cat <<- EOF > "$DEFAULTS_FILE"
+  "$CAT" <<- EOF > "$DEFAULTS_FILE"
 [client_magdb]
 database = "$DBNAME"
 user =  "$DBUSER"
@@ -316,7 +316,7 @@ password = "$DBPASS"
 host = "$DBHOST"
 EOF
 
-  chmod 600 "$DEFAULTS_FILE"
+  "$CHMOD" 600 "$DEFAULTS_FILE"
 
 }
 
@@ -325,7 +325,7 @@ _connect () {
 
   _summary;
 
-  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t "$@" | less -RSF;
+  "$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t "$@" | "$LESS" -RSF;
 
 }
 
@@ -334,7 +334,7 @@ _connecti () {
 
   _summary;
 
-  mysql --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb";
+  "$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb";
 
 }
 
@@ -349,7 +349,7 @@ _admin () {
   read -rp "Username: " username;
 
   password=$(_xkcd);
-	salt="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 32 | head -n1)"
+	salt="$("$TR" -dc 'a-zA-Z0-9' < /dev/urandom | "$FOLD" -w 32 | "$HEAD" -n1)"
 
   _connect <<- EOF
 
@@ -361,7 +361,7 @@ _admin () {
 
 EOF
 
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Username: $username
   Password: $password
@@ -400,7 +400,7 @@ EOF
 # Print database info
 _info () {
 
-  cat <<- EOF
+  "$CAT" <<- EOF
   ${BRIGHT}Database Info:${NORMAL}
 
   ${BRIGHT}Username:${NORMAL} $DBUSER
@@ -439,9 +439,9 @@ _logsize () {
 
   for x in $tables; do
 
-    datasize=$(_connect -e "SELECT data_length/1024000 FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\" and TABLE_SCHEMA=\"$DBNAME\";" | tail -n1)
-    indexsize=$(_connect -e "SELECT index_length/1024000 FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\" and TABLE_SCHEMA=\"$DBNAME\";" | tail -n1)
-    rowcount=$(_connect -e "SELECT table_rows FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\" and TABLE_SCHEMA=\"$DBNAME\";" | tail -n1)
+    datasize=$(_connect -e "SELECT data_length/1024000 FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\" and TABLE_SCHEMA=\"$DBNAME\";" | "$TAIL" -n1)
+    indexsize=$(_connect -e "SELECT index_length/1024000 FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\" and TABLE_SCHEMA=\"$DBNAME\";" | "$TAIL" -n1)
+    rowcount=$(_connect -e "SELECT table_rows FROM information_schema.TABLES WHERE table_name = \"${PREFIX}$x\" and TABLE_SCHEMA=\"$DBNAME\";" | "$TAIL" -n1)
 
     datatotal=$(echo "scale=3;$datatotal + $datasize" | bc)
     indextotal=$(echo "scale=3;$indextotal+$indexsize" | bc)
@@ -488,7 +488,7 @@ _truncate () {
     log_url log_url_info log_visitor log_visitor_info log_visitor_online\
     report_viewed_product_index report_compared_product_index report_event catalog_compare_item"
 
-  touch "$SITEPATH"/maintenance.flag && echo -e "Maintenance Flag set while cleaning tables\n";
+  "$TOUCH" "$SITEPATH"/maintenance.flag && echo -e "Maintenance Flag set while cleaning tables\n";
 
   for x in $tables; do
     echo;
@@ -498,7 +498,7 @@ _truncate () {
 
 
   if [[ -f $SITEPATH/maintenance.flag ]]; then
-    rm "$SITEPATH"/maintenance.flag \
+    "$RM" "$SITEPATH"/maintenance.flag \
       && echo -e "\nTable cleaning complete, maintenance.flag removed";
   fi;
 
@@ -517,7 +517,7 @@ _password () {
     password="$(_xkcd)";
   fi
 
-	salt="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 32 | head -n1)"
+	salt="$("$TR" -dc 'a-zA-Z0-9' < /dev/urandom | "$FOLD" -w 32 | "$HEAD" -n1)"
 
   _connect <<- EOF
 
@@ -527,7 +527,7 @@ _password () {
 
 EOF
 
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   New Magento Login Credentials:
 
@@ -1000,7 +1000,7 @@ EOF
 # Clean up before exit
 _cleanUp () {
 
-  rm "$DEFAULTS_FILE";
+  "$RM" "$DEFAULTS_FILE";
 
 }
 

@@ -3,8 +3,13 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly AWK='/bin/awk'
+readonly COLUMN='/usr/bin/column'
+readonly GREP='/bin/grep'
+readonly ZLESS='/usr/bin/zless'
+
 _awkStuff() {
-  awk '
+  "$AWK" '
   BEGIN {
     print "Line\tFile_desc\tPort\tSocket/Address";
     print "----\t---------\t----\t--------------";
@@ -28,10 +33,10 @@ _awkStuff() {
 
 main () {
 
-  zless ${ARGA[*]} \
-    | grep -no ' connect(.*'  \
+  "$ZLESS" ${ARGA[*]} \
+    | "$GREP" -no ' connect(.*'  \
     | _awkStuff \
-    | column -t
+    | "$COLUMN" -t
 
 }
 

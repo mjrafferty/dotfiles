@@ -2,8 +2,12 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly AWK='/bin/awk'
+readonly CAT='/bin/cat'
+readonly DATE='/bin/date'
+
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Usage: killqueries [sleep|select]
 
@@ -25,13 +29,13 @@ main () {
 
   local filename x i;
 
-  filename="mytop-dump--$(date +%Y.%m.%d-%H.%M).dump";
+  filename="mytop-dump--$("$DATE" +%Y.%m.%d-%H.%M).dump";
 
   case ${ARGA[0]} in
     "sel"|"select")
       _querieslog "$filename";
 
-      x=$(awk '/SELECT/ {print $1}' ~/"$filename");
+      x=$("$AWK" '/SELECT/ {print $1}' ~/"$filename");
 
       for i in $x; do
         echo "Killing: $i";
@@ -43,7 +47,7 @@ main () {
     "sle"|"sleep")
       _querieslog "$filename";
 
-      x=$(awk '/Sleep/ {print $1}' ~/"$filename");
+      x=$("$AWK" '/Sleep/ {print $1}' ~/"$filename");
 
       for i in $x; do
         echo "Killing $i";

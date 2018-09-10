@@ -3,6 +3,8 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly AWK='/bin/awk'
+
 _usage() {
 	cat <<- EOF
     This is the usage
@@ -16,7 +18,7 @@ main () {
   fi
 
   ~iworx/bin/listaccounts.pex \
-    | awk '{print $1}';
+    | "$AWK" '{print $1}';
 }
 
 main;

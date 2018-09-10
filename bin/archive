@@ -3,8 +3,17 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly CAT='/bin/cat'
+readonly CHOWN='/bin/chown --preserve-root'
+readonly CUT='/bin/cut'
+readonly DATE='/bin/date'
+readonly DU='/usr/bin/du'
+readonly GZIP='/bin/gzip';
+readonly PIGZ='/usr/bin/pigz';
+readonly TAR='/bin/tar'
+
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Archive a particular target, adding time and date information
 
@@ -23,20 +32,20 @@ _compress () {
 
   if [[ -f /usr/bin/pv && -f /usr/bin/pigz ]]; then
 
-    tar -cf - "$target" \
+    "$TAR" -cf - "$target" \
       | pv -s "${size}" \
-      | pigz -c > "$file";
+      | "$PIGZ" -c > "$file";
 
   elif [[ -f /usr/bin/pv ]]; then
 
-    tar -cf - "$target" \
+    "$TAR" -cf - "$target" \
       | pv -s "${size}" \
-      | gzip -c > "$file";
+      | "$GZIP" -c > "$file";
 
   else
 
     echo "Sorry, no idea how long this will take ...";
-    tar -zcf  "$file" "$target";
+    "$TAR" -zcf  "$file" "$target";
 
   fi \
     && echo -e "\nArchive created successfully!\n\n$PWD/$file\n";
@@ -59,7 +68,7 @@ _chown () {
 
   fi;
 
-  chown "$user". "$file" \
+  "$CHOWN" "$user". "$file" \
     && echo -e "Archive owned to $user\n";
 
 }
@@ -74,8 +83,8 @@ main () {
   fi
 
   target="${ARGA[0]}"
-  file="${target/\//-}-$(date +%Y.%m.%d-%H.%M).tgz";
-  size=$(du -sb "$target" | cut -f1);
+  file="${target/\//-}-$("$DATE" +%Y.%m.%d-%H.%M).tgz";
+  size=$("$DU" -sb "$target" | "$CUT" -f1);
   sizem=$(echo "scale=3;$size/1024/1024" | bc);
 
   printf "Compressing %sM ... please be patient.\n" "$sizem"

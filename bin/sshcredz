@@ -3,8 +3,11 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly CAT='/bin/cat'
+readonly SSH='/usr/bin/ssh'
+
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Usage: sshcredz [-p <password>]
 
@@ -27,7 +30,7 @@ main () {
     newPass=$(xkcd);
   fi
 
-  # Set shell, and add to ssh user's group; then reset failed logins, and reset password.
+  # Set shell, and add to "$SSH" user's group; then reset failed logins, and reset password.
   usermod -s /bin/bash -a -G sshusers "$(getusr)" \
     && echo -n "User $(getusr) added to sshusers, and shell set to /bin/bash ... "
 

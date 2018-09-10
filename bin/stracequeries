@@ -3,18 +3,23 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly CAT='/bin/cat'
+readonly GREP='/bin/grep'
+readonly LESS='/bin/less'
+readonly SED='/bin/sed'
+
 main () {
 
   local x connections;
 
-	mapfile -t connections < <(cat $ARGS | grep -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))');
+	mapfile -t connections < <("$CAT" $ARGS | "$GREP" -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))');
 
 	if [[ -z "$connections"  || -n ${ARGA[1]} ]]; then
 
 		cat $ARGS \
 			|grep -Po '(write|sendto)\(\d*, "\\?[^\\]*(\\[^\\]*){3}\\.(\\.)?\K[S,C,U,\(,D,I,R,A][^"]*", ' \
-			| sed -e 's_", $_;_' -e 's/\\r/ /g' -e 's/\\n/ /g' -e 's/\\t/ /g' \
-			| less -SF
+			| "$SED" -e 's_", $_;_' -e 's/\\r/ /g' -e 's/\\n/ /g' -e 's/\\t/ /g' \
+			| "$LESS" -SF
 
 		exit;
 
@@ -27,11 +32,11 @@ main () {
 		file_desc=(${x/:/ });
 
 		tail -n +"${file_desc[0]}" "${ARGA[0]}" \
-			| grep -Po '(write|sendto)\('"${file_desc[1]}"', "\\?[^\\]*(\\[^\\]*){2}\\.(\\.)?\K.*", ' \
-			| sed -e 's_", $_;_' -e 's/\\r/ /g' -e 's/\\n/ /g' -e 's/\\t/ /g'
+			| "$GREP" -Po '(write|sendto)\('"${file_desc[1]}"', "\\?[^\\]*(\\[^\\]*){2}\\.(\\.)?\K.*", ' \
+			| "$SED" -e 's_", $_;_' -e 's/\\r/ /g' -e 's/\\n/ /g' -e 's/\\t/ /g'
 
 	done \
-		| less -SF
+		| "$LESS" -SF
 
 }
 

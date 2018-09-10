@@ -5,14 +5,18 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 # Alias executables to prevent PATH issues
-alias awk='/bin/awk'
-alias cat='/bin/cat'
-alias du='/usr/bin/du'
-alias find='/bin/find'
-alias head='/usr/bin/head'
-alias mktemp='/bin/mktemp'
-alias rm='/bin/rm'
-alias sort='/bin/sort'
+readonly AWK='/bin/awk'
+readonly CAT='/bin/cat'
+readonly COLUMN='/usr/bin/column'
+readonly FIND='/bin/find'
+readonly GREP='/bin/grep'
+readonly HEAD='/usr/bin/head'
+readonly LESS='/bin/less'
+readonly LSOF='/usr/sbin/lsof'
+readonly MKTEMP='/bin/mktemp'
+readonly RM='/bin/rm'
+readonly SORT='/bin/sort'
+readonly TOUCH='/bin/touch'
 
 # Necessary Global Variables
 USER=""
@@ -20,7 +24,7 @@ DEPTH=""
 
 # Print usage
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
 Examines disk usage for a user. Can be run with no argument
 from anywhere in a user's home directory, or by specifying a
@@ -37,7 +41,7 @@ Options:
   -u  --user    Specify a user
 
   -d  --depth   Depth for subdirectory exclusion control, probably
-                won't need to touch this very often. Default is 3
+                won't need to "$TOUCH" this very often. Default is 3
 
   -h  --help    Shows this message
 
@@ -75,7 +79,7 @@ _cmdline() {
 # Convert bytes to human readable KB,MB,GB
 _humanReadable() {
 
-  awk '{ H=$1;
+  "$AWK" '{ H=$1;
   $1="";
   if ( H >= 1073741824  )
     {
@@ -105,14 +109,14 @@ _files () {
 
   printf "\n----- Large Files ------\n";
 
-  find . \
+  "$FIND" . \
     -path './var/*/mail' -prune -o \
     -size +100M \
     -group "$USER" \
     -type f \
     -exec /usr/bin/du -sh {} + \
-    | sort -hr \
-    | head -20
+    | "$SORT" -hr \
+    | "$HEAD" -20
 
 }
 
@@ -121,10 +125,10 @@ _directories () {
 
   local temp_list directories;
 
-  temp_list=$(mktemp);
+  temp_list=$("$MKTEMP");
 
   # Get total size of directories located at given depth
-  find . \
+  "$FIND" . \
     -mindepth "$((DEPTH +1))" \
     -maxdepth "$((DEPTH +1))" \
     -path '*/var/*/mail/*' -prune -o \
@@ -132,7 +136,7 @@ _directories () {
     -group "$USER" \
     -exec /usr/bin/du -sb {} + >> "$temp_list" &
 
-  directories=$(find . \
+  directories=$("$FIND" . \
     -maxdepth "$DEPTH" \
     -path "./var/*/mail" -prune -o \
     -type d \
@@ -140,20 +144,20 @@ _directories () {
 
   printf "\n----- Large Directories ------\n";
 
-  # Get sizes of directories EXCLUDING subdirectories for directories less than given depth
+  # Get sizes of directories EXCLUDING subdirectories for directories "$LESS" than given depth
   IFS=$'\n'
   for x in $directories; do
-    find "$x" -mindepth 1 -maxdepth 1 -group "$USER" -type f -exec /usr/bin/du -sb {} + \
-      | awk '{sum += $1} END {print sum,dirname}' dirname="$x" >> "$temp_list" &
+    "$FIND" "$x" -mindepth 1 -maxdepth 1 -group "$USER" -type f -exec /usr/bin/du -sb {} + \
+      | "$AWK" '{sum += $1} END {print sum,dirname}' dirname="$x" >> "$temp_list" &
   done;
 
   wait;
 
-  sort -k1nr "$temp_list" \
-    | head -n20 \
+  "$SORT" -k1nr "$temp_list" \
+    | "$HEAD" -n20 \
     | _humanReadable;
 
-  rm "$temp_list"
+  "$RM" "$temp_list"
 
 }
 
@@ -164,13 +168,13 @@ _mailboxes () {
 
   cd var || return 1;
 
-  find ./*/mail/* \
+  "$FIND" ./*/mail/* \
     -maxdepth 0 \
     -type d \
     -group "$USER"\
     -exec /usr/bin/du -sh {} + \
-    | sort -hr \
-    | head -10
+    | "$SORT" -hr \
+    | "$HEAD" -10
 
 }
 
@@ -179,9 +183,9 @@ _extraStuff() {
 
   printf "\n----- Extra Stuff ------\n";
 
-  find /home/{tmp,nex*} -maxdepth 3 -group "$(pwd | grep -Po "/home/\K[^/]*")" -exec /usr/bin/du -sh {} + \
-    | sort -hr \
-    | head -n10;
+  "$FIND" /home/{tmp,nex*} -maxdepth 3 -group "$(pwd | "$GREP" -Po "/home/\K[^/]*")" -exec /usr/bin/du -sh {} + \
+    | "$SORT" -hr \
+    | "$HEAD" -n10;
 
 }
 
@@ -190,11 +194,11 @@ _deletedFiles() {
 
   printf "\n----- Deleted Files ------\n";
 
-  lsof -u "$USER" \
-    | awk '/deleted/ {print $7,$9,$1,$2}' \
-    | sort -hr \
+  "$LSOF" -u "$USER" \
+    | "$AWK" '/deleted/ {print $7,$9,$1,$2}' \
+    | "$SORT" -hr \
     | _humanReadable \
-    | column -t
+    | "$COLUMN" -t
 
 }
 
@@ -219,7 +223,7 @@ main () {
 
   done
 
-  [[ -n "$USER" ]] || USER="$(pwd | grep -Po "home/\K[^/]*")"
+  [[ -n "$USER" ]] || USER="$(pwd | "$GREP" -Po "home/\K[^/]*")"
 
   [[ -n "$DEPTH" ]] || DEPTH=3;
 
@@ -234,7 +238,7 @@ main () {
 
   # Execute all functions in parallel
   for ((x=0;x<${#func_list[@]};x++)); do
-    tmp_list[x]="$(mktemp)";
+    tmp_list[x]="$("$MKTEMP")";
     "${func_list[x]}" 2> /dev/null > "${tmp_list[x]}" &
   done
 
@@ -242,8 +246,8 @@ main () {
 
   # Report data and cleanup temp files
   for ((x=0;x<${#tmp_list[@]};x++)); do
-    cat "${tmp_list[x]}";
-    rm "${tmp_list[x]}";
+    "$CAT" "${tmp_list[x]}";
+    "$RM" "${tmp_list[x]}";
   done
 
   echo;

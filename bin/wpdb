@@ -3,6 +3,15 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly AWK='/bin/awk'
+readonly CUT='/bin/cut'
+readonly DATE='/bin/date'
+readonly GREP='/bin/grep'
+readonly MYSQL='/usr/bin/mysql'
+readonly SED='/bin/sed'
+readonly TAIL='/usr/bin/tail'
+readonly TR='/usr/bin/tr'
+
 dbconnect=();
 
 _wpdbsum () {
@@ -16,7 +25,7 @@ _wpdbconnect () {
     _wpdbsum;
     runonce=1;
   fi \
-    && mysql -u "$dbuser" -p"$dbpass" -h "$dbhost" "$dbname" "$@";
+    && "$MYSQL" -u "$dbuser" -p"$dbpass" -h "$dbhost" "$dbname" "$@";
 }
 
 _wpdbbackup () {
@@ -31,15 +40,15 @@ _wpdbbackup () {
   echo "Using: mysqldump --opt --skip-lock-tables -u'$dbuser' -p'$dbpass' -h $dbhost $dbname";
   if [[ -f /usr/bin/pv ]]; then
     sudo -u "$(getusr)" mysqldump --opt --skip-lock-tables -u"$dbuser" -p"$dbpass" -h "$dbhost" "$dbname" \
-      | pv -N 'MySQL-Dump' | $COMPRESS --fast | pv -N 'Compression' > "${dbname}"-"$(date +%Y.%m.%d-%H.%M)".sql.gz;
+      | pv -N 'MySQL-Dump' | $COMPRESS --fast | pv -N 'Compression' > "${dbname}"-"$("$DATE" +%Y.%m.%d-%H.%M)".sql.gz;
   else
     sudo -u "$(getusr)" mysqldump --opt --skip-lock-tables -u"$dbuser" -p"$dbpass" -h "$dbhost" "$dbname" \
-      | $COMPRESS --fast > "${dbname}"-"$(date +%Y.%m.%d-%H.%M)".sql.gz;
+      | $COMPRESS --fast > "${dbname}"-"$("$DATE" +%Y.%m.%d-%H.%M)".sql.gz;
   fi;
 }
 
 _wpdbinfo () {
-  mapfile -t dbconnect < <(grep DB_ "$SITEPATH"/wp-config.php 2> /dev/null | cut -d\' -f4);
+  mapfile -t dbconnect < <("$GREP" DB_ "$SITEPATH"/wp-config.php 2> /dev/null | "$CUT" -d\' -f4);
   dbname=${dbconnect[0]};
   dbuser="${dbconnect[1]}";
   dbpass="${dbconnect[2]}";
@@ -81,23 +90,23 @@ main () {
   fi;
 
   if [[ -f $SITEPATH/wp-includes/version.php ]]; then
-    version=$(grep "wp_version =" "$SITEPATH"/wp-includes/version.php | cut -d\' -f2)
-    dbversion=$(grep "wp_db_version =" "$SITEPATH"/wp-includes/version.php | awk '{print $3}' | tr -d \;)
+    version=$("$GREP" "wp_version =" "$SITEPATH"/wp-includes/version.php | "$CUT" -d\' -f2)
+    dbversion=$("$GREP" "wp_db_version =" "$SITEPATH"/wp-includes/version.php | "$AWK" '{print $3}' | "$TR" -d \;)
   fi
 
   if [[ -f $SITEPATH/wp-config.php ]]; then
-    if grep -Eqi "MULTISITE...true" "$SITEPATH"/wp-config.php; then
+    if "$GREP" -Eqi "MULTISITE...true" "$SITEPATH"/wp-config.php; then
       edition='WP Multisite';
     else
       edition='Wordpress';
     fi
-    prefix=$(grep table_prefix "$SITEPATH"/wp-config.php | cut -d\' -f2);
+    prefix=$("$GREP" table_prefix "$SITEPATH"/wp-config.php | "$CUT" -d\' -f2);
   fi
 
 
   case $opt in
     -b | --base )
-      option_tables=$(_wpdbconnect -e "SHOW TABLE STATUS" | awk '($1 ~ /options/) {print $1}');
+      option_tables=$(_wpdbconnect -e "SHOW TABLE STATUS" | "$AWK" '($1 ~ /options/) {print $1}');
       for x in $option_tables; do
         _wpdbconnect -e "SELECT * FROM $x WHERE option_name = \"siteurl\" OR option_name = \"home\" OR option_name = \"blogname\";";
         echo -e "Options Table Name: $x\n";
@@ -118,7 +127,7 @@ main () {
     -i | --info )
       _wpdbinfo;
       echo "Database Connection Info:";
-      echo -e "\nLoc.Conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $dbhost \nRem.Conn: mysql -u'$dbuser' -p'$dbpass' $dbname -h $(hostname)\n";
+      echo -e "\nLoc.Conn: "$MYSQL" -u'$dbuser' -p'$dbpass' $dbname -h $dbhost \nRem.Conn: "$MYSQL" -u'$dbuser' -p'$dbpass' $dbname -h $(hostname)\n";
       echo -e "Username: $dbuser \nPassword: $dbpass \nDatabase: $dbname $(if [[ -n "$prefix" ]]; then echo \\nPrefix..: "$prefix"; fi) \nLoc.Host: $dbhost \nRem.Host: $(hostname)"
       ;;
     -l | --login )
@@ -129,8 +138,8 @@ main () {
       ;;
     -P | --password )
       if [[ -n $param ]]; then
-        user_login=$(echo "$param" | awk '{print $1}');
-        user_pass=$(echo "$param" | awk '{print $2}');
+        user_login=$(echo "$param" | "$AWK" '{print $1}');
+        user_pass=$(echo "$param" | "$AWK" '{print $2}');
 
         if [ -z "$user_pass" ]; then
           user_pass="$(xkcd)";
@@ -152,12 +161,12 @@ main () {
       fi
       ;;
     -s | --swap )
-      user_login=$(_wpdbconnect -e "SELECT user_login FROM ${prefix}users ORDER BY id LIMIT 1;" | tail -1)
-      user_pass=$(_wpdbconnect -e "SELECT user_pass FROM ${prefix}users ORDER BY id LIMIT 1;" | tail -1 | sed 's/\$/\\\$/g')
+      user_login=$(_wpdbconnect -e "SELECT user_login FROM ${prefix}users ORDER BY id LIMIT 1;" | "$TAIL" -1)
+      user_pass=$(_wpdbconnect -e "SELECT user_pass FROM ${prefix}users ORDER BY id LIMIT 1;" | "$TAIL" -1 | "$SED" 's/\$/\\\$/g')
       _wpdbconnect -e "UPDATE ${prefix}users SET user_pass=MD5('nexpassword') WHERE user_login = \"$user_login\"";
       echo -e "You can now login using the following credentials\nOnce you un-pause this script the password will be reset\n"
       echo -n "LoginURL: ";
-      _wpdbconnect -e "SELECT option_value FROM ${prefix}options WHERE option_name LIKE \"siteurl\";" | tail -1 | sed 's/\/$/\/wp-admin/'
+      _wpdbconnect -e "SELECT option_value FROM ${prefix}options WHERE option_name LIKE \"siteurl\";" | "$TAIL" -1 | "$SED" 's/\/$/\/wp-admin/'
       echo -e "Username: $user_login\nPassword: nexpassword\n"
       read -rp "Press [Enter] to continue ... " ;
       _wpdbconnect -e "UPDATE ${prefix}users SET user_pass=\"$user_pass\" WHERE user_login = \"$user_login\"";

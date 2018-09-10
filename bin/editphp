@@ -5,14 +5,14 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 # Alias executables to prevent PATH issues
-alias find='/bin/find'
-alias grep='/bin/grep'
-alias head='/usr/bin/head'
-alias nano='/bin/nano'
+readonly CAT='/bin/cat'
+readonly FIND='/bin/find'
+readonly GREP='/bin/grep'
+readonly HEAD='/usr/bin/head'
 
 # Print usage
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
 Opens the PHP-FPM pool configuration file for a user. Can be
 run with no arguments from anywhere in a user's home directory, or
@@ -72,9 +72,9 @@ main () {
 
   done
 
-  [[ -n "$user" ]] || user="$(pwd | grep -Po "home/\K[^\/]*")";
+  [[ -n "$user" ]] || user="$(pwd | "$GREP" -Po "home/\K[^\/]*")";
 
-  conf_file="$(find {/etc/opt/remi/php*,{/opt/nexcess/php*/root,}/etc}/php-fpm.d/ -name "${user}.conf" 2> /dev/null | head -n1)";
+  conf_file="$("$FIND" {/etc/opt/remi/php*,{/opt/nexcess/php*/root,}/etc}/php-fpm.d/ -name "${user}.conf" 2> /dev/null | "$HEAD" -n1)";
 
   if [[ -z "$conf_file" ]]; then
     echo "Config file not found for $user";

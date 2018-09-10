@@ -2,8 +2,14 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+readonly CAT='/bin/cat'
+readonly CUT='/bin/cut'
+readonly GREP='/bin/grep'
+readonly SED='/bin/sed'
+readonly SORT='/bin/sort'
+
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Identifies all mod security rules triggered by the given IP address
   in the current error.log file. Must be run from the site's log directory.
@@ -21,21 +27,23 @@ main () {
     return 0;
   fi
 
-  local ip uris uniqueid i logentries
+  local ip uris i logentries
 
   ip="${ARGS[0]}";
 
   # Grab necessary data from log
-  logentries=$(sed -n 's/.*'"$ip"'.*\[uri \"\([^"]*\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
+  logentries=$("$SED" -n 's/.*'"$ip"'.*\[uri \"\([^"]*\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
 
   # Find unique uris
-  uris=($(echo "$logentries" | cut -f2 | cut -d/ -f1-4 | sort -u ));
+  uris=($(echo "$logentries" | "$CUT" -f2 | "$CUT" -d/ -f1-4 | "$SORT" -u ));
 
   echo "<IfModule mod_security2.c>";
   # Print LocationMatch block for each uri
   for ((i=0;i<${#uris[@]};i++)); do
 
-    uniqueid=($(echo "$logentries" | grep "${uris[$i]}"| cut -f1));
+		local uniqueid;
+
+    uniqueid=($(echo "$logentries" | "$GREP" "${uris[$i]}"| "$CUT" -f1));
 
     echo "  <LocationMatch ${uris[$i]} >";
     echo "    # Ticket ID: $TICKET"
@@ -44,11 +52,10 @@ main () {
       modsecrules "${uniqueid[$x]}";
 
     done \
-      | sort -u \
-      | sed 's/^/    SecRuleRemoveById /';
+      | "$SORT" -u \
+      | "$SED" 's/^/    SecRuleRemoveById /';
 
     echo "  </LocationMatch>";
-    unset uniqueid;
 
   done;
   echo "</IfModule>";

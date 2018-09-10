@@ -9,22 +9,22 @@ readonly PREFIX=".htpasswd"
 readonly TEMP_EXT="_$(uuidgen)"
 
 # Alias executables to prevent PATH issues
-alias awk="/bin/awk"
-alias cat="/bin/cat"
-alias chown="/bin/chown --preserve-root"
-alias grep="/bin/grep"
-alias head="/usr/bin/head"
-alias htpasswd="/usr/bin/htpasswd"
-alias mv="/bin/mv"
-alias rm="/bin/rm --preserve-root"
-alias sed="/bin/sed"
-alias shuf="/usr/bin/shuf"
-alias tr="/usr/bin/tr"
-alias wc="/usr/bin/wc"
+readonly AWK="/bin/awk"
+readonly CAT="/bin/cat"
+readonly CHOWN="/bin/chown --preserve-root"
+readonly GREP="/bin/grep"
+readonly HEAD="/usr/bin/head"
+readonly HTPASSWD="/usr/bin/htpasswd"
+readonly MV="/bin/mv"
+readonly RM="/bin/rm --preserve-root"
+readonly SED="/bin/sed"
+readonly SHUF="/usr/bin/shuf"
+readonly TR="/usr/bin/tr"
+readonly WC="/usr/bin/wc"
 
 # Print usage info
 _usage() {
-  cat <<- EOF
+  "$CAT" <<- EOF
 
   Tool for easily configuring basic auth on
   web accessible sites or directories.
@@ -68,7 +68,7 @@ _xkcd () {
 
   if [[ -x /usr/bin/shuf ]]; then
 
-    pass=$(shuf -n1000 "$wordList" | grep -E '^[a-z,A-Z]{4,12}$' | head -n4 | sed 's/^\([a-z]\)/\u\1/' | tr -d '\n| ');
+    pass=$("$SHUF" -n1000 "$wordList" | "$GREP" -E '^[a-z,A-Z]{4,12}$' | "$HEAD" -n4 | "$SED" 's/^\([a-z]\)/\u\1/' | "$TR" -d '\n| ');
 
     echo "$pass"$(( (RANDOM % 9000) + 1000 ));
 
@@ -76,15 +76,15 @@ _xkcd () {
 
     word=();
 
-    matchList=$(grep -E '^[a-z,A-Z]{4,12}$' $wordList);
+    matchList=$("$GREP" -E '^[a-z,A-Z]{4,12}$' $wordList);
     IFS=" "
-    wcount=$(echo "$matchList" | wc -l | awk '{print $1}')
+    wcount=$(echo "$matchList" | "$WC" -l | "$AWK" '{print $1}')
 
     for ((x=0;x<4;x++)) do
 
       rnd=$((RANDOM % wcount))
 
-      word[$x]=$(echo "$matchList" | sed -n "${rnd}p" | sed 's/^\([a-z]\)/\u\1/');
+      word[$x]=$(echo "$matchList" | "$SED" -n "${rnd}p" | "$SED" 's/^\([a-z]\)/\u\1/');
 
     done;
 
@@ -104,10 +104,10 @@ _addAuth () {
   owner="$3"
 
   if [[ -e "$htaccess" ]]; then
-    mv "$htaccess" "$htaccess${TEMP_EXT}"
+    "$MV" "$htaccess" "$htaccess${TEMP_EXT}"
   fi
 
-  cat <<- EOF > "$htaccess"
+  "$CAT" <<- EOF > "$htaccess"
 # ----- Begin Basic Authentication -----
 AuthUserFile $auth_file
 AuthGroupFile /dev/null
@@ -120,12 +120,12 @@ EOF
 
   if [[ -e "$htaccess${TEMP_EXT}" ]]; then
 
-    cat "$htaccess${TEMP_EXT}" >> "$htaccess"
-    rm -f "$htaccess${TEMP_EXT}";
+    "$CAT" "$htaccess${TEMP_EXT}" >> "$htaccess"
+    "$RM" -f "$htaccess${TEMP_EXT}";
 
   fi
 
-  chown "$owner". "$htaccess";
+  "$CHOWN" "$owner". "$htaccess";
 
 }
 
@@ -170,8 +170,8 @@ main () {
   fi
 
   # Which user and domain will this belong to
-  owner=$(echo "$protected_dir" | grep -Po '^(/chroot)?/home/\K[^/]*')
-  site_dir="$(echo "$protected_dir" | grep -Po '.*home/[^/]*/[^/]*')"
+  owner=$(echo "$protected_dir" | "$GREP" -Po '^(/chroot)?/home/\K[^/]*')
+  site_dir="$(echo "$protected_dir" | "$GREP" -Po '.*home/[^/]*/[^/]*')"
 
   # If owner or site is NULL, chosen directory was not within a docroot
   if [[ -z "$owner" || -z "$site_dir" ]]; then
@@ -184,7 +184,7 @@ main () {
 
   # Check for existing basic auth configuration
   if [[ -e "$htaccess" ]]; then
-    auth_file=$(grep -Poi '(?<!#)\s*authuserfile\s*\K.*' "$htaccess");
+    auth_file=$("$GREP" -Poi '(?<!#)\s*authuserfile\s*\K.*' "$htaccess");
   fi
 
   # If existing configuration present, ask if we should modify credentials
@@ -196,7 +196,7 @@ main () {
      modify="Yes";
    fi
  else
-    auth_file="${site_dir}/${PREFIX}_$(echo "$protected_dir" | grep -Po 'html/\K.*' | tr '/' '-')"
+    auth_file="${site_dir}/${PREFIX}_$(echo "$protected_dir" | "$GREP" -Po 'html/\K.*' | "$TR" '/' '-')"
   fi
 
   # Get username if not provided on command line
@@ -212,21 +212,21 @@ main () {
     pass=$(_xkcd) || exit 5;
   fi
 
-  # Write information to htpasswd file
+  # Write information to "$HTPASSWD" file
   if [[ -e "$auth_file" ]]; then
-    htpasswd -mb "$auth_file" "$user" "$pass";
+    "$HTPASSWD" -mb "$auth_file" "$user" "$pass";
   else
-    htpasswd -cmb "$auth_file" "$user" "$pass";
+    "$HTPASSWD" -cmb "$auth_file" "$user" "$pass";
   fi;
 
   # Set ownership
-  chown "${owner}". "$auth_file";
+  "$CHOWN" "${owner}". "$auth_file";
 
   # Add basic auth section to .htaccess if it was not already present
   [[ -z "$modify" ]] && _addAuth "$htaccess" "$auth_file" "$owner"
 
   # Display configured username and password
-  cat <<- EOF
+  "$CAT" <<- EOF
 
 Username:   $user
 Password:   $pass

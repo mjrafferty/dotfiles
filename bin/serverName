@@ -1,16 +1,22 @@
 #! /bin/bash
 
+readonly AWK='/bin/awk'
+readonly CUT='/bin/cut'
+readonly DIG='/usr/bin/dig'
+readonly GREP='/bin/grep'
+readonly HEAD='/usr/bin/head'
+
 main () {
 
   ## Print the hostname if it resolves, otherwise print the main IP
-  if [[ -n $(dig +time=1 +tries=1 +short "$(hostname)") ]]; then
+  if [[ -n $("$DIG" +time=1 +tries=1 +short "$(hostname)") ]]; then
     hostname;
   else
     ip addr show \
-      | awk '/inet / {print $2}' \
-      | cut -d/ -f1 \
-      | grep -Ev '^127\.' \
-      | head -1;
+      | "$AWK" '/inet / {print $2}' \
+      | "$CUT" -d/ -f1 \
+      | "$GREP" -Ev '^127\.' \
+      | "$HEAD" -1;
   fi
 
 }

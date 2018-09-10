@@ -2,16 +2,23 @@
 
 # Gets list of recent DNS lookups from local requests
 
+readonly COLUMN='/usr/bin/column'
+readonly CUT='/bin/cut'
+readonly DIG='/usr/bin/dig'
+readonly GREP='/bin/grep'
+readonly SORT='/bin/sort'
+
+
 list=();
 dug=();
 
 # list of domains queried
-mapfile -t list < <(parallel grep query -- /service/dnscache/log/main/* | cut -d\  -f6 | sort -u);
+mapfile -t list < <(parallel "$GREP" query -- /service/dnscache/log/main/* | "$CUT" -d\  -f6 | "$SORT" -u);
 
 for ((i=0;i<${#list[@]};i++)); do
 
   # list of records  received for a domain
-  mapfile -t dug < <(dig +short "${list[$i]}");
+  mapfile -t dug < <("$DIG" +short "${list[$i]}");
 
   for ((x=0;x<${#dug[@]};x++)); do
       printf "%s\t%s\n" "${list[$i]}" "${dug[$x]}";
@@ -19,4 +26,4 @@ for ((i=0;i<${#list[@]};i++)); do
 
   echo;
 
-done | column -t;
+done | "$COLUMN" -t;
