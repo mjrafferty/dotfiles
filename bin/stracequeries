@@ -5,7 +5,7 @@ readonly ARGA=("$@")
 
 readonly CAT='/bin/cat'
 readonly GREP='/bin/grep'
-readonly LESS='/bin/less'
+readonly LESS='/usr/bin/less'
 readonly SED='/bin/sed'
 
 main () {

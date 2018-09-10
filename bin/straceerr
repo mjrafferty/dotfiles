@@ -4,7 +4,7 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly GREP='/bin/grep'
-readonly LESS='/bin/less'
+readonly LESS='/usr/bin/less'
 
 main () {
 

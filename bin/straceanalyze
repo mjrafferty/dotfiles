@@ -4,7 +4,7 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly AWK='/bin/awk'
-readonly LESS='/bin/less'
+readonly LESS='/usr/bin/less'
 
 main () {
 
