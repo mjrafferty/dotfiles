@@ -6,7 +6,7 @@ readonly ARGA=("$@")
 
 # Alias executables to prevent PATH issues
 readonly CAT='/bin/cat'
-readonly CHOWN='/bin/chmod'
+readonly CHMOD='/bin/chmod'
 readonly DATE='/bin/date'
 readonly GREP='/bin/grep'
 readonly HEAD='/usr/bin/head'

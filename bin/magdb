@@ -11,7 +11,7 @@ DEFAULTS_FILE="$HOME/.magdb_defaults"
 # Alias executables to prevent PATH issues
 readonly AWK="/bin/awk"
 readonly CAT="/bin/cat"
-readonly CHOWN='/bin/chmod'
+readonly CHMOD='/bin/chmod'
 readonly CUT="/bin/cut"
 readonly FOLD="/usr/bin/fold"
 readonly GREP="/bin/grep"

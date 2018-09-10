@@ -13,7 +13,7 @@ readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
 
 # Alias executables to prevent PATH issues
 readonly CAT='/bin/cat'
-readonly CHOWN='/bin/chmod'
+readonly CHMOD='/bin/chmod'
 readonly DATE='/bin/date'
 readonly DD='/bin/dd'
 readonly FIND='/bin/find'
