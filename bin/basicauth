@@ -11,12 +11,12 @@ readonly TEMP_EXT="_$(uuidgen)"
 # Alias executables to prevent PATH issues
 readonly AWK="/bin/awk"
 readonly CAT="/bin/cat"
-readonly CHOWN="/bin/chown --preserve-root"
+readonly CHOWN='/bin/chown'
 readonly GREP="/bin/grep"
 readonly HEAD="/usr/bin/head"
 readonly HTPASSWD="/usr/bin/htpasswd"
 readonly MV="/bin/mv"
-readonly RM="/bin/rm --preserve-root"
+readonly RM='/bin/rm'
 readonly SED="/bin/sed"
 readonly SHUF="/usr/bin/shuf"
 readonly TR="/usr/bin/tr"

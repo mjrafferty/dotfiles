@@ -6,7 +6,7 @@ readonly ARGA=("$@")
 
 # Alias executables to prevent PATH issues
 readonly CAT='/bin/cat'
-readonly CHMOD='/bin/chmod --preserve-root'
+readonly CHOWN='/bin/chmod'
 readonly DATE='/bin/date'
 readonly DD='/bin/dd'
 readonly FIND='/bin/find'
@@ -15,7 +15,7 @@ readonly MKDIR='/bin/mkdir'
 readonly MKFIFO='/usr/bin/mkfifo'
 readonly MV='/bin/mv'
 readonly PKILL='/usr/bin/pkill'
-readonly RM='/bin/rm --preserve-root'
+readonly RM='/bin/rm'
 readonly SLEEP='/bin/sleep'
 readonly STRACE='/usr/bin/strace'
 readonly TAIL='/usr/bin/tail'

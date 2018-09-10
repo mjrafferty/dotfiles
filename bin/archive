@@ -4,7 +4,7 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly CAT='/bin/cat'
-readonly CHOWN='/bin/chown --preserve-root'
+readonly CHOWN='/bin/chown'
 readonly CUT='/bin/cut'
 readonly DATE='/bin/date'
 readonly DU='/usr/bin/du'
