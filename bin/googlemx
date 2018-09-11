@@ -8,9 +8,14 @@ readonly ARGA=("$@")
 readonly AWK='/bin/awk'
 readonly CAT='/bin/cat'
 readonly COLUMN='/usr/bin/column'
+readonly GREP='/bin/grep'
+readonly NODEWORX='/usr/bin/nodeworx'
+readonly SITEWORX='/usr/bin/siteworx'
 readonly SORT='/bin/sort'
+readonly SUDO='/usr/bin/sudo'
 
 _usage() {
+
   "$CAT" <<- EOF
 
   Usage: googlemx OPTION DOMAIN
@@ -23,18 +28,29 @@ _usage() {
   -c      Check existing MX records for domain
 
 EOF
+
 }
+
+
+_getusr () {
+
+  pwd \
+    | "$GREP" -Po "/((chroot/)?home/|local/)\K[^/]*"
+
+}
+
 
 _removeRecords () {
 
   local zoneid mxrecord
 
   zoneid="$1";
-  mxrecord=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid" | "$AWK" '($4 ~ /MX/) {print $1}')
+  mxrecord=$("$SUDO" -u "$(_getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid" | "$AWK" '($4 ~ /MX/) {print $1}')
 
   echo "Removing old records";
+
   for x in $mxrecord; do
-    nodeworx -u -n -c DnsRecord -a delete --record_id "$x";
+    "$NODEWORX" -u -n -c DnsRecord -a delete --record_id "$x";
   done
 
 }
@@ -43,11 +59,11 @@ _addRecords () {
 
   local zoneid="$1"
 
-  sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 1 --mail_server ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ASPMX.L.GOOGLE.COM';
-  sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 5 --mail_server ALT1.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT1.ASPMX.L.GOOGLE.COM';
-  sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 5 --mail_server ALT2.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT2.ASPMX.L.GOOGLE.COM';
-  sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 10 --mail_server ALT3.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT3.ASPMX.L.GOOGLE.COM';
-  sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 10 --mail_server ALT4.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT4.ASPMX.L.GOOGLE.COM';
+  "$SUDO" -u "$(_getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 1 --mail_server ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ASPMX.L.GOOGLE.COM';
+  "$SUDO" -u "$(_getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 5 --mail_server ALT1.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT1.ASPMX.L.GOOGLE.COM';
+  "$SUDO" -u "$(_getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 5 --mail_server ALT2.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT2.ASPMX.L.GOOGLE.COM';
+  "$SUDO" -u "$(_getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 10 --mail_server ALT3.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT3.ASPMX.L.GOOGLE.COM';
+  "$SUDO" -u "$(_getusr)" -- siteworx -u -n -c Dns -a addMX --zone_id "$zoneid" --preference 10 --mail_server ALT4.ASPMX.L.GOOGLE.COM --ttl 3600 && echo '[Added] ALT4.ASPMX.L.GOOGLE.COM';
 
 }
 
@@ -56,7 +72,7 @@ _listRecords () {
   local zoneid="$1"
 
   echo;
-  (sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid") \
+  ("$SUDO" -u "$(_getusr)" -- "$SITEWORX" -u -n -c Dns -a queryDnsRecords --zone_id "$zoneid") \
     | "$AWK" '($4 ~ /MX/) {print $1,$4,$6,$7,$8}' \
     | "$SORT" -nk3 \
     | "$COLUMN" -t;
@@ -73,7 +89,7 @@ main () {
 
   local zoneid;
 
-  zoneid=$(sudo -u "$(getusr)" -- siteworx -u -n -c Dns -a listZones | "$AWK" "/${ARGA[1]}/"'{print $1}')
+  zoneid=$("$SUDO" -u "$(_getusr)" -- "$SITEWORX" -u -n -c Dns -a listZones | "$AWK" "/${ARGA[1]}/"'{print $1}')
 
   if [[ ${ARGA[0]} = '-c' && -n ${ARGA[1]} ]]; then
 

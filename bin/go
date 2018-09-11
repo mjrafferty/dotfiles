@@ -26,7 +26,7 @@ readonly RM='/bin/rm'
 readonly RSYNC='/usr/bin/rsync'
 readonly SED='/bin/sed'
 readonly SORT='/bin/sort'
-readonly SQLITE3='hashed'
+readonly SQLITE='/usr/bin/sqlite3'
 readonly SSH='/usr/bin/ssh'
 readonly STAT='/usr/bin/stat'
 readonly TR='/usr/bin/tr'
@@ -40,6 +40,7 @@ DESTINATION="";
 
 # Print usage info
 _usage () {
+
   "$CAT" <<- EOF
 
   Usage: go [destination] [ticket] [commands...]
@@ -74,6 +75,7 @@ _usage () {
     -p|--permanent      Permanently store domain in cache.
 
 EOF
+
 }
 
 ################################ BEGIN CHRIS ORLANDO'S WORK ##############################################
@@ -244,10 +246,10 @@ _setEnv () {
 
 }
 
-# Creates sqlite3 database
+# Creates "$SQLITE" database
 _checkDB() {
 
-  sqlite3 "$DOMAIN_DB_FILE" "$DOMAIN_DB_CREATE";
+  "$SQLITE" "$DOMAIN_DB_FILE" "$DOMAIN_DB_CREATE";
 
 }
 
@@ -259,13 +261,13 @@ _getCache() {
     # If ticket is given, check cache for known destination associated with it
     if [[ -n $TICKET ]]; then
       query=$(printf "SELECT destination FROM LOCATIONS WHERE domain=(SELECT domain FROM TICKETS WHERE ticket_id='%s' limit 1);" "${TICKET}");
-      DESTINATION=$(sqlite3 "$DOMAIN_DB_FILE" "$query") || _checkDB;
+      DESTINATION=$("$SQLITE" "$DOMAIN_DB_FILE" "$query") || _checkDB;
     fi
 
     # Check cache for a known destination
     if [[ -z $DESTINATION ]]; then
       query=$(printf "SELECT destination FROM LOCATIONS WHERE domain='%s' AND timestamp > '%s';" "${DOMAIN}" "$(($("$DATE" "+%s")-172800))");
-      DESTINATION=$(sqlite3 "$DOMAIN_DB_FILE" "$query") || _checkDB
+      DESTINATION=$("$SQLITE" "$DOMAIN_DB_FILE" "$query") || _checkDB
     fi
 
 }
@@ -406,12 +408,12 @@ main () {
     if [[ -z "$dont_cache" ]]; then
       # Add to cache
       query=$(printf "INSERT OR REPLACE INTO LOCATIONS VALUES ('%s','%s','%s');" "${DOMAIN}" "${DESTINATION}" "${timestamp}")
-      sqlite3 "$DOMAIN_DB_FILE" "$query" || _checkDB;
+      "$SQLITE" "$DOMAIN_DB_FILE" "$query" || _checkDB;
     fi
 
     if [[ -n $TICKET ]]; then
       query=$(printf "INSERT OR REPLACE INTO TICKETS VALUES ('%s','%s');" "${TICKET}" "${DOMAIN}");
-      sqlite3 "$DOMAIN_DB_FILE" "$query" || _checkDB;
+      "$SQLITE" "$DOMAIN_DB_FILE" "$query" || _checkDB;
     fi
 
   fi
