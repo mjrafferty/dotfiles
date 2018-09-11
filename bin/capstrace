@@ -10,14 +10,18 @@ readonly OUTPUT_DIR="${HOME}/nex_strace"
 readonly TEMP_DIR="/var/tmp"
 readonly PIPE_PREFIX="${TEMP_DIR}/nexcess_strace_pipe-"
 readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
+readonly STRACE_FLAGS="-fTrvs200000"
 
 # Alias executables to prevent PATH issues
 readonly CAT='/bin/cat'
 readonly CHMOD='/bin/chmod'
+readonly CP='/bin/cp'
 readonly DATE='/bin/date'
 readonly DD='/bin/dd'
 readonly FIND='/bin/find'
 readonly GREP='/bin/grep'
+readonly GZIP='/bin/gzip'
+readonly KILL='/bin/kill'
 readonly MKDIR='/bin/mkdir'
 readonly MKFIFO='/usr/bin/mkfifo'
 readonly MV='/bin/mv'
@@ -27,12 +31,6 @@ readonly SLEEP='/bin/sleep'
 readonly STRACE='/usr/bin/strace'
 readonly TAIL='/usr/bin/tail'
 readonly TR='/usr/bin/tr'
-
-if [[ -e /usr/bin/pigz ]]; then
-  readonly GZIP='/usr/bin/pigz';
-else
-  readonly GZIP='/bin/gzip';
-fi
 
 # Necessary Global Variables
 MONITOR_PID=""
@@ -44,10 +42,11 @@ FILES_USED=()
 
 # Print usage
 _usage() {
+
   "$CAT" <<- EOF
 
-  Captures "$STRACE" and php GLOBALS variable information of one or matching
-  requests to a website. Outputs data to "$OUTPUT_DIR". Can also be run on each
+  Captures strace and php GLOBALS variable information of one or matching
+  requests to a website. Outputs data to $OUTPUT_DIR. Can also be run on each
   node of a cluster without conflict.
 
   Usage:
@@ -78,6 +77,7 @@ _usage() {
   -k|--kill                        Manually kill daemonized capstrace instance.
 
 EOF
+
 }
 
 # Convert long command line options into short ones for getopts
@@ -134,7 +134,7 @@ _addCode () {
 
   "$MV" "$file"{,"$TMP_EXT"} || return 1;
 
-  cp -a "$file""$TMP_EXT" "$file";
+  "$CP" -a "$file""$TMP_EXT" "$file";
 
   if [[ "$uri" == "NULL" ]]; then
     uri_string="";
@@ -179,28 +179,28 @@ _strace () {
 
   output="${OUTPUT_DIR}/$("$DATE" "+%F-%T")-$pid-strace";
 
-  "$STRACE" -fTrvs200000 -o "$output" -p"$pid" &
+  "$STRACE" "$STRACE_FLAGS" -o "$output" -p"$pid" &
 
   str_pid="$!"
 
   trap 'break' INT QUIT TERM;
   "$SLEEP" 0.1;
 
-  # Kill "$STRACE" once php process becomes idle
+  # Kill strace once php process becomes idle
   while [[ -e /proc/"$str_pid" ]]; do
 
     if "$TAIL" | "$GREP" -qE "^$pid .*(accept\(0|\+\+\+ (killed|exited))"; then
 
-      kill "$str_pid" 2>/dev/null || echo "$pid exited";
+      "$KILL" "$str_pid" 2>/dev/null || echo "$pid exited";
       break;
 
     fi
 
   done < "$output"
 
-  kill "$str_pid" 2> /dev/null;
+  "$KILL" "$str_pid" 2> /dev/null;
 
-  "$FIND" "${TEMP_DIR}/" -name "*-GLOBALS" -user "$(pwd | "$GREP" -Po "home/\K[^/]*")" -exec /bin/mv -t "$OUTPUT_DIR" {} + 2>/dev/null
+  "$FIND" "${TEMP_DIR}/" -name "*-GLOBALS" -user "$(pwd | "$GREP" -Po "((/chroot)?/home|/local)/\K[^/]*")" -exec "$MV" -t "$OUTPUT_DIR" {} + 2>/dev/null
 
   if [[ "$daemon_time" ]]; then
     "$GZIP" "$output";
@@ -316,7 +316,7 @@ _cleanUp() {
     "$RM" -f "$PIPE_NAME";
   fi
 
-  kill "$MONITOR_PID" 2> /dev/null
+  "$KILL" "$MONITOR_PID" 2> /dev/null
 
 }
 

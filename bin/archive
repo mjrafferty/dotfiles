@@ -10,6 +10,7 @@ readonly DATE='/bin/date'
 readonly DU='/usr/bin/du'
 readonly GZIP='/bin/gzip';
 readonly PIGZ='/usr/bin/pigz';
+readonly PV='/usr/bin/pv';
 readonly TAR='/bin/tar'
 
 _usage() {
@@ -33,13 +34,13 @@ _compress () {
   if [[ -f /usr/bin/pv && -f /usr/bin/pigz ]]; then
 
     "$TAR" -cf - "$target" \
-      | pv -s "${size}" \
+      | "$PV" -s "${size}" \
       | "$PIGZ" -c > "$file";
 
   elif [[ -f /usr/bin/pv ]]; then
 
     "$TAR" -cf - "$target" \
-      | pv -s "${size}" \
+      | "$PV" -s "${size}" \
       | "$GZIP" -c > "$file";
 
   else

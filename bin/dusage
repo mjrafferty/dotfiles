@@ -8,6 +8,7 @@ readonly ARGA=("$@")
 readonly AWK='/bin/awk'
 readonly CAT='/bin/cat'
 readonly COLUMN='/usr/bin/column'
+readonly DU='/usr/bin/du'
 readonly FIND='/bin/find'
 readonly GREP='/bin/grep'
 readonly HEAD='/usr/bin/head'
@@ -24,6 +25,7 @@ DEPTH=""
 
 # Print usage
 _usage() {
+
   "$CAT" <<- EOF
 
 Examines disk usage for a user. Can be run with no argument
@@ -41,11 +43,12 @@ Options:
   -u  --user    Specify a user
 
   -d  --depth   Depth for subdirectory exclusion control, probably
-                won't need to "$TOUCH" this very often. Default is 3
+                won't need to touch this very often. Default is 3
 
   -h  --help    Shows this message
 
 EOF
+
 }
 
 # Parse long command line options
@@ -114,7 +117,7 @@ _files () {
     -size +100M \
     -group "$USER" \
     -type f \
-    -exec /usr/bin/du -sh {} + \
+    -exec "$DU" -sh {} + \
     | "$SORT" -hr \
     | "$HEAD" -20
 
@@ -134,7 +137,7 @@ _directories () {
     -path '*/var/*/mail/*' -prune -o \
     -type d \
     -group "$USER" \
-    -exec /usr/bin/du -sb {} + >> "$temp_list" &
+    -exec "$DU" -sb {} + >> "$temp_list" &
 
   directories=$("$FIND" . \
     -maxdepth "$DEPTH" \
@@ -147,7 +150,7 @@ _directories () {
   # Get sizes of directories EXCLUDING subdirectories for directories "$LESS" than given depth
   IFS=$'\n'
   for x in $directories; do
-    "$FIND" "$x" -mindepth 1 -maxdepth 1 -group "$USER" -type f -exec /usr/bin/du -sb {} + \
+    "$FIND" "$x" -mindepth 1 -maxdepth 1 -group "$USER" -type f -exec "$DU" -sb {} + \
       | "$AWK" '{sum += $1} END {print sum,dirname}' dirname="$x" >> "$temp_list" &
   done;
 
@@ -172,7 +175,7 @@ _mailboxes () {
     -maxdepth 0 \
     -type d \
     -group "$USER"\
-    -exec /usr/bin/du -sh {} + \
+    -exec "$DU" -sh {} + \
     | "$SORT" -hr \
     | "$HEAD" -10
 
@@ -183,7 +186,7 @@ _extraStuff() {
 
   printf "\n----- Extra Stuff ------\n";
 
-  "$FIND" /home/{tmp,nex*} -maxdepth 3 -group "$(pwd | "$GREP" -Po "/home/\K[^/]*")" -exec /usr/bin/du -sh {} + \
+  "$FIND" /home/{tmp,nex*} -maxdepth 3 -group "$(pwd | "$GREP" -Po "/home/\K[^/]*")" -exec "$DU" -sh {} + \
     | "$SORT" -hr \
     | "$HEAD" -n10;
 

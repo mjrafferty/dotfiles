@@ -6,6 +6,7 @@ readonly ARGA=("$@")
 readonly AWK='/bin/awk'
 readonly CAT='/bin/cat'
 readonly GREP='/bin/grep'
+readonly QUOTA='/usr/bin/quota'
 readonly SORT='/bin/sort'
 readonly TAIL='/usr/bin/tail'
 
@@ -29,7 +30,7 @@ EOF
 }
 
 ## Print some dashes
-dashes () {
+_dashes () {
 
   local i;
 
@@ -43,11 +44,12 @@ dashes () {
 _quotaheader () {
   echo;
   printf "%8s %12s %14s %14s\n" "Username" "Used(%)" "Used(G)" "Total(G)";
-  dashes 51;
+  _dashes 51;
 }
+
 _quotausage () {
   printf "\n%-10s" "$1";
-  quota -g "$1" 2> /dev/null \
+  "$QUOTA" -g "$1" 2> /dev/null \
     | "$TAIL" -1 \
     | "$AWK" '{printf "%10.3f%%  %10.3f GB  %10.3f GB",($2/$3*100),($2/1000/1024),($3/1000/1024)}' 2> /dev/null;
 }

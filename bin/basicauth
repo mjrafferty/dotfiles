@@ -4,26 +4,28 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
+# Alias executables to prevent PATH issues
+readonly AWK='/bin/awk'
+readonly CAT='/bin/cat'
+readonly CHOWN='/bin/chown'
+readonly GREP='/bin/grep'
+readonly HEAD='/usr/bin/head'
+readonly HTPASSWD='/usr/bin/htpasswd'
+readonly MV='/bin/mv'
+readonly RM='/bin/rm'
+readonly SED='/bin/sed'
+readonly SHUF='/usr/bin/shuf'
+readonly TR='/usr/bin/tr'
+readonly UUIDGEN='/usr/bin/uuidgen'
+readonly WC='/usr/bin/wc'
+
 # Configurable variables
 readonly PREFIX=".htpasswd"
-readonly TEMP_EXT="_$(uuidgen)"
-
-# Alias executables to prevent PATH issues
-readonly AWK="/bin/awk"
-readonly CAT="/bin/cat"
-readonly CHOWN='/bin/chown'
-readonly GREP="/bin/grep"
-readonly HEAD="/usr/bin/head"
-readonly HTPASSWD="/usr/bin/htpasswd"
-readonly MV="/bin/mv"
-readonly RM='/bin/rm'
-readonly SED="/bin/sed"
-readonly SHUF="/usr/bin/shuf"
-readonly TR="/usr/bin/tr"
-readonly WC="/usr/bin/wc"
+readonly TEMP_EXT="_$("$UUIDGEN")"
 
 # Print usage info
 _usage() {
+
   "$CAT" <<- EOF
 
   Tool for easily configuring basic auth on
@@ -66,7 +68,7 @@ _xkcd () {
 
   fi
 
-  if [[ -x /usr/bin/shuf ]]; then
+  if [[ -x "$SHUF" ]]; then
 
     pass=$("$SHUF" -n1000 "$wordList" | "$GREP" -E '^[a-z,A-Z]{4,12}$' | "$HEAD" -n4 | "$SED" 's/^\([a-z]\)/\u\1/' | "$TR" -d '\n| ');
 
@@ -77,7 +79,9 @@ _xkcd () {
     word=();
 
     matchList=$("$GREP" -E '^[a-z,A-Z]{4,12}$' $wordList);
+
     IFS=" "
+
     wcount=$(echo "$matchList" | "$WC" -l | "$AWK" '{print $1}')
 
     for ((x=0;x<4;x++)) do
