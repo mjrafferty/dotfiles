@@ -119,7 +119,7 @@ main() {
 
   _rootOrSudo;
 
-  [ -r /.commonrc ] && source ~/.commonrc;
+  [ -r ~/.commonrc ] && source ~/.commonrc;
 
   _meOrClient;
 
