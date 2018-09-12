@@ -1,5 +1,6 @@
 #! /bin/zsh
 
+# Login as root
 _autoRoot() {
 
   /usr/bin/sudo HOME="$HOME" SSH_TTY="$SSH_TTY" TMUX="$TMUX" /bin/zsh;
@@ -8,6 +9,7 @@ _autoRoot() {
 
 }
 
+# Automatically aliases sudo commands to avoid typing sudo
 _sudoAlias() {
 
   local sudo_cmds x y
@@ -32,6 +34,7 @@ _sudoAlias() {
 
 }
 
+# Used with the "u" function to pull the client's configuration into mine.
 _sourceClient() {
 
   local userEnv userPath x;
@@ -52,20 +55,21 @@ _sourceClient() {
 
 }
 
+# Basic setup to be run on shell startup
 _mySetup () {
 
   # Expand PATH
   export PATH="$PATH":/var/qmail/bin
 
   # Create directories for files used by vim if necessary
-  mkdir -p ~/.vimfiles/{backup,swp,undo}
+    mkdir -p ~/.vimfiles/{backup,swp,undo}
 
   # Source environment variables provided by login script
   [ -r ~/.environment.sh ] && source ~/.environment.sh;
 
   # Create directory for preserving client/ticket data
-  mkdir -p "$HOME"/clients/"$TICKET";
-  export TICKETDIR="${HOME}/clients/${TICKET}";
+    mkdir -p "$HOME"/clients/"$TICKET";
+    export TICKETDIR="${HOME}/clients/${TICKET}";
 
   # Source actions provided by login script
   [ -r ~/action.sh ] && source ~/action.sh;
@@ -75,23 +79,21 @@ _mySetup () {
 
 }
 
+# CentOS 7 servers provide sudo access rather than full root so prepare accordingly.
 _rootOrSudo() {
 
   local os_version
 
   os_version=$(grep -Po 'release \K\d' /etc/centos-release);
 
-  if (( os_version == 7 )); then
+  # Only perform action when I'm my own user.
+  if [[ $USER == "${HOME/*\//}" ]]; then
 
-    if [[ $USER == "${HOME/*\//}" ]]; then
+    if (( os_version == 7 )); then
 
       _sudoAlias;
 
-    fi
-
-  else
-
-    if [[ "$USER" == "${HOME/*\//}" ]] ; then
+    else
 
       _autoRoot;
 
@@ -100,8 +102,10 @@ _rootOrSudo() {
 
 }
 
+# Determines whether or not shell is being started as part of the "u" function or normal startup.
 _meOrClient() {
 
+  # Check to see that I'm running as a user that's neither myself or root
   if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
 
     _sourceClient;
