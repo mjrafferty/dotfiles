@@ -12,6 +12,7 @@ DEFAULTS_FILE="$HOME/.mag2db_defaults"
 readonly AWK="/bin/awk"
 readonly CAT="/bin/cat"
 readonly CHMOD='/bin/chmod'
+readonly COLUMN='/usr/bin/column'
 readonly CUT="/bin/cut"
 readonly FOLD="/usr/bin/fold"
 readonly GREP="/bin/grep"
@@ -666,21 +667,42 @@ EOF
 # Build WHERE statement
 __whereBuilder() {
 
-  local where columns
+  local where columns selection
 
   columns=($*);
 
   read -rp "Search value: " search
 
-  if [[ -n "$search" ]]; then
+  if [[ "$search" == "?" ]]; then
+
+    where="WHERE"
+		selection="initialized"
+
+		while [[ -n $selection ]]; do
+
+			for (( i=0; i<${#docroot[@]}; i++ )); do
+				echo "$i  ${columns[i]}";
+			done | $COLUMN -t;
+
+			echo;
+			read -rp "Choose column number:" selection;
+
+		done
+
+  elif [[ -n "$search" ]]; then
+
     where="WHERE"
 
     for((w=0;w<${#columns[*]};w++)); do
+
       where+=" ${columns[w]} RLIKE \"${search}\""
+
       if (( w < (${#columns[*]} - 1) )); then
         where+=" OR"
       fi
+
     done
+
   fi
 
   echo "$where";
