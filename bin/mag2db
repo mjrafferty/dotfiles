@@ -467,7 +467,6 @@ _products () {
     FROM ${PREFIX}catalog_product_entity_int
   );
 
-
   CREATE TEMPORARY TABLE PROD_ATTS (
     KEY (entity_id)
   )
@@ -718,6 +717,7 @@ _categories () {
     SELECT *
     FROM ${PREFIX}catalog_category_entity_varchar
   );
+
   INSERT INTO CCEA (
     SELECT *
     FROM ${PREFIX}catalog_category_entity_int
