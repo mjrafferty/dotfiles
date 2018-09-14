@@ -206,7 +206,6 @@ _strace () {
     "$GZIP" "$output";
   fi
 
-  "$CHMOD" 600 "${OUTPUT_DIR}"/*
 
 }
 
@@ -271,7 +270,6 @@ _setup() {
 
   # Create output directory if necessary and restrict perms
   [[ -d $OUTPUT_DIR ]] || "$MKDIR" "${OUTPUT_DIR}";
-  "$CHMOD" 700 "${OUTPUT_DIR}"
 
   # Add the needed code to any files that don't currently have it
   for x in ${FILES[*]}; do
