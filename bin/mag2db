@@ -695,15 +695,15 @@ __whereBuilder() {
       local and_or_not aon selection operator value
 
       tput clear;
-      echo ${WHERE}
+      echo "${WHERE}\n"
 
       if ((condition_num > 0)); then
 
         for (( i=0; i<${#logicals[*]}; i++ )); do
-          echo "$i  ${columns[i]}";
+          echo "$i  ${logicals[i]}";
         done
-        read -rp "
-        Choose logic operator number( Or press enter to continue. ): " aon;
+        echo;
+        read -rp "Choose logic operator number( Or press enter to continue. ): " aon;
 
         if [[ -z "$aon" ]]; then
           break;
@@ -715,24 +715,33 @@ __whereBuilder() {
         and_or_not="WHERE"
       fi
 
+      tput clear;
+      echo "${WHERE}\n"
+
       for (( i=0; i<${#columns[*]}; i++ )); do
         echo "$i  ${columns[i]}";
       done
-      read -rp "
-      Choose column number: " selection;
+      echo;
+      read -rp "Choose column number: " selection;
+
+      tput clear;
+      echo "${WHERE}\n"
 
       for (( i=0; i<${#operators[*]}; i++ )); do
         echo "$i  ${operators[i]}";
       done
-      read -rp "
-      Choose operator number: " operator;
+      echo;
+      read -rp "Choose operator number: " operator;
+
+      tput clear;
+      echo "${WHERE}\n"
 
       read -rp "
       Value: " value;
 
       WHERE+=" ${and_or_not} ${columns[selection]} ${operators[operator]} \"${value}\"";
 
-      condition_num++;
+      condition_num+=1;
 
     done
 
