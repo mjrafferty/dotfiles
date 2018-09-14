@@ -59,7 +59,7 @@ _sourceClient() {
 _mySetup () {
 
   # Expand PATH
-  export PATH="$PATH":/var/qmail/bin
+  export PATH="${PATH}:/var/qmail/bin:/usr/local/bin:/usr/local/interworx/bin"
 
   # Create directories for files used by vim if necessary
     mkdir -p ~/.vimfiles/{backup,swp,undo}
