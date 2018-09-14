@@ -187,7 +187,7 @@ _strace () {
 
   trap 'break' INT QUIT TERM;
   "$SLEEP" 0.1;
-  str_pid="$(pgrep $sudo_pid)"
+  str_pid="$(pgrep -P $sudo_pid)"
 
   # Kill "$STRACE" once php process becomes idle
   while [[ -e /proc/"$str_pid" ]]; do
