@@ -44,6 +44,8 @@ DBPASS=""
 DBNAME=""
 PREFIX=""
 
+WHERE=""
+
 if [[ -e $CONFIG_FILE ]]; then
   SITEPATH="$PWD"
 else
@@ -435,7 +437,7 @@ EOF
 # List product info
 _products () {
 
-  local attributes atts a pivot_atts where columns;
+  local attributes atts a pivot_atts columns;
 
   attributes=( "name" "status" "visibility" "image" "url_key" )
   columns=("store_id" "entity_id" "sku" "type_id" "attribute_set_name" "has_options" "created_at" "updated_at")
@@ -452,7 +454,7 @@ _products () {
 
   done
 
-  where="$(__whereBuilder ${columns[*]} ${attributes[*]})"
+  __whereBuilder ${columns[*]} ${attributes[*]}
 
   _connect <<- EOF
 
@@ -504,19 +506,20 @@ _products () {
     PROD.updated_at
   FROM PROD
   LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
-  ${where}
+  ${WHERE}
   GROUP BY PROD_ATTS.store_id,PROD.entity_id
   ORDER BY PROD_ATTS.store_id,PROD.entity_id;
 
 EOF
 
+  unset ${WHERE};
 
 }
 
 # List order info
 _orders () {
 
-  local columns select where s w;
+  local columns select s w;
 
   columns=("increment_id" "entity_id" "store_id" "customer_id" "customer_email" "email_sent" "total_invoiced"
   "remote_ip" "x_forwarded_for" "shipping_method" "total_item_count" "created_at" "updated_at")
@@ -533,24 +536,26 @@ _orders () {
 
         done
 
-        where="$(__whereBuilder ${columns[*]})";
+        __whereBuilder ${columns[*]};
 
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}sales_order
-  ${where}
+  ${WHERE}
   ORDER BY created_at DESC
   LIMIT 100;
 
 EOF
+
+  unset ${WHERE};
 
 }
 
 # List shipment info
 _shipment () {
 
-  local columns select where s w;
+  local columns select s w;
 
   columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "send_email"
   "shipping_address_id" "billing_address_id" "created_at" "updated_at")
@@ -567,17 +572,19 @@ _shipment () {
 
         done
 
-        where="$(__whereBuilder ${columns[*]})";
+        __whereBuilder ${columns[*]};
 
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}sales_shipment
-  ${where}
+  ${WHERE}
   ORDER BY created_at DESC
   LIMIT 100;
 
 EOF
+
+  unset ${WHERE};
 
 }
 
@@ -599,7 +606,7 @@ EOF
 # List quotes info
 _quotes () {
 
-  local columns select where s w;
+  local columns select s w;
 
   columns=("entity_id" "store_id" "is_active" "checkout_method" "customer_id" "customer_email"
   "remote_ip" "created_at" "updated_at")
@@ -616,24 +623,26 @@ _quotes () {
 
         done
 
-        where="$(__whereBuilder ${columns[*]})";
+        __whereBuilder ${columns[*]};
 
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}quote
-  ${where}
+  ${WHERE}
   ORDER BY created_at DESC
   LIMIT 100;
 
 EOF
+
+  unset ${WHERE};
 
 }
 
 # List invoice info
 _invoices() {
 
-  local columns select where s w;
+  local columns select s w;
 
   columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "send_email" "grand_total"
   "shipping_address_id" "billing_address_id" "created_at" "updated_at")
@@ -650,76 +659,105 @@ _invoices() {
 
         done
 
-        where="$(__whereBuilder ${columns[*]})";
+        __whereBuilder ${columns[*]};
 
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}sales_invoice
-  ${where}
+  ${WHERE}
   ORDER BY created_at DESC
   LIMIT 100;
 
 EOF
+
+  unset ${WHERE};
 
 }
 
 # Build WHERE statement
 __whereBuilder() {
 
-  local where columns selection
+  local columns operator condition_num value selection
 
   columns=($*);
+  operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "NOT NULL" "IS NULL")
+  logicals=("AND" "OR" "NOT")
 
-  read -rp "Search value: " search
+  read -rp "Search value (\"?\" for Advanced search.): " search
 
   if [[ "$search" == "?" ]]; then
 
-    where="WHERE"
+    condition_num=0;
 
     while (true); do
 
-      read -p "
-$(tput clear)$where
+      local and_or_not aon selection operator value
 
-$(
-for (( i=0; i<${#columns[*]}; i++ )); do
-  echo "$i  ${columns[i]}";
-done
-)
+      tput clear;
+      echo ${WHERE}
 
-Choose column number:" selection;
+      if ((condition_num > 0)); then
 
-      read -rp "Value: " value;
+        for (( i=0; i<${#logicals[*]}; i++ )); do
+          echo "$i  ${columns[i]}";
+        done
+        read -rp "
+        Choose logic operator number( Or press enter to continue. ): " aon;
 
-      where+="${columns[selection]} rlike \"${value}\"";
+        if [[ -z "$aon" ]]; then
+          break;
+        else
+          and_or_not="${logicals[aon]}"
+        fi
+
+      else
+        and_or_not="WHERE"
+      fi
+
+      for (( i=0; i<${#columns[*]}; i++ )); do
+        echo "$i  ${columns[i]}";
+      done
+      read -rp "
+      Choose column number: " selection;
+
+      for (( i=0; i<${#operators[*]}; i++ )); do
+        echo "$i  ${operators[i]}";
+      done
+      read -rp "
+      Choose operator number: " operator;
+
+      read -rp "
+      Value: " value;
+
+      WHERE+=" ${and_or_not} ${columns[selection]} ${operators[operator]} \"${value}\"";
+
+      condition_num++;
 
     done
 
   elif [[ -n "$search" ]]; then
 
-    where="WHERE"
+    WHERE="WHERE"
 
     for((w=0;w<${#columns[*]};w++)); do
 
-      where+=" ${columns[w]} RLIKE \"${search}\""
+      WHERE+=" ${columns[w]} RLIKE \"${search}\""
 
       if (( w < (${#columns[*]} - 1) )); then
-        where+=" OR"
+        WHERE+=" OR"
       fi
 
     done
 
   fi
 
-  echo "$where";
-
 }
 
 # List category info
 _categories () {
 
-  local attributes atts a search where columns pivot_atts;
+  local attributes atts a search columns pivot_atts;
 
   attributes=( "name" "custom_design" "display_mode" "page_layout" "url_key" "url_path" "include_in_menu" "is_active" "landing_page" )
   columns=( "CAT.entity_id" "product_count" "store_id" "attribute_set_name" "parent_id" "path" "position" "children_count" "created_at" "updated_at" )
@@ -736,7 +774,7 @@ _categories () {
 
   done
 
-  where="$(__whereBuilder ${columns[*]} ${attributes[*]})"
+  __whereBuilder ${columns[*]} ${attributes[*]};
 
   _connect <<- EOF
 
@@ -800,18 +838,20 @@ _categories () {
   FROM CAT
   LEFT JOIN CAT_ATTS    ON  CAT.entity_id=CAT_ATTS.entity_id
   LEFT JOIN CAT_COUNTS  ON  CAT.entity_id=CAT_COUNTS.category_id
-  ${where}
+  ${WHERE}
   GROUP BY CAT_ATTS.store_id,CAT.entity_id
   ORDER BY CAT_ATTS.store_id,CAT.entity_id;
 
 EOF
+
+  unset ${WHERE};
 
 }
 
 # List customers info
 _customers() {
 
-  local columns select where s w;
+  local columns select s w;
 
   columns=("entity_id" "store_id" "website_id" "email" "group_id" "is_active" "default_billing"
   "default_shipping" "failures_num" "first_failure" "lock_expires" "created_at" "updated_at")
@@ -828,13 +868,13 @@ _customers() {
 
         done
 
-        where="$(__whereBuilder ${columns[*]})";
+        __whereBuilder ${columns[*]};
 
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}customer_entity
-  ${where}
+  ${WHERE}
   ORDER BY created_at DESC
   LIMIT 100;
 
