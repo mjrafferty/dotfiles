@@ -512,7 +512,7 @@ _products () {
 
 EOF
 
-  unset ${WHERE};
+  WHERE="";
 
 }
 
@@ -548,7 +548,7 @@ _orders () {
 
 EOF
 
-  unset ${WHERE};
+  WHERE="";
 
 }
 
@@ -584,7 +584,7 @@ _shipment () {
 
 EOF
 
-  unset ${WHERE};
+  WHERE="";
 
 }
 
@@ -635,7 +635,7 @@ _quotes () {
 
 EOF
 
-  unset ${WHERE};
+  WHERE="";
 
 }
 
@@ -671,7 +671,7 @@ _invoices() {
 
 EOF
 
-  unset ${WHERE};
+  WHERE="";
 
 }
 
@@ -854,7 +854,7 @@ _categories () {
 
 EOF
 
-  unset ${WHERE};
+  WHERE="";
 
 }
 
