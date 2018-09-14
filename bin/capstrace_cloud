@@ -172,7 +172,7 @@ EOF
 # Perform "$STRACE" of request
 _strace () {
 
-  local output pid str_pid daemon_time
+  local output pid sudo_pid str_pid daemon_time
 
   pid="$1";
   daemon_time="$2";
@@ -181,17 +181,16 @@ _strace () {
 
   sudo "$STRACE" -fTrvs200000 -o "$output" -p"$pid" &
 
-  str_pid="$!"
+  sudo_pid="$!"
 
   trap 'break' INT QUIT TERM;
   "$SLEEP" 0.1;
+  str_pid="$(pgrep $sudo_pid)"
 
   # Kill "$STRACE" once php process becomes idle
   while [[ -e /proc/"$str_pid" ]]; do
 
     if "$TAIL" -n 50 | "$GREP" -qE "^$pid .*(accept\(0|\+\+\+ (killed|exited))"; then
-
-      echo "hello";
 
       sudo kill "$str_pid" 2>/dev/null || echo "$pid exited";
       break;
