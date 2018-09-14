@@ -58,9 +58,6 @@ _sourceClient() {
 # Basic setup to be run on shell startup
 _mySetup () {
 
-  # Expand PATH
-  export PATH="${PATH}:/var/qmail/bin:/usr/local/bin:/usr/local/interworx/bin"
-
   # Create directories for files used by vim if necessary
     mkdir -p ~/.vimfiles/{backup,swp,undo}
 
@@ -126,6 +123,9 @@ main() {
   [ -r ~/.commonrc ] && source ~/.commonrc;
 
   _meOrClient;
+
+  # Expand PATH
+  export PATH="${PATH}:/var/qmail/bin:/usr/local/bin:/usr/local/interworx/bin"
 
 }
 
