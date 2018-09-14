@@ -167,6 +167,8 @@ EOF
 
 "$CAT" "$file""$TMP_EXT" >> "$file";
 
+"$CHMOD" 644 "$file"
+
 }
 
 # Perform "$STRACE" of request
