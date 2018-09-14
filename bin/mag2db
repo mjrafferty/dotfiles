@@ -681,7 +681,7 @@ __whereBuilder() {
   local columns operator condition_num value selection
 
   columns=($*);
-  operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "NOT NULL" "IS NULL")
+  operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL")
   logicals=("AND" "OR" "NOT")
 
   read -rp "Search value (\"?\" for Advanced search.): " search
@@ -739,8 +739,12 @@ __whereBuilder() {
       tput clear;
       echo -e "${WHERE}\n"
 
-      read -rp "Value: " value;
-      WHERE+=" \"${value}\"";
+      if [[ "${operators[operator]}" =~ "NULL" ]]; then
+        continue;
+      else
+        read -rp "Value: " value;
+        WHERE+=" \"${value}\"";
+      fi
 
       condition_num+=1;
 
