@@ -695,7 +695,7 @@ __whereBuilder() {
       local and_or_not aon selection operator value
 
       tput clear;
-      echo "${WHERE}\n"
+      echo -e "${WHERE}\n"
 
       if ((condition_num > 0)); then
 
@@ -714,32 +714,33 @@ __whereBuilder() {
       else
         and_or_not="WHERE"
       fi
+      WHERE+=" ${and_or_not}";
 
       tput clear;
-      echo "${WHERE}\n"
+      echo -e "${WHERE}\n"
 
       for (( i=0; i<${#columns[*]}; i++ )); do
         echo "$i  ${columns[i]}";
       done
       echo;
       read -rp "Choose column number: " selection;
+      WHERE+=" ${columns[selection]}";
 
       tput clear;
-      echo "${WHERE}\n"
+      echo -e "${WHERE}\n"
 
       for (( i=0; i<${#operators[*]}; i++ )); do
         echo "$i  ${operators[i]}";
       done
       echo;
       read -rp "Choose operator number: " operator;
+      WHERE+=" ${operators[operator]}";
 
       tput clear;
-      echo "${WHERE}\n"
+      echo -e "${WHERE}\n"
 
-      read -rp "
-      Value: " value;
-
-      WHERE+=" ${and_or_not} ${columns[selection]} ${operators[operator]} \"${value}\"";
+      read -rp "Value: " value;
+      WHERE+=" \"${value}\"";
 
       condition_num+=1;
 
