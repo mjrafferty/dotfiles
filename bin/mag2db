@@ -716,6 +716,8 @@ __whereBuilder() {
       fi
       WHERE+=" ${and_or_not}";
 
+      condition_num+=1;
+
       tput clear;
       echo -e "${WHERE}\n"
 
@@ -745,8 +747,6 @@ __whereBuilder() {
         read -rp "Value: " value;
         WHERE+=" \"${value}\"";
       fi
-
-      condition_num+=1;
 
     done
 
