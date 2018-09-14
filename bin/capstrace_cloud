@@ -25,7 +25,7 @@ readonly TR='/usr/bin/tr'
 readonly TMP_EXT=".nexcess.bak"
 readonly OUTPUT_DIR="/home/$(pwd | "$GREP" -Po "home/\K[^/]*")/nex_strace"
 readonly TEMP_DIR="${OUTPUT_DIR}"
-readonly PIPE_PREFIX="${TEMP_DIR}/nexcess_strace_pipe-"
+readonly PIPE_PREFIX="/dev/shm/nexcess_strace_pipe-"
 readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
 
 if [[ -e /usr/bin/pigz ]]; then
@@ -167,12 +167,14 @@ EOF
 
 "$CAT" "$file""$TMP_EXT" >> "$file";
 
+"$CHMOD" 644 "$file"
+
 }
 
 # Perform "$STRACE" of request
 _strace () {
 
-  local output pid str_pid daemon_time
+  local output pid sudo_pid str_pid daemon_time
 
   pid="$1";
   daemon_time="$2";
@@ -181,15 +183,16 @@ _strace () {
 
   sudo "$STRACE" -fTrvs200000 -o "$output" -p"$pid" &
 
-  str_pid="$!"
+  sudo_pid="$!"
 
   trap 'break' INT QUIT TERM;
   "$SLEEP" 0.1;
+  str_pid="$(pgrep -P $sudo_pid)"
 
   # Kill "$STRACE" once php process becomes idle
   while [[ -e /proc/"$str_pid" ]]; do
 
-    if "$TAIL" | "$GREP" -qE "^$pid .*(accept\(0|\+\+\+ (killed|exited))"; then
+    if "$TAIL" -n 50 | "$GREP" -qE "^$pid .*(accept\(0|\+\+\+ (killed|exited))"; then
 
       sudo kill "$str_pid" 2>/dev/null || echo "$pid exited";
       break;
@@ -206,7 +209,6 @@ _strace () {
     "$GZIP" "$output";
   fi
 
-  "$CHMOD" 600 "${OUTPUT_DIR}"/*
 
 }
 
@@ -271,7 +273,6 @@ _setup() {
 
   # Create output directory if necessary and restrict perms
   [[ -d $OUTPUT_DIR ]] || "$MKDIR" "${OUTPUT_DIR}";
-  "$CHMOD" 700 "${OUTPUT_DIR}"
 
   # Add the needed code to any files that don't currently have it
   for x in ${FILES[*]}; do
