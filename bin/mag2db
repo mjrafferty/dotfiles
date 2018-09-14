@@ -440,7 +440,7 @@ _products () {
   local attributes atts a pivot_atts columns;
 
   attributes=( "name" "status" "visibility" "image" "url_key" )
-  columns=("store_id" "entity_id" "sku" "type_id" "attribute_set_name" "has_options" "created_at" "updated_at")
+  columns=("store_id" "PROD.entity_id" "sku" "type_id" "attribute_set_name" "has_options" "created_at" "updated_at")
 
   for((a=0;a<${#attributes[*]};a++)); do
 
@@ -454,7 +454,7 @@ _products () {
 
   done
 
-  __whereBuilder ${columns[*]} ${attributes[*]}
+  _whereBuilder ${columns[*]} ${attributes[*]}
 
   _connect <<- EOF
 
@@ -536,7 +536,7 @@ _orders () {
 
         done
 
-        __whereBuilder ${columns[*]};
+        _whereBuilder ${columns[*]};
 
         _connect <<- EOF
 
@@ -572,7 +572,7 @@ _shipment () {
 
         done
 
-        __whereBuilder ${columns[*]};
+        _whereBuilder ${columns[*]};
 
         _connect <<- EOF
 
@@ -623,7 +623,7 @@ _quotes () {
 
         done
 
-        __whereBuilder ${columns[*]};
+        _whereBuilder ${columns[*]};
 
         _connect <<- EOF
 
@@ -659,7 +659,7 @@ _invoices() {
 
         done
 
-        __whereBuilder ${columns[*]};
+        _whereBuilder ${columns[*]};
 
         _connect <<- EOF
 
@@ -676,7 +676,7 @@ EOF
 }
 
 # Build WHERE statement
-__whereBuilder() {
+_whereBuilder() {
 
   local columns operator condition_num value selection
 
@@ -788,7 +788,7 @@ _categories () {
 
   done
 
-  __whereBuilder ${columns[*]} ${attributes[*]};
+  _whereBuilder ${columns[*]} ${attributes[*]};
 
   _connect <<- EOF
 
@@ -882,7 +882,7 @@ _customers() {
 
         done
 
-        __whereBuilder ${columns[*]};
+        _whereBuilder ${columns[*]};
 
         _connect <<- EOF
 
