@@ -660,8 +660,8 @@ _whereBuilder() {
   local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
 
   columns=($*);
-  operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL")
-  logicals=("AND" "OR" "NOT")
+  operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
+  logicals=("AND" "OR")
   tc="$(tput clear)"
 
   read -rp "Search value (\"?\" for Advanced search.): " search
@@ -728,7 +728,11 @@ _whereBuilder() {
         continue;
       else
         read -rp "${tc}${where}"$'\n\n'"Value: " value;
-        where+=" \"${value}\"";
+        if [[ "${operators[operator]}" =~ "IN" ]]; then
+          where+=" \(${value}\)";
+        else
+          where+=" \"${value}\"";
+        fi
       fi
 
     done
