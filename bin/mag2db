@@ -683,7 +683,6 @@ _whereBuilder() {
   columns=($*);
   operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL")
   logicals=("AND" "OR" "NOT")
-
   tc="$(tput clear)"
 
   read -rp "Search value (\"?\" for Advanced search.): " search
@@ -712,7 +711,7 @@ _whereBuilder() {
         and_or_not="WHERE"
         condition_num=1;
       else
-        read -rp "${tc}${WHERE}"$'\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
+        read -rp "${tc}${WHERE}"$'\n\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
         if [[ -z "$aon" ]]; then
           break;
         else
@@ -721,19 +720,16 @@ _whereBuilder() {
       fi
       WHERE+=" ${and_or_not}";
 
-
-      read -rp "${tc}${WHERE}"$'\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
+      read -rp "${tc}${WHERE}"$'\n\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
       WHERE+=" ${columns[selection]}";
 
-
-      read -rp "${tc}${WHERE}"$'\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
+      read -rp "${tc}${WHERE}"$'\n\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
       WHERE+=" ${operators[operator]}";
-
 
       if [[ "${operators[operator]}" =~ "NULL" ]]; then
         continue;
       else
-        read -rp "${tc}${WHERE}"$'\n'"Value: " value;
+        read -rp "${tc}${WHERE}"$'\n\n'"Value: " value;
         WHERE+=" \"${value}\"";
       fi
 
