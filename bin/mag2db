@@ -887,6 +887,8 @@ _cleanUp () {
 # Main
 main () {
 
+  local runCommand runOption
+
   _getConfig;
 
   _makeDefaultsFile;
@@ -899,59 +901,62 @@ main () {
         exit 0;
         ;;
       A)
-        _admin;
+        runCommand="_admin";
         ;;
       b)
-        _base;
+        runCommand="_base";
         ;;
       c)
-        _cron;
+        runCommand="_cron";
         ;;
       i)
-        _info;
+        runCommand="_info";
         ;;
       l)
-        _login;
+        runCommand="_login";
         ;;
       L)
-        _logsize;
+        runCommand="_logsize";
         ;;
       m)
-        _multi;
+        runCommand="_multi";
         ;;
       P)
-        _password "$OPTARG";
+        runCommand="_password"
+        runOption="$OPTARG";
         ;;
       u)
-        _users;
+        runCommand="_users";
         ;;
       p)
-        _products;
+        runCommand="_products";
         ;;
       o)
-        _orders;
+        runCommand="_orders";
         ;;
       s)
-        _shipment;
+        runCommand="_shipment";
         ;;
       O)
-        _cookie;
+        runCommand="_cookie";
         ;;
       q)
-        _quotes;
+        runCommand="_quotes";
         ;;
       I)
-        _invoices;
+        runCommand="_invoices";
         ;;
       g)
-        _categories;
+        runCommand="_categories";
         ;;
       C)
-        _customers;
+        runCommand="_customers";
         ;;
       *);;
     esac
   done
+
+  "$runCommand" "$runOption"
 
   _cleanUp;
 
