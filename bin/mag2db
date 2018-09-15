@@ -17,7 +17,7 @@ readonly CUT="/bin/cut"
 readonly FOLD="/usr/bin/fold"
 readonly GREP="/bin/grep"
 readonly HEAD="/usr/bin/head"
-readonly LESS="/usr/bin/less"
+readonly LESS='/usr/bin/less'
 readonly MYSQL="/usr/bin/mysql"
 readonly RM='/bin/rm'
 readonly SED="/bin/sed"
@@ -198,6 +198,109 @@ _xkcd () {
 
 }
 
+# Build WHERE statement
+_whereBuilder() {
+
+  local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
+
+  columns=($*);
+  operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
+  logicals=("AND" "OR")
+  tc="$(tput clear)"
+
+  read -rp "Search value (\"?\" for Advanced search.): " search
+
+  if [[ "$search" == "?" ]]; then
+
+    initialized=0;
+
+    for (( i=0; i<${#logicals[*]}; i++ )); do
+      logicals_prompt+="$i  ${logicals[i]}"$'\n';
+    done
+
+    for (( i=0; i<${#columns[*]}; i++ )); do
+      columns_prompt+="$i  ${columns[i]}"$'\n';
+    done
+
+    for (( i=0; i<${#operators[*]}; i++ )); do
+      operators_prompt+="$i  ${operators[i]}"$'\n';
+    done
+
+    while (true); do
+
+      local aon selection operator value
+
+      if ((initialized == 0)); then
+        where="WHERE"
+        initialized=1;
+      else
+        while(true); do
+          read -rp "${tc}${where}"$'\n\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
+          if [[ -z "$aon" ]]; then
+            break 2;
+          elif (( aon < 0 || aon >= ${#logicals[*]} )); then
+            continue;
+          else
+            where+=" ${logicals[aon]}";
+            break;
+          fi
+        done
+      fi
+
+      while(true); do
+        read -rp "${tc}${where}"$'\n\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
+        if (( selection < 0 || selection >= ${#columns[*]} )); then
+          continue;
+        else
+          where+=" ${columns[selection]}";
+          break;
+        fi
+      done
+
+      while(true); do
+        read -rp "${tc}${where}"$'\n\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
+        if (( operator < 0 || operator >= ${#operators[*]} )); then
+          continue;
+        else
+          where+=" ${operators[operator]}";
+          break;
+        fi
+      done
+
+
+      if [[ "${operators[operator]}" =~ "NULL" ]]; then
+        continue;
+      else
+        read -rp "${tc}${where}"$'\n\n'"Value: " value;
+        if [[ "${operators[operator]}" =~ "IN" ]]; then
+          where+=" (${value})";
+        else
+          where+=" \"${value}\"";
+        fi
+      fi
+
+    done
+
+  elif [[ -n "$search" ]]; then
+
+    where="WHERE"
+
+    for((w=0;w<${#columns[*]};w++)); do
+
+      where+=" ${columns[w]} RLIKE \"${search}\""
+
+      if (( w < (${#columns[*]} - 1) )); then
+        where+=" OR"
+      fi
+
+    done
+
+  fi
+
+  echo "${where}"
+
+}
+
 # Grab data from local.xml
 _getConfig () {
 
@@ -248,7 +351,7 @@ password = "$DBPASS"
 host = "$DBHOST"
 EOF
 
-"$CHMOD" 600 "$DEFAULTS_FILE";
+  "$CHMOD" 600 "$DEFAULTS_FILE";
 
 }
 
@@ -331,7 +434,6 @@ EOF
 # Print database info
 _info () {
 
-
   "$CAT" <<- EOF
   ${BRIGHT}Database Info:${NORMAL}
 
@@ -400,7 +502,7 @@ _password () {
 
 EOF
 
-"$CAT" <<- EOF
+  "$CAT" <<- EOF
 
   New Magento Login Credentials:
 
@@ -518,7 +620,7 @@ _orders () {
   columns=("increment_id" "entity_id" "store_id" "customer_id" "customer_email" "email_sent" "total_invoiced"
   "remote_ip" "x_forwarded_for" "shipping_method" "total_item_count" "created_at" "updated_at")
 
-  select="select"
+  select="SELECT"
 
     for((s=0;s<${#columns[*]};s++)); do
 
@@ -530,12 +632,11 @@ _orders () {
 
         done
 
-
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}sales_order
-	$(_whereBuilder ${columns[*]})
+  $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
   LIMIT 100;
 
@@ -551,23 +652,23 @@ _shipment () {
   columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "send_email"
   "shipping_address_id" "billing_address_id" "created_at" "updated_at")
 
-  select="select"
+  select="SELECT"
 
     for((s=0;s<${#columns[*]};s++)); do
 
       select+=" ${columns[s]}"
 
-        if (( s < (${#columns[*]} - 1) )); then
-          select+=","
-          fi
+      if (( s < (${#columns[*]} - 1) )); then
+        select+=","
+      fi
 
-        done
+    done
 
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}sales_shipment
-	$(_whereBuilder ${columns[*]})
+  $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
   LIMIT 100;
 
@@ -598,23 +699,23 @@ _quotes () {
   columns=("entity_id" "store_id" "is_active" "checkout_method" "customer_id" "customer_email"
   "remote_ip" "created_at" "updated_at")
 
-  select="select"
+  select="SELECT"
 
     for((s=0;s<${#columns[*]};s++)); do
 
       select+=" ${columns[s]}"
 
-        if (( s < (${#columns[*]} - 1) )); then
-          select+=","
-          fi
+      if (( s < (${#columns[*]} - 1) )); then
+        select+=","
+      fi
 
-        done
+    done
 
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}quote
-	$(_whereBuilder ${columns[*]})
+  $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
   LIMIT 100;
 
@@ -630,130 +731,27 @@ _invoices() {
   columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "send_email" "grand_total"
   "shipping_address_id" "billing_address_id" "created_at" "updated_at")
 
-  select="select"
+  select="SELECT"
 
     for((s=0;s<${#columns[*]};s++)); do
 
       select+=" ${columns[s]}"
 
-        if (( s < (${#columns[*]} - 1) )); then
-          select+=","
-          fi
+      if (( s < (${#columns[*]} - 1) )); then
+        select+=","
+      fi
 
-        done
+    done
 
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}sales_invoice
-	$(_whereBuilder ${columns[*]})
+  $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
   LIMIT 100;
 
 EOF
-
-}
-
-# Build WHERE statement
-_whereBuilder() {
-
-  local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
-
-  columns=($*);
-  operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
-  logicals=("AND" "OR")
-  tc="$(tput clear)"
-
-  read -rp "Search value (\"?\" for Advanced search.): " search
-
-  if [[ "$search" == "?" ]]; then
-
-    initialized=0;
-
-    for (( i=0; i<${#logicals[*]}; i++ )); do
-      logicals_prompt+="$i  ${logicals[i]}"$'\n';
-    done
-
-    for (( i=0; i<${#columns[*]}; i++ )); do
-      columns_prompt+="$i  ${columns[i]}"$'\n';
-    done
-
-    for (( i=0; i<${#operators[*]}; i++ )); do
-      operators_prompt+="$i  ${operators[i]}"$'\n';
-    done
-
-    while (true); do
-
-      local aon selection operator value
-
-      if ((initialized == 0)); then
-        where="WHERE"
-        initialized=1;
-      else
-        while(true); do
-          read -rp "${tc}${where}"$'\n\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
-          if [[ -z "$aon" ]]; then
-            break 2;
-          elif (( aon < 0 || aon >= ${#logicals[*]} )); then
-            continue;
-          else
-            where+=" ${logicals[aon]}";
-            break;
-          fi
-        done
-      fi
-
-      while(true); do
-        read -rp "${tc}${where}"$'\n\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
-        if (( selection < 0 || selection >= ${#columns[*]} )); then
-          continue;
-        else
-          where+=" ${columns[selection]}";
-          break;
-        fi
-      done
-
-      while(true); do
-        read -rp "${tc}${where}"$'\n\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
-        if (( operator < 0 || operator >= ${#operators[*]} )); then
-          continue;
-        else
-          where+=" ${operators[operator]}";
-          break;
-        fi
-      done
-
-
-      if [[ "${operators[operator]}" =~ "NULL" ]]; then
-        continue;
-      else
-        read -rp "${tc}${where}"$'\n\n'"Value: " value;
-        if [[ "${operators[operator]}" =~ "IN" ]]; then
-          where+=" (${value})";
-        else
-          where+=" \"${value}\"";
-        fi
-      fi
-
-    done
-
-  elif [[ -n "$search" ]]; then
-
-    where="WHERE"
-
-    for((w=0;w<${#columns[*]};w++)); do
-
-      where+=" ${columns[w]} RLIKE \"${search}\""
-
-      if (( w < (${#columns[*]} - 1) )); then
-        where+=" OR"
-      fi
-
-    done
-
-  fi
-
-  echo "${where}"
 
 }
 
@@ -776,7 +774,6 @@ _categories () {
     fi
 
   done
-
 
   _connect <<- EOF
 
@@ -856,23 +853,23 @@ _customers() {
   columns=("entity_id" "store_id" "website_id" "email" "group_id" "is_active" "default_billing"
   "default_shipping" "failures_num" "first_failure" "lock_expires" "created_at" "updated_at")
 
-  select="select"
+  select="SELECT"
 
     for((s=0;s<${#columns[*]};s++)); do
 
       select+=" ${columns[s]}"
 
-        if (( s < (${#columns[*]} - 1) )); then
-          select+=","
-          fi
+      if (( s < (${#columns[*]} - 1) )); then
+        select+=","
+      fi
 
-        done
+    done
 
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}customer_entity
-	$(_whereBuilder ${columns[*]})
+  $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
   LIMIT 100;
 
