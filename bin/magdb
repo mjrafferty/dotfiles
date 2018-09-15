@@ -531,11 +531,18 @@ _login () {
 # Show log table sizes
 _logsize () {
 
-  local datatotal indextotal rowtotal tables div datasize indexsize rowcount
+  local tables tables_in
 
   _summary;
 
-  tables="log_customer log_visitor log_visitor_info log_url log_url_info log_quote report_viewed_product_index report_compared_product_index report_event catalog_compare_item";
+  tables=("log_customer" "log_visitor" "log_visitor_info" "log_url" "log_url_info" "log_quote" "report_viewed_product_index" "report_compared_product_index" "report_event" "catalog_compare_item");
+
+    for (( i=0; i<${#tables[*]}; i++ )); do
+      if (( i > 0 )); then
+        tables_in+=", "
+      fi
+      tables_in+="\"${tables[i]}\"";
+    done
 
   _connect -e <<- EOF
 
@@ -544,8 +551,9 @@ _logsize () {
     table_rows as "Row Count",
     data_length as "Data Size",
     index_length as "Index Size"
-  FROM information_schama.TABLES
-  WHERE TABLE_SCHEMA=\"${DBNAME}\"${QUERY_TERM}
+  FROM information_schema.TABLES
+  WHERE table_schema="${DBNAME}"
+  AND table_name IN (${tables_in})${QUERY_TERM}
 
 EOF
 
