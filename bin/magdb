@@ -637,7 +637,7 @@ _password () {
 
 EOF
 
-"$CAT" <<- EOF
+  "$CAT" <<- EOF
 
   New Magento Login Credentials:
 
@@ -1032,6 +1032,8 @@ _cleanUp () {
 
 # Main
 main () {
+
+  local runCommand runOption
 
   _getConfig;
 
