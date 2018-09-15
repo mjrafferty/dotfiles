@@ -729,7 +729,7 @@ _whereBuilder() {
       else
         read -rp "${tc}${where}"$'\n\n'"Value: " value;
         if [[ "${operators[operator]}" =~ "IN" ]]; then
-          where+=" \(${value}\)";
+          where+=" (${value})";
         else
           where+=" \"${value}\"";
         fi
