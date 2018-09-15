@@ -702,9 +702,9 @@ _whereBuilder() {
         condition_num+=1;
       else
         for (( i=0; i<${#logicals[*]}; i++ )); do
-          echo "$i  ${logicals[i]}";
+          logical_prompt+="$i  ${logicals[i]}\n";
         done
-        read -rp $'\nChoose logic operator number( Or press enter to continue. ): ' aon;
+        read -rp $'${logical_prompt}\nChoose logic operator number( Or press enter to continue. ): ' aon;
         if [[ -z "$aon" ]]; then
           break;
         else
