@@ -690,13 +690,17 @@ _whereBuilder() {
         where="WHERE"
         initialized=1;
       else
-        read -rp "${tc}${where}"$'\n\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
-        if [[ -z "$aon" ]]; then
-          break;
-        else
-          and_or_not="${logicals[aon]}"
-					where+=" ${logicals[aon]}";
-        fi
+        while(true); do
+          read -rp "${tc}${where}"$'\n\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
+          if [[ -z "$aon" ]]; then
+            break 2;
+          elif (( aon < 0 || aon >= ${#logicals[*]} )); then
+            echo "Enter a valid selection."
+          else
+            where+=" ${logicals[aon]}";
+            break;
+          fi
+        done
       fi
 
       read -rp "${tc}${where}"$'\n\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
