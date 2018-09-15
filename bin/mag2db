@@ -44,8 +44,6 @@ DBPASS=""
 DBNAME=""
 PREFIX=""
 
-WHERE=""
-
 if [[ -e $CONFIG_FILE ]]; then
   SITEPATH="$PWD"
 else
@@ -454,8 +452,6 @@ _products () {
 
   done
 
-  _whereBuilder ${columns[*]} ${attributes[*]}
-
   _connect <<- EOF
 
   CREATE TEMPORARY TABLE CPEA (
@@ -506,13 +502,11 @@ _products () {
     PROD.updated_at
   FROM PROD
   LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
-  ${WHERE}
+  $(_whereBuilder ${columns[*]} ${attributes[*]})
   GROUP BY PROD_ATTS.store_id,PROD.entity_id
   ORDER BY PROD_ATTS.store_id,PROD.entity_id;
 
 EOF
-
-  WHERE="";
 
 }
 
@@ -536,19 +530,16 @@ _orders () {
 
         done
 
-        _whereBuilder ${columns[*]};
 
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}sales_order
-  ${WHERE}
+	$(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
   LIMIT 100;
 
 EOF
-
-  WHERE="";
 
 }
 
@@ -572,19 +563,15 @@ _shipment () {
 
         done
 
-        _whereBuilder ${columns[*]};
-
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}sales_shipment
-  ${WHERE}
+	$(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
   LIMIT 100;
 
 EOF
-
-  WHERE="";
 
 }
 
@@ -623,19 +610,15 @@ _quotes () {
 
         done
 
-        _whereBuilder ${columns[*]};
-
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}quote
-  ${WHERE}
+	$(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
   LIMIT 100;
 
 EOF
-
-  WHERE="";
 
 }
 
@@ -659,26 +642,22 @@ _invoices() {
 
         done
 
-        _whereBuilder ${columns[*]};
-
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}sales_invoice
-  ${WHERE}
+	$(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
   LIMIT 100;
 
 EOF
-
-  WHERE="";
 
 }
 
 # Build WHERE statement
 _whereBuilder() {
 
-  local tc columns operator condition_num value selection logicals_prompt columns_prompt operators_prompt
+  local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
 
   columns=($*);
   operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL")
@@ -689,7 +668,7 @@ _whereBuilder() {
 
   if [[ "$search" == "?" ]]; then
 
-    condition_num=0;
+    initialized=0;
 
     for (( i=0; i<${#logicals[*]}; i++ )); do
       logicals_prompt+="$i  ${logicals[i]}"$'\n';
@@ -705,46 +684,46 @@ _whereBuilder() {
 
     while (true); do
 
-      local and_or_not aon selection operator value
+      local aon selection operator value
 
-      if ((condition_num == 0)); then
-        and_or_not="WHERE"
-        condition_num=1;
+      if ((initialized == 0)); then
+        where="WHERE"
+        initialized=1;
       else
-        read -rp "${tc}${WHERE}"$'\n\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
+        read -rp "${tc}${where}"$'\n\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
         if [[ -z "$aon" ]]; then
           break;
         else
           and_or_not="${logicals[aon]}"
+					where+=" ${logicals[aon]}";
         fi
       fi
-      WHERE+=" ${and_or_not}";
 
-      read -rp "${tc}${WHERE}"$'\n\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
-      WHERE+=" ${columns[selection]}";
+      read -rp "${tc}${where}"$'\n\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
+      where+=" ${columns[selection]}";
 
-      read -rp "${tc}${WHERE}"$'\n\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
-      WHERE+=" ${operators[operator]}";
+      read -rp "${tc}${where}"$'\n\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
+      where+=" ${operators[operator]}";
 
       if [[ "${operators[operator]}" =~ "NULL" ]]; then
         continue;
       else
-        read -rp "${tc}${WHERE}"$'\n\n'"Value: " value;
-        WHERE+=" \"${value}\"";
+        read -rp "${tc}${where}"$'\n\n'"Value: " value;
+        where+=" \"${value}\"";
       fi
 
     done
 
   elif [[ -n "$search" ]]; then
 
-    WHERE="WHERE"
+    where="WHERE"
 
     for((w=0;w<${#columns[*]};w++)); do
 
-      WHERE+=" ${columns[w]} RLIKE \"${search}\""
+      where+=" ${columns[w]} RLIKE \"${search}\""
 
       if (( w < (${#columns[*]} - 1) )); then
-        WHERE+=" OR"
+        where+=" OR"
       fi
 
     done
@@ -773,7 +752,6 @@ _categories () {
 
   done
 
-  _whereBuilder ${columns[*]} ${attributes[*]};
 
   _connect <<- EOF
 
@@ -837,13 +815,11 @@ _categories () {
   FROM CAT
   LEFT JOIN CAT_ATTS    ON  CAT.entity_id=CAT_ATTS.entity_id
   LEFT JOIN CAT_COUNTS  ON  CAT.entity_id=CAT_COUNTS.category_id
-  ${WHERE}
+  $(_whereBuilder ${columns[*]} ${attributes[*]})
   GROUP BY CAT_ATTS.store_id,CAT.entity_id
   ORDER BY CAT_ATTS.store_id,CAT.entity_id;
 
 EOF
-
-  WHERE="";
 
 }
 
@@ -867,13 +843,11 @@ _customers() {
 
         done
 
-        _whereBuilder ${columns[*]};
-
         _connect <<- EOF
 
   ${select}
   FROM ${PREFIX}customer_entity
-  ${WHERE}
+	$(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
   LIMIT 100;
 
