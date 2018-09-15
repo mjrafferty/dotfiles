@@ -43,6 +43,7 @@ DBUSER=""
 DBPASS=""
 DBNAME=""
 PREFIX=""
+QUERY_TERM=";"
 
 if [[ -e $CONFIG_FILE ]]; then
   SITEPATH="$PWD"
@@ -78,6 +79,7 @@ _usage() {
     -g | --categories  Show category information
     -C | --customers   Show customers
 
+    -L | --list        Display query output in list format
     -h | --help        Display this help output and quit
 
 EOF
@@ -142,6 +144,9 @@ _cmdline() {
         ;;
       "--customers"|"-C")
         args="${args}-C "
+        ;;
+      "--list"|"-L")
+        args="${args}-L "
         ;;
       *)
         args="${args}${x} "
@@ -413,7 +418,7 @@ _base () {
   FROM ${PREFIX}core_config_data
   WHERE path LIKE "web/secure%"
   OR path LIKE "web/unsecure%"
-  ORDER BY scope_id ASC,path DESC;
+  ORDER BY scope_id ASC,path DESC${QUERY_TERM}
 
 EOF
 
@@ -425,7 +430,7 @@ _cron () {
   _connect <<- EOF
 
   SELECT *
-  FROM ${PREFIX}cron_schedule;
+  FROM ${PREFIX}cron_schedule${QUERY_TERM}
 
 EOF
 
@@ -462,16 +467,16 @@ _multi () {
   SELECT *
   FROM ${PREFIX}core_config_data
   WHERE path LIKE "%base_url"
-  ORDER BY scope_id ASC,path DESC;
+  ORDER BY scope_id ASC,path DESC${QUERY_TERM}
 
   SELECT *
-  FROM ${PREFIX}store_website;
+  FROM ${PREFIX}store_website${QUERY_TERM}
 
   SELECT *
-  FROM ${PREFIX}store_group;
+  FROM ${PREFIX}store_group${QUERY_TERM}
 
   SELECT *
-  FROM ${PREFIX}store;
+  FROM ${PREFIX}store${QUERY_TERM}
 
 EOF
 
@@ -528,7 +533,7 @@ _users () {
   FROM ${PREFIX}authorization_role U
   INNER JOIN ${PREFIX}authorization_role P ON U.parent_id=P.role_id
   INNER JOIN ${PREFIX}admin_user ON U.user_id=admin_user.user_id
-  ORDER BY role_name,lognum DESC;
+  ORDER BY role_name,lognum DESC${QUERY_TERM}
 
 EOF
 
@@ -606,7 +611,7 @@ _products () {
   LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
   $(_whereBuilder ${columns[*]} ${attributes[*]})
   GROUP BY PROD_ATTS.store_id,PROD.entity_id
-  ORDER BY PROD_ATTS.store_id,PROD.entity_id;
+  ORDER BY PROD_ATTS.store_id,PROD.entity_id${QUERY_TERM}
 
 EOF
 
@@ -638,7 +643,7 @@ _orders () {
   FROM ${PREFIX}sales_order
   $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
-  LIMIT 100;
+  LIMIT 100${QUERY_TERM}
 
 EOF
 
@@ -670,7 +675,7 @@ _shipment () {
   FROM ${PREFIX}sales_shipment
   $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
-  LIMIT 100;
+  LIMIT 100${QUERY_TERM}
 
 EOF
 
@@ -682,10 +687,10 @@ _cookie () {
   _connect <<- EOF
   SELECT *
   FROM ${PREFIX}core_config_data
-  WHERE path RLIKE "^web/cookie";
+  WHERE path RLIKE "^web/cookie"${QUERY_TERM}
   SELECT *
   FROM ${PREFIX}core_config_data
-  WHERE path RLIKE "^web/session";
+  WHERE path RLIKE "^web/session"${QUERY_TERM}
 
 EOF
 
@@ -717,7 +722,7 @@ _quotes () {
   FROM ${PREFIX}quote
   $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
-  LIMIT 100;
+  LIMIT 100${QUERY_TERM}
 
 EOF
 
@@ -749,7 +754,7 @@ _invoices() {
   FROM ${PREFIX}sales_invoice
   $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
-  LIMIT 100;
+  LIMIT 100${QUERY_TERM}
 
 EOF
 
@@ -839,7 +844,7 @@ _categories () {
   LEFT JOIN CAT_COUNTS  ON  CAT.entity_id=CAT_COUNTS.category_id
   $(_whereBuilder ${columns[*]} ${attributes[*]})
   GROUP BY CAT_ATTS.store_id,CAT.entity_id
-  ORDER BY CAT_ATTS.store_id,CAT.entity_id;
+  ORDER BY CAT_ATTS.store_id,CAT.entity_id${QUERY_TERM}
 
 EOF
 
@@ -871,7 +876,7 @@ _customers() {
   FROM ${PREFIX}customer_entity
   $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
-  LIMIT 100;
+  LIMIT 100${QUERY_TERM}
 
 EOF
 
@@ -893,7 +898,7 @@ main () {
 
   _makeDefaultsFile;
 
-  while getopts "hAbcilLmP:uposOqIgC" OPTION $(_cmdline); do
+  while getopts "hAbcilLmP:uposOqIgCL" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -914,9 +919,6 @@ main () {
         ;;
       l)
         runCommand="_login";
-        ;;
-      L)
-        runCommand="_logsize";
         ;;
       m)
         runCommand="_multi";
@@ -951,6 +953,9 @@ main () {
         ;;
       C)
         runCommand="_customers";
+        ;;
+      L)
+        QUERY_TERM="\\G";
         ;;
       *);;
     esac

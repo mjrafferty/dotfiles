@@ -73,10 +73,11 @@ _usage() {
     -g | --categories  Show category information
     -C | --customers   Show customers
 
-    -L | --logsize     Show size of the log tables
+    -S | --logsize     Show size of the log tables
     -T | --truncate    Truncate and optimize log tables
     -x | --index       Show Current Status of all Re-Index Processes
 
+    -L | --list        Display query output in list format
     -h | --help        Display this help output and quit
 
 EOF
@@ -109,8 +110,8 @@ _cmdline() {
       "--login"|"-l")
         args="${args}-l "
         ;;
-      "--logsize"|"-L")
-        args="${args}-L "
+      "--logsize"|"-S")
+        args="${args}-S "
         ;;
       "--multi"|"-m")
         args="${args}-m "
@@ -1032,7 +1033,7 @@ main () {
 
   _makeDefaultsFile;
 
-  while getopts "hAbcilLmTP:uxposOqIgCa" OPTION $(_cmdline); do
+  while getopts "hAbcilSmTP:uxposOqIgCa" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -1054,7 +1055,7 @@ main () {
       l)
         _login;
         ;;
-      L)
+      S)
         _logsize;
         ;;
       m)
