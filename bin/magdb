@@ -533,9 +533,7 @@ _logsize () {
 
   local tables tables_in
 
-  _summary;
-
-  tables=("log_customer" "log_visitor" "log_visitor_info" "log_url" "log_url_info" "log_quote" "report_viewed_product_index" "report_compared_product_index" "report_event" "catalog_compare_item");
+  tables=("log_customer" "log_visitor" "log_visitor_info" "log_url" "log_url_info" "log_quote" "report_viewed_product_index" "report_compared_product_index" "report_event" "catalog_compare_item" "core_url_rewrite");
 
     for (( i=0; i<${#tables[*]}; i++ )); do
       if (( i > 0 )); then
