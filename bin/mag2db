@@ -695,7 +695,7 @@ _whereBuilder() {
           if [[ -z "$aon" ]]; then
             break 2;
           elif (( aon < 0 || aon >= ${#logicals[*]} )); then
-            echo "Enter a valid selection."
+            continue;
           else
             where+=" ${logicals[aon]}";
             break;
@@ -703,11 +703,26 @@ _whereBuilder() {
         done
       fi
 
-      read -rp "${tc}${where}"$'\n\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
-      where+=" ${columns[selection]}";
+      while(true); do
+        read -rp "${tc}${where}"$'\n\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
+        if (( selection < 0 || selection >= ${#columns[*]} )); then
+          continue;
+        else
+          where+=" ${columns[selection]}";
+          break;
+        fi
+      done
 
-      read -rp "${tc}${where}"$'\n\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
-      where+=" ${operators[operator]}";
+      while(true); do
+        read -rp "${tc}${where}"$'\n\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
+        if (( operator < 0 || operator >= ${#operators[*]} )); then
+          continue;
+        else
+          where+=" ${operators[operator]}";
+          break;
+        fi
+      done
+
 
       if [[ "${operators[operator]}" =~ "NULL" ]]; then
         continue;
