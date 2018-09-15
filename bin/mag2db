@@ -753,6 +753,8 @@ _whereBuilder() {
 
   fi
 
+  echo "${where}"
+
 }
 
 # List category info
