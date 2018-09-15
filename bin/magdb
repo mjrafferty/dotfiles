@@ -546,7 +546,7 @@ _logsize () {
 
   SELECT
     table_name as "Table Name",
-    FORMAT(table_rows) as "Row Count",
+    FORMAT(table_rows,0) as "Row Count",
 		CONCAT(ROUND(data_length/POWER(1024,2),2),"M") as "Data Length",
     CONCAT(ROUND(index_length/POWER(1024,2),2),"M") as "Index Length"
   FROM information_schema.TABLES
