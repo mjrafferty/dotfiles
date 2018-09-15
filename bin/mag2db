@@ -678,11 +678,13 @@ EOF
 # Build WHERE statement
 _whereBuilder() {
 
-  local columns operator condition_num value selection
+  local tc columns operator condition_num value selection logicals_prompt columns_prompt operators_prompt
 
   columns=($*);
   operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL")
   logicals=("AND" "OR" "NOT")
+
+  tc="$(tput clear)"
 
   read -rp "Search value (\"?\" for Advanced search.): " search
 
@@ -690,21 +692,27 @@ _whereBuilder() {
 
     condition_num=0;
 
+    for (( i=0; i<${#logicals[*]}; i++ )); do
+      logicals_prompt+="$i  ${logicals[i]}"$'\n';
+    done
+
+    for (( i=0; i<${#columns[*]}; i++ )); do
+      columns_prompt+="$i  ${columns[i]}"$'\n';
+    done
+
+    for (( i=0; i<${#operators[*]}; i++ )); do
+      operators_prompt+="$i  ${operators[i]}"$'\n';
+    done
+
     while (true); do
 
-      local and_or_not aon selection operator value logicals_prompt columns_prompt operators_prompt
+      local and_or_not aon selection operator value
 
-
-      tput clear;
-      echo -e "${WHERE}\n"
       if ((condition_num == 0)); then
         and_or_not="WHERE"
         condition_num=1;
       else
-        for (( i=0; i<${#logicals[*]}; i++ )); do
-          logicals_prompt+="$i  ${logicals[i]}"$'\n';
-        done
-        read -rp "${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
+        read -rp "${tc}${WHERE}"$'\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
         if [[ -z "$aon" ]]; then
           break;
         else
@@ -714,30 +722,18 @@ _whereBuilder() {
       WHERE+=" ${and_or_not}";
 
 
-      tput clear;
-      echo -e "${WHERE}\n"
-      for (( i=0; i<${#columns[*]}; i++ )); do
-        columns_prompt+="$i  ${columns[i]}"$'\n';
-      done
-      read -rp "${columns_prompt}"$'\n'"Choose column number: " selection;
+      read -rp "${tc}${WHERE}"$'\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
       WHERE+=" ${columns[selection]}";
 
 
-      tput clear;
-      echo -e "${WHERE}\n"
-      for (( i=0; i<${#operators[*]}; i++ )); do
-        operators_prompt+="$i  ${operators[i]}"$'\n';
-      done
-      read -rp "${operators_prompt}"$'\n'"Choose operator number: " operator;
+      read -rp "${tc}${WHERE}"$'\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
       WHERE+=" ${operators[operator]}";
 
 
-      tput clear;
-      echo -e "${WHERE}\n"
       if [[ "${operators[operator]}" =~ "NULL" ]]; then
         continue;
       else
-        read -rp "Value: " value;
+        read -rp "${tc}${WHERE}"$'\n'"Value: " value;
         WHERE+=" \"${value}\"";
       fi
 
