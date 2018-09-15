@@ -554,8 +554,8 @@ _logsize () {
   AND table_name IN (${tables_in})${QUERY_TERM}
 
   SELECT
-    "Totals" as "Table Name",
-    FORMAT(SUM(table_rows)) as "Row Count",
+    "Totals" as "Totals",
+    FORMAT(SUM(table_rows),0) as "Row Count",
     CONCAT(SUM(data_length)/POWER(1024,2),"M") as "Data Length",
     CONCAT(SUM(index_length)/POWER(1024,2),"M") as "Index Length"
   FROM information_schema.TABLES
