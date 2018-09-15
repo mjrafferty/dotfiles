@@ -249,7 +249,7 @@ _whereBuilder() {
           read -rp "${tc}${where}"$'\n\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
           if [[ -z "$aon" ]]; then
             break 2;
-          elif (( aon < 0 || aon >= ${#logicals[*]} )); then
+          elif (( aon < 0 || aon >= ${#logicals[*]} )) || [[ "${aon}" != [0-9]* ]]; then
             continue;
           else
             where+=" ${logicals[aon]}";
@@ -260,7 +260,7 @@ _whereBuilder() {
 
       while(true); do
         read -rp "${tc}${where}"$'\n\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
-        if (( selection < 0 || selection >= ${#columns[*]} )); then
+        if (( selection < 0 || selection >= ${#columns[*]} )) || [[ "${selection}" != [0-9]* ]]; then
           continue;
         else
           where+=" ${columns[selection]}";
@@ -270,7 +270,7 @@ _whereBuilder() {
 
       while(true); do
         read -rp "${tc}${where}"$'\n\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
-        if (( operator < 0 || operator >= ${#operators[*]} )); then
+        if (( operator < 0 || operator >= ${#operators[*]} )) || [[ "${operator}" != [0-9]* ]]; then
           continue;
         else
           where+=" ${operators[operator]}";
