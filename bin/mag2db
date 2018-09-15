@@ -692,19 +692,19 @@ _whereBuilder() {
 
     while (true); do
 
-      local and_or_not aon selection operator value
+      local and_or_not aon selection operator value logicals_prompt columns_prompt operators_prompt
 
 
       tput clear;
       echo -e "${WHERE}\n"
       if ((condition_num == 0)); then
         and_or_not="WHERE"
-        condition_num+=1;
+        condition_num=1;
       else
         for (( i=0; i<${#logicals[*]}; i++ )); do
-          logical_prompt+="$i  ${logicals[i]}\n";
+          logicals_prompt="$i  ${logicals[i]}"$'\n';
         done
-        read -rp $'${logical_prompt}\nChoose logic operator number( Or press enter to continue. ): ' aon;
+        read -rp "${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
         if [[ -z "$aon" ]]; then
           break;
         else
@@ -717,18 +717,18 @@ _whereBuilder() {
       tput clear;
       echo -e "${WHERE}\n"
       for (( i=0; i<${#columns[*]}; i++ )); do
-        echo "$i  ${columns[i]}";
+        columns_prompt+="$i  ${columns[i]}"$'\n';
       done
-      read -rp $'\nChoose column number: ' selection;
+      read -rp "${columns_prompt}"$'\n'"Choose column number: " selection;
       WHERE+=" ${columns[selection]}";
 
 
       tput clear;
       echo -e "${WHERE}\n"
       for (( i=0; i<${#operators[*]}; i++ )); do
-        echo "$i  ${operators[i]}";
+        operators_prompt+="$i  ${operators[i]}"$'\n';
       done
-      read -rp $'\nChoose operator number: ' operator;
+      read -rp "${operators_prompt}"$'\n'"Choose operator number: " operator;
       WHERE+=" ${operators[operator]}";
 
 
