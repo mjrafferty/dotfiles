@@ -1,0 +1,925 @@
+#! /bin/bash
+
+# Script Arguments
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+# Configurable Variables
+CONFIG_FILE="wp-config.php"
+DEFAULTS_FILE="$HOME/.wpdb_defaults"
+
+# Alias executables to prevent PATH issues
+readonly AWK='/bin/awk'
+readonly CAT='/bin/cat'
+readonly CHMOD='/bin/chmod'
+readonly COLUMN='/usr/bin/column'
+readonly CUT='/bin/cut'
+readonly FOLD='/usr/bin/fold'
+readonly GREP='/bin/grep'
+readonly HEAD='/usr/bin/head'
+readonly LESS='/usr/bin/less'
+readonly MYSQL='/usr/bin/mysql'
+readonly RM='/bin/rm'
+readonly SED='/bin/sed'
+readonly SHUF='/usr/bin/shuf'
+readonly TPUT='/usr/bin/tput'
+readonly TR='/usr/bin/tr'
+readonly WC='/usr/bin/wc'
+
+BRIGHT=$("$TPUT" bold);
+NORMAL=$("$TPUT" sgr0);
+RED=$("$TPUT" setaf 1);
+GREEN=$("$TPUT" setaf 10);
+
+if [[ -e "/opt/nexcess/php70u/root/usr/bin/php" ]];then
+  PHP="/opt/nexcess/php70u/root/usr/bin/php";
+else
+  PHP="/opt/remi/php70/root/usr/bin/php";
+fi
+
+# Necessary Global Variables
+DBHOST=""
+DBUSER=""
+DBPASS=""
+DBNAME=""
+PREFIX=""
+QUERY_TERM=";"
+
+if [[ -e $CONFIG_FILE ]]; then
+  SITEPATH="$PWD"
+else
+  SITEPATH="$(pwd | "$GREP" -Po '(/chroot)?/home(/[^/]+){2}')"
+fi
+
+# Print usage
+_usage() {
+
+  "$CAT" <<- EOF
+
+  Usage: mag2db <option>
+
+    -i | --info        Display user credentials for database
+    -l | --login       Log into database using user credentials
+
+    -A | --admin       Add a new admin user into the database
+    -P | --password    Update or reset password for user
+    -u | --users       Show all Admin Users' information
+
+    -b | --base        Show all configured Base Urls
+    -m | --multi       Show Multistore Information (Urls/Codes)
+    -O | --cookie      Show cookie configuration
+
+    -c | --cron        Show Cron Jobs and Their Statuses
+
+    -p | --products    Show products
+    -o | --orders      Show recent orders
+    -s | --shipment    Show recent shipments
+    -q | --quotes      Show recent quotes
+    -I | --invoices    Show recent invoices
+    -g | --categories  Show category information
+    -C | --customers   Show customers
+
+    -L | --list        Display query output in list format
+    -h | --help        Display this help output and quit
+
+EOF
+
+}
+
+# Convert long command line options into short ones for getopts
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--admin"|"-A")
+        args="${args}-A "
+        ;;
+      "--base"|"-b")
+        args="${args}-b "
+        ;;
+      "--cron"|"-c")
+        args="${args}-c "
+        ;;
+      "--info"|"-i")
+        args="${args}-i "
+        ;;
+      "--login"|"-l")
+        args="${args}-l "
+        ;;
+      "--multi"|"-m")
+        args="${args}-m "
+        ;;
+      "--password"|"-P")
+        args="${args}-P "
+        ;;
+      "--users"|"-u")
+        args="${args}-u "
+        ;;
+      "--products"|"-p")
+        args="${args}-p "
+        ;;
+      "--orders"|"-o")
+        args="${args}-o "
+        ;;
+      "--shipment"|"-s")
+        args="${args}-s "
+        ;;
+      "--cookie"|"-O")
+        args="${args}-O "
+        ;;
+      "--quotes"|"-q")
+        args="${args}-q "
+        ;;
+      "--invoices"|"-I")
+        args="${args}-I "
+        ;;
+      "--categories"|"-g")
+        args="${args}-g "
+        ;;
+      "--customers"|"-C")
+        args="${args}-C "
+        ;;
+      "--list"|"-L")
+        args="${args}-L "
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+  done
+
+  echo "$args";
+
+}
+
+# Generate Password
+_xkcd () {
+
+  local wordList word rnd pass matchList wcount
+
+  if [ -r /usr/local/interworx/lib/dict/words ]; then
+
+    wordList='/usr/local/interworx/lib/dict/words';
+
+  elif [ -r /usr/share/dict/words ]; then
+
+    wordList='/usr/share/dict/words';
+
+  else
+    return 1;
+  fi
+
+  if [[ -x /usr/bin/shuf ]]; then
+
+    pass=$("$SHUF" -n1000 "$wordList" | "$GREP" -E '^[a-z,A-Z]{4,12}$' | "$HEAD" -n4 | "$SED" 's/^\([a-z]\)/\u\1/' | "$TR" -d '\n| ');
+
+    echo "$pass"$(( (RANDOM % 9000) + 1000 ));
+
+  else
+
+    word=();
+
+    matchList=$("$GREP" -E '^[a-z,A-Z]{4,12}$' $wordList);
+    IFS=" "
+    wcount=$(echo "$matchList" | "$WC" -l | "$AWK" '{print $1}')
+
+    for ((x=0;x<4;x++)) do
+
+      rnd=$((RANDOM % wcount))
+
+      word[$x]=$(echo "$matchList" | "$SED" -n "${rnd}p" | "$SED" 's/^\([a-z]\)/\u\1/');
+
+    done;
+
+    echo "${word[0]}${word[1]}${word[2]}${word[3]}$(( RANDOM % 9000 + 1000 ))";
+
+  fi
+
+}
+
+# Build select statement
+_selectBuilder() {
+
+  local columns select s
+
+  columns=($*)
+  select="SELECT"
+
+    for ((s=0;s<${#columns[*]};s++)); do
+
+      select+=" ${columns[s]}"
+
+      if (( s < (${#columns[*]} - 1) )); then
+        select+=","
+      fi
+
+    done
+
+    echo "${select}";
+
+}
+
+# Build WHERE statement
+_whereBuilder() {
+
+  local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
+
+  columns=($*);
+  operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
+  logicals=("AND" "OR")
+  tc="$(tput clear)"
+
+  read -rp "Search value (\"?\" for Advanced search.): " search
+
+  if [[ "$search" == "?" ]]; then
+
+    initialized=0;
+
+    for (( i=0; i<${#logicals[*]}; i++ )); do
+      logicals_prompt+="$i  ${logicals[i]}"$'\n';
+    done
+
+    for (( i=0; i<${#columns[*]}; i++ )); do
+      columns_prompt+="$i  ${columns[i]}"$'\n';
+    done
+
+    for (( i=0; i<${#operators[*]}; i++ )); do
+      operators_prompt+="$i  ${operators[i]}"$'\n';
+    done
+
+    while (true); do
+
+      local aon selection operator value
+
+      if ((initialized == 0)); then
+        where="WHERE"
+        initialized=1;
+      else
+        while(true); do
+          read -rp "${tc}${where}"$'\n\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
+          if [[ -z "$aon" ]]; then
+            break 2;
+          elif (( aon < 0 || aon >= ${#logicals[*]} )) || [[ "${aon}" != [0-9]* ]]; then
+            continue;
+          else
+            where+=" ${logicals[aon]}";
+            break;
+          fi
+        done
+      fi
+
+      while(true); do
+        read -rp "${tc}${where}"$'\n\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
+        if (( selection < 0 || selection >= ${#columns[*]} )) || [[ "${selection}" != [0-9]* ]]; then
+          continue;
+        else
+          where+=" ${columns[selection]}";
+          break;
+        fi
+      done
+
+      while(true); do
+        read -rp "${tc}${where}"$'\n\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
+        if (( operator < 0 || operator >= ${#operators[*]} )) || [[ "${operator}" != [0-9]* ]]; then
+          continue;
+        else
+          where+=" ${operators[operator]}";
+          break;
+        fi
+      done
+
+
+      if [[ "${operators[operator]}" =~ "NULL" ]]; then
+        continue;
+      else
+        read -rp "${tc}${where}"$'\n\n'"Value: " value;
+        if [[ "${operators[operator]}" =~ "IN" ]]; then
+          where+=" (${value})";
+        else
+          where+=" \"${value}\"";
+        fi
+      fi
+
+    done
+
+  elif [[ -n "$search" ]]; then
+
+    where="WHERE"
+
+    for((w=0;w<${#columns[*]};w++)); do
+
+      where+=" ${columns[w]} RLIKE \"${search}\""
+
+      if (( w < (${#columns[*]} - 1) )); then
+        where+=" OR"
+      fi
+
+    done
+
+  fi
+
+  echo "${where}"
+
+}
+
+# Add an administrator
+_admin () {
+
+  local user firstname lastname emailaddr username;
+
+  read -rp "Firstname: " firstname;
+  read -rp "Lastname: " lastname;
+  read -rp "Email: " emailaddr;
+  read -rp "Username: " username;
+
+  password=$(_xkcd);
+
+  user="$(pwd | "$GREP" -Po '^(/chroot)?/home/\K[^/]*')"
+
+  if [[ "$USER" == "$user" ]]; then
+    php "$SITEPATH/bin/magento" admin:user:create --admin-user "$username" --admin-password "$password" \
+      --admin-email "$emailaddr" --admin-firstname "$firstname" --admin-lastname "$lastname"
+  else
+    sudo -u "$user" "$PHP" "$SITEPATH/bin/magento" admin:user:create --admin-user "$username" --admin-password "$password" \
+      --admin-email "$emailaddr" --admin-firstname "$firstname" --admin-lastname "$lastname"
+  fi
+
+  "$CAT" <<- EOF
+
+  Username: $username
+  Password: $password
+
+EOF
+
+}
+
+# Print base url's
+_base () {
+
+  _connect <<- EOF
+
+  SELECT *
+  FROM ${PREFIX}core_config_data
+  WHERE path LIKE "web/secure%"
+  OR path LIKE "web/unsecure%"
+  ORDER BY scope_id ASC,path DESC${QUERY_TERM}
+
+EOF
+
+}
+
+# List category info
+_categories () {
+
+  local attributes atts a search columns pivot_atts;
+
+  attributes=( "name" "custom_design" "display_mode" "page_layout" "url_key" "url_path" "include_in_menu" "is_active" "landing_page" )
+  columns=( "CAT.entity_id" "product_count" "store_id" "attribute_set_name" "parent_id" "path" "position" "children_count" "created_at" "updated_at" )
+
+  for((a=0;a<${#attributes[*]};a++)); do
+
+    atts+=" \"${attributes[a]}\""
+    pivot_atts+="GROUP_CONCAT(if(EA.attribute_code=\"${attributes[a]}\",value,NULL)) AS ${attributes[a]}"
+
+    if (( a < (${#attributes[*]} - 1) )); then
+      atts+=",";
+      pivot_atts+=",";
+    fi
+
+  done
+
+  _connect <<- EOF
+
+  CREATE TEMPORARY TABLE CCEA (
+    KEY (attribute_id)
+  ) AS (
+    SELECT *
+    FROM ${PREFIX}catalog_category_entity_varchar
+  );
+
+  INSERT INTO CCEA (
+    SELECT *
+    FROM ${PREFIX}catalog_category_entity_int
+  );
+
+  CREATE TEMPORARY TABLE CAT_ATTS (
+    KEY (entity_id)
+  )
+  SELECT
+    store_id,
+    entity_id,
+    ${pivot_atts}
+  FROM CCEA
+  INNER JOIN ${PREFIX}eav_attribute AS EA   ON  EA.attribute_id=CCEA.attribute_id
+  INNER JOIN ${PREFIX}eav_entity_type EAT   ON  EAT.entity_type_id=EA.entity_type_id
+  WHERE EAT.entity_type_code="catalog_category"
+  and EA.attribute_code in (${atts})
+  GROUP BY store_id,entity_id;
+
+  CREATE TEMPORARY TABLE CAT (
+    KEY (entity_id)
+  )
+  SELECT
+    CCE.entity_id,  EAS.attribute_set_name,
+    CCE.parent_id,  CCE.path,
+    CCE.position,   CCE.children_count,
+    CCE.created_at, CCE.updated_at
+  FROM ${PREFIX}catalog_category_entity CCE
+  INNER JOIN ${PREFIX}eav_attribute_set AS EAS  ON  EAS.attribute_set_id=CCE.attribute_set_id
+  INNER JOIN ${PREFIX}eav_entity_type   AS EAT  ON  EAT.entity_type_id=EAS.entity_type_id;
+
+  CREATE TEMPORARY TABLE CAT_COUNTS (
+    KEY (category_id)
+  )
+  SELECT
+    category_id,  count(category_id) AS product_count
+  FROM ${PREFIX}catalog_category_product
+  GROUP BY category_id
+  ORDER BY category_id;
+
+  SELECT
+    CAT_ATTS.store_id,      CAT.entity_id,
+    CAT_ATTS.name,          if(CAT_COUNTS.product_count is NULL,0,CAT_COUNTS.product_count) as product_count,
+    CAT.attribute_set_name, CAT.path,
+    CAT.position,           CAT.children_count,
+    CAT_ATTS.url_key,       CAT_ATTS.url_path,
+    CAT_ATTS.custom_design, CAT_ATTS.display_mode,
+    CAT_ATTS.page_layout,   CAT_ATTS.include_in_menu,
+    CAT_ATTS.is_active,     CAT_ATTS.landing_page,
+    CAT.created_at,         CAT.updated_at
+  FROM CAT
+  LEFT JOIN CAT_ATTS    ON  CAT.entity_id=CAT_ATTS.entity_id
+  LEFT JOIN CAT_COUNTS  ON  CAT.entity_id=CAT_COUNTS.category_id
+  $(_whereBuilder ${columns[*]} ${attributes[*]})
+  GROUP BY CAT_ATTS.store_id,CAT.entity_id
+  ORDER BY CAT_ATTS.store_id,CAT.entity_id${QUERY_TERM}
+
+EOF
+
+}
+
+# Clean up before exit
+_cleanUp () {
+
+  "$RM" "$DEFAULTS_FILE";
+
+}
+
+# Connect to the database
+_connect () {
+
+  _summary;
+
+  "$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_wpdb" -t | "$LESS" -RSF;
+
+}
+
+# List cookie info
+_cookie () {
+
+  _connect <<- EOF
+  SELECT *
+  FROM ${PREFIX}core_config_data
+  WHERE path RLIKE "^web/cookie"${QUERY_TERM}
+  SELECT *
+  FROM ${PREFIX}core_config_data
+  WHERE path RLIKE "^web/session"${QUERY_TERM}
+
+EOF
+
+}
+
+# Print cron table
+_cron () {
+
+  _connect <<- EOF
+
+  SELECT *
+  FROM ${PREFIX}cron_schedule${QUERY_TERM}
+
+EOF
+
+}
+
+# List customers info
+_customers() {
+
+  local columns;
+
+  columns=("entity_id" "store_id" "website_id" "email" "group_id" "is_active" "default_billing"
+  "default_shipping" "failures_num" "first_failure" "lock_expires" "created_at" "updated_at")
+
+  _connect <<- EOF
+
+  $(_selectBuilder ${columns[*]})
+  FROM ${PREFIX}customer_entity
+  $(_whereBuilder ${columns[*]})
+  ORDER BY created_at DESC
+  LIMIT 100${QUERY_TERM}
+
+EOF
+
+}
+
+# Grab data from wp-config.php
+_getConfig () {
+
+  local config
+
+  if [[ -f $SITEPATH/$CONFIG_FILE ]]; then #Magento
+
+		mapfile -t config < <("$SED" -n 's/.*define..\(DB_[A-Z]*\)., *.\(.*\)..;/\1\t\2/p' "${SITEPATH}/${CONFIG_FILE}");
+
+    DBHOST="$(echo "$config" | "$GREP" -Po 'DB_HOST\t\K.*')"
+    DBNAME="$(echo "$config" | "$GREP" -Po 'DB_NAME\t\K.*')"
+    DBUSER="$(echo "$config" | "$GREP" -Po 'DB_USER\t\K.*')"
+    DBPASS="$(echo "$config" | "$GREP" -Po 'DB_PASSWORD\t\K.*')"
+    #PREFIX="$(echo "$config" | "$GREP" \'table_prefix\' | "$CUT" -d\' -f4 | "$HEAD" -n1)"
+
+  else
+
+    echo "${RED}Could not find configuration file!${NORMAL}";
+    exit 1;
+
+  fi;
+}
+
+# Print database info
+_info () {
+
+  "$CAT" <<- EOF
+  ${BRIGHT}Database Info:${NORMAL}
+
+  ${BRIGHT}Username:${NORMAL} $DBUSER
+  ${BRIGHT}Password:${NORMAL} $DBPASS
+  ${BRIGHT}Database:${NORMAL} $DBNAME
+  ${BRIGHT}Hostname:${NORMAL} $DBHOST
+  ${BRIGHT}Prefix  :${NORMAL} $PREFIX
+
+EOF
+
+}
+
+# List invoice info
+_invoices() {
+
+  local columns;
+
+  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "send_email" "grand_total"
+  "shipping_address_id" "billing_address_id" "created_at" "updated_at")
+
+  _connect <<- EOF
+
+  $(_selectBuilder ${columns[*]})
+  FROM ${PREFIX}sales_invoice
+  $(_whereBuilder ${columns[*]})
+  ORDER BY created_at DESC
+  LIMIT 100${QUERY_TERM}
+
+EOF
+
+}
+
+# Login to database
+_login () {
+
+  _summary;
+
+  "$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_wpdb";
+
+}
+
+# Make mysql defaults file
+_makeDefaultsFile () {
+
+  "$CAT" <<- EOF > "$DEFAULTS_FILE"
+[client_wpdb]
+database = "$DBNAME"
+user =  "$DBUSER"
+password = "$DBPASS"
+host = "$DBHOST"
+EOF
+
+  "$CHMOD" 600 "$DEFAULTS_FILE";
+
+}
+
+# Print multistore config
+_multi () {
+
+  _connect <<- EOF
+
+  SELECT *
+  FROM ${PREFIX}core_config_data
+  WHERE path LIKE "%base_url"
+  ORDER BY scope_id ASC,path DESC${QUERY_TERM}
+
+  SELECT *
+  FROM ${PREFIX}store_website${QUERY_TERM}
+
+  SELECT *
+  FROM ${PREFIX}store_group${QUERY_TERM}
+
+  SELECT *
+  FROM ${PREFIX}store${QUERY_TERM}
+
+EOF
+
+}
+
+# List order info
+_orders () {
+
+  local columns;
+
+  columns=("increment_id" "entity_id" "store_id" "customer_id" "customer_email" "email_sent" "total_invoiced"
+  "remote_ip" "x_forwarded_for" "shipping_method" "total_item_count" "created_at" "updated_at")
+
+  _connect <<- EOF
+
+  $(_selectBuilder ${columns[*]})
+  FROM ${PREFIX}sales_order
+  $(_whereBuilder ${columns[*]})
+  ORDER BY created_at DESC
+  LIMIT 100${QUERY_TERM}
+
+EOF
+
+}
+
+# Change admin user password
+_password () {
+
+  local username password;
+
+  username="$1"
+
+  read -rp "New password (default: xkcd): " password;
+
+  if [ -z "$password" ]; then
+
+    password="$(_xkcd)";
+
+  fi
+
+  salt="$("$TR" -dc 'a-zA-Z0-9' < /dev/urandom | "$FOLD" -w 32 | "$HEAD" -n1)"
+
+  _connect <<- EOF
+
+  UPDATE ${PREFIX}admin_user
+  SET password = CONCAT(SHA2("${salt}${password}", 256), ":${salt}:1")
+  WHERE username = "$username";
+
+EOF
+
+  "$CAT" <<- EOF
+
+  New Magento Login Credentials:
+
+  Username: $username
+  Password: $password
+
+EOF
+
+}
+
+# List product info
+_products () {
+
+  local attributes atts a pivot_atts columns;
+
+  attributes=( "name" "status" "visibility" "image" "url_key" )
+  columns=("store_id" "PROD.entity_id" "sku" "type_id" "attribute_set_name" "has_options" "created_at" "updated_at")
+
+  for((a=0;a<${#attributes[*]};a++)); do
+
+    atts+=" \"${attributes[a]}\""
+    pivot_atts+="GROUP_CONCAT(if(EA.attribute_code=\"${attributes[a]}\",value,NULL)) AS ${attributes[a]}"
+
+    if (( a < (${#attributes[*]} - 1) )); then
+      atts+=",";
+      pivot_atts+=",";
+    fi
+
+  done
+
+  _connect <<- EOF
+
+  CREATE TEMPORARY TABLE CPEA (
+    KEY (attribute_id)
+  ) AS (
+    SELECT *
+    FROM ${PREFIX}catalog_product_entity_varchar
+  );
+
+  INSERT INTO CPEA (
+    SELECT *
+    FROM ${PREFIX}catalog_product_entity_int
+  );
+
+  CREATE TEMPORARY TABLE PROD_ATTS (
+    KEY (entity_id)
+  )
+  SELECT
+    store_id,
+    entity_id,
+    ${pivot_atts}
+  FROM CPEA
+  INNER JOIN ${PREFIX}eav_attribute AS EA ON EA.attribute_id=CPEA.attribute_id
+  INNER JOIN ${PREFIX}eav_entity_type EAT ON EAT.entity_type_id=EA.entity_type_id
+  WHERE EAT.entity_type_code="catalog_product"
+  and EA.attribute_code in (${atts})
+  GROUP BY store_id,entity_id;
+
+  CREATE TEMPORARY TABLE PROD (
+    KEY (entity_id)
+  )
+  SELECT
+    CPE.entity_id,    EAS.attribute_set_name,
+    CPE.type_id,      CPE.sku,
+    CPE.has_options,  CPE.created_at,
+    CPE.updated_at
+  FROM ${PREFIX}catalog_product_entity CPE
+  INNER JOIN ${PREFIX}eav_attribute_set AS EAS ON EAS.attribute_set_id=CPE.attribute_set_id
+  INNER JOIN ${PREFIX}eav_entity_type AS EAT ON EAT.entity_type_id=EAS.entity_type_id;
+
+  SELECT
+    PROD_ATTS.store_id,   PROD.entity_id,
+    PROD_ATTS.name,       PROD.sku,
+    PROD.type_id,         PROD.attribute_set_name,
+    PROD_ATTS.url_key,    PROD_ATTS.image,
+    PROD_ATTS.visibility, PROD_ATTS.status,
+    PROD.has_options,     PROD.created_at,
+    PROD.updated_at
+  FROM PROD
+  LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
+  $(_whereBuilder ${columns[*]} ${attributes[*]})
+  GROUP BY PROD_ATTS.store_id,PROD.entity_id
+  ORDER BY PROD_ATTS.store_id,PROD.entity_id${QUERY_TERM}
+
+EOF
+
+}
+
+# List quotes info
+_quotes () {
+
+  local columns;
+
+  columns=("entity_id" "store_id" "is_active" "checkout_method" "customer_id" "customer_email"
+  "remote_ip" "created_at" "updated_at")
+
+  _connect <<- EOF
+
+  $(_selectBuilder ${columns[*]})
+  FROM ${PREFIX}quote
+  $(_whereBuilder ${columns[*]})
+  ORDER BY created_at DESC
+  LIMIT 100${QUERY_TERM}
+
+EOF
+
+}
+
+# List shipment info
+_shipment () {
+
+  local columns;
+
+  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "send_email"
+  "shipping_address_id" "billing_address_id" "created_at" "updated_at")
+
+  _connect <<- EOF
+
+  $(_selectBuilder ${columns[*]})
+  FROM ${PREFIX}sales_shipment
+  $(_whereBuilder ${columns[*]})
+  ORDER BY created_at DESC
+  LIMIT 100${QUERY_TERM}
+
+EOF
+
+}
+
+# Print summary
+_summary () {
+
+  local version
+
+  #version="$("$GREP" "magento/product" "$SITEPATH/composer.json" | "$CUT" -d\" -f4)"
+
+  "$CAT" <<-EOF
+
+  ${BRIGHT}Wordpress: ${GREEN}${version}${NORMAL}
+  ${BRIGHT}Connection Summary: ${GREEN}${DBUSER}:${DBNAME}${NORMAL}
+
+EOF
+
+}
+
+# Show admin users
+_users () {
+
+  _connect <<- EOF
+
+  SELECT
+    P.role_name, username,
+    firstname,lastname,
+    email,created,
+    modified,logdate,
+    lognum,is_active,
+    failures_num
+  FROM ${PREFIX}authorization_role U
+  INNER JOIN ${PREFIX}authorization_role P ON U.parent_id=P.role_id
+  INNER JOIN ${PREFIX}admin_user ON U.user_id=admin_user.user_id
+  ORDER BY role_name,lognum DESC${QUERY_TERM}
+
+EOF
+
+}
+
+# Main
+main () {
+
+  local runCommand runOption
+
+  _getConfig;
+
+  _makeDefaultsFile;
+
+  while getopts "hAbcilLmP:uposOqIgCL" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      A)
+        runCommand="_admin";
+        ;;
+      b)
+        runCommand="_base";
+        ;;
+      c)
+        runCommand="_cron";
+        ;;
+      i)
+        runCommand="_info";
+        ;;
+      l)
+        runCommand="_login";
+        ;;
+      m)
+        runCommand="_multi";
+        ;;
+      P)
+        runCommand="_password"
+        runOption="$OPTARG";
+        ;;
+      u)
+        runCommand="_users";
+        ;;
+      p)
+        runCommand="_products";
+        ;;
+      o)
+        runCommand="_orders";
+        ;;
+      s)
+        runCommand="_shipment";
+        ;;
+      O)
+        runCommand="_cookie";
+        ;;
+      q)
+        runCommand="_quotes";
+        ;;
+      I)
+        runCommand="_invoices";
+        ;;
+      g)
+        runCommand="_categories";
+        ;;
+      C)
+        runCommand="_customers";
+        ;;
+      L)
+        QUERY_TERM="\\G";
+        ;;
+      *);;
+    esac
+  done
+
+  "$runCommand" "$runOption"
+
+  _cleanUp;
+
+}
+
+main;
