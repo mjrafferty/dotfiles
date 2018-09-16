@@ -816,7 +816,7 @@ _summary () {
 
   local version
 
-  #version="$("$GREP" "magento/product" "$SITEPATH/composer.json" | "$CUT" -d\" -f4)"
+  version="$("$GREP" -Po '^\s*\$wp_version\D*\K[0-9,\.]*' "${SITEPATH}/wp-includes/version.php")"
 
   "$CAT" <<-EOF
 
