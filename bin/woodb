@@ -534,13 +534,17 @@ _getConfig () {
 
   if [[ -f $SITEPATH/$CONFIG_FILE ]]; then #Magento
 
-		config="$("$SED" -n 's/.*define..\(DB_[A-Z]*\)., *.\(.*\)..;/\1\t\2/p' "${SITEPATH}/${CONFIG_FILE}")";
+		config="$("$SED" -rn "s/\s*define\(\s*('|\")(DB_[A-Z]*)('|\")\s*,\s*('|\")(.*)('|\")\s*\);/\2\t\5/p" "${SITEPATH}/${CONFIG_FILE}")";
 
     DBHOST="$(echo "$config" | "$GREP" -Po 'DB_HOST\t\K.*')"
     DBNAME="$(echo "$config" | "$GREP" -Po 'DB_NAME\t\K.*')"
     DBUSER="$(echo "$config" | "$GREP" -Po 'DB_USER\t\K.*')"
     DBPASS="$(echo "$config" | "$GREP" -Po 'DB_PASSWORD\t\K.*')"
     #PREFIX="$(echo "$config" | "$GREP" \'table_prefix\' | "$CUT" -d\' -f4 | "$HEAD" -n1)"
+
+		if [[ "$DBHOST" == "localhost" ]]; then
+      DBHOST="127.0.0.1";
+    fi
 
   else
 
