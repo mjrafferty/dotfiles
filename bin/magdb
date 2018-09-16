@@ -542,18 +542,6 @@ _connect () {
 
 }
 
-# Print cron table
-_cron () {
-
-  _connect <<- EOF
-
-  SELECT *
-  FROM ${PREFIX}cron_schedule${QUERY_TERM}
-
-EOF
-
-}
-
 # List cookie info
 _cookie () {
 
@@ -564,6 +552,18 @@ _cookie () {
   SELECT *
   FROM ${PREFIX}core_config_data
   WHERE path RLIKE "^web/session"${QUERY_TERM}
+
+EOF
+
+}
+
+# Print cron table
+_cron () {
+
+  _connect <<- EOF
+
+  SELECT *
+  FROM ${PREFIX}cron_schedule${QUERY_TERM}
 
 EOF
 

@@ -464,6 +464,13 @@ EOF
 
 }
 
+# Clean up before exit
+_cleanUp () {
+
+  "$RM" "$DEFAULTS_FILE";
+
+}
+
 # Connect to the database
 _connect () {
 
@@ -588,7 +595,7 @@ _login () {
 
 }
 
-# Make "$MYSQL" defaults file
+# Make mysql defaults file
 _makeDefaultsFile () {
 
   "$CAT" <<- EOF > "$DEFAULTS_FILE"
@@ -834,13 +841,6 @@ _users () {
   ORDER BY role_name,lognum DESC${QUERY_TERM}
 
 EOF
-
-}
-
-# Clean up before exit
-_cleanUp () {
-
-  "$RM" "$DEFAULTS_FILE";
 
 }
 
