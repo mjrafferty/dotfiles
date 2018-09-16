@@ -214,7 +214,29 @@ _xkcd () {
 
 }
 
-# Build WHERE statement
+# Build select statement
+_selectBuilder() {
+
+  local columns select s
+
+  columns=($*)
+  select="SELECT"
+
+    for ((s=0;s<${#columns[*]};s++)); do
+
+      select+=" ${columns[s]}"
+
+      if (( s < (${#columns[*]} - 1) )); then
+        select+=","
+      fi
+
+    done
+
+    echo "${select}";
+
+}
+
+# Build where statement
 _whereBuilder() {
 
   local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
@@ -317,6 +339,38 @@ _whereBuilder() {
 
 }
 
+# Add an administrator
+_admin () {
+
+  local firstname lastname emailaddr username password salt;
+
+  read -rp "Firstname: " firstname;
+  read -rp "Lastname: " lastname;
+  read -rp "Email: " emailaddr;
+  read -rp "Username: " username;
+
+  password=$(_xkcd);
+  salt="$("$TR" -dc 'a-zA-Z0-9' < /dev/urandom | "$FOLD" -w 32 | "$HEAD" -n1)"
+
+  _connect <<- EOF
+
+  INSERT INTO ${PREFIX}admin_user (firstname,lastname,email,username,password)
+  VALUES ("$firstname","$lastname","$emailaddr","$username",CONCAT(MD5("${salt}${password}"), ":${salt}"));
+
+  INSERT INTO ${PREFIX}admin_role (parent_id,tree_level,sort_order,role_type,user_id,role_name)
+  VALUES (1,2,0,"U",(SELECT user_id FROM ${PREFIX}admin_user WHERE username="$username"),"$username");
+
+EOF
+
+"$CAT" <<- EOF
+
+  Username: $username
+  Password: $password
+
+EOF
+
+}
+
 # Parse local.xml
 _awkConfig () {
   "$AWK" '
@@ -367,117 +421,6 @@ printf("%s\n%s\n%s\n%s\n%s\n",config["host"],config["username"],config["password
   }'
 }
 
-# Grab data FROM local.xml
-_getConfig () {
-
-  local config
-
-  if [[ -f $SITEPATH/$CONFIG_FILE ]]; then #Magento
-
-    mapfile -t config < <("$GREP" -Pv '^\s*(<!|\*)' $CONFIG_FILE | _awkConfig);
-
-    DBHOST="${config[0]}"
-    DBUSER="${config[1]}"
-    DBPASS="${config[2]}"
-    DBNAME="${config[3]}"
-    PREFIX="${config[4]}"
-
-  else
-
-    echo "${RED}Could not find configuration file!${NORMAL}";
-    exit 1;
-
-  fi;
-}
-
-# Print summary
-_summary () {
-
-  local version edition ver
-
-  mapfile -t ver < <("$GREP" 'function getVersionInfo' -A8 "$SITEPATH"/app/Mage.php | "$GREP" major -A4 | "$CUT" -d\' -f4);
-  version="${ver[0]}.${ver[1]}.${ver[2]}.${ver[3]}"
-
-  if "$GREP" -qE '(Enterprise|Commercial) Edition' "$SITEPATH"/app/Mage.php; then
-    edition="Enterprise Edition";
-  else
-    edition="Community Edition";
-  fi
-
-  "$CAT" <<-EOF
-
-  ${BRIGHT}$edition: ${GREEN}${version}${NORMAL}
-  ${BRIGHT}Connection Summary: ${GREEN}${DBUSER}:${DBNAME}${NORMAL}
-
-EOF
-
-}
-
-# Make "$MYSQL" defaults file
-_makeDefaultsFile () {
-
-  "$CAT" <<- EOF > "$DEFAULTS_FILE"
-[client_magdb]
-database = "$DBNAME"
-user =  "$DBUSER"
-password = "$DBPASS"
-host = "$DBHOST"
-EOF
-
-  "$CHMOD" 600 "$DEFAULTS_FILE";
-
-}
-
-# Connect to the database
-_connect () {
-
-  _summary;
-
-  "$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t | "$LESS" -RSF;
-
-}
-
-# Connect to the database interactively
-_connecti () {
-
-  _summary;
-
-  "$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb";
-
-}
-
-# Add an administrator
-_admin () {
-
-  local firstname lastname emailaddr username password salt;
-
-  read -rp "Firstname: " firstname;
-  read -rp "Lastname: " lastname;
-  read -rp "Email: " emailaddr;
-  read -rp "Username: " username;
-
-  password=$(_xkcd);
-  salt="$("$TR" -dc 'a-zA-Z0-9' < /dev/urandom | "$FOLD" -w 32 | "$HEAD" -n1)"
-
-  _connect <<- EOF
-
-  INSERT INTO ${PREFIX}admin_user (firstname,lastname,email,username,password)
-  VALUES ("$firstname","$lastname","$emailaddr","$username",CONCAT(MD5("${salt}${password}"), ":${salt}"));
-
-  INSERT INTO ${PREFIX}admin_role (parent_id,tree_level,sort_order,role_type,user_id,role_name)
-  VALUES (1,2,0,"U",(SELECT user_id FROM ${PREFIX}admin_user WHERE username="$username"),"$username");
-
-EOF
-
-"$CAT" <<- EOF
-
-  Username: $username
-  Password: $password
-
-EOF
-
-}
-
 # Print base url's
 _base () {
 
@@ -488,405 +431,6 @@ _base () {
   WHERE path LIKE "web/secure%"
   OR path LIKE "web/unsecure%"
   ORDER BY scope_id ASC,path DESC${QUERY_TERM}
-
-EOF
-
-}
-
-# Print cron table
-_cron () {
-
-  _connect <<- EOF
-
-  SELECT *
-  FROM ${PREFIX}cron_schedule${QUERY_TERM}
-
-EOF
-
-}
-
-# Print database info
-_info () {
-
-  "$CAT" <<- EOF
-  ${BRIGHT}Database Info:${NORMAL}
-
-  ${BRIGHT}Username:${NORMAL} $DBUSER
-  ${BRIGHT}Password:${NORMAL} $DBPASS
-  ${BRIGHT}Database:${NORMAL} $DBNAME
-  ${BRIGHT}Hostname:${NORMAL} $DBHOST
-  ${BRIGHT}Prefix  :${NORMAL} $PREFIX
-
-EOF
-
-}
-
-# Login to database
-_login () {
-
-  _connecti;
-
-}
-
-# Show log table sizes
-_logsize () {
-
-  local tables tables_in
-
-  tables=("log_customer" "log_visitor" "log_visitor_info" "log_url" "log_url_info" "log_quote" "report_viewed_product_index" "report_compared_product_index" "report_event" "catalog_compare_item" "core_url_rewrite");
-
-    for (( i=0; i<${#tables[*]}; i++ )); do
-      if (( i > 0 )); then
-        tables_in+=", "
-      fi
-      tables_in+="\"${tables[i]}\"";
-    done
-
-  _connect -e <<- EOF
-
-  (SELECT
-    table_name as "Table Name",
-    FORMAT(table_rows,0) as "Row Count",
-		CONCAT(FORMAT(data_length/POWER(1024,2),2),"M") as "Data Length",
-    CONCAT(FORMAT(index_length/POWER(1024,2),2),"M") as "Index Length"
-  FROM information_schema.TABLES
-  WHERE table_schema="${DBNAME}"
-  AND table_name IN (${tables_in}))
-  UNION
-  (SELECT
-    "Totals" as "Table Name",
-    FORMAT(SUM(table_rows),0) as "Row Count",
-    CONCAT(FORMAT(SUM(data_length)/POWER(1024,2),2),"M") as "Data Length",
-    CONCAT(FORMAT(SUM(index_length)/POWER(1024,2),2),"M") as "Index Length"
-  FROM information_schema.TABLES
-  WHERE table_schema="${DBNAME}"
-  AND table_name IN (${tables_in}))${QUERY_TERM}
-
-EOF
-
-}
-
-# Print multistore config
-_multi () {
-
-  _connect <<- EOF
-
-  SELECT *
-  FROM ${PREFIX}core_config_data
-  WHERE path LIKE "%base_url"
-  ORDER BY scope_id ASC,path DESC${QUERY_TERM}
-
-  SELECT *
-  FROM ${PREFIX}core_website${QUERY_TERM}
-
-  SELECT *
-  FROM ${PREFIX}core_store_group${QUERY_TERM}
-
-  SELECT *
-  FROM ${PREFIX}core_store${QUERY_TERM}
-
-EOF
-
-}
-
-# Truncate and optimize log tables
-_truncate () {
-
-  local tables;
-
-  tables="core_cache core_cache_option core_cache_tag core_session dataflow_batch_import dataflow_batch_export\
-    index_process_event log_customer log_quote log_summary log_summary_type\
-    log_url log_url_info log_visitor log_visitor_info log_visitor_online\
-    report_viewed_product_index report_compared_product_index report_event catalog_compare_item"
-
-  "$TOUCH" "$SITEPATH"/maintenance.flag && echo -e "Maintenance Flag set while cleaning tables\n";
-
-  for x in $tables; do
-    echo;
-    echo "Truncating/Optimizing ${PREFIX}$x";
-    _connect -e "TRUNCATE ${PREFIX}$x; OPTIMIZE TABLE ${PREFIX}$x;" >> /dev/null;
-  done;
-
-
-  if [[ -f $SITEPATH/maintenance.flag ]]; then
-    "$RM" "$SITEPATH"/maintenance.flag \
-      && echo -e "\nTable cleaning complete, maintenance.flag removed";
-  fi;
-
-}
-
-# Change admin user password
-_password () {
-
-  local username password salt;
-
-  username="$1"
-
-  read -rp "New password (default: xkcd): " password;
-
-  if [ -z "$password" ]; then
-
-    password="$(_xkcd)";
-
-  fi
-
-  salt="$("$TR" -dc 'a-zA-Z0-9' < /dev/urandom | "$FOLD" -w 32 | "$HEAD" -n1)"
-
-  _connect <<- EOF
-
-  UPDATE ${PREFIX}admin_user
-  SET password = CONCAT(MD5("${salt}${password}"), ":${salt}")
-  WHERE username = "$username";
-
-EOF
-
-  "$CAT" <<- EOF
-
-  New Magento Login Credentials:
-
-  Username: $username
-  Password: $password
-
-EOF
-
-}
-
-# Show admin users
-_users () {
-
-  _connect <<- EOF
-
-  SELECT
-    P.role_name, username,
-    firstname,lastname,
-    email,created,
-    modified,logdate,
-    lognum,is_active
-  FROM ${PREFIX}admin_role U
-  INNER JOIN ${PREFIX}admin_role P ON U.parent_id=P.role_id
-  INNER JOIN ${PREFIX}admin_user ON U.user_id=${PREFIX}admin_user.user_id
-  ORDER BY role_name,lognum DESC${QUERY_TERM}
-
-EOF
-
-}
-
-# List product info
-_products () {
-
-  local attributes atts a pivot_atts columns;
-
-  attributes=( "name" "status" "visibility" "image" "url_key" )
-  columns=("store_id" "PROD.entity_id" "sku" "type_id" "attribute_set_name" "has_options" "created_at" "updated_at")
-
-  for((a=0;a<${#attributes[*]};a++)); do
-
-    atts+=" \"${attributes[a]}\""
-    pivot_atts+="GROUP_CONCAT(if(EA.attribute_code=\"${attributes[a]}\",value,NULL)) AS ${attributes[a]}"
-
-    if (( a < (${#attributes[*]} - 1) )); then
-      atts+=",";
-      pivot_atts+=",";
-    fi
-
-  done
-
-  _connect <<- EOF
-
-  CREATE TEMPORARY TABLE CPEA (
-    KEY (attribute_id)
-  ) AS (
-    SELECT *
-    FROM ${PREFIX}catalog_product_entity_varchar
-  );
-
-  INSERT INTO CPEA (
-    SELECT *
-    FROM ${PREFIX}catalog_product_entity_int
-  );
-
-  CREATE TEMPORARY TABLE PROD_ATTS (
-    KEY (entity_id)
-  )
-  SELECT
-    store_id,
-    entity_id,
-    ${pivot_atts}
-  FROM CPEA
-  INNER JOIN ${PREFIX}eav_attribute AS EA ON EA.attribute_id=CPEA.attribute_id
-  INNER JOIN ${PREFIX}eav_entity_type EAT ON EAT.entity_type_id=EA.entity_type_id
-  WHERE EAT.entity_type_code="catalog_product"
-  and EA.attribute_code in (${atts})
-  GROUP BY store_id,entity_id;
-
-  CREATE TEMPORARY TABLE PROD (
-    KEY (entity_id)
-  )
-  SELECT
-    CPE.entity_id,    EAS.attribute_set_name,
-    CPE.type_id,      CPE.sku,
-    CPE.has_options,  CPE.created_at,
-    CPE.updated_at
-  FROM ${PREFIX}catalog_product_entity CPE
-  INNER JOIN ${PREFIX}eav_attribute_set AS EAS ON EAS.attribute_set_id=CPE.attribute_set_id
-  INNER JOIN ${PREFIX}eav_entity_type AS EAT ON EAT.entity_type_id=EAS.entity_type_id;
-
-  SELECT
-    PROD_ATTS.store_id,   PROD.entity_id,
-    PROD_ATTS.name,       PROD.sku,
-    PROD.type_id,         PROD.attribute_set_name,
-    PROD_ATTS.url_key,    PROD_ATTS.image,
-    PROD_ATTS.visibility, PROD_ATTS.status,
-    PROD.has_options,     PROD.created_at,
-    PROD.updated_at
-  FROM PROD
-  LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
-  $(_whereBuilder ${columns[*]} ${attributes[*]})
-  GROUP BY PROD_ATTS.store_id,PROD.entity_id
-  ORDER BY PROD_ATTS.store_id,PROD.entity_id${QUERY_TERM}
-
-EOF
-
-}
-
-# List order info
-_orders () {
-
-  local columns select s w;
-
-  columns=("increment_id" "entity_id" "store_id" "customer_id" "customer_email" "email_sent" "total_invoiced"
-  "remote_ip" "x_forwarded_for" "shipping_method" "total_item_count" "created_at" "updated_at")
-
-  select="SELECT"
-
-    for((s=0;s<${#columns[*]};s++)); do
-
-      select+=" ${columns[s]}"
-
-        if (( s < (${#columns[*]} - 1) )); then
-          select+=","
-          fi
-
-        done
-
-        _connect <<- EOF
-
-  ${select}
-  FROM ${PREFIX}sales_flat_order
-  $(_whereBuilder ${columns[*]})
-  ORDER BY created_at DESC
-  LIMIT 100${QUERY_TERM}
-
-EOF
-
-}
-
-# List shipment info
-_shipment () {
-
-  local columns select s w;
-
-  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent"
-  "shipping_address_id" "billing_address_id" "created_at" "updated_at")
-
-  select="SELECT"
-
-    for((s=0;s<${#columns[*]};s++)); do
-
-      select+=" ${columns[s]}"
-
-      if (( s < (${#columns[*]} - 1) )); then
-        select+=","
-      fi
-
-    done
-
-        _connect <<- EOF
-
-  ${select}
-  FROM ${PREFIX}sales_flat_shipment
-  $(_whereBuilder ${columns[*]})
-  ORDER BY created_at DESC
-  LIMIT 100${QUERY_TERM}
-
-EOF
-
-}
-
-# List cookie info
-_cookie () {
-
-  _connect <<- EOF
-  SELECT *
-  FROM ${PREFIX}core_config_data
-  WHERE path RLIKE "^web/cookie"${QUERY_TERM}
-  SELECT *
-  FROM ${PREFIX}core_config_data
-  WHERE path RLIKE "^web/session"${QUERY_TERM}
-
-EOF
-
-}
-
-# List quotes info
-_quotes () {
-
-  local columns select s w;
-
-  columns=("entity_id" "store_id" "is_active" "checkout_method" "customer_id" "customer_email"
-  "remote_ip" "created_at" "updated_at")
-
-  select="SELECT"
-
-    for((s=0;s<${#columns[*]};s++)); do
-
-      select+=" ${columns[s]}"
-
-      if (( s < (${#columns[*]} - 1) )); then
-        select+=","
-      fi
-
-    done
-
-        _connect <<- EOF
-
-  ${select}
-  FROM ${PREFIX}sales_flat_quote
-  $(_whereBuilder ${columns[*]})
-  ORDER BY created_at DESC
-  LIMIT 100${QUERY_TERM}
-
-EOF
-
-}
-
-# List invoice info
-_invoices() {
-
-  local columns select s w;
-
-  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "grand_total"
-  "shipping_address_id" "billing_address_id" "created_at" "updated_at")
-
-  select="SELECT"
-
-    for((s=0;s<${#columns[*]};s++)); do
-
-      select+=" ${columns[s]}"
-
-      if (( s < (${#columns[*]} - 1) )); then
-        select+=","
-      fi
-
-    done
-
-        _connect <<- EOF
-
-  ${select}
-  FROM ${PREFIX}sales_flat_invoice
-  $(_whereBuilder ${columns[*]})
-  ORDER BY created_at DESC
-  LIMIT 100${QUERY_TERM}
 
 EOF
 
@@ -982,29 +526,60 @@ EOF
 
 }
 
+# Clean up before exit
+_cleanUp () {
+
+  "$RM" "$DEFAULTS_FILE";
+
+}
+
+# Connect to the database
+_connect () {
+
+  _summary;
+
+  "$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb" -t | "$LESS" -RSF;
+
+}
+
+# Print cron table
+_cron () {
+
+  _connect <<- EOF
+
+  SELECT *
+  FROM ${PREFIX}cron_schedule${QUERY_TERM}
+
+EOF
+
+}
+
+# List cookie info
+_cookie () {
+
+  _connect <<- EOF
+  SELECT *
+  FROM ${PREFIX}core_config_data
+  WHERE path RLIKE "^web/cookie"${QUERY_TERM}
+  SELECT *
+  FROM ${PREFIX}core_config_data
+  WHERE path RLIKE "^web/session"${QUERY_TERM}
+
+EOF
+
+}
+
 # List customers info
 _customers() {
 
-  local columns select s w;
+  local columns;
 
   columns=("entity_id" "store_id" "website_id" "email" "group_id" "is_active"
   "created_at" "updated_at")
 
-  select="SELECT"
+  _connect <<- EOF
 
-    for((s=0;s<${#columns[*]};s++)); do
-
-      select+=" ${columns[s]}"
-
-      if (( s < (${#columns[*]} - 1) )); then
-        select+=","
-      fi
-
-    done
-
-        _connect <<- EOF
-
-  ${select}
+  $(_selectBuilder ${columns[*]})
   FROM ${PREFIX}customer_entity
   $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
@@ -1012,6 +587,29 @@ _customers() {
 
 EOF
 
+}
+
+# Grab data from local.xml
+_getConfig () {
+
+  local config
+
+  if [[ -f $SITEPATH/$CONFIG_FILE ]]; then #Magento
+
+    mapfile -t config < <("$GREP" -Pv '^\s*(<!|\*)' $CONFIG_FILE | _awkConfig);
+
+    DBHOST="${config[0]}"
+    DBUSER="${config[1]}"
+    DBPASS="${config[2]}"
+    DBNAME="${config[3]}"
+    PREFIX="${config[4]}"
+
+  else
+
+    echo "${RED}Could not find configuration file!${NORMAL}";
+    exit 1;
+
+  fi;
 }
 
 # Show indexer status
@@ -1026,10 +624,367 @@ EOF
 
 }
 
-# Clean up before exit
-_cleanUp () {
+# Print database info
+_info () {
 
-  "$RM" "$DEFAULTS_FILE";
+  "$CAT" <<- EOF
+  ${BRIGHT}Database Info:${NORMAL}
+
+  ${BRIGHT}Username:${NORMAL} $DBUSER
+  ${BRIGHT}Password:${NORMAL} $DBPASS
+  ${BRIGHT}Database:${NORMAL} $DBNAME
+  ${BRIGHT}Hostname:${NORMAL} $DBHOST
+  ${BRIGHT}Prefix  :${NORMAL} $PREFIX
+
+EOF
+
+}
+
+# List invoice info
+_invoices() {
+
+  local columns;
+
+  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "grand_total"
+  "shipping_address_id" "billing_address_id" "created_at" "updated_at")
+
+  _connect <<- EOF
+
+  $(_selectBuilder ${columns[*]})
+  FROM ${PREFIX}sales_flat_invoice
+  $(_whereBuilder ${columns[*]})
+  ORDER BY created_at DESC
+  LIMIT 100${QUERY_TERM}
+
+EOF
+
+}
+
+# Login to database
+_login () {
+
+  _summary;
+
+  "$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_magdb";
+
+}
+
+# Show log table sizes
+_logsize () {
+
+  local tables tables_in
+
+  tables=("log_customer" "log_visitor" "log_visitor_info" "log_url" "log_url_info" "log_quote" "report_viewed_product_index" "report_compared_product_index" "report_event" "catalog_compare_item" "core_url_rewrite");
+
+    for (( i=0; i<${#tables[*]}; i++ )); do
+      if (( i > 0 )); then
+        tables_in+=", "
+      fi
+      tables_in+="\"${tables[i]}\"";
+    done
+
+  _connect -e <<- EOF
+
+  (SELECT
+    table_name as "Table Name",
+    FORMAT(table_rows,0) as "Row Count",
+		CONCAT(FORMAT(data_length/POWER(1024,2),2),"M") as "Data Length",
+    CONCAT(FORMAT(index_length/POWER(1024,2),2),"M") as "Index Length"
+  FROM information_schema.TABLES
+  WHERE table_schema="${DBNAME}"
+  AND table_name IN (${tables_in}))
+  UNION
+  (SELECT
+    "Totals" as "Table Name",
+    FORMAT(SUM(table_rows),0) as "Row Count",
+    CONCAT(FORMAT(SUM(data_length)/POWER(1024,2),2),"M") as "Data Length",
+    CONCAT(FORMAT(SUM(index_length)/POWER(1024,2),2),"M") as "Index Length"
+  FROM information_schema.TABLES
+  WHERE table_schema="${DBNAME}"
+  AND table_name IN (${tables_in}))${QUERY_TERM}
+
+EOF
+
+}
+
+# Make mysql defaults file
+_makeDefaultsFile () {
+
+  "$CAT" <<- EOF > "$DEFAULTS_FILE"
+[client_magdb]
+database = "$DBNAME"
+user =  "$DBUSER"
+password = "$DBPASS"
+host = "$DBHOST"
+EOF
+
+  "$CHMOD" 600 "$DEFAULTS_FILE";
+
+}
+
+# Print multistore config
+_multi () {
+
+  _connect <<- EOF
+
+  SELECT *
+  FROM ${PREFIX}core_config_data
+  WHERE path LIKE "%base_url"
+  ORDER BY scope_id ASC,path DESC${QUERY_TERM}
+
+  SELECT *
+  FROM ${PREFIX}core_website${QUERY_TERM}
+
+  SELECT *
+  FROM ${PREFIX}core_store_group${QUERY_TERM}
+
+  SELECT *
+  FROM ${PREFIX}core_store${QUERY_TERM}
+
+EOF
+
+}
+
+# List order info
+_orders () {
+
+  local columns;
+
+  columns=("increment_id" "entity_id" "store_id" "customer_id" "customer_email" "email_sent" "total_invoiced"
+  "remote_ip" "x_forwarded_for" "shipping_method" "total_item_count" "created_at" "updated_at")
+
+  _connect <<- EOF
+
+  $(_selectBuilder ${columns[*]})
+  FROM ${PREFIX}sales_flat_order
+  $(_whereBuilder ${columns[*]})
+  ORDER BY created_at DESC
+  LIMIT 100${QUERY_TERM}
+
+EOF
+
+}
+
+# Change admin user password
+_password () {
+
+  local username password salt;
+
+  username="$1"
+
+  read -rp "New password (default: xkcd): " password;
+
+  if [ -z "$password" ]; then
+
+    password="$(_xkcd)";
+
+  fi
+
+  salt="$("$TR" -dc 'a-zA-Z0-9' < /dev/urandom | "$FOLD" -w 32 | "$HEAD" -n1)"
+
+  _connect <<- EOF
+
+  UPDATE ${PREFIX}admin_user
+  SET password = CONCAT(MD5("${salt}${password}"), ":${salt}")
+  WHERE username = "$username";
+
+EOF
+
+  "$CAT" <<- EOF
+
+  New Magento Login Credentials:
+
+  Username: $username
+  Password: $password
+
+EOF
+
+}
+
+# List product info
+_products () {
+
+  local attributes atts a pivot_atts columns;
+
+  attributes=( "name" "status" "visibility" "image" "url_key" )
+  columns=("store_id" "PROD.entity_id" "sku" "type_id" "attribute_set_name" "has_options" "created_at" "updated_at")
+
+  for((a=0;a<${#attributes[*]};a++)); do
+
+    atts+=" \"${attributes[a]}\""
+    pivot_atts+="GROUP_CONCAT(if(EA.attribute_code=\"${attributes[a]}\",value,NULL)) AS ${attributes[a]}"
+
+    if (( a < (${#attributes[*]} - 1) )); then
+      atts+=",";
+      pivot_atts+=",";
+    fi
+
+  done
+
+  _connect <<- EOF
+
+  CREATE TEMPORARY TABLE CPEA (
+    KEY (attribute_id)
+  ) AS (
+    SELECT *
+    FROM ${PREFIX}catalog_product_entity_varchar
+  );
+
+  INSERT INTO CPEA (
+    SELECT *
+    FROM ${PREFIX}catalog_product_entity_int
+  );
+
+  CREATE TEMPORARY TABLE PROD_ATTS (
+    KEY (entity_id)
+  )
+  SELECT
+    store_id,
+    entity_id,
+    ${pivot_atts}
+  FROM CPEA
+  INNER JOIN ${PREFIX}eav_attribute AS EA ON EA.attribute_id=CPEA.attribute_id
+  INNER JOIN ${PREFIX}eav_entity_type EAT ON EAT.entity_type_id=EA.entity_type_id
+  WHERE EAT.entity_type_code="catalog_product"
+  and EA.attribute_code in (${atts})
+  GROUP BY store_id,entity_id;
+
+  CREATE TEMPORARY TABLE PROD (
+    KEY (entity_id)
+  )
+  SELECT
+    CPE.entity_id,    EAS.attribute_set_name,
+    CPE.type_id,      CPE.sku,
+    CPE.has_options,  CPE.created_at,
+    CPE.updated_at
+  FROM ${PREFIX}catalog_product_entity CPE
+  INNER JOIN ${PREFIX}eav_attribute_set AS EAS ON EAS.attribute_set_id=CPE.attribute_set_id
+  INNER JOIN ${PREFIX}eav_entity_type AS EAT ON EAT.entity_type_id=EAS.entity_type_id;
+
+  SELECT
+    PROD_ATTS.store_id,   PROD.entity_id,
+    PROD_ATTS.name,       PROD.sku,
+    PROD.type_id,         PROD.attribute_set_name,
+    PROD_ATTS.url_key,    PROD_ATTS.image,
+    PROD_ATTS.visibility, PROD_ATTS.status,
+    PROD.has_options,     PROD.created_at,
+    PROD.updated_at
+  FROM PROD
+  LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
+  $(_whereBuilder ${columns[*]} ${attributes[*]})
+  GROUP BY PROD_ATTS.store_id,PROD.entity_id
+  ORDER BY PROD_ATTS.store_id,PROD.entity_id${QUERY_TERM}
+
+EOF
+
+}
+
+# List quotes info
+_quotes () {
+
+  local columns;
+
+  columns=("entity_id" "store_id" "is_active" "checkout_method" "customer_id" "customer_email"
+  "remote_ip" "created_at" "updated_at")
+
+  _connect <<- EOF
+
+  $(_selectBuilder ${columns[*]})
+  FROM ${PREFIX}sales_flat_quote
+  $(_whereBuilder ${columns[*]})
+  ORDER BY created_at DESC
+  LIMIT 100${QUERY_TERM}
+
+EOF
+
+}
+
+# List shipment info
+_shipment () {
+
+  local columns;
+
+  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent"
+  "shipping_address_id" "billing_address_id" "created_at" "updated_at")
+
+  _connect <<- EOF
+
+  $(_selectBuilder ${columns[*]})
+  FROM ${PREFIX}sales_flat_shipment
+  $(_whereBuilder ${columns[*]})
+  ORDER BY created_at DESC
+  LIMIT 100${QUERY_TERM}
+
+EOF
+
+}
+
+# Print summary
+_summary () {
+
+  local version edition ver
+
+  mapfile -t ver < <("$GREP" 'function getVersionInfo' -A8 "$SITEPATH"/app/Mage.php | "$GREP" major -A4 | "$CUT" -d\' -f4);
+  version="${ver[0]}.${ver[1]}.${ver[2]}.${ver[3]}"
+
+  if "$GREP" -qE '(Enterprise|Commercial) Edition' "$SITEPATH"/app/Mage.php; then
+    edition="Enterprise Edition";
+  else
+    edition="Community Edition";
+  fi
+
+  "$CAT" <<-EOF
+
+  ${BRIGHT}$edition: ${GREEN}${version}${NORMAL}
+  ${BRIGHT}Connection Summary: ${GREEN}${DBUSER}:${DBNAME}${NORMAL}
+
+EOF
+
+}
+
+# Truncate and optimize log tables
+_truncate () {
+
+  local tables;
+
+  tables="core_cache core_cache_option core_cache_tag core_session dataflow_batch_import dataflow_batch_export\
+    index_process_event log_customer log_quote log_summary log_summary_type\
+    log_url log_url_info log_visitor log_visitor_info log_visitor_online\
+    report_viewed_product_index report_compared_product_index report_event catalog_compare_item"
+
+  "$TOUCH" "$SITEPATH"/maintenance.flag && echo -e "Maintenance Flag set while cleaning tables\n";
+
+  for x in $tables; do
+    echo;
+    echo "Truncating/Optimizing ${PREFIX}$x";
+    _connect -e "TRUNCATE ${PREFIX}$x; OPTIMIZE TABLE ${PREFIX}$x;" >> /dev/null;
+  done;
+
+
+  if [[ -f $SITEPATH/maintenance.flag ]]; then
+    "$RM" "$SITEPATH"/maintenance.flag \
+      && echo -e "\nTable cleaning complete, maintenance.flag removed";
+  fi;
+
+}
+
+# Show admin users
+_users () {
+
+  _connect <<- EOF
+
+  SELECT
+    P.role_name, username,
+    firstname,lastname,
+    email,created,
+    modified,logdate,
+    lognum,is_active
+  FROM ${PREFIX}admin_role U
+  INNER JOIN ${PREFIX}admin_role P ON U.parent_id=P.role_id
+  INNER JOIN ${PREFIX}admin_user ON U.user_id=${PREFIX}admin_user.user_id
+  ORDER BY role_name,lognum DESC${QUERY_TERM}
+
+EOF
 
 }
 
