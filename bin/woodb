@@ -343,18 +343,18 @@ _admin () {
 
   _connect <<- EOF
 
-	INSERT INTO wp_users
+	INSERT INTO ${PREFIX}wp_users
 	(user_login, user_pass, user_nicename, user_email, user_status)
 	VALUES
 	('$username', MD5('$password'), '$firstname $lastname', '$emailaddr', '0');
 
-	INSERT INTO wp_usermeta
+	INSERT INTO ${PREFIX}wp_usermeta
 	(umeta_id, user_id, meta_key, meta_value)
 	VALUES
 	(NULL, (Select max(id) FROM wp_users),
 	'wp_capabilities', 'a:1:{s:13:"administrator";s:1:"1";}');
 
-	INSERT INTO wp_usermeta
+	INSERT INTO ${PREFIX}wp_usermeta
 	(umeta_id, user_id, meta_key, meta_value)
 	VALUES
 	(NULL, (Select max(id) FROM wp_users), 'wp_user_level', '10');
@@ -683,19 +683,17 @@ _password () {
 
   fi
 
-  salt="$("$TR" -dc 'a-zA-Z0-9' < /dev/urandom | "$FOLD" -w 32 | "$HEAD" -n1)"
-
   _connect <<- EOF
 
-  UPDATE ${PREFIX}admin_user
-  SET password = CONCAT(SHA2("${salt}${password}", 256), ":${salt}:1")
-  WHERE username = "$username";
+	UPDATE ${PREFIX}users
+	SET user_pass = MD5("$password")
+	WHERE ${PREFIX}users.user_login = "$username";
 
 EOF
 
   "$CAT" <<- EOF
 
-  New Magento Login Credentials:
+  New Wordpress Login Credentials:
 
   Username: $username
   Password: $password
