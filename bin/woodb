@@ -840,7 +840,7 @@ _users () {
 
   _connect <<- EOF
 
-  SELECT *
+  SELECT U.*
   FROM ${PREFIX}users U
   INNER JOIN ${PREFIX}usermeta UM ON U.Id=UM.user_id
   WHERE meta_key RLIKE "wp_capabilities"
