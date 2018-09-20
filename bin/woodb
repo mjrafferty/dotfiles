@@ -551,7 +551,8 @@ _getConfig () {
     DBNAME="$(echo "$config" | "$GREP" -Po 'DB_NAME\t\K.*')"
     DBUSER="$(echo "$config" | "$GREP" -Po 'DB_USER\t\K.*')"
     DBPASS="$(echo "$config" | "$GREP" -Po 'DB_PASSWORD\t\K.*')"
-    #PREFIX="$(echo "$config" | "$GREP" \'table_prefix\' | "$CUT" -d\' -f4 | "$HEAD" -n1)"
+
+    PREFIX="$("$GREP" -Po "^\s*[$]table_prefix\s*=\s*('|\")\K.*(?=('|\")\s*;.*)" "${SITEPATH}/${CONFIG_FILE}")"
 
 		if [[ "$DBHOST" == "localhost" ]]; then
       DBHOST="127.0.0.1";
