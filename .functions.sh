@@ -1,7 +1,7 @@
 #! /bin/bash
 
 [[  -z  $AWK         ]]  &&  export readonly  AWK='/bin/awk'
-[[  -z  $CHECKQUOTA  ]]  &&  export readonly  CHECKQUOTA='/home/nexmrafferty/bin/checkquota'
+[[  -z  $CHECKQUOTA  ]]  &&  export readonly  CHECKQUOTA="$HOME/bin/checkquota"
 [[  -z  $CHKCONFIG   ]]  &&  export readonly  CHKCONFIG='/sbin/chkconfig'
 [[  -z  $CHOWN       ]]  &&  export readonly  CHOWN='/bin/chown'
 [[  -z  $COLUMN      ]]  &&  export readonly  COLUMN='/usr/bin/column'
@@ -11,7 +11,7 @@
 [[  -z  $DATE        ]]  &&  export readonly  DATE='/bin/date'
 [[  -z  $DIG         ]]  &&  export readonly  DIG='/usr/bin/dig'
 [[  -z  $FIND        ]]  &&  export readonly  FIND='/bin/find'
-[[  -z  $GETUSR      ]]  &&  export readonly  GETUSR='/home/nexmrafferty/bin/getusr'
+[[  -z  $GETUSR      ]]  &&  export readonly  GETUSR="$HOME/bin/getusr"
 [[  -z  $GREP        ]]  &&  export readonly  GREP='/bin/grep'
 [[  -z  $HEAD        ]]  &&  export readonly  HEAD='/usr/bin/head'
 [[  -z  $IP          ]]  &&  export readonly  IP='/sbin/ip'
