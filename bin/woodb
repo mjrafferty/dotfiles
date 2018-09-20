@@ -14,6 +14,7 @@ readonly CAT='/bin/cat'
 readonly CHMOD='/bin/chmod'
 readonly COLUMN='/usr/bin/column'
 readonly CUT='/bin/cut'
+readonly DOS2UNIX='/usr/bin/dos2unix'
 readonly FOLD='/usr/bin/fold'
 readonly GREP='/bin/grep'
 readonly HEAD='/usr/bin/head'
@@ -534,7 +535,7 @@ _getConfig () {
 
   if [[ -f $SITEPATH/$CONFIG_FILE ]]; then #Magento
 
-    config="$("$SED" -rn "s/\s*define\(\s*('|\")(DB_[A-Z]*)('|\")\s*,\s*('|\")(.*)('|\")\s*\);/\2\t\5/p" < <(dos2unix < "${SITEPATH}/${CONFIG_FILE}"))";
+    config="$("$SED" -rn "s/\s*define\(\s*('|\")(DB_[A-Z]*)('|\")\s*,\s*('|\")(.*)('|\")\s*\);/\2\t\5/p" < <("$DOS2UNIX" < "${SITEPATH}/${CONFIG_FILE}"))";
 
     DBHOST="$(echo "$config" | "$GREP" -Po 'DB_HOST\t\K.*')"
     DBNAME="$(echo "$config" | "$GREP" -Po 'DB_NAME\t\K.*')"
