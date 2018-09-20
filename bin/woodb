@@ -840,17 +840,11 @@ _users () {
 
   _connect <<- EOF
 
-  SELECT
-    P.role_name, username,
-    firstname,lastname,
-    email,created,
-    modified,logdate,
-    lognum,is_active,
-    failures_num
-  FROM ${PREFIX}authorization_role U
-  INNER JOIN ${PREFIX}authorization_role P ON U.parent_id=P.role_id
-  INNER JOIN ${PREFIX}admin_user ON U.user_id=admin_user.user_id
-  ORDER BY role_name,lognum DESC${QUERY_TERM}
+  SELECT *
+  FROM ${PREFIX}users U
+  INNER JOIN ${PREFIX}usermeta UM ON U.Id=UM.user_id
+  WHERE meta_key RLIKE "wp_capabilities"
+  AND meta_value RLIKE "administrator"${QUERY_TERM}
 
 EOF
 
