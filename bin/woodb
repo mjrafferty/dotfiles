@@ -376,10 +376,8 @@ _base () {
   _connect <<- EOF
 
   SELECT *
-  FROM ${PREFIX}core_config_data
-  WHERE path LIKE "web/secure%"
-  OR path LIKE "web/unsecure%"
-  ORDER BY scope_id ASC,path DESC${QUERY_TERM}
+  FROM ${PREFIX}options
+  WHERE option_name IN ("siteurl","home")${QUERY_TERM}
 
 EOF
 
