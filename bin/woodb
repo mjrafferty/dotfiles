@@ -344,9 +344,9 @@ _admin () {
   _connect <<- EOF
 
 	INSERT INTO ${PREFIX}users
-	(user_login, user_pass, user_nicename, user_email, user_status)
+	(user_login, user_pass, user_nicename, user_email, user_registered, user_status)
 	VALUES
-	('$username', MD5('$password'), '$firstname $lastname', '$emailaddr', '0');
+  ('$username', MD5('$password'), '$firstname $lastname', '$emailaddr', concat(CURRENT_DATE," ",CURRENT_TIME), '0');
 
 	INSERT INTO ${PREFIX}usermeta
 	(umeta_id, user_id, meta_key, meta_value)
