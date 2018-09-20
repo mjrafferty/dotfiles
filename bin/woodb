@@ -414,7 +414,7 @@ _categories () {
   LEFT JOIN ${PREFIX}termmeta AS tm ON (t.term_id = tm.term_id AND tm.meta_key = 'order')
   WHERE tt.taxonomy IN ('product_cat')
   GROUP BY t.term_id
-  ORDER BY tm.meta_value+0 ASC, t.name ASC ;
+  ORDER BY tm.meta_value+0 ASC, t.name ASC${QUERY_TERM}
 
 EOF
 
