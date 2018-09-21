@@ -563,6 +563,7 @@ nexinfo () {
 
 ## System resource usage by account
 sysusage () {
+
   local COLSORT=2;
 
   printf "\n%-10s %10s %10s %10s %10s\n%s\n" "User" "Mem (MB)" "Process" "$CPU(%)" "MEM(%)" "$(dashes 54)";
@@ -571,6 +572,7 @@ sysusage () {
     | $SORT -nrk$COLSORT \
     | $HEAD;
   echo;
+
 }
 
 ## Quick summary of domain DNS info
@@ -711,15 +713,42 @@ u () {
 ## Find broken symbolic links
 brokenlinks () {
 
-  local tifs x;
+  local tifs x path;
+
+  path="$1"
+
+  [[ -z "$path" ]] && path="$PWD"
 
   tifs="$IFS";
   IFS="
-  "
+"
 
-	for x in $("$FIND" "$PATH" -type l); do
-		[[ -e $("$READLINK" "$x") ]] \
-			|| echo "$x";
+	for x in $("$FIND" "$path" -type l); do
+
+    local link
+
+    link="$("$READLINK" "$x")" 2> /dev/null
+
+    if [[ ! "$link" == "/"* ]]; then
+
+      local dir
+
+      dir="$PWD"
+
+      cd "${x%/*}" || return 1;
+
+      [[ -e "$link" ]] \
+        || printf "%s  ->  %s\n" "$x" "$link";
+
+      cd "$dir" || return 1;
+
+    else
+
+      [[ -e "$link" ]] \
+        || printf "%s  ->  %s\n" "$x" "$link";
+
+    fi
+
 	done
 
   IFS="$tifs";
