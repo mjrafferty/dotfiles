@@ -884,7 +884,7 @@ _quotes () {
 
   local columns;
 
-  columns=("entity_id" "store_id" "is_active" "checkout_method" "customer_id" "customer_email"
+  columns=("entity_id" "store_id" "is_active" "reserved_order_id" "checkout_method" "customer_id" "customer_email"
   "remote_ip" "created_at" "updated_at")
 
   _connect <<- EOF

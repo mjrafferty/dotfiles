@@ -4,6 +4,7 @@
 
 readonly SED='/usr/local/bin/sed'
 readonly GREP='/usr/local/bin/grep'
+readonly FIND='/usr/local/bin/find'
 readonly READLINK='/usr/bin/readlink'
 
 [ -r ~/dotfiles/.commonrc ] && source ~/dotfiles/.commonrc;
