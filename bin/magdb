@@ -750,7 +750,7 @@ _orders () {
 
   local columns;
 
-  columns=("increment_id" "entity_id" "store_id" "customer_id" "customer_email" "email_sent" "total_invoiced"
+  columns=("increment_id" "entity_id" "store_id" "status" "customer_id" "customer_email" "email_sent" "total_invoiced"
   "remote_ip" "x_forwarded_for" "shipping_method" "total_item_count" "created_at" "updated_at")
 
   _connect <<- EOF
