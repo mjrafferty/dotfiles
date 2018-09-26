@@ -725,7 +725,7 @@ _products () {
 
   INSERT INTO CPEA (
     SELECT *
-    FROM ${PREFIX}catalog_product_entity_int
+    FROM ${PREFIX}catalog_product_entity_decimal
   );
 
   CREATE TEMPORARY TABLE PROD_ATTS (
