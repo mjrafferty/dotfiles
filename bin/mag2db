@@ -704,7 +704,7 @@ _products () {
 
     if (( a < (${#attributes[*]} - 1) )); then
       atts+=",";
-      pivot_atts+=",\n";
+      pivot_atts+=",";
     fi
 
   done
