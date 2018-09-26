@@ -763,7 +763,7 @@ _products () {
     PROD_ATTS.visibility, PROD_ATTS.size,
     PROD_ATTS.weight,     PROD_ATTS.color,
     PROD_ATTS.image,      PROD_ATTS.small_image,
-    PROD.thumbnail,       PROD_ATTS.has_options,
+    PROD_ATTS.thumbnail,  PROD_ATTS.has_options,
     PROD.created_at,      PROD.updated_at
   FROM PROD
   LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
