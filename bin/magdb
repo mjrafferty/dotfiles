@@ -506,15 +506,16 @@ _categories () {
   ORDER BY category_id;
 
   SELECT
-    CAT_ATTS.store_id,      CAT.entity_id,
-    CAT_ATTS.name,          if(CAT_COUNTS.product_count is NULL,0,CAT_COUNTS.product_count) as product_count,
-    CAT.attribute_set_name, CAT.path,
-    CAT.position,           CAT.children_count,
-    CAT_ATTS.url_key,       CAT_ATTS.url_path,
-    CAT_ATTS.custom_design, CAT_ATTS.display_mode,
-    CAT_ATTS.page_layout,   CAT_ATTS.include_in_menu,
-    CAT_ATTS.is_active,     CAT_ATTS.landing_page,
-    CAT.created_at,         CAT.updated_at
+    store_id,      CAT.entity_id,
+    name,          if(product_count is NULL,0,product_count) as product_count,
+    attribute_set_name, path,
+    meta_title,    image,
+    position,      children_count,
+    url_key,       url_path,
+    custom_design, display_mode,
+    page_layout,   include_in_menu,
+    is_active,     landing_page,
+    created_at,    updated_at
   FROM CAT
   LEFT JOIN CAT_ATTS    ON  CAT.entity_id=CAT_ATTS.entity_id
   LEFT JOIN CAT_COUNTS  ON  CAT.entity_id=CAT_COUNTS.category_id
