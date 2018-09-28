@@ -505,7 +505,6 @@ _cron () {
 
   _connect <<- EOF
 
-  SELECT
   $(_selectBuilder ${columns[*]})
   FROM ${PREFIX}cron_schedule
   $(_whereBuilder ${columns[*]})
@@ -849,7 +848,6 @@ _users () {
 
   _connect <<- EOF
 
-  SELECT
   $(_selectBuilder ${columns[*]})
   FROM ${PREFIX}authorization_role U
   INNER JOIN ${PREFIX}authorization_role P ON U.parent_id=P.role_id
