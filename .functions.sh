@@ -281,7 +281,7 @@ reqslasthour () {
   fi
 
   echo -e "\n";
-  $FIND {/var/log/,/home/*/var/*/logs} -name transfer.log -exec "$GREP" -EHc "$regex" {} + \
+  $FIND {/var/log/,/home/*/var/*/logs} -name "transfer*.log" -exec "$GREP" -EHc "$regex" {} + \
     | $GREP -v ":0$" \
     | $SED 's_log:_log\t_' \
     | $SORT -nr -k 2 \
@@ -308,7 +308,7 @@ phplasthour () {
   fi
 
   echo -e "\n";
-  $FIND {/var/log/,/home/*/var/*/logs} -name transfer.log \
+  $FIND {/var/log/,/home/*/var/*/logs} -name "transfer*.log" \
     -exec "$GREP" -HPic "$regex"'.*\] "\S* (?!.*(/static/|(\.(otf|txt|jpeg|ico|svg|jpg|css|js|gif|png|woff)))[^?].* 200 .*)' {} + \
     | $GREP -v ":0$" \
     | $SED 's_log:_log\t_' \
