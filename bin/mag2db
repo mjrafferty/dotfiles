@@ -639,13 +639,14 @@ _orders () {
 
   local columns;
 
-  columns=("increment_id" "entity_id" "store_id" "customer_id" "customer_email" "email_sent" "total_invoiced"
+  columns=("increment_id" "SO.entity_id" "store_id" "status" "method" "customer_id" "customer_email" "email_sent" "total_invoiced"
   "remote_ip" "x_forwarded_for" "shipping_method" "total_item_count" "created_at" "updated_at")
 
   _connect <<- EOF
 
   $(_selectBuilder ${columns[*]})
-  FROM ${PREFIX}sales_order
+  FROM ${PREFIX}sales_order SO
+  INNER JOIN ${PREFIX}sales_order_payment SOP on SO.entity_id=SOP.parent_id
   $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
   LIMIT 100${QUERY_TERM}
