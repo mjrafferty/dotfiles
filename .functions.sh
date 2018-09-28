@@ -281,7 +281,8 @@ reqslasthour () {
   fi
 
   echo -e "\n";
-  $FIND {/var/log/,/home/*/var/*/logs} \( -name "transfer.log" -o -name "transfer-ssl.log" \)\
+  $FIND {/var/log/,/home/*/var/*/logs} \( -name "transfer.log" -o -name "transfer-ssl.log" \) \
+    -exec "$GREP" -EHc "$regex" {} + \
     | $GREP -v ":0$" \
     | $SED 's_log:_log\t_' \
     | $SORT -nr -k 2 \
