@@ -231,7 +231,7 @@ _whereBuilder() {
   local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
 
   columns=($*);
-  operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
+  operators=("RLIKE" "NOT RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
   logicals=("AND" "OR")
   tc="$(tput clear)"
 
@@ -379,7 +379,7 @@ _categories () {
 
   local attributes atts a search columns pivot_atts;
 
-  attributes=( "name" "custom_design" "display_mode" "page_layout" "url_key" "url_path" "include_in_menu" "is_active" "landing_page" )
+  attributes=( "name" "custom_design" "display_mode" "meta_title" "image" "page_layout" "url_key" "url_path" "include_in_menu" "is_active" "landing_page" )
   columns=( "CAT.entity_id" "product_count" "store_id" "attribute_set_name" "parent_id" "path" "position" "children_count" "created_at" "updated_at" )
 
   for((a=0;a<${#attributes[*]};a++)); do
@@ -444,15 +444,16 @@ _categories () {
   ORDER BY category_id;
 
   SELECT
-    CAT_ATTS.store_id,      CAT.entity_id,
-    CAT_ATTS.name,          if(CAT_COUNTS.product_count is NULL,0,CAT_COUNTS.product_count) as product_count,
-    CAT.attribute_set_name, CAT.path,
-    CAT.position,           CAT.children_count,
-    CAT_ATTS.url_key,       CAT_ATTS.url_path,
-    CAT_ATTS.custom_design, CAT_ATTS.display_mode,
-    CAT_ATTS.page_layout,   CAT_ATTS.include_in_menu,
-    CAT_ATTS.is_active,     CAT_ATTS.landing_page,
-    CAT.created_at,         CAT.updated_at
+    store_id,      CAT.entity_id,
+    name,          if(product_count is NULL,0,product_count) as product_count,
+    attribute_set_name, path,
+    meta_title,    image,
+    position,      children_count,
+    url_key,       url_path,
+    custom_design, display_mode,
+    page_layout,   include_in_menu,
+    is_active,     landing_page,
+    created_at,    updated_at
   FROM CAT
   LEFT JOIN CAT_ATTS    ON  CAT.entity_id=CAT_ATTS.entity_id
   LEFT JOIN CAT_COUNTS  ON  CAT.entity_id=CAT_COUNTS.category_id
@@ -725,7 +726,7 @@ _products () {
 
   INSERT INTO CPEA (
     SELECT *
-    FROM ${PREFIX}catalog_product_entity_int
+    FROM ${PREFIX}catalog_product_entity_decimal
   );
 
   CREATE TEMPORARY TABLE PROD_ATTS (
@@ -755,16 +756,16 @@ _products () {
   INNER JOIN ${PREFIX}eav_entity_type AS EAT ON EAT.entity_type_id=EAS.entity_type_id;
 
   SELECT
-    PROD_ATTS.store_id,   PROD.entity_id,
-    PROD_ATTS.name,       PROD.sku,
-    PROD.type_id,         PROD.attribute_set_name,
-    PROD_ATTS.url_key,    PROD_ATTS.status,
-    PROD_ATTS.price,      PROD_ATTS.special_price,
-    PROD_ATTS.visibility, PROD_ATTS.size,
-    PROD_ATTS.weight,     PROD_ATTS.color,
-    PROD_ATTS.image,      PROD_ATTS.small_image,
-    PROD_ATTS.thumbnail,  PROD.has_options,
-    PROD.created_at,      PROD.updated_at
+    store_id,   PROD.entity_id,
+    name,       sku,
+    type_id,    attribute_set_name,
+    url_key,    status,
+    price,      special_price,
+    visibility, size,
+    weight,     color,
+    image,      small_image,
+    thumbnail,  has_options,
+    created_at, updated_at
   FROM PROD
   LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
   $(_whereBuilder ${columns[*]} ${attributes[*]})

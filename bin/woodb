@@ -232,7 +232,7 @@ _whereBuilder() {
   local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
 
   columns=($*);
-  operators=("RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
+  operators=("RLIKE" "NOT RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
   logicals=("AND" "OR")
   tc="$(tput clear)"
 
