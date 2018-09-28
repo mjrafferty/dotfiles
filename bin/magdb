@@ -73,6 +73,7 @@ _usage() {
     -I | --invoices    Show recent invoices
     -g | --categories  Show category information
     -C | --customers   Show customers
+    -e | --email   Show customers
 
     -S | --logsize     Show size of the log tables
     -T | --truncate    Truncate and optimize log tables
@@ -152,6 +153,9 @@ _cmdline() {
         ;;
       "--customers"|"-C")
         args="${args}-C "
+        ;;
+      "--email"|"-e")
+        args="${args}-e "
         ;;
       "--address"|"-a")
         args="${args}-a "
@@ -561,10 +565,16 @@ EOF
 # Print cron table
 _cron () {
 
+  local columns
+
+  columns=( "schedule_id" "job_code" "status" "created_at" "scheduled_at" "executed_at" "finished_at" "messages" )
+
   _connect <<- EOF
 
-  SELECT *
-  FROM ${PREFIX}cron_schedule${QUERY_TERM}
+  $(_selectBuilder ${columns[*]})
+  FROM ${PREFIX}cron_schedule
+  $(_whereBuilder ${columns[*]})
+  LIMIT 100${QUERY_TERM}
 
 EOF
 
@@ -584,6 +594,25 @@ _customers() {
   FROM ${PREFIX}customer_entity
   $(_whereBuilder ${columns[*]})
   ORDER BY created_at DESC
+  LIMIT 100${QUERY_TERM}
+
+EOF
+
+}
+
+# Print email queue
+_emailQueue () {
+
+  local columns
+
+  columns=( "COQ.message_id" "entity_id" "entity_type" "event_type" "recipient_email" "recipient_name" "email_type" "created_at" "processed_at" )
+
+  _connect <<- EOF
+
+  $(_selectBuilder ${columns[*]})
+  FROM ${PREFIX}core_email_queue COQ
+  INNER JOIN ${PREFIX}core_email_queue_recipients COQR on COQ.message_id=COQR.message_id
+  $(_whereBuilder ${columns[*]})
   LIMIT 100${QUERY_TERM}
 
 EOF
@@ -981,18 +1010,19 @@ _truncate () {
 # Show admin users
 _users () {
 
+  local columns
+
+  columns=( "P.role_name" "username" "firstname" "lastname" "email" "created" "modified" "logdate" "lognum" "is_active" )
+
   _connect <<- EOF
 
-  SELECT
-    P.role_name, username,
-    firstname,lastname,
-    email,created,
-    modified,logdate,
-    lognum,is_active
-  FROM ${PREFIX}admin_role U
-  INNER JOIN ${PREFIX}admin_role P ON U.parent_id=P.role_id
-  INNER JOIN ${PREFIX}admin_user ON U.user_id=${PREFIX}admin_user.user_id
-  ORDER BY role_name,lognum DESC${QUERY_TERM}
+  $(_selectBuilder ${columns[*]})
+  FROM ${PREFIX}authorization_role U
+  INNER JOIN ${PREFIX}authorization_role P ON U.parent_id=P.role_id
+  INNER JOIN ${PREFIX}admin_user ON U.user_id=admin_user.user_id
+  $(_whereBuilder ${columns[*]})
+  ORDER BY role_name,lognum DESC
+  LIMIT 100${QUERY_TERM}
 
 EOF
 
@@ -1007,7 +1037,7 @@ main () {
 
   _makeDefaultsFile;
 
-  while getopts "hAbcilSmTP:uxposOqIgCaL" OPTION $(_cmdline); do
+  while getopts "hAbcilSmTP:uxposOqIgCaLe" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -1071,6 +1101,9 @@ main () {
         ;;
       C)
         runCommand="_customers";
+        ;;
+      e)
+        runCommand="_emailQueue";
         ;;
       L)
         QUERY_TERM="\\G";
