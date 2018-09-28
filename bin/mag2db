@@ -501,7 +501,7 @@ _cron () {
 
   local columns
 
-  colums=( "schedule_id" "job_code" "status" "created_at" "scheduled_at" "executed_at" "finished_at" "messages" )
+  columns=( "schedule_id" "job_code" "status" "created_at" "scheduled_at" "executed_at" "finished_at" "messages" )
 
   _connect <<- EOF
 
@@ -509,7 +509,7 @@ _cron () {
   $(_selectBuilder ${columns[*]})
   FROM ${PREFIX}cron_schedule
   $(_whereBuilder ${columns[*]})
-  ${QUERY_TERM}
+  LIMIT 100${QUERY_TERM}
 
 EOF
 
@@ -845,7 +845,7 @@ _users () {
 
   local columns
 
-  colums=( "P.role_name" "username" "firstname" "lastname" "email" "created" "modified" "logdate" "lognum" "is_active" "failures_num"  )
+  columns=( "P.role_name" "username" "firstname" "lastname" "email" "created" "modified" "logdate" "lognum" "is_active" "failures_num"  )
 
   _connect <<- EOF
 
@@ -855,7 +855,8 @@ _users () {
   INNER JOIN ${PREFIX}authorization_role P ON U.parent_id=P.role_id
   INNER JOIN ${PREFIX}admin_user ON U.user_id=admin_user.user_id
   $(_whereBuilder ${columns[*]})
-  ORDER BY role_name,lognum DESC${QUERY_TERM}
+  ORDER BY role_name,lognum DESC
+  LIMIT 100${QUERY_TERM}
 
 EOF
 
