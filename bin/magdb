@@ -624,7 +624,7 @@ _getConfig () {
 
   local config
 
-  if [[ -f $SITEPATH/$CONFIG_FILE ]]; then #Magento
+  if [[ -r $SITEPATH/$CONFIG_FILE ]]; then
 
     mapfile -t config < <("$GREP" -Pv '^\s*(<!|\*)' $CONFIG_FILE | _awkConfig);
 

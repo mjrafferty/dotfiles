@@ -539,7 +539,7 @@ _getConfig () {
 
   local config
 
-  if [[ -f $SITEPATH/$CONFIG_FILE ]]; then #Magento
+  if [[ -r $SITEPATH/$CONFIG_FILE ]]; then
 
     config="$("$GREP" -A16 \'db\' "$SITEPATH/$CONFIG_FILE")"
 

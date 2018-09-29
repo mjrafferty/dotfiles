@@ -437,58 +437,17 @@ _connect () {
 }
 
 # List cookie info
-_cookie () {
-
-  _connect <<- EOF
-  SELECT *
-  FROM ${PREFIX}core_config_data
-  WHERE path RLIKE "^web/cookie"${QUERY_TERM}
-  SELECT *
-  FROM ${PREFIX}core_config_data
-  WHERE path RLIKE "^web/session"${QUERY_TERM}
-
-EOF
-
-}
 
 # Print cron table
-_cron () {
-
-  _connect <<- EOF
-
-  SELECT *
-  FROM ${PREFIX}cron_schedule${QUERY_TERM}
-
-EOF
-
-}
 
 # List customers info
-_customers() {
-
-  local columns;
-
-  columns=("entity_id" "store_id" "website_id" "email" "group_id" "is_active" "default_billing"
-  "default_shipping" "failures_num" "first_failure" "lock_expires" "created_at" "updated_at")
-
-  _connect <<- EOF
-
-  $(_selectBuilder ${columns[*]})
-  FROM ${PREFIX}customer_entity
-  $(_whereBuilder ${columns[*]})
-  ORDER BY created_at DESC
-  LIMIT 100${QUERY_TERM}
-
-EOF
-
-}
 
 # Grab data from wp-config.php
 _getConfig () {
 
   local config
 
-  if [[ -f $SITEPATH/$CONFIG_FILE ]]; then #Magento
+  if [[ -r $SITEPATH/$CONFIG_FILE ]]; then
 
     config="$("$SED" -rn "s/^\s*define\(\s*('|\")(DB_[A-Z]*)('|\")\s*,\s*('|\")(.*)('|\")\s*\);/\2\t\5/p" < <("$DOS2UNIX" < "${SITEPATH}/${CONFIG_FILE}"))";
 
@@ -528,24 +487,6 @@ EOF
 }
 
 # List invoice info
-_invoices() {
-
-  local columns;
-
-  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "send_email" "grand_total"
-  "shipping_address_id" "billing_address_id" "created_at" "updated_at")
-
-  _connect <<- EOF
-
-  $(_selectBuilder ${columns[*]})
-  FROM ${PREFIX}sales_invoice
-  $(_whereBuilder ${columns[*]})
-  ORDER BY created_at DESC
-  LIMIT 100${QUERY_TERM}
-
-EOF
-
-}
 
 # Login to database
 _login () {
@@ -572,47 +513,8 @@ EOF
 }
 
 # Print multistore config
-_multi () {
-
-  _connect <<- EOF
-
-  SELECT *
-  FROM ${PREFIX}core_config_data
-  WHERE path LIKE "%base_url"
-  ORDER BY scope_id ASC,path DESC${QUERY_TERM}
-
-  SELECT *
-  FROM ${PREFIX}store_website${QUERY_TERM}
-
-  SELECT *
-  FROM ${PREFIX}store_group${QUERY_TERM}
-
-  SELECT *
-  FROM ${PREFIX}store${QUERY_TERM}
-
-EOF
-
-}
 
 # List order info
-_orders () {
-
-  local columns;
-
-  columns=("increment_id" "entity_id" "store_id" "customer_id" "customer_email" "email_sent" "total_invoiced"
-  "remote_ip" "x_forwarded_for" "shipping_method" "total_item_count" "created_at" "updated_at")
-
-  _connect <<- EOF
-
-  $(_selectBuilder ${columns[*]})
-  FROM ${PREFIX}sales_order
-  $(_whereBuilder ${columns[*]})
-  ORDER BY created_at DESC
-  LIMIT 100${QUERY_TERM}
-
-EOF
-
-}
 
 # Change admin user password
 _password () {
@@ -649,122 +551,10 @@ EOF
 }
 
 # List product info
-_products () {
-
-  local attributes atts a pivot_atts columns;
-
-  attributes=( "name" "status" "visibility" "image" "url_key" )
-  columns=("store_id" "PROD.entity_id" "sku" "type_id" "attribute_set_name" "has_options" "created_at" "updated_at")
-
-  for((a=0;a<${#attributes[*]};a++)); do
-
-    atts+=" \"${attributes[a]}\""
-    pivot_atts+="GROUP_CONCAT(if(EA.attribute_code=\"${attributes[a]}\",value,NULL)) AS ${attributes[a]}"
-
-    if (( a < (${#attributes[*]} - 1) )); then
-      atts+=",";
-      pivot_atts+=",";
-    fi
-
-  done
-
-  _connect <<- EOF
-
-  CREATE TEMPORARY TABLE CPEA (
-    KEY (attribute_id)
-  ) AS (
-    SELECT *
-    FROM ${PREFIX}catalog_product_entity_varchar
-  );
-
-  INSERT INTO CPEA (
-    SELECT *
-    FROM ${PREFIX}catalog_product_entity_int
-  );
-
-  CREATE TEMPORARY TABLE PROD_ATTS (
-    KEY (entity_id)
-  )
-  SELECT
-    store_id,
-    entity_id,
-    ${pivot_atts}
-  FROM CPEA
-  INNER JOIN ${PREFIX}eav_attribute AS EA ON EA.attribute_id=CPEA.attribute_id
-  INNER JOIN ${PREFIX}eav_entity_type EAT ON EAT.entity_type_id=EA.entity_type_id
-  WHERE EAT.entity_type_code="catalog_product"
-  and EA.attribute_code in (${atts})
-  GROUP BY store_id,entity_id;
-
-  CREATE TEMPORARY TABLE PROD (
-    KEY (entity_id)
-  )
-  SELECT
-    CPE.entity_id,    EAS.attribute_set_name,
-    CPE.type_id,      CPE.sku,
-    CPE.has_options,  CPE.created_at,
-    CPE.updated_at
-  FROM ${PREFIX}catalog_product_entity CPE
-  INNER JOIN ${PREFIX}eav_attribute_set AS EAS ON EAS.attribute_set_id=CPE.attribute_set_id
-  INNER JOIN ${PREFIX}eav_entity_type AS EAT ON EAT.entity_type_id=EAS.entity_type_id;
-
-  SELECT
-    PROD_ATTS.store_id,   PROD.entity_id,
-    PROD_ATTS.name,       PROD.sku,
-    PROD.type_id,         PROD.attribute_set_name,
-    PROD_ATTS.url_key,    PROD_ATTS.image,
-    PROD_ATTS.visibility, PROD_ATTS.status,
-    PROD.has_options,     PROD.created_at,
-    PROD.updated_at
-  FROM PROD
-  LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
-  $(_whereBuilder ${columns[*]} ${attributes[*]})
-  GROUP BY PROD_ATTS.store_id,PROD.entity_id
-  ORDER BY PROD_ATTS.store_id,PROD.entity_id${QUERY_TERM}
-
-EOF
-
-}
 
 # List quotes info
-_quotes () {
-
-  local columns;
-
-  columns=("entity_id" "store_id" "is_active" "checkout_method" "customer_id" "customer_email"
-  "remote_ip" "created_at" "updated_at")
-
-  _connect <<- EOF
-
-  $(_selectBuilder ${columns[*]})
-  FROM ${PREFIX}quote
-  $(_whereBuilder ${columns[*]})
-  ORDER BY created_at DESC
-  LIMIT 100${QUERY_TERM}
-
-EOF
-
-}
 
 # List shipment info
-_shipment () {
-
-  local columns;
-
-  columns=("increment_id" "entity_id" "store_id" "order_id" "email_sent" "send_email"
-  "shipping_address_id" "billing_address_id" "created_at" "updated_at")
-
-  _connect <<- EOF
-
-  $(_selectBuilder ${columns[*]})
-  FROM ${PREFIX}sales_shipment
-  $(_whereBuilder ${columns[*]})
-  ORDER BY created_at DESC
-  LIMIT 100${QUERY_TERM}
-
-EOF
-
-}
 
 # Print summary
 _summary () {
