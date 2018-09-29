@@ -1017,8 +1017,8 @@ _users () {
   _connect <<- EOF
 
   $(_selectBuilder ${columns[*]})
-  FROM ${PREFIX}authorization_role U
-  INNER JOIN ${PREFIX}authorization_role P ON U.parent_id=P.role_id
+  FROM ${PREFIX}admin_role U
+  INNER JOIN ${PREFIX}admin_role P ON U.parent_id=P.role_id
   INNER JOIN ${PREFIX}admin_user ON U.user_id=admin_user.user_id
   $(_whereBuilder ${columns[*]})
   ORDER BY role_name,lognum DESC
