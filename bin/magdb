@@ -742,7 +742,7 @@ _logsize () {
 			WHEN SUM(index_length) > KB THEN CONCAT(FORMAT(SUM(index_length)/KB,2),"K")
 			ELSE CONCAT(SUM(index_length),"B")
 			END
-		) AS "Index Length",
+		) AS "Index Length"
   FROM information_schema.TABLES,
 	(SELECT 1024 KB) B,
 	(SELECT 1048576 MB) C,
