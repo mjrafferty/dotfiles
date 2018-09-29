@@ -329,6 +329,17 @@ _whereBuilder() {
 
 }
 
+# Unserialize value
+_unserialize() {
+
+	local value
+
+  value="$*"
+
+  $PHP < <(echo "<?php echo print_r(unserialize('${value}'),true); ?>")
+
+}
+
 # Add an administrator
 _admin () {
 
@@ -385,23 +396,6 @@ EOF
 
 # List category info
 _categories () {
-
-  #local attributes atts a search columns pivot_atts;
-
-  #attributes=( "name" "custom_design" "display_mode" "page_layout" "url_key" "url_path" "include_in_menu" "is_active" "landing_page" )
-  #columns=( "CAT.entity_id" "product_count" "store_id" "attribute_set_name" "parent_id" "path" "position" "children_count" "created_at" "updated_at" )
-
-  #for((a=0;a<${#attributes[*]};a++)); do
-
-    #atts+=" \"${attributes[a]}\""
-    #pivot_atts+="GROUP_CONCAT(if(EA.attribute_code=\"${attributes[a]}\",value,NULL)) AS ${attributes[a]}"
-
-    #if (( a < (${#attributes[*]} - 1) )); then
-      #atts+=",";
-      #pivot_atts+=",";
-    #fi
-
-  #done
 
   _connect <<- EOF
 
