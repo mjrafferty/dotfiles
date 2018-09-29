@@ -720,18 +720,18 @@ _logsize () {
     FORMAT(table_rows,0) as "Row Count",
 		(
 			CASE
-			WHEN data_length > GB THEN CONCAT(FORMAT(data_length/GB,2),"G")
-			WHEN data_length > MB THEN CONCAT(FORMAT(data_length/MB,2),"M")
-			WHEN data_length > KB THEN CONCAT(FORMAT(data_length/KB,2),"K")
-			ELSE CONCAT(data_length,"B")
+			WHEN data_length > GB THEN CONCAT(FORMAT(data_length/GB,2)," G")
+			WHEN data_length > MB THEN CONCAT(FORMAT(data_length/MB,2)," M")
+			WHEN data_length > KB THEN CONCAT(FORMAT(data_length/KB,2)," K")
+			ELSE CONCAT(data_length," B")
 			END
 		) AS "Data Length",
 		(
 			CASE
-			WHEN index_length > GB THEN CONCAT(FORMAT(index_length/GB,2),"G")
-			WHEN index_length > MB THEN CONCAT(FORMAT(index_length/MB,2),"M")
-			WHEN index_length > KB THEN CONCAT(FORMAT(index_length/KB,2),"K")
-			ELSE CONCAT(index_length,"B")
+			WHEN index_length > GB THEN CONCAT(FORMAT(index_length/GB,2)," G")
+			WHEN index_length > MB THEN CONCAT(FORMAT(index_length/MB,2)," M")
+			WHEN index_length > KB THEN CONCAT(FORMAT(index_length/KB,2)," K")
+			ELSE CONCAT(index_length," B")
 			END
 		) AS "Index Length"
   FROM information_schema.TABLES,
@@ -746,18 +746,18 @@ _logsize () {
     FORMAT(SUM(table_rows),0) as "Row Count",
 		(
 			CASE
-			WHEN SUM(data_length) > GB THEN CONCAT(FORMAT(SUM(data_length)/GB,2),"G")
-			WHEN SUM(data_length) > MB THEN CONCAT(FORMAT(SUM(data_length)/MB,2),"M")
-			WHEN SUM(data_length) > KB THEN CONCAT(FORMAT(SUM(data_length)/KB,2),"K")
-			ELSE CONCAT(SUM(data_length),"B")
+			WHEN SUM(data_length) > GB THEN CONCAT(FORMAT(SUM(data_length)/GB,2)," G")
+			WHEN SUM(data_length) > MB THEN CONCAT(FORMAT(SUM(data_length)/MB,2)," M")
+			WHEN SUM(data_length) > KB THEN CONCAT(FORMAT(SUM(data_length)/KB,2)," K")
+			ELSE CONCAT(SUM(data_length)," B")
 			END
 		) AS "Data Length",
 		(
 			CASE
-			WHEN SUM(index_length) > GB THEN CONCAT(FORMAT(SUM(index_length)/GB,2),"G")
-			WHEN SUM(index_length) > MB THEN CONCAT(FORMAT(SUM(index_length)/MB,2),"M")
-			WHEN SUM(index_length) > KB THEN CONCAT(FORMAT(SUM(index_length)/KB,2),"K")
-			ELSE CONCAT(SUM(index_length),"B")
+			WHEN SUM(index_length) > GB THEN CONCAT(FORMAT(SUM(index_length)/GB,2)," G")
+			WHEN SUM(index_length) > MB THEN CONCAT(FORMAT(SUM(index_length)/MB,2)," M")
+			WHEN SUM(index_length) > KB THEN CONCAT(FORMAT(SUM(index_length)/KB,2)," K")
+			ELSE CONCAT(SUM(index_length)," B")
 			END
 		) AS "Index Length"
   FROM information_schema.TABLES,
