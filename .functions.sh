@@ -756,3 +756,8 @@ brokenlinks () {
 
 }
 
+phpunserialize () {
+
+  php < <(echo "<?php echo print_r(unserialize('${*}'),true); ?>");
+
+}
