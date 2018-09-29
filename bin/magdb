@@ -718,9 +718,26 @@ _logsize () {
   (SELECT
     table_name as "Table Name",
     FORMAT(table_rows,0) as "Row Count",
-		CONCAT(FORMAT(data_length/POWER(1024,2),2),"M") as "Data Length",
-    CONCAT(FORMAT(index_length/POWER(1024,2),2),"M") as "Index Length"
-  FROM information_schema.TABLES
+		(
+			CASE
+			WHEN data_length > GB THEN CONCAT(FORMAT(data_length/GB,2),"G")
+			WHEN data_length > MB THEN CONCAT(FORMAT(data_length/MB,2),"M")
+			WHEN data_length > KB THEN CONCAT(FORMAT(data_length/KB,2),"K")
+			ELSE CONCAT(data_length,"B")
+			END
+		) AS "Data Length",
+		(
+			CASE
+			WHEN index_length > GB THEN CONCAT(FORMAT(index_length/GB,2),"G")
+			WHEN index_length > MB THEN CONCAT(FORMAT(index_length/MB,2),"M")
+			WHEN index_length > KB THEN CONCAT(FORMAT(index_length/KB,2),"K")
+			ELSE CONCAT(index_length,"B")
+			END
+		) AS "Index Length"
+  FROM information_schema.TABLES,
+	(SELECT 1024 KB) B,
+	(SELECT 1048576 MB) C,
+	(SELECT 1073741824 GB) D
   WHERE table_schema="${DBNAME}"
   AND table_name IN (${tables_in}))
   UNION
