@@ -758,6 +758,18 @@ brokenlinks () {
 
 phpunserialize () {
 
-  php < <(echo "<?php echo print_r(unserialize('${*}'),true); ?>");
+  local value
+
+  value=`cat`
+
+  if [[ -z "$value" ]]; then
+    value="$*"
+  fi
+
+  php <<- EOF
+<?php
+echo print_r(unserialize('${value}'),true);
+?>
+EOF
 
 }
