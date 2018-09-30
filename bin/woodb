@@ -585,7 +585,8 @@ _products() {
   SELECT
     post_id,
     ${pivot_atts}
-  FROM ${PREFIX}postmeta;
+  FROM ${PREFIX}postmeta
+  GROUP BY post_id;
 
 	$(_selectBuilder ${columns[*]} ${attributes[*]})
   FROM ${PREFIX}posts WP
