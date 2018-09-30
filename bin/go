@@ -211,7 +211,7 @@ _findDestination () {
 _setAction () {
 
   echo 'rm "$HOME"/action.sh' > "$HOME"/dotfiles/action.sh;
-  echo "cdd ${DOMAIN}" >> "$HOME"/dotfiles/action.sh;
+  echo "sup_cdd ${DOMAIN}" >> "$HOME"/dotfiles/action.sh;
 
   # Evaluates argument list and adds known commands to login command list
   for x in ${ARGA[*]}; do
@@ -220,7 +220,7 @@ _setAction () {
         echo "vim .htaccess" >> "$HOME"/dotfiles/action.sh;
         ;;
       "cdlogs") # Go to domain's log directory
-        echo "cdlogs ${DOMAIN}" >> "$HOME"/dotfiles/action.sh;
+        echo "sup_cdlogs ${DOMAIN}" >> "$HOME"/dotfiles/action.sh;
         ;;
       "editphp") # Go to domain's log directory
         echo "editphp" >> "$HOME"/dotfiles/action.sh;
