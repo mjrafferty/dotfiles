@@ -760,10 +760,10 @@ phpunserialize () {
 
   local value
 
-  value=`cat`
+  value="$*"
 
   if [[ -z "$value" ]]; then
-    value="$*"
+    value=`cat`
   fi
 
   php <<- EOF
