@@ -33,9 +33,9 @@ RED=$("$TPUT" setaf 1);
 GREEN=$("$TPUT" setaf 10);
 
 if [[ -e "/opt/nexcess/php70u/root/usr/bin/php" ]];then
-  PHP="/opt/nexcess/php70u/root/usr/bin/php";
+	PHP="/opt/nexcess/php70u/root/usr/bin/php";
 else
-  PHP="/opt/remi/php70/root/usr/bin/php";
+	PHP="/opt/remi/php70/root/usr/bin/php";
 fi
 
 # Necessary Global Variables
@@ -47,41 +47,41 @@ PREFIX=""
 QUERY_TERM=";"
 
 if [[ -e $CONFIG_FILE ]]; then
-  SITEPATH="$PWD"
+	SITEPATH="$PWD"
 else
-  SITEPATH="$(pwd | "$GREP" -Po '(/chroot)?/home(/[^/]+){2}')"
+	SITEPATH="$(pwd | "$GREP" -Po '(/chroot)?/home(/[^/]+){2}')"
 fi
 
 # Print usage
 _usage() {
 
-  "$CAT" <<- EOF
+	"$CAT" <<- EOF
 
-  Usage: mag2db <option>
+	Usage: mag2db <option>
 
-    -i | --info        Display user credentials for database
-    -l | --login       Log into database using user credentials
+		-i | --info        Display user credentials for database
+		-l | --login       Log into database using user credentials
 
-    -A | --admin       Add a new admin user into the database
-    -P | --password    Update or reset password for user
-    -u | --users       Show all Admin Users' information
+		-A | --admin       Add a new admin user into the database
+		-P | --password    Update or reset password for user
+		-u | --users       Show all Admin Users' information
 
-    -b | --base        Show all configured Base Urls
-    -m | --multi       Show Multistore Information (Urls/Codes)
-    -O | --cookie      Show cookie configuration
+		-b | --base        Show all configured Base Urls
+		-m | --multi       Show Multistore Information (Urls/Codes)
+		-O | --cookie      Show cookie configuration
 
-    -c | --cron        Show Cron Jobs and Their Statuses
+		-c | --cron        Show Cron Jobs and Their Statuses
 
-    -p | --products    Show products
-    -o | --orders      Show recent orders
-    -s | --shipment    Show recent shipments
-    -q | --quotes      Show recent quotes
-    -I | --invoices    Show recent invoices
-    -g | --categories  Show category information
-    -C | --customers   Show customers
+		-p | --products    Show products
+		-o | --orders      Show recent orders
+		-s | --shipment    Show recent shipments
+		-q | --quotes      Show recent quotes
+		-I | --invoices    Show recent invoices
+		-g | --categories  Show category information
+		-C | --customers   Show customers
 
-    -L | --list        Display query output in list format
-    -h | --help        Display this help output and quit
+		-L | --list        Display query output in list format
+		-h | --help        Display this help output and quit
 
 EOF
 
@@ -90,242 +90,242 @@ EOF
 # Convert long command line options into short ones for getopts
 _cmdline() {
 
-  local x;
+	local x;
 
-  for x in ${ARGA[*]}; do
+	for x in ${ARGA[*]}; do
 
-    case "$x" in
-      "--help"|"-h")
-        args="${args}-h "
-        ;;
-      "--admin"|"-A")
-        args="${args}-A "
-        ;;
-      "--base"|"-b")
-        args="${args}-b "
-        ;;
-      "--cron"|"-c")
-        args="${args}-c "
-        ;;
-      "--info"|"-i")
-        args="${args}-i "
-        ;;
-      "--login"|"-l")
-        args="${args}-l "
-        ;;
-      "--multi"|"-m")
-        args="${args}-m "
-        ;;
-      "--password"|"-P")
-        args="${args}-P "
-        ;;
-      "--users"|"-u")
-        args="${args}-u "
-        ;;
-      "--products"|"-p")
-        args="${args}-p "
-        ;;
-      "--orders"|"-o")
-        args="${args}-o "
-        ;;
-      "--shipment"|"-s")
-        args="${args}-s "
-        ;;
-      "--cookie"|"-O")
-        args="${args}-O "
-        ;;
-      "--quotes"|"-q")
-        args="${args}-q "
-        ;;
-      "--invoices"|"-I")
-        args="${args}-I "
-        ;;
-      "--categories"|"-g")
-        args="${args}-g "
-        ;;
-      "--customers"|"-C")
-        args="${args}-C "
-        ;;
-      "--list"|"-L")
-        args="${args}-L "
-        ;;
-      *)
-        args="${args}${x} "
-        ;;
-    esac
-  done
+		case "$x" in
+			"--help"|"-h")
+				args="${args}-h "
+				;;
+			"--admin"|"-A")
+				args="${args}-A "
+				;;
+			"--base"|"-b")
+				args="${args}-b "
+				;;
+			"--cron"|"-c")
+				args="${args}-c "
+				;;
+			"--info"|"-i")
+				args="${args}-i "
+				;;
+			"--login"|"-l")
+				args="${args}-l "
+				;;
+			"--multi"|"-m")
+				args="${args}-m "
+				;;
+			"--password"|"-P")
+				args="${args}-P "
+				;;
+			"--users"|"-u")
+				args="${args}-u "
+				;;
+			"--products"|"-p")
+				args="${args}-p "
+				;;
+			"--orders"|"-o")
+				args="${args}-o "
+				;;
+			"--shipment"|"-s")
+				args="${args}-s "
+				;;
+			"--cookie"|"-O")
+				args="${args}-O "
+				;;
+			"--quotes"|"-q")
+				args="${args}-q "
+				;;
+			"--invoices"|"-I")
+				args="${args}-I "
+				;;
+			"--categories"|"-g")
+				args="${args}-g "
+				;;
+			"--customers"|"-C")
+				args="${args}-C "
+				;;
+			"--list"|"-L")
+				args="${args}-L "
+				;;
+			*)
+				args="${args}${x} "
+				;;
+		esac
+	done
 
-  echo "$args";
+	echo "$args";
 
 }
 
 # Generate Password
 _xkcd () {
 
-  local wordList word rnd pass matchList wcount
+	local wordList word rnd pass matchList wcount
 
-  if [ -r /usr/local/interworx/lib/dict/words ]; then
+	if [ -r /usr/local/interworx/lib/dict/words ]; then
 
-    wordList='/usr/local/interworx/lib/dict/words';
+		wordList='/usr/local/interworx/lib/dict/words';
 
-  elif [ -r /usr/share/dict/words ]; then
+	elif [ -r /usr/share/dict/words ]; then
 
-    wordList='/usr/share/dict/words';
+		wordList='/usr/share/dict/words';
 
-  else
-    return 1;
-  fi
+	else
+		return 1;
+	fi
 
-  if [[ -x /usr/bin/shuf ]]; then
+	if [[ -x /usr/bin/shuf ]]; then
 
-    pass=$("$SHUF" -n1000 "$wordList" | "$GREP" -E '^[a-z,A-Z]{4,12}$' | "$HEAD" -n4 | "$SED" 's/^\([a-z]\)/\u\1/' | "$TR" -d '\n| ');
+		pass=$("$SHUF" -n1000 "$wordList" | "$GREP" -E '^[a-z,A-Z]{4,12}$' | "$HEAD" -n4 | "$SED" 's/^\([a-z]\)/\u\1/' | "$TR" -d '\n| ');
 
-    echo "$pass"$(( (RANDOM % 9000) + 1000 ));
+		echo "$pass"$(( (RANDOM % 9000) + 1000 ));
 
-  else
+	else
 
-    word=();
+		word=();
 
-    matchList=$("$GREP" -E '^[a-z,A-Z]{4,12}$' $wordList);
-    IFS=" "
-    wcount=$(echo "$matchList" | "$WC" -l | "$AWK" '{print $1}')
+		matchList=$("$GREP" -E '^[a-z,A-Z]{4,12}$' $wordList);
+		IFS=" "
+		wcount=$(echo "$matchList" | "$WC" -l | "$AWK" '{print $1}')
 
-    for ((x=0;x<4;x++)) do
+		for ((x=0;x<4;x++)) do
 
-      rnd=$((RANDOM % wcount))
+			rnd=$((RANDOM % wcount))
 
-      word[$x]=$(echo "$matchList" | "$SED" -n "${rnd}p" | "$SED" 's/^\([a-z]\)/\u\1/');
+			word[$x]=$(echo "$matchList" | "$SED" -n "${rnd}p" | "$SED" 's/^\([a-z]\)/\u\1/');
 
-    done;
+		done;
 
-    echo "${word[0]}${word[1]}${word[2]}${word[3]}$(( RANDOM % 9000 + 1000 ))";
+		echo "${word[0]}${word[1]}${word[2]}${word[3]}$(( RANDOM % 9000 + 1000 ))";
 
-  fi
+	fi
 
 }
 
 # Build select statement
 _selectBuilder() {
 
-  local columns select s
+	local columns select s
 
-  columns=($*)
-  select="SELECT"
+	columns=($*)
+	select="SELECT"
 
-    for ((s=0;s<${#columns[*]};s++)); do
+		for ((s=0;s<${#columns[*]};s++)); do
 
-      select+=" ${columns[s]}"
+			select+=" ${columns[s]}"
 
-      if (( s < (${#columns[*]} - 1) )); then
-        select+=","
-      fi
+				if (( s < (${#columns[*]} - 1) )); then
+					select+=","
+					fi
 
-    done
+				done
 
-    echo "${select}";
+				echo "${select}";
 
-}
+			}
 
 # Build WHERE statement
 _whereBuilder() {
 
-  local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
+	local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
 
-  columns=($*);
-  operators=("RLIKE" "NOT RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
-  logicals=("AND" "OR")
-  tc="$(tput clear)"
+	columns=($*);
+	operators=("RLIKE" "NOT RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
+	logicals=("AND" "OR")
+	tc="$(tput clear)"
 
-  read -rp "Search value (\"?\" for Advanced search.): " search
+	read -rp "Search value (\"?\" for Advanced search.): " search
 
-  if [[ "$search" == "?" ]]; then
+	if [[ "$search" == "?" ]]; then
 
-    initialized=0;
+		initialized=0;
 
-    for (( i=0; i<${#logicals[*]}; i++ )); do
-      logicals_prompt+="$i  ${logicals[i]}"$'\n';
-    done
+		for (( i=0; i<${#logicals[*]}; i++ )); do
+			logicals_prompt+="$i  ${logicals[i]}"$'\n';
+		done
 
-    for (( i=0; i<${#columns[*]}; i++ )); do
-      columns_prompt+="$i  ${columns[i]}"$'\n';
-    done
+		for (( i=0; i<${#columns[*]}; i++ )); do
+			columns_prompt+="$i  ${columns[i]}"$'\n';
+		done
 
-    for (( i=0; i<${#operators[*]}; i++ )); do
-      operators_prompt+="$i  ${operators[i]}"$'\n';
-    done
+		for (( i=0; i<${#operators[*]}; i++ )); do
+			operators_prompt+="$i  ${operators[i]}"$'\n';
+		done
 
-    while (true); do
+		while (true); do
 
-      local aon selection operator value
+			local aon selection operator value
 
-      if ((initialized == 0)); then
-        where="WHERE"
-        initialized=1;
-      else
-        while(true); do
-          read -rp "${tc}${where}"$'\n\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
-          if [[ -z "$aon" ]]; then
-            break 2;
-          elif (( aon < 0 || aon >= ${#logicals[*]} )) || [[ "${aon}" != [0-9]* ]]; then
-            continue;
-          else
-            where+=" ${logicals[aon]}";
-            break;
-          fi
-        done
-      fi
+			if ((initialized == 0)); then
+				where="WHERE"
+				initialized=1;
+			else
+				while(true); do
+					read -rp "${tc}${where}"$'\n\n'"${logicals_prompt}"$'\n'"Choose logic operator number( Or press enter to continue. ): " aon;
+					if [[ -z "$aon" ]]; then
+						break 2;
+					elif (( aon < 0 || aon >= ${#logicals[*]} )) || [[ "${aon}" != [0-9]* ]]; then
+						continue;
+					else
+						where+=" ${logicals[aon]}";
+						break;
+					fi
+				done
+			fi
 
-      while(true); do
-        read -rp "${tc}${where}"$'\n\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
-        if (( selection < 0 || selection >= ${#columns[*]} )) || [[ "${selection}" != [0-9]* ]]; then
-          continue;
-        else
-          where+=" ${columns[selection]}";
-          break;
-        fi
-      done
+			while(true); do
+				read -rp "${tc}${where}"$'\n\n'"${columns_prompt}"$'\n'"Choose column number: " selection;
+				if (( selection < 0 || selection >= ${#columns[*]} )) || [[ "${selection}" != [0-9]* ]]; then
+					continue;
+				else
+					where+=" ${columns[selection]}";
+					break;
+				fi
+			done
 
-      while(true); do
-        read -rp "${tc}${where}"$'\n\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
-        if (( operator < 0 || operator >= ${#operators[*]} )) || [[ "${operator}" != [0-9]* ]]; then
-          continue;
-        else
-          where+=" ${operators[operator]}";
-          break;
-        fi
-      done
+			while(true); do
+				read -rp "${tc}${where}"$'\n\n'"${operators_prompt}"$'\n'"Choose operator number: " operator;
+				if (( operator < 0 || operator >= ${#operators[*]} )) || [[ "${operator}" != [0-9]* ]]; then
+					continue;
+				else
+					where+=" ${operators[operator]}";
+					break;
+				fi
+			done
 
 
-      if [[ "${operators[operator]}" =~ "NULL" ]]; then
-        continue;
-      else
-        read -rp "${tc}${where}"$'\n\n'"Value: " value;
-        if [[ "${operators[operator]}" =~ "IN" ]]; then
-          where+=" (${value})";
-        else
-          where+=" \"${value}\"";
-        fi
-      fi
+			if [[ "${operators[operator]}" =~ "NULL" ]]; then
+				continue;
+			else
+				read -rp "${tc}${where}"$'\n\n'"Value: " value;
+				if [[ "${operators[operator]}" =~ "IN" ]]; then
+					where+=" (${value})";
+				else
+					where+=" \"${value}\"";
+				fi
+			fi
 
-    done
+		done
 
-  elif [[ -n "$search" ]]; then
+	elif [[ -n "$search" ]]; then
 
-    where="WHERE"
+		where="WHERE"
 
-    for((w=0;w<${#columns[*]};w++)); do
+		for((w=0;w<${#columns[*]};w++)); do
 
-      where+=" ${columns[w]} RLIKE \"${search}\""
+			where+=" ${columns[w]} RLIKE \"${search}\""
 
-      if (( w < (${#columns[*]} - 1) )); then
-        where+=" OR"
-      fi
+			if (( w < (${#columns[*]} - 1) )); then
+				where+=" OR"
+			fi
 
-    done
+		done
 
-  fi
+	fi
 
-  echo "${where}"
+	echo "${where}"
 
 }
 
@@ -334,30 +334,38 @@ _unserialize() {
 
 	local value
 
-  value="$*"
+	value="$*"
 
-  $PHP < <(echo "<?php echo print_r(unserialize('${value}'),true); ?>")
+	if [[ -z "$value" ]]; then
+		value=`cat`
+	fi
+
+	$PHP <<- EOF
+<?php
+echo print_r(unserialize('${value}'),true);
+?>
+EOF
 
 }
 
 # Add an administrator
 _admin () {
 
-  local user firstname lastname emailaddr username;
+	local user firstname lastname emailaddr username;
 
-  read -rp "Firstname: " firstname;
-  read -rp "Lastname: " lastname;
-  read -rp "Email: " emailaddr;
-  read -rp "Username: " username;
+	read -rp "Firstname: " firstname;
+	read -rp "Lastname: " lastname;
+	read -rp "Email: " emailaddr;
+	read -rp "Username: " username;
 
-  password=$(_xkcd);
+	password=$(_xkcd);
 
-  _connect <<- EOF
+	_connect <<- EOF
 
 	INSERT INTO ${PREFIX}users
 	(user_login, user_pass, user_nicename, user_email, user_registered, user_status)
 	VALUES
-  ('$username', MD5('$password'), '$firstname $lastname', '$emailaddr', concat(CURRENT_DATE," ",CURRENT_TIME), '0');
+	('$username', MD5('$password'), '$firstname $lastname', '$emailaddr', concat(CURRENT_DATE," ",CURRENT_TIME), '0');
 
 	INSERT INTO ${PREFIX}usermeta
 	(umeta_id, user_id, meta_key, meta_value)
@@ -372,10 +380,10 @@ _admin () {
 
 EOF
 
-  "$CAT" <<- EOF
+"$CAT" <<- EOF
 
-  Username: $username
-  Password: $password
+	Username: $username
+	Password: $password
 
 EOF
 
@@ -384,11 +392,11 @@ EOF
 # Print base url's
 _base () {
 
-  _connect <<- EOF
+	_connect <<- EOF
 
-  SELECT *
-  FROM ${PREFIX}options
-  WHERE option_name IN ("siteurl","home")${QUERY_TERM}
+	SELECT *
+	FROM ${PREFIX}options
+	WHERE option_name IN ("siteurl","home")${QUERY_TERM}
 
 EOF
 
@@ -397,18 +405,18 @@ EOF
 # List category info
 _categories () {
 
-  _connect <<- EOF
+	_connect <<- EOF
 
-  SELECT
+	SELECT
 		t.*,
 		tt.*,
 		tm.meta_value
 	FROM ${PREFIX}terms AS t
-  INNER JOIN ${PREFIX}term_taxonomy AS tt ON t.term_id = tt.term_id
-  LEFT JOIN ${PREFIX}termmeta AS tm ON (t.term_id = tm.term_id AND tm.meta_key = 'order')
-  WHERE tt.taxonomy IN ('product_cat')
-  GROUP BY t.term_id
-  ORDER BY tm.meta_value+0 ASC, t.name ASC${QUERY_TERM}
+	INNER JOIN ${PREFIX}term_taxonomy AS tt ON t.term_id = tt.term_id
+	LEFT JOIN ${PREFIX}termmeta AS tm ON (t.term_id = tm.term_id AND tm.meta_key = 'order')
+	WHERE tt.taxonomy IN ('product_cat')
+	GROUP BY t.term_id
+	ORDER BY tm.meta_value+0 ASC, t.name ASC${QUERY_TERM}
 
 EOF
 
@@ -417,16 +425,16 @@ EOF
 # Clean up before exit
 _cleanUp () {
 
-  "$RM" "$DEFAULTS_FILE";
+	"$RM" "$DEFAULTS_FILE";
 
 }
 
 # Connect to the database
 _connect () {
 
-  _summary;
+	_summary;
 
-  "$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_wpdb" -t | "$LESS" -RSF;
+	"$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_wpdb" -t | "$LESS" -RSF;
 
 }
 
@@ -439,42 +447,42 @@ _connect () {
 # Grab data from wp-config.php
 _getConfig () {
 
-  local config
+	local config
 
-  if [[ -r $SITEPATH/$CONFIG_FILE ]]; then
+	if [[ -r $SITEPATH/$CONFIG_FILE ]]; then
 
-    config="$("$SED" -rn "s/^\s*define\(\s*('|\")(DB_[A-Z]*)('|\")\s*,\s*('|\")(.*)('|\")\s*\);/\2\t\5/p" < <("$DOS2UNIX" < "${SITEPATH}/${CONFIG_FILE}"))";
+		config="$("$SED" -rn "s/^\s*define\(\s*('|\")(DB_[A-Z]*)('|\")\s*,\s*('|\")(.*)('|\")\s*\);/\2\t\5/p" < <("$DOS2UNIX" < "${SITEPATH}/${CONFIG_FILE}"))";
 
-    DBHOST="$(echo "$config" | "$GREP" -Po 'DB_HOST\t\K.*')"
-    DBNAME="$(echo "$config" | "$GREP" -Po 'DB_NAME\t\K.*')"
-    DBUSER="$(echo "$config" | "$GREP" -Po 'DB_USER\t\K.*')"
-    DBPASS="$(echo "$config" | "$GREP" -Po 'DB_PASSWORD\t\K.*')"
+		DBHOST="$(echo "$config" | "$GREP" -Po 'DB_HOST\t\K.*')"
+		DBNAME="$(echo "$config" | "$GREP" -Po 'DB_NAME\t\K.*')"
+		DBUSER="$(echo "$config" | "$GREP" -Po 'DB_USER\t\K.*')"
+		DBPASS="$(echo "$config" | "$GREP" -Po 'DB_PASSWORD\t\K.*')"
 
-    PREFIX="$("$GREP" -Po "^\s*[$]table_prefix\s*=\s*('|\")\K.*(?=('|\")\s*;.*)" "${SITEPATH}/${CONFIG_FILE}")"
+		PREFIX="$("$GREP" -Po "^\s*[$]table_prefix\s*=\s*('|\")\K.*(?=('|\")\s*;.*)" "${SITEPATH}/${CONFIG_FILE}")"
 
 		if [[ "$DBHOST" == "localhost" ]]; then
-      DBHOST="127.0.0.1";
-    fi
+			DBHOST="127.0.0.1";
+		fi
 
-  else
+	else
 
-    echo "${RED}Could not find configuration file!${NORMAL}";
-    exit 1;
+		echo "${RED}Could not find configuration file!${NORMAL}";
+		exit 1;
 
-  fi;
+	fi;
 }
 
 # Print database info
 _info () {
 
-  "$CAT" <<- EOF
-  ${BRIGHT}Database Info:${NORMAL}
+	"$CAT" <<- EOF
+	${BRIGHT}Database Info:${NORMAL}
 
-  ${BRIGHT}Username:${NORMAL} $DBUSER
-  ${BRIGHT}Password:${NORMAL} $DBPASS
-  ${BRIGHT}Database:${NORMAL} $DBNAME
-  ${BRIGHT}Hostname:${NORMAL} $DBHOST
-  ${BRIGHT}Prefix  :${NORMAL} $PREFIX
+	${BRIGHT}Username:${NORMAL} $DBUSER
+	${BRIGHT}Password:${NORMAL} $DBPASS
+	${BRIGHT}Database:${NORMAL} $DBNAME
+	${BRIGHT}Hostname:${NORMAL} $DBHOST
+	${BRIGHT}Prefix  :${NORMAL} $PREFIX
 
 EOF
 
@@ -485,16 +493,16 @@ EOF
 # Login to database
 _login () {
 
-  _summary;
+	_summary;
 
-  "$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_wpdb";
+	"$MYSQL" --defaults-extra-file="$DEFAULTS_FILE" --defaults-group-suffix="_wpdb";
 
 }
 
 # Make mysql defaults file
 _makeDefaultsFile () {
 
-  "$CAT" <<- EOF > "$DEFAULTS_FILE"
+	"$CAT" <<- EOF > "$DEFAULTS_FILE"
 [client_wpdb]
 database = "$DBNAME"
 user =  "$DBUSER"
@@ -502,7 +510,7 @@ password = "$DBPASS"
 host = "$DBHOST"
 EOF
 
-  "$CHMOD" 600 "$DEFAULTS_FILE";
+"$CHMOD" 600 "$DEFAULTS_FILE";
 
 }
 
@@ -513,19 +521,19 @@ EOF
 # Change admin user password
 _password () {
 
-  local username password;
+	local username password;
 
-  username="$1"
+	username="$1"
 
-  read -rp "New password (default: xkcd): " password;
+	read -rp "New password (default: xkcd): " password;
 
-  if [ -z "$password" ]; then
+	if [ -z "$password" ]; then
 
-    password="$(_xkcd)";
+		password="$(_xkcd)";
 
-  fi
+	fi
 
-  _connect <<- EOF
+	_connect <<- EOF
 
 	UPDATE ${PREFIX}users
 	SET user_pass = MD5("$password")
@@ -533,12 +541,12 @@ _password () {
 
 EOF
 
-  "$CAT" <<- EOF
+"$CAT" <<- EOF
 
-  New Wordpress Login Credentials:
+	New Wordpress Login Credentials:
 
-  Username: $username
-  Password: $password
+	Username: $username
+	Password: $password
 
 EOF
 
@@ -553,14 +561,14 @@ EOF
 # Print summary
 _summary () {
 
-  local version
+	local version
 
-  version="$("$GREP" -Po '^\s*\$wp_version\D*\K[0-9,\.]*' "${SITEPATH}/wp-includes/version.php")"
+	version="$("$GREP" -Po '^\s*\$wp_version\D*\K[0-9,\.]*' "${SITEPATH}/wp-includes/version.php")"
 
-  "$CAT" <<-EOF
+	"$CAT" <<-EOF
 
-  ${BRIGHT}Wordpress: ${GREEN}${version}${NORMAL}
-  ${BRIGHT}Connection Summary: ${GREEN}${DBUSER}:${DBNAME}${NORMAL}
+	${BRIGHT}Wordpress: ${GREEN}${version}${NORMAL}
+	${BRIGHT}Connection Summary: ${GREEN}${DBUSER}:${DBNAME}${NORMAL}
 
 EOF
 
@@ -569,13 +577,13 @@ EOF
 # Show admin users
 _users () {
 
-  _connect <<- EOF
+	_connect <<- EOF
 
-  SELECT U.*
-  FROM ${PREFIX}users U
-  INNER JOIN ${PREFIX}usermeta UM ON U.Id=UM.user_id
-  WHERE meta_key RLIKE "${PREFIX}capabilities"
-  AND meta_value RLIKE "administrator"${QUERY_TERM}
+	SELECT U.*
+	FROM ${PREFIX}users U
+	INNER JOIN ${PREFIX}usermeta UM ON U.Id=UM.user_id
+	WHERE meta_key RLIKE "${PREFIX}capabilities"
+	AND meta_value RLIKE "administrator"${QUERY_TERM}
 
 EOF
 
@@ -584,78 +592,78 @@ EOF
 # Main
 main () {
 
-  local runCommand runOption
+	local runCommand runOption
 
-  _getConfig;
+	_getConfig;
 
-  _makeDefaultsFile;
+	_makeDefaultsFile;
 
-  while getopts "hAbcilLmP:uposOqIgCL" OPTION $(_cmdline); do
+	while getopts "hAbcilLmP:uposOqIgCL" OPTION $(_cmdline); do
 
-    case $OPTION in
-      h)
-        _usage;
-        exit 0;
-        ;;
-      A)
-        runCommand="_admin";
-        ;;
-      b)
-        runCommand="_base";
-        ;;
-      c)
-        runCommand="_cron";
-        ;;
-      i)
-        runCommand="_info";
-        ;;
-      l)
-        runCommand="_login";
-        ;;
-      m)
-        runCommand="_multi";
-        ;;
-      P)
-        runCommand="_password"
-        runOption="$OPTARG";
-        ;;
-      u)
-        runCommand="_users";
-        ;;
-      p)
-        runCommand="_products";
-        ;;
-      o)
-        runCommand="_orders";
-        ;;
-      s)
-        runCommand="_shipment";
-        ;;
-      O)
-        runCommand="_cookie";
-        ;;
-      q)
-        runCommand="_quotes";
-        ;;
-      I)
-        runCommand="_invoices";
-        ;;
-      g)
-        runCommand="_categories";
-        ;;
-      C)
-        runCommand="_customers";
-        ;;
-      L)
-        QUERY_TERM="\\G";
-        ;;
-      *);;
-    esac
-  done
+		case $OPTION in
+			h)
+				_usage;
+				exit 0;
+				;;
+			A)
+				runCommand="_admin";
+				;;
+			b)
+				runCommand="_base";
+				;;
+			c)
+				runCommand="_cron";
+				;;
+			i)
+				runCommand="_info";
+				;;
+			l)
+				runCommand="_login";
+				;;
+			m)
+				runCommand="_multi";
+				;;
+			P)
+				runCommand="_password"
+				runOption="$OPTARG";
+				;;
+			u)
+				runCommand="_users";
+				;;
+			p)
+				runCommand="_products";
+				;;
+			o)
+				runCommand="_orders";
+				;;
+			s)
+				runCommand="_shipment";
+				;;
+			O)
+				runCommand="_cookie";
+				;;
+			q)
+				runCommand="_quotes";
+				;;
+			I)
+				runCommand="_invoices";
+				;;
+			g)
+				runCommand="_categories";
+				;;
+			C)
+				runCommand="_customers";
+				;;
+			L)
+				QUERY_TERM="\\G";
+				;;
+			*);;
+		esac
+	done
 
-  "$runCommand" "$runOption"
+	"$runCommand" "$runOption"
 
-  _cleanUp;
+	_cleanUp;
 
 }
 
