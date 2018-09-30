@@ -588,9 +588,16 @@ _products() {
   FROM ${PREFIX}postmeta
   GROUP BY post_id;
 
-	$(_selectBuilder ${columns[*]} ${attributes[*]})
+  CREATE TEMPORARY TABLE PROD (
+    KEY (ID)
+  )
+  SELECT *
   FROM ${PREFIX}posts WP
   INNER JOIN PROD_ATTS ON WP.ID=PROD_ATTS.post_id
+  WHERE post_type="product";
+
+	$(_selectBuilder ${columns[*]} ${attributes[*]})
+  FROM PROD
 	$(_whereBuilder ${columns[*]} ${attributes[*]})
   ${QUERY_TERM}
 
