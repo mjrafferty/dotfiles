@@ -230,15 +230,15 @@ _selectBuilder() {
 
       select+=" ${columns[s]}"
 
-      if (( s < (${#columns[*]} - 1) )); then
-        select+=","
-      fi
+        if (( s < (${#columns[*]} - 1) )); then
+          select+=","
+          fi
 
-    done
+        done
 
-    echo "${select}";
+        echo "${select}";
 
-}
+      }
 
 # Build where statement
 _whereBuilder() {
@@ -388,41 +388,41 @@ _awkConfig () {
 
       beginConfig=1;
     }
-  } else if( endConfig == 0 ){
-  gsub(/(<!\[CDATA\[|\]\]>)/,"",$1);
+} else if( endConfig == 0 ){
+gsub(/(<!\[CDATA\[|\]\]>)/,"",$1);
 
-  if (match($0,"</connection>")){
-    endConfig=1;
-  } else {
-  if (match($1,"<host>")) {
-    gsub(/(.*<host>|<\/host>.*)/,"",$1);
-    config["host"]=$1
-  }
+if (match($0,"</connection>")){
+  endConfig=1;
+} else {
+if (match($1,"<host>")) {
+  gsub(/(.*<host>|<\/host>.*)/,"",$1);
+  config["host"]=$1
+}
 else if (match($1,"<username>")) {
   gsub(/(.*<username>|<\/username>.*)/,"",$1);
   config["username"]=$1
 }
-      else if (match($1,"<password>")) {
-        gsub(/(.*<password>|<\/password>.*)/,"",$1);
-        config["password"]=$1
-      }
-    else if (match($1,"<dbname>")) {
-      gsub(/(.*<dbname>|<\/dbname>.*)/,"",$1);
-      config["dbname"]=$1
-    }
-  }
+else if (match($1,"<password>")) {
+  gsub(/(.*<password>|<\/password>.*)/,"",$1);
+  config["password"]=$1
+}
+else if (match($1,"<dbname>")) {
+  gsub(/(.*<dbname>|<\/dbname>.*)/,"",$1);
+  config["dbname"]=$1
+}
+}
 }
 if (match($1,"<table_prefix>")) {
   gsub(/(<!\[CDATA\[|\]\]>)/,"",$1);
   gsub(/(.*<table_prefix>|<\/table_prefix>.*)/,"",$1);
   config["table_prefix"]=$1
 }
-  }
+}
 END {
 
 printf("%s\n%s\n%s\n%s\n%s\n",config["host"],config["username"],config["password"],config["dbname"],config["table_prefix"]);
 
-  }'
+}'
 }
 
 # Print base url's
@@ -706,65 +706,65 @@ _logsize () {
 
   tables=("log_customer" "log_visitor" "log_visitor_info" "log_url" "log_url_info" "log_quote" "report_viewed_product_index" "report_compared_product_index" "report_event" "catalog_compare_item" "core_url_rewrite");
 
-    for (( i=0; i<${#tables[*]}; i++ )); do
-      if (( i > 0 )); then
-        tables_in+=", "
-      fi
-      tables_in+="\"${tables[i]}\"";
-    done
+  for (( i=0; i<${#tables[*]}; i++ )); do
+    if (( i > 0 )); then
+      tables_in+=", "
+    fi
+    tables_in+="\"${tables[i]}\"";
+  done
 
   _connect -e <<- EOF
 
   (SELECT
     table_name as "Table Name",
     FORMAT(table_rows,0) as "Row Count",
-		(
-			CASE
-			WHEN data_length > GB THEN CONCAT(FORMAT(data_length/GB,2)," GB")
-			WHEN data_length > MB THEN CONCAT(FORMAT(data_length/MB,2)," MB")
-			WHEN data_length > KB THEN CONCAT(FORMAT(data_length/KB,2)," KB")
-			ELSE CONCAT(data_length," B")
-			END
-		) AS "Data Length",
-		(
-			CASE
-			WHEN index_length > GB THEN CONCAT(FORMAT(index_length/GB,2)," GB")
-			WHEN index_length > MB THEN CONCAT(FORMAT(index_length/MB,2)," MB")
-			WHEN index_length > KB THEN CONCAT(FORMAT(index_length/KB,2)," KB")
-			ELSE CONCAT(index_length," B")
-			END
-		) AS "Index Length"
+    (
+      CASE
+      WHEN data_length > GB THEN CONCAT(FORMAT(data_length/GB,2)," GB")
+      WHEN data_length > MB THEN CONCAT(FORMAT(data_length/MB,2)," MB")
+      WHEN data_length > KB THEN CONCAT(FORMAT(data_length/KB,2)," KB")
+    ELSE CONCAT(data_length," B")
+    END
+    ) AS "Data Length",
+    (
+      CASE
+      WHEN index_length > GB THEN CONCAT(FORMAT(index_length/GB,2)," GB")
+      WHEN index_length > MB THEN CONCAT(FORMAT(index_length/MB,2)," MB")
+      WHEN index_length > KB THEN CONCAT(FORMAT(index_length/KB,2)," KB")
+    ELSE CONCAT(index_length," B")
+    END
+    ) AS "Index Length"
   FROM information_schema.TABLES,
-	(SELECT 1024 KB) B,
-	(SELECT 1048576 MB) C,
-	(SELECT 1073741824 GB) D
+  (SELECT 1024 KB) B,
+  (SELECT 1048576 MB) C,
+  (SELECT 1073741824 GB) D
   WHERE table_schema="${DBNAME}"
   AND table_name IN (${tables_in}))
   UNION
   (SELECT
     "Totals" as "Table Name",
     FORMAT(SUM(table_rows),0) as "Row Count",
-		(
-			CASE
-			WHEN SUM(data_length) > GB THEN CONCAT(FORMAT(SUM(data_length)/GB,2)," GB")
-			WHEN SUM(data_length) > MB THEN CONCAT(FORMAT(SUM(data_length)/MB,2)," MB")
-			WHEN SUM(data_length) > KB THEN CONCAT(FORMAT(SUM(data_length)/KB,2)," KB")
-			ELSE CONCAT(SUM(data_length)," B")
-			END
-		) AS "Data Length",
-		(
-			CASE
-			WHEN SUM(index_length) > GB THEN CONCAT(FORMAT(SUM(index_length)/GB,2)," GB")
-			WHEN SUM(index_length) > MB THEN CONCAT(FORMAT(SUM(index_length)/MB,2)," MB")
-			WHEN SUM(index_length) > KB THEN CONCAT(FORMAT(SUM(index_length)/KB,2)," KB")
-			ELSE CONCAT(SUM(index_length)," B")
-			END
-		) AS "Index Length"
+    (
+      CASE
+      WHEN SUM(data_length) > GB THEN CONCAT(FORMAT(SUM(data_length)/GB,2)," GB")
+      WHEN SUM(data_length) > MB THEN CONCAT(FORMAT(SUM(data_length)/MB,2)," MB")
+      WHEN SUM(data_length) > KB THEN CONCAT(FORMAT(SUM(data_length)/KB,2)," KB")
+    ELSE CONCAT(SUM(data_length)," B")
+    END
+    ) AS "Data Length",
+    (
+      CASE
+      WHEN SUM(index_length) > GB THEN CONCAT(FORMAT(SUM(index_length)/GB,2)," GB")
+      WHEN SUM(index_length) > MB THEN CONCAT(FORMAT(SUM(index_length)/MB,2)," MB")
+      WHEN SUM(index_length) > KB THEN CONCAT(FORMAT(SUM(index_length)/KB,2)," KB")
+    ELSE CONCAT(SUM(index_length)," B")
+    END
+    ) AS "Index Length"
   FROM information_schema.TABLES,
-	(SELECT 1024 KB) B,
-	(SELECT 1048576 MB) C,
-	(SELECT 1073741824 GB) D
-	WHERE table_schema="${DBNAME}"
+  (SELECT 1024 KB) B,
+  (SELECT 1048576 MB) C,
+  (SELECT 1073741824 GB) D
+  WHERE table_schema="${DBNAME}"
   AND table_name IN (${tables_in}))${QUERY_TERM}
 
 EOF
@@ -782,7 +782,7 @@ password = "$DBPASS"
 host = "$DBHOST"
 EOF
 
-  "$CHMOD" 600 "$DEFAULTS_FILE";
+"$CHMOD" 600 "$DEFAULTS_FILE";
 
 }
 
@@ -855,7 +855,7 @@ _password () {
 
 EOF
 
-  "$CAT" <<- EOF
+"$CAT" <<- EOF
 
   New Magento Login Credentials:
 
@@ -1037,9 +1037,9 @@ _truncate () {
   if [[ -f $SITEPATH/maintenance.flag ]]; then
     "$RM" "$SITEPATH"/maintenance.flag \
       && echo -e "\nTable cleaning complete, maintenance.flag removed";
-  fi;
+        fi;
 
-}
+      }
 
 # Show admin users
 _users () {

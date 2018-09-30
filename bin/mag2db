@@ -215,15 +215,15 @@ _selectBuilder() {
 
       select+=" ${columns[s]}"
 
-      if (( s < (${#columns[*]} - 1) )); then
-        select+=","
-      fi
+        if (( s < (${#columns[*]} - 1) )); then
+          select+=","
+          fi
 
-    done
+        done
 
-    echo "${select}";
+        echo "${select}";
 
-}
+      }
 
 # Build WHERE statement
 _whereBuilder() {
@@ -345,12 +345,12 @@ _admin () {
   if [[ "$USER" == "$user" ]]; then
     php "$SITEPATH/bin/magento" admin:user:create --admin-user "$username" --admin-password "$password" \
       --admin-email "$emailaddr" --admin-firstname "$firstname" --admin-lastname "$lastname"
-  else
-    sudo -u "$user" "$PHP" "$SITEPATH/bin/magento" admin:user:create --admin-user "$username" --admin-password "$password" \
-      --admin-email "$emailaddr" --admin-firstname "$firstname" --admin-lastname "$lastname"
-  fi
+        else
+          sudo -u "$user" "$PHP" "$SITEPATH/bin/magento" admin:user:create --admin-user "$username" --admin-password "$password" \
+            --admin-email "$emailaddr" --admin-firstname "$firstname" --admin-lastname "$lastname"
+                    fi
 
-  "$CAT" <<- EOF
+                    "$CAT" <<- EOF
 
   Username: $username
   Password: $password
@@ -613,7 +613,7 @@ password = "$DBPASS"
 host = "$DBHOST"
 EOF
 
-  "$CHMOD" 600 "$DEFAULTS_FILE";
+"$CHMOD" 600 "$DEFAULTS_FILE";
 
 }
 
@@ -686,7 +686,7 @@ _password () {
 
 EOF
 
-  "$CAT" <<- EOF
+"$CAT" <<- EOF
 
   New Magento Login Credentials:
 
