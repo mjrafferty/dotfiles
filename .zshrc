@@ -115,6 +115,17 @@ _meOrClient() {
 
 }
 
+# Alias Support functions to remove prefix
+_aliasFunctions() {
+
+  local x
+
+  for x in $(print -l ${(ok)functions} | grep "^sup_") ; do
+    alias ${x/sup_/}="$x";
+  done
+
+}
+
 # Main
 main() {
 
@@ -123,6 +134,8 @@ main() {
   [ -r ~/.commonrc ] && source ~/.commonrc;
 
   _meOrClient;
+
+  _aliasFunctions;
 
   # Expand PATH
   export PATH="${PATH}:/var/qmail/bin:/usr/local/bin:/usr/local/interworx/bin"
