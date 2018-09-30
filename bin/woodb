@@ -568,7 +568,7 @@ _products() {
   for((a=0;a<${#attributes[*]};a++)); do
 
     atts+=" \"${attributes[a]}\""
-    pivot_atts+="GROUP_CONCAT(if(WPM.meta_key=\"${attributes[a]}\",meta_value,NULL)) AS ${attributes[a]}"
+    pivot_atts+="GROUP_CONCAT(if(meta_key=\"${attributes[a]}\",meta_value,NULL)) AS ${attributes[a]}"
 
     if (( a < (${#attributes[*]} - 1) )); then
       atts+=",";
