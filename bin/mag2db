@@ -520,7 +520,7 @@ _customers() {
   local columns;
 
   columns=("entity_id" "store_id" "website_id" "email" "group_id" "is_active" "default_billing"
-  "default_shipping" "first_failure" "lock_expires" "created_at" "updated_at")
+  "default_shipping" "lock_expires" "created_at" "updated_at")
 
   _connect <<- EOF
 
