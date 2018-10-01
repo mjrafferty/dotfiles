@@ -872,7 +872,7 @@ _products () {
   local attributes atts a pivot_atts columns;
 
   attributes=( "name" "status" "visibility" "url_key" "price" "special_price" "weight" "color" "size" "image" "small_image" "thumbnail" )
-  columns=("store_id" "PROD.entity_id" "sku" "type_id" "attribute_set_name" "has_options" "created_at" "updated_at")
+  columns=("store_id" "PROD.entity_id" "sku" "type_id" "attribute_set_name" "has_options" "created_at" "updated_at" "categories")
 
   for((a=0;a<${#attributes[*]};a++)); do
 
@@ -919,6 +919,15 @@ _products () {
   and EA.attribute_code in (${atts})
   GROUP BY store_id,entity_id;
 
+  CREATE TEMPORARY TABLE PROD_CATS (
+    KEY (product_id)
+  )
+  SELECT
+		product_id,
+		GROUP_CONCAT(category_id) as categories
+	FROM ${PREFIX}catalog_category_product
+	GROUP BY product_id;
+
   CREATE TEMPORARY TABLE PROD (
     KEY (entity_id)
   )
@@ -937,6 +946,7 @@ _products () {
     type_id,    attribute_set_name,
     url_key,    status,
     price,      special_price,
+		categories,
     visibility, size,
     weight,     color,
     image,      small_image,
@@ -944,6 +954,7 @@ _products () {
     created_at, updated_at
   FROM PROD
   LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
+	LEFT JOIN PROD_CATS ON PROD.entity_id=PROD_CATS.product_id
   $(_whereBuilder ${columns[*]} ${attributes[*]})
   GROUP BY PROD_ATTS.store_id,PROD.entity_id
   ORDER BY PROD_ATTS.store_id,PROD.entity_id${QUERY_TERM}
