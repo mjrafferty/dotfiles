@@ -223,7 +223,7 @@ _selectBuilder() {
 
   local columns select s
 
-  columns=($*)
+  columns=("$@")
   select="SELECT"
 
     for ((s=0;s<${#columns[*]};s++)); do
@@ -245,7 +245,7 @@ _whereBuilder() {
 
   local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
 
-  columns=($*);
+  columns=("$@");
   operators=("RLIKE" "NOT RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
   logicals=("AND" "OR")
   tc="$(tput clear)"
@@ -523,7 +523,7 @@ _categories () {
   FROM CAT
   LEFT JOIN CAT_ATTS    ON  CAT.entity_id=CAT_ATTS.entity_id
   LEFT JOIN CAT_COUNTS  ON  CAT.entity_id=CAT_COUNTS.category_id
-  $(_whereBuilder ${columns[*]} ${attributes[*]})
+  $(_whereBuilder "${columns[@]}" "${attributes[@]}")
   GROUP BY CAT_ATTS.store_id,CAT.entity_id
   ORDER BY CAT_ATTS.store_id,CAT.entity_id${QUERY_TERM}
 
@@ -571,9 +571,9 @@ _cron () {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}cron_schedule
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   LIMIT 100${QUERY_TERM}
 
 EOF
@@ -590,9 +590,9 @@ _customers() {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}customer_entity
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   ORDER BY created_at DESC
   LIMIT 100${QUERY_TERM}
 
@@ -609,10 +609,10 @@ _emailQueue () {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}core_email_queue COQ
   INNER JOIN ${PREFIX}core_email_queue_recipients COQR on COQ.message_id=COQR.message_id
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   LIMIT 100${QUERY_TERM}
 
 EOF
@@ -680,9 +680,9 @@ _invoices() {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}sales_flat_invoice
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   ORDER BY created_at DESC
   LIMIT 100${QUERY_TERM}
 
@@ -819,10 +819,10 @@ _orders () {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}sales_flat_order SFO
   INNER JOIN ${PREFIX}sales_flat_order_payment SFOP on SFO.entity_id=SFOP.parent_id
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   ORDER BY created_at DESC
   LIMIT 100${QUERY_TERM}
 
@@ -955,7 +955,7 @@ _products () {
   FROM PROD
   LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
 	LEFT JOIN PROD_CATS ON PROD.entity_id=PROD_CATS.product_id
-  $(_whereBuilder ${columns[*]} ${attributes[*]})
+  $(_whereBuilder "${columns[@]}" "${attributes[@]}")
   GROUP BY PROD_ATTS.store_id,PROD.entity_id
   ORDER BY PROD_ATTS.store_id,PROD.entity_id${QUERY_TERM}
 
@@ -973,9 +973,9 @@ _quotes () {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}sales_flat_quote
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   ORDER BY created_at DESC
   LIMIT 100${QUERY_TERM}
 
@@ -993,9 +993,9 @@ _shipment () {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}sales_flat_shipment
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   ORDER BY created_at DESC
   LIMIT 100${QUERY_TERM}
 
@@ -1061,11 +1061,11 @@ _users () {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}admin_role U
   LEFT JOIN ${PREFIX}admin_role P ON U.parent_id=P.role_id
   RIGHT JOIN ${PREFIX}admin_user ON U.user_id=admin_user.user_id
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   ORDER BY role_name,lognum DESC
   LIMIT 100${QUERY_TERM}
 
@@ -1160,7 +1160,6 @@ main () {
   if [[ -n "$runCommand" ]]; then
     "$runCommand" "$runOption"
   else
-    printf "No Command specified.\n\n"
     _usage;
   fi
 
