@@ -102,6 +102,8 @@ function _soapv1 () {
 
     $result = $client->call($session, 'product.list');
 
+    printf("\nRequest:\n");
+    echo $client->__getLastRequest();
 
     printf("\nResult:\n");
     var_dump($result);
@@ -139,6 +141,8 @@ function _soapv2 () {
 
     $result = $client->catalogProductList($session);
 
+    printf("\nRequest:\n");
+    echo $client->__getLastRequest();
 
     printf("\nResult:\n");
     var_dump($result);
@@ -175,6 +179,9 @@ function _soapv2wsi () {
     echo $client->__getLastResponse();
 
     $result = $client->catalogProductList((object)array('sessionId' => $session->result, 'filters' => null));
+
+    printf("\nRequest:\n");
+    echo $client->__getLastRequest();
 
     printf("\nResult:\n");
     var_dump($result->result);
