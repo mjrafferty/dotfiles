@@ -35,7 +35,7 @@ main () {
   logentries=$("$SED" -n 's/.*'"$ip"'.*\[uri \"\([^"]*\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
 
   # Find unique uris
-  uris=($(echo "$logentries" | "$CUT" -f2 | "$CUT" -d/ -f1-4 | "$SORT" -u ));
+  mapfile uris < <(echo "$logentries" | "$CUT" -f2 | "$CUT" -d/ -f1-4 | "$SORT" -u );
 
   echo "<IfModule mod_security2.c>";
   # Print LocationMatch block for each uri
@@ -43,7 +43,7 @@ main () {
 
 		local uniqueid;
 
-    uniqueid=($(echo "$logentries" | "$GREP" "${uris[$i]}"| "$CUT" -f1));
+    mapfile uniqueid <(echo "$logentries" | "$GREP" "${uris[$i]}"| "$CUT" -f1);
 
     echo "  <LocationMatch ${uris[$i]} >";
     echo "    # Ticket ID: $TICKET"

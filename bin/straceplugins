@@ -8,7 +8,7 @@ readonly SORT='/bin/sort'
 
 main () {
 
-  straceopened ${ARGA[*]} \
+  straceopened "${ARGA[@]}" \
     | "$SED" -n \
     -e 's_app/code/local/\([^/]*/[^/]*\)/.*_\1_p' \
     -e 's_app/code/community/\([^/]*/[^/]*\)/.*_\1_p' \
@@ -16,7 +16,6 @@ main () {
     | "$SORT" \
     | uniq -c \
     | "$SORT" -hr
-
 
 }
 

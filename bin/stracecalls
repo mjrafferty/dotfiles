@@ -47,7 +47,7 @@ main () {
 
 	echo;
 	(printf "syscall\ttime\tquantity\n%s\t%s\t%s\n" "----------" "----------" "----------"
-	"$ZLESS" ${ARGA[*]} \
+	"$ZLESS" "${ARGA[@]}" \
 		| _awkStuff  \
 		| "$SORT" -k2nr) \
 		| "$HEAD" -n30 \

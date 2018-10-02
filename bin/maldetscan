@@ -197,7 +197,7 @@ _duplicateScans () {
 
   mapfile -t scanlist < <("$PGREP" -lf clamdscan | "$GREP" -Po ' -f \K\S*');
 
-  mapfile -t relevant_scans < <("$GREP" -Hl "$filepath" ${scanlist[*]});
+  mapfile -t relevant_scans < <("$GREP" -Hl "$filepath" "${scanlist[@]}");
 
   if [[ -n ${relevant_scans[1]} ]]; then
     echo "yes";

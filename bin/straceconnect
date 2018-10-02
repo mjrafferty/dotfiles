@@ -33,7 +33,7 @@ _awkStuff() {
 
 main () {
 
-  "$ZLESS" ${ARGA[*]} \
+  "$ZLESS" "${ARGA[@]}" \
     | "$GREP" -no ' connect(.*'  \
     | _awkStuff \
     | "$COLUMN" -t

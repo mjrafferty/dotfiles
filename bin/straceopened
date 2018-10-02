@@ -9,7 +9,7 @@ readonly ZLESS='/usr/bin/zless'
 
 main () {
 
-  "$ZLESS" ${ARGA[*]} \
+  "$ZLESS" "${ARGA[@]}" \
     | "$GREP" -Poh ' (open|stat)\(\"(/chroot/(home|local)/[^/]*/[^/]*/[^/]*/|)\K[^"]*(?!.* = -1)' \
     | "$SORT" -u
 

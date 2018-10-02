@@ -39,7 +39,7 @@ main () {
 
   config="${sitepath}/sites/default/settings.php"
 
-  [[ -f ${config} ]] || (echo -e "\nCould not "$FIND" Drupal install at ${sitepath}\n"; return 1);
+  [[ -f ${config} ]] || (echo -e "\nCould not $FIND Drupal install at ${sitepath}\n"; return 1);
 
   # Version Information
   if "$GREP" -q "define('VERSION'" ${sitepath}/modules/system/system.module; then

@@ -15,7 +15,7 @@ main () {
 
   echo;
 
-  zgrep -h " = -1 E" ${ARGA[*]}\
+  zgrep -h " = -1 E" "${ARGA[@]}" \
     | "$GREP" -Ev "( (access|lstat|stat)\(|(EAGAIN|EOPNOTSUPP|EINPROGRESS))" \
     | "$LESS" -SF
 
