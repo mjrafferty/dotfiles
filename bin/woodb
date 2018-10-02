@@ -209,7 +209,7 @@ _selectBuilder() {
 
   local columns select s
 
-  columns=($*)
+  columns=("$@")
   select="SELECT"
 
     for ((s=0;s<${#columns[*]};s++)); do
@@ -231,7 +231,7 @@ _whereBuilder() {
 
   local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
 
-  columns=($*);
+  columns=("$@");
   operators=("RLIKE" "NOT RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
   logicals=("AND" "OR")
   tc="$(tput clear)"
@@ -351,7 +351,7 @@ EOF
 # Add an administrator
 _admin () {
 
-  local user firstname lastname emailaddr username;
+  local firstname lastname emailaddr username;
 
   read -rp "Firstname: " firstname;
   read -rp "Lastname: " lastname;
@@ -596,9 +596,9 @@ _products() {
   INNER JOIN PROD_ATTS ON WP.ID=PROD_ATTS.post_id
   WHERE post_type="product";
 
-	$(_selectBuilder ${columns[*]} ${attributes[*]})
+	$(_selectBuilder "${columns[@]}" "${attributes[@]}")
   FROM PROD
-	$(_whereBuilder ${columns[*]} ${attributes[*]})
+	$(_whereBuilder "${columns[@]}" "${attributes[*]}")
   ${QUERY_TERM}
 
 EOF

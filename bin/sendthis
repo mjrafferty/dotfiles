@@ -72,7 +72,7 @@ _compressFiles() {
 
   printf "Compressing files..."
 
-  "$TAR" -cf - ${FILES[*]} 2> /dev/null | pigz > "${FILES[0]}${ARCHIVE_SUFFIX}"
+  "$TAR" -cf - "${FILES[@]}" 2> /dev/null | pigz > "${FILES[0]}${ARCHIVE_SUFFIX}"
 
   printf "Done\n"
 
@@ -107,7 +107,7 @@ _send() {
   subject="$1"
   address="$2"
 
-  for x in ${FILES[0]}${ARCHIVE_SUFFIX}*; do
+  for x in "${FILES[0]}${ARCHIVE_SUFFIX}"*; do
 
     if "$GREP" -Fqi 'CentOS release 6' /etc/redhat-release; then
 

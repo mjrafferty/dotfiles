@@ -565,21 +565,21 @@ _act() {
     case $cmd in
 
       "tail")
-        "$TAIL" -fn0 ${LOG_FILES[*]} | tai64nlocal;
+        "$TAIL" -fn0 "${LOG_FILES[@]}" | tai64nlocal;
         ;;
 
       "less")
         for log in ${LOG_FILES[*]}; do
-          "$TAI64NLOCAL" < <("$ZLESS" $log) | $PAGER;
+          "$TAI64NLOCAL" < <("$ZLESS" "$log") | $PAGER;
         done
         ;;
 
       "cat")
-        "$TAI64NLOCAL" < <("$ZLESS" ${LOG_FILES[*]});
+        "$TAI64NLOCAL" < <("$ZLESS" "${LOG_FILES[@]}");
         ;;
 
       *)
-        "$TAIL" -n10 ${LOG_FILES[*]} | "$TAI64NLOCAL" | $PAGER;
+        "$TAIL" -n10 "${LOG_FILES[@]}" | "$TAI64NLOCAL" | $PAGER;
         ;;
     esac
 

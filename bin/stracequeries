@@ -12,31 +12,31 @@ main () {
 
   local x connections;
 
-	mapfile -t connections < <("$CAT" $ARGS | "$GREP" -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))');
+  mapfile -t connections < <("$CAT" "$ARGS" | "$GREP" -Pon 'connect\(\K[0-9]*(?=.*(htons\(3306\)|mysql.sock))');
 
-	if [[ -z "$connections"  || -n ${ARGA[1]} ]]; then
+  if [[ -z "${connections[0]}"  || -n ${ARGA[1]} ]]; then
 
-		cat $ARGS \
-			|grep -Po '(write|sendto)\(\d*, "\\?[^\\]*(\\[^\\]*){3}\\.(\\.)?\K[S,C,U,\(,D,I,R,A][^"]*", ' \
-			| "$SED" -e 's_", $_;_' -e 's/\\r/ /g' -e 's/\\n/ /g' -e 's/\\t/ /g' \
-			| "$LESS" -SF
+    cat "${ARGA[@]}" \
+      |grep -Po '(write|sendto)\(\d*, "\\?[^\\]*(\\[^\\]*){3}\\.(\\.)?\K[S,C,U,\(,D,I,R,A][^"]*", ' \
+      | "$SED" -e 's_", $_;_' -e 's/\\r/ /g' -e 's/\\n/ /g' -e 's/\\t/ /g' \
+      | "$LESS" -SF
 
-		exit;
+  else
 
-	fi
+    for x in ${connections[*]}; do
 
-	for x in ${connections[*]}; do
+      local file_desc;
 
-		local file_desc;
+      file_desc=("${x/:/ }");
 
-		file_desc=(${x/:/ });
+      tail -n +"${file_desc[0]}" "${ARGA[0]}" \
+        | "$GREP" -Po '(write|sendto)\('"${file_desc[1]}"', "\\?[^\\]*(\\[^\\]*){2}\\.(\\.)?\K.*", ' \
+        | "$SED" -e 's_", $_;_' -e 's/\\r/ /g' -e 's/\\n/ /g' -e 's/\\t/ /g'
 
-		tail -n +"${file_desc[0]}" "${ARGA[0]}" \
-			| "$GREP" -Po '(write|sendto)\('"${file_desc[1]}"', "\\?[^\\]*(\\[^\\]*){2}\\.(\\.)?\K.*", ' \
-			| "$SED" -e 's_", $_;_' -e 's/\\r/ /g' -e 's/\\n/ /g' -e 's/\\t/ /g'
+    done \
+      | "$LESS" -SF
 
-	done \
-		| "$LESS" -SF
+  fi
 
 }
 

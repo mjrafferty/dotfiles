@@ -208,7 +208,7 @@ _selectBuilder() {
 
   local columns select s
 
-  columns=($*)
+  columns=("$@")
   select="SELECT"
 
     for ((s=0;s<${#columns[*]};s++)); do
@@ -230,7 +230,7 @@ _whereBuilder() {
 
   local where tc columns operators logicals initialized value selection logicals_prompt columns_prompt operators_prompt
 
-  columns=($*);
+  columns=("$@");
   operators=("RLIKE" "NOT RLIKE" "=" "!=" "<=" ">=" ">" "<" "IS NOT NULL" "IS NULL" "IN" "NOT IN")
   logicals=("AND" "OR")
   tc="$(tput clear)"
@@ -457,7 +457,7 @@ _categories () {
   FROM CAT
   LEFT JOIN CAT_ATTS    ON  CAT.entity_id=CAT_ATTS.entity_id
   LEFT JOIN CAT_COUNTS  ON  CAT.entity_id=CAT_COUNTS.category_id
-  $(_whereBuilder ${columns[*]} ${attributes[*]})
+  $(_whereBuilder "${columns[@]}" "${attributes[@]}")
   GROUP BY CAT_ATTS.store_id,CAT.entity_id
   ORDER BY CAT_ATTS.store_id,CAT.entity_id${QUERY_TERM}
 
@@ -505,9 +505,9 @@ _cron () {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}cron_schedule
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   LIMIT 100${QUERY_TERM}
 
 EOF
@@ -524,9 +524,9 @@ _customers() {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}customer_entity
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   ORDER BY created_at DESC
   LIMIT 100${QUERY_TERM}
 
@@ -583,9 +583,9 @@ _invoices() {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}sales_invoice
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   ORDER BY created_at DESC
   LIMIT 100${QUERY_TERM}
 
@@ -650,10 +650,10 @@ _orders () {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}sales_order SO
   INNER JOIN ${PREFIX}sales_order_payment SOP on SO.entity_id=SOP.parent_id
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   ORDER BY created_at DESC
   LIMIT 100${QUERY_TERM}
 
@@ -786,7 +786,7 @@ _products () {
   FROM PROD
   LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
 	LEFT JOIN PROD_CATS ON PROD.entity_id=PROD_CATS.product_id
-  $(_whereBuilder ${columns[*]} ${attributes[*]})
+  $(_whereBuilder "${columns[@]}" "${attributes[@]}")
   GROUP BY PROD_ATTS.store_id,PROD.entity_id
   ORDER BY PROD_ATTS.store_id,PROD.entity_id${QUERY_TERM}
 
@@ -804,9 +804,9 @@ _quotes () {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}quote
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   ORDER BY created_at DESC
   LIMIT 100${QUERY_TERM}
 
@@ -824,9 +824,9 @@ _shipment () {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}sales_shipment
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   ORDER BY created_at DESC
   LIMIT 100${QUERY_TERM}
 
@@ -859,11 +859,11 @@ _users () {
 
   _connect <<- EOF
 
-  $(_selectBuilder ${columns[*]})
+  $(_selectBuilder "${columns[@]}")
   FROM ${PREFIX}authorization_role U
   INNER JOIN ${PREFIX}authorization_role P ON U.parent_id=P.role_id
   INNER JOIN ${PREFIX}admin_user ON U.user_id=admin_user.user_id
-  $(_whereBuilder ${columns[*]})
+  $(_whereBuilder "${columns[@]}")
   ORDER BY role_name,lognum DESC
   LIMIT 100${QUERY_TERM}
 
