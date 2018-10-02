@@ -1160,7 +1160,8 @@ main () {
   if [[ -n "$runCommand" ]]; then
     "$runCommand" "$runOption"
   else
-    echo "No command specified."
+    printf "No Command specified.\n\n"
+    _usage;
   fi
 
   _cleanUp;
