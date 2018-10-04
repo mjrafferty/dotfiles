@@ -53,6 +53,8 @@ _sourceClient() {
     PATH="$x";
   done
 
+  source /etc/nexcess/bash_functions.sh
+
 }
 
 # Basic setup to be run on shell startup
