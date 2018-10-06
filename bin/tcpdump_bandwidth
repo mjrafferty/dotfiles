@@ -1,0 +1,62 @@
+#! /bin/awk -f
+
+BEGIN {
+
+
+}
+
+{
+  if($15 != "" ) {
+
+    if (match($5,/192.240.190.45/)) {
+
+      gsub(/\.[0-9]*$/,"",$3);
+      incoming[$3]+=$15
+      incoming_total+=$15
+
+    } else if (match($3,/192.240.190.45/)) {
+
+      gsub(/\.[0-9]*:/,"",$5);
+      outgoing[$5]+=$15
+      outgoing_total+=$15
+
+    }
+
+    total+=$15
+  }
+
+}
+
+END {
+
+  ## Begin Sorting ##
+  for (i in incoming) {
+    tmpidxi[sprintf("%16d ", incoming[i]),i] = i
+  }
+  num = asorti(tmpidxi)
+
+  for (i in outgoing) {
+    tmpidxo[sprintf("%16d ", outgoing[i]),i] = i
+  }
+  num = asorti(tmpidxo)
+  ## End Sorting ##
+
+  printf "\nIncoming:\n";
+
+  for (i=num; i>=num-20; i--) {
+    split(tmpidxi[i], tmpi, " ")
+    printf("%-16s %7d MB\n", tmpi[2], tmpi[1]/1024/1024)
+  }
+  printf("%16s %6d MB\n", "In Total:", incoming_total/1024/1024);
+
+  printf "\nOutgoing:\n"
+
+  for (i=num; i>=num-20; i--) {
+    split(tmpidxo[i], tmpo, " ")
+    printf("%-16s %7d MB\n", tmpo[2], tmpo[1]/1024/1024)
+  }
+
+  printf("%16s %6d MB\n", "Out Total:", outgoing_total/1024/1024);
+  printf("%16s %6d MB\n", "Total:", total/1024/1024);
+
+}
