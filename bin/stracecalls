@@ -40,11 +40,6 @@ _awkStuff () {
 
 main () {
 
-	if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-		_usage;
-		return 0;
-	fi
-
 	echo;
 	(printf "syscall\ttime\tquantity\n%s\t%s\t%s\n" "----------" "----------" "----------"
 	"$ZLESS" "${ARGA[@]}" \

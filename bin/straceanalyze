@@ -8,11 +8,6 @@ readonly LESS='/usr/bin/less'
 
 main () {
 
-  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
-  fi
-
   local file;
 
   file="${ARGA[0]}"
