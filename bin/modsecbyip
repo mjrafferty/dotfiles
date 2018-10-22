@@ -32,7 +32,7 @@ main () {
   ip="${ARGS[0]}";
 
   # Grab necessary data from log
-  logentries=$("$SED" -n 's/.*'"$ip"'.*\[uri \"\([^"]*\).*unique_id \"\([^"]*\).*/\2\t\1/p' error.log);
+  logentries=$("$SED" -n 's/.*'"$ip"'.*\[uri \"\([^"]*\).*unique_id \"\([^"]*\).*/\2\t\1/p' error{,-ssl}.log);
 
   # Find unique uris
   uris=($(echo "$logentries" | "$CUT" -f2 | "$CUT" -d/ -f1-4 | "$SORT" -u ));
