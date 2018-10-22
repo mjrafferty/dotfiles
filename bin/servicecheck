@@ -310,7 +310,7 @@ _nginx() {
 # Main
 main () {
 
-  PROCESS_DATA=$("$PS" -C php-fpm,httpd,memcached,redis-server,mysqld,haproxy,varnishd,pound,nginx -o user,pid,cmd);
+  PROCESS_DATA=$("$PS" -C php-fpm,httpd,httpd.worker,memcached,redis-server,mysqld,haproxy,varnishd,pound,nginx -o user,pid,cmd);
 
   while getopts "hpaMrmHvP" OPTION $(_cmdline); do
 
