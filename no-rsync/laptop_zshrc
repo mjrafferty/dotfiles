@@ -12,7 +12,12 @@ alias orphanfiles="find / \( \
   -path /etc/ca-certificates -o \
   -path /var/cache -o \
   -path /usr/share/mime -o \
-  -path /var/lib/pacman \) \
+  -path /var/lib/pacman -o \
+  -path /var/log/journal -o \
+  -path /var/lib/dkms/nvidia/340.106 -o \
+  -path /var/lib/sddm/.cache -o \
+  -path /var/lib/sddm/.nv/GLCache \
+  \) \
   -prune -o -type f -exec pacman -Qo {} + 2>&1 >&- > /dev/null | sed 's/.*owns //'"
 
 export SSH_ASKPASS=/usr/bin/ksshaskpass
