@@ -570,12 +570,12 @@ _act() {
 
       "less")
         for log in ${LOG_FILES[*]}; do
-          "$TAI64NLOCAL" < <("$ZLESS" "$log") | $PAGER;
+          "$TAI64NLOCAL" < <("$ZLESS" -f "$log") | $PAGER;
         done
         ;;
 
       "cat")
-        "$TAI64NLOCAL" < <("$ZLESS" "${LOG_FILES[@]}");
+        "$TAI64NLOCAL" < <("$ZLESS" -f "${LOG_FILES[@]}");
         ;;
 
       *)
