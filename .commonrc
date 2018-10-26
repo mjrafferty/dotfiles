@@ -18,10 +18,17 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   unalias grep;
 fi
 
+# Source zsh-histdb
+if [[ -e "${HOME}/.zsh-histdb" ]]; then
+	source $HOME/.zsh-histdb/sqlite-history.zsh
+	autoload -Uz add-zsh-hook
+	add-zsh-hook precmd histdb-update-outcome
+fi
+
+
 
 ##### Environment Variables #####
 export LANG="en_US.UTF-8"
-export HISTTIMEFORMAT="%F %T "
 export PAGER="/usr/bin/less -inSFr"
 export EDITOR="/usr/bin/vim"
 export VISUAL="/usr/bin/vim"
@@ -63,8 +70,6 @@ if [[ -x "/usr/bin/colordiff" ]]; then
 fi
 
 alias login='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@mellon-login01.us-midwest-1.nexcess.net'
-alias loginold='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@login.tmr.nexcess.net'
-alias login2='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@login.otr.nexcess.net'
 
 alias dotpush="cd ~/dotfiles && git add . && git commit -a -m updates && git push && cd -"
 

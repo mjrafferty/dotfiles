@@ -148,3 +148,9 @@
 [submodule ".vim/bundle/gruvbox"]
 	path = .vim/bundle/gruvbox
 	url = https://github.com/morhetz/gruvbox
+[submodule ".histdb"]
+	path = .histdb
+	url = https://github.com/larkery/zsh-histdb
+[submodule ".zsh-histdb"]
+	path = .zsh-histdb
+	url = git@github.com:mjrafferty/zsh-histdb
