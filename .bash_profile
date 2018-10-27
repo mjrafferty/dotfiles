@@ -18,6 +18,7 @@ fi
   -path "*/.functions.sh" -o \
   -path "*/.mytop" -o \
   -path "*/*history" -o \
+  -path "*/.zsh-history.db" -o \
   -path "*/*SNAPS*" -o \
   -path "*/.ssh" -o \
   -path "*/.zlogin*" -o \
