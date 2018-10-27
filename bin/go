@@ -166,6 +166,12 @@ _login () {
     -o StrictHostKeyChecking=no \
     -o PasswordAuthentication=no \
     "$username@$DESTINATION" || return 1;
+
+    "$RSYNC" -ql -rpt \
+      -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
+      "$username@$DESTINATION":~/.zsh-history.db ~/dotfiles/.zsh-history.db 2> /dev/null
+
+
 }
 
 # Uses findsite to identify destination
