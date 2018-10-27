@@ -2,9 +2,9 @@
 
 # Automatically open and close tmux session when connecting via SSH
 if type tmux &> /dev/null && [[  -z $TMUX && -n $SSH_TTY ]]; then
- (tmux has-session -t "${HOME/*\//}" && tmux attach -t "${HOME/*\//}") \
-   || tmux new-session -s "${HOME/*\//}"
- exit;
+  (tmux has-session -t "${HOME/*\//}" && tmux attach -t "${HOME/*\//}") \
+    || tmux new-session -s "${HOME/*\//}"
+  exit;
 fi
 
 unsetopt nocaseglob;
@@ -20,9 +20,9 @@ fi
 
 # Source zsh-histdb
 if [[ -e "${HOME}/.zsh-histdb" ]]; then
-	source $HOME/.zsh-histdb/sqlite-history.zsh
-	autoload -Uz add-zsh-hook
-	add-zsh-hook precmd histdb-update-outcome
+  source $HOME/.zsh-histdb/sqlite-history.zsh
+  autoload -Uz add-zsh-hook
+  add-zsh-hook precmd histdb-update-outcome
 fi
 
 
