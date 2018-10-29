@@ -109,16 +109,9 @@ _send() {
 
   for x in "${FILES[0]}${ARCHIVE_SUFFIX}"*; do
 
-    if "$GREP" -Fqi 'CentOS release 6' /etc/redhat-release; then
+    echo "See Attached" \
+      | "$MAIL" -s "$subject" -a "$x" "$address";
 
-      echo "See Attached" \
-        | "$MAIL" -s "$subject" -a "$x" "$address";
-
-    else
-
-      "$MAIL" -s "$subject" "$address" < "$x";
-
-    fi;
   done
 
 }
