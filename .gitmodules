@@ -1,156 +1,208 @@
 [submodule "no-rsync/bash-it"]
 	path = no-rsync/bash-it
 	url = https://github.com/Bash-it/bash-it
+	branch = master
 [submodule "Vundle.vim"]
 	path = Vundle.vim
 	url = https://github.com/VundleVim/Vundle.vim
+	branch = master
 [submodule "ultisnips"]
 	path = ultisnips
 	url = https://github.com/SirVer/ultisnips
+	branch = master
 [submodule "vim-snippets"]
 	path = vim-snippets
 	url = https://github.com/honza/vim-snippets
+	branch = master
 [submodule "ale"]
 	path = ale
 	url = https://github.com/w0rp/ale
+	branch = master
 [submodule "ctrlp.vim"]
 	path = ctrlp.vim
 	url = https://github.com/kien/ctrlp.vim
+	branch = master
 [submodule "delimitMate"]
 	path = delimitMate
 	url = https://github.com/Raimondi/delimitMate
+	branch = master
 [submodule "vim-plugin-minibufexpl"]
 	path = vim-plugin-minibufexpl
 	url = https://github.com/weynhamz/vim-plugin-minibufexpl
+	branch = master
 [submodule "nerdtree"]
 	path = nerdtree
 	url = https://github.com/scrooloose/nerdtree
+	branch = master
 [submodule "nerdcommenter"]
 	path = nerdcommenter
 	url = https://github.com/scrooloose/nerdcommenter
+	branch = master
 [submodule "YouCompleteMe"]
 	path = YouCompleteMe
 	url = https://github.com/Valloric/YouCompleteMe
+	branch = master
 [submodule "vim-autoformat"]
 	path = vim-autoformat
 	url = https://github.com/Chiel92/vim-autoformat
+	branch = master
 [submodule "vim-indent-guides"]
 	path = vim-indent-guides
 	url = https://github.com/nathanaelkane/vim-indent-guides
+	branch = master
 [submodule "vim-multiple-cursors"]
 	path = vim-multiple-cursors
 	url = https://github.com/terryma/vim-multiple-cursors
+	branch = master
 [submodule "tagbar"]
 	path = tagbar
 	url = https://github.com/majutsushi/tagbar
+	branch = master
 [submodule "vim-surround"]
 	path = vim-surround
 	url = https://github.com/tpope/vim-surround
+	branch = master
 [submodule "vim-easymotion"]
 	path = vim-easymotion
 	url = https://github.com/easymotion/vim-easymotion
+	branch = master
 [submodule "undotree"]
 	path = undotree
 	url = https://github.com/mbbill/undotree
+	branch = master
 [submodule "vim-easytags"]
 	path = vim-easytags
 	url = https://github.com/oepn/vim-easytags
+	branch = master
 [submodule "vim-misc"]
 	path = vim-misc
 	url = https://github.com/xolox/vim-misc
+	branch = master
 [submodule "vim-gitgutter"]
 	path = vim-gitgutter
 	url = https://github.com/airblade/vim-gitgutter
+	branch = master
 [submodule "vim-fugitive"]
 	path = vim-fugitive
 	url = https://github.com/tpope/vim-fugitive
+	branch = master
 [submodule "lightline.vim"]
 	path = lightline.vim
 	url = https://github.com/itchyny/lightline.vim
+	branch = master
 [submodule "rainbow_parentheses.vim"]
 	path = rainbow_parentheses.vim
 	url = https://github.com/junegunn/rainbow_parentheses.vim
+	branch = master
 [submodule ".vim/bundle/Vundle.vim"]
 	path = .vim/bundle/Vundle.vim
 	url = https://github.com/VundleVim/Vundle.vim
+	branch = master
 [submodule ".vim/bundle/ultisnips"]
 	path = .vim/bundle/ultisnips
 	url = https://github.com/SirVer/ultisnips
+	branch = master
 [submodule ".vim/bundle/vim-snippets"]
 	path = .vim/bundle/vim-snippets
 	url = https://github.com/honza/vim-snippets
+	branch = master
 [submodule ".vim/bundle/ale"]
 	path = .vim/bundle/ale
 	url = https://github.com/w0rp/ale
+	branch = master
 [submodule ".vim/bundle/ctrlp.vim"]
 	path = .vim/bundle/ctrlp.vim
 	url = https://github.com/kien/ctrlp.vim
+	branch = master
 [submodule ".vim/bundle/delimitMate"]
 	path = .vim/bundle/delimitMate
 	url = https://github.com/Raimondi/delimitMate
+	branch = master
 [submodule ".vim/bundle/vim-plugin-minibufexpl"]
 	path = .vim/bundle/vim-plugin-minibufexpl
 	url = https://github.com/weynhamz/vim-plugin-minibufexpl
+	branch = master
 [submodule ".vim/bundle/nerdtree"]
 	path = .vim/bundle/nerdtree
 	url = https://github.com/scrooloose/nerdtree
+	branch = master
 [submodule ".vim/bundle/nerdcommenter"]
 	path = .vim/bundle/nerdcommenter
 	url = https://github.com/scrooloose/nerdcommenter
+	branch = master
 [submodule ".vim/bundle/YouCompleteMe"]
 	path = .vim/bundle/YouCompleteMe
 	url = https://github.com/Valloric/YouCompleteMe
+	branch = master
 [submodule ".vim/bundle/vim-autoformat"]
 	path = .vim/bundle/vim-autoformat
 	url = https://github.com/Chiel92/vim-autoformat
+	branch = master
 [submodule ".vim/bundle/vim-indent-guides"]
 	path = .vim/bundle/vim-indent-guides
 	url = https://github.com/nathanaelkane/vim-indent-guides
+	branch = master
 [submodule ".vim/bundle/vim-multiple-cursors"]
 	path = .vim/bundle/vim-multiple-cursors
 	url = https://github.com/terryma/vim-multiple-cursors
+	branch = master
 [submodule ".vim/bundle/tagbar"]
 	path = .vim/bundle/tagbar
 	url = https://github.com/majutsushi/tagbar
+	branch = master
 [submodule ".vim/bundle/vim-surround"]
 	path = .vim/bundle/vim-surround
 	url = https://github.com/tpope/vim-surround
+	branch = master
 [submodule ".vim/bundle/vim-easymotion"]
 	path = .vim/bundle/vim-easymotion
 	url = https://github.com/easymotion/vim-easymotion
+	branch = master
 [submodule ".vim/bundle/undotree"]
 	path = .vim/bundle/undotree
 	url = https://github.com/mbbill/undotree
+	branch = master
 [submodule ".vim/bundle/vim-easytags"]
 	path = .vim/bundle/vim-easytags
 	url = https://github.com/oepn/vim-easytags
+	branch = master
 [submodule ".vim/bundle/vim-misc"]
 	path = .vim/bundle/vim-misc
 	url = https://github.com/xolox/vim-misc
+	branch = master
 [submodule ".vim/bundle/vim-gitgutter"]
 	path = .vim/bundle/vim-gitgutter
 	url = https://github.com/airblade/vim-gitgutter
+	branch = master
 [submodule ".vim/bundle/vim-fugitive"]
 	path = .vim/bundle/vim-fugitive
 	url = https://github.com/tpope/vim-fugitive
+	branch = master
 [submodule ".vim/bundle/lightline.vim"]
 	path = .vim/bundle/lightline.vim
 	url = https://github.com/itchyny/lightline.vim
+	branch = master
 [submodule ".vim/bundle/rainbow_parentheses.vim"]
 	path = .vim/bundle/rainbow_parentheses.vim
 	url = https://github.com/junegunn/rainbow_parentheses.vim
+	branch = master
 [submodule ".zprezto"]
 	path = .zprezto
 	url = https://github.com/sorin-ionescu/prezto.git
+	branch = master
 [submodule ".vim/bundle/supertab"]
 	path = .vim/bundle/supertab
 	url = https://github.com/ervandew/supertab
+	branch = master
 [submodule ".vim/bundle/gruvbox"]
 	path = .vim/bundle/gruvbox
 	url = https://github.com/morhetz/gruvbox
+	branch = master
 [submodule ".histdb"]
 	path = .histdb
 	url = https://github.com/larkery/zsh-histdb
+	branch = master
 [submodule ".zsh-histdb"]
 	path = .zsh-histdb
 	url = git@github.com:mjrafferty/zsh-histdb
+	branch = master
