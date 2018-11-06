@@ -117,6 +117,19 @@ _findsite () {
 }
 ################################ END CHRIS ORLANDO'S WORK ##############################################
 
+_syncHistory() {
+
+  local username ident_file
+
+  username="$1"
+  ident_file="$2"
+
+  "$RSYNC" -ql -rpt \
+    -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
+    "$username@$DESTINATION":~/.zsh-history.db ~/dotfiles/.zsh-history.db 2> /dev/null &
+
+}
+
 # Copy files and login to the destination
 _login () {
 
@@ -154,7 +167,7 @@ _login () {
       --exclude '*SNAPS*' \
       ~/dotfiles/ \
       -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-      "$username@$DESTINATION":~/ 2> /dev/null || echo "rsync failed";
+      "$username@$DESTINATION":~/ 2> /dev/null &
 
   fi;
 
@@ -167,10 +180,7 @@ _login () {
     -o PasswordAuthentication=no \
     "$username@$DESTINATION" || return 1;
 
-    "$RSYNC" -ql -rpt \
-      -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-      "$username@$DESTINATION":~/.zsh-history.db ~/dotfiles/.zsh-history.db 2> /dev/null
-
+  _syncHistory "$username" "$ident_file";
 
 }
 
