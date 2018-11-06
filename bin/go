@@ -145,7 +145,7 @@ _login () {
 
   ident_file="${HOME}/.ssh/nex${USER}.id_rsa";
 
-  if [[ -d "$HOME"/dotfiles/ ]]; then
+  (if [[ -d "$HOME"/dotfiles/ ]]; then
 
     if [[ $("$STAT" -c '%a' ~/dotfiles/) -ne 700 ]]; then
       "$CHMOD" 700 ~/dotfiles;
@@ -167,12 +167,12 @@ _login () {
       --exclude '*SNAPS*' \
       ~/dotfiles/ \
       -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-      "$username@$DESTINATION":~/ 2> /dev/null &
+      "$username@$DESTINATION":~/ 2> /dev/null
 
   fi;
 
   "$RM" -f "$HOME"/dotfiles/action.sh
-  "$RM" -f "$HOME"/dotfiles/.enviornment.sh
+  "$RM" -f "$HOME"/dotfiles/.enviornment.sh ) &
 
   "$SSH" -i "${ident_file}" \
     -o UserKnownHostsFile=/dev/null \
