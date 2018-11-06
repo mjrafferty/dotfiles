@@ -15,7 +15,7 @@ EOF
 }
 
 _timetofirstbyte () {
-  "$CURL" --insecure -H "Accept-Encoding: gzip" -Lso /dev/null -w "HTTP: %{http_code} Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total}\n" "$1";
+  "$CURL" --insecure -A "TTFB test" -H "Accept-Encoding: gzip" -Lso /dev/null -w "HTTP: %{http_code} Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total}\n" "$1";
 }
 
 
