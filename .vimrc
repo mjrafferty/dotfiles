@@ -14,7 +14,6 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'SirVer/ultisnips'
 Plugin 'honza/vim-snippets'
 Plugin 'w0rp/ale'
-Plugin 'kien/ctrlp.vim'
 Plugin 'Raimondi/delimitMate'
 Plugin 'weynhamz/vim-plugin-minibufexpl'
 Plugin 'scrooloose/nerdtree'
@@ -34,6 +33,7 @@ Plugin 'itchyny/lightline.vim'
 Plugin 'junegunn/rainbow_parentheses.vim'
 Plugin 'morhetz/gruvbox'
 Plugin 'sheerun/vim-polyglot'
+Plugin 'junegunn/fzf.vim'
 call vundle#end()                       " required
 
 "-------------------------

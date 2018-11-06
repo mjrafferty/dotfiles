@@ -57,3 +57,9 @@ organize_pictures() {
 
   done 2> pics_error.log
 }
+
+# fzf via Homebrew
+if [ -e /usr/share/fzf/completion.zsh ]; then
+  source /usr/share/fzf/key-bindings.zsh
+  source /usr/share/fzf/completion.zsh
+fi
