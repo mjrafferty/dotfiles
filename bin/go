@@ -145,6 +145,7 @@ _login () {
 
   ident_file="${HOME}/.ssh/nex${USER}.id_rsa";
 
+  # Run rsync asynchronously. Sleep code must be present in .zshrc to prevent errors
   (if [[ -d "$HOME"/dotfiles/ ]]; then
 
     if [[ $("$STAT" -c '%a' ~/dotfiles/) -ne 700 ]]; then
