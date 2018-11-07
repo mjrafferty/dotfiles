@@ -421,7 +421,7 @@ u () {
   # Give permissions on my home dir to new user
   $SETFACL -R -m u:"$user":rX "$HOME" 2> /dev/null
   $SETFACL -m u:"$user":rwX "$HOME"
-  $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history.db,clients,.vimfiles} 2> /dev/null
+  $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history.*,clients,.vimfiles} 2> /dev/null
 
   # Switch user
   $SUDO HOME="$HOME" TMUX="$TMUX" -u "$user" "$MYSHELL"

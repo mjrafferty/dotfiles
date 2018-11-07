@@ -63,3 +63,5 @@ if [ -e /usr/share/fzf/completion.zsh ]; then
   source /usr/share/fzf/key-bindings.zsh
   source /usr/share/fzf/completion.zsh
 fi
+
+#HISTDB_ENABLE_LOG=1;

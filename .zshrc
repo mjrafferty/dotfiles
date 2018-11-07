@@ -1,5 +1,7 @@
 #! /bin/zsh
 
+HISTDB_ENABLE_LOG=1
+
 # Login as root
 _autoRoot() {
 
