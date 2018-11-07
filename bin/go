@@ -124,9 +124,11 @@ _syncHistory() {
   username="$1"
   ident_file="$2"
 
-  "$RSYNC" -ql -rpt \
+  ("$RSYNC" -ql -rpt \
     -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-    "$username@$DESTINATION":~/.zsh-history.db ~/dotfiles/.zsh-history.db 2> /dev/null &
+    "$username@$DESTINATION":~/.zsh-history.log ~/dotfiles/.zsh-history.log 2> /dev/null
+  cat ~/dotfiles/.zsh-history.log | sqlite3 ~/dotfiles/.zsh-history.db
+  rm ~/dotfiles/.zsh-history.log) &
 
 }
 
