@@ -127,8 +127,10 @@ _syncHistory() {
   ("$RSYNC" -ql -rpt \
     -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
     "$username@$DESTINATION":~/.zsh-history.log ~/dotfiles/.zsh-history.log 2> /dev/null
-  cat ~/dotfiles/.zsh-history.log | sqlite3 ~/dotfiles/.zsh-history.db
-  rm ~/dotfiles/.zsh-history.log) &
+  if [[ -e ~/dotfiles/.zsh-history.log ]]; then
+    cat ~/dotfiles/.zsh-history.log | sqlite3 ~/dotfiles/.zsh-history.db
+    rm ~/dotfiles/.zsh-history.log
+  fi) &
 
 }
 
@@ -148,34 +150,41 @@ _login () {
   ident_file="${HOME}/.ssh/nex${USER}.id_rsa";
 
   # Run rsync asynchronously. Sleep code must be present in .zshrc to prevent errors
-  (if [[ -d "$HOME"/dotfiles/ ]]; then
+  if [[ -d "$HOME"/dotfiles/ ]]; then
 
     if [[ $("$STAT" -c '%a' ~/dotfiles/) -ne 700 ]]; then
       "$CHMOD" 700 ~/dotfiles;
     fi
 
     "$RSYNC" --compress --quiet --links --force --delete --chmod=o-rwx -rpt \
+      --exclude 'clients' \
+      --exclude 'no-rsync' \
+      --exclude '.git' \
+      --exclude '.bash_history' \
       --exclude '.mysql_history' \
       --exclude '.rediscli_history' \
       --exclude '.zsh_history' \
-      --exclude '.bash_history' \
-      --exclude '.ssh' \
-      --exclude 'clients' \
       --exclude '.mytop' \
-      --exclude '.git' \
-      --exclude 'YouCompleteMe' \
-      --exclude 'vim-autoformat' \
-      --exclude 'no-rsync' \
-      --exclude '.vimfiles' \
       --exclude '*SNAPS*' \
-      ~/dotfiles/ \
+      --exclude '.ssh' \
+      --exclude '.vimfiles' \
+      --exclude '.vim' \
       -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
+      ~/dotfiles/ \
       "$username@$DESTINATION":~/ 2> /dev/null
+
+    # Run this asynchronously since it won't be needed right away
+    "$RSYNC" --compress --quiet --links --force --delete --chmod=o-rwx -rpt \
+      --exclude 'bundle/vim-autoformat/samples' \
+      --exclude 'bundle/YouCompleteMe' \
+      -e "ssh -q -i ~/.ssh/nexmrafferty.id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
+      ~/dotfiles/.vim/ \
+      "$username@$DESTINATION":~/.vim/ 2> /dev/null &
 
   fi;
 
   "$RM" -f "$HOME"/dotfiles/action.sh
-  "$RM" -f "$HOME"/dotfiles/.enviornment.sh ) &
+  "$RM" -f "$HOME"/dotfiles/.enviornment.sh
 
   "$SSH" -i "${ident_file}" \
     -o UserKnownHostsFile=/dev/null \
