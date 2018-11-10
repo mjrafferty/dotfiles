@@ -130,18 +130,8 @@ _aliasFunctions() {
 
 }
 
-_waitForRsync() {
-
-  while pgrep -u "$USER" rsync &> /dev/null; do
-    sleep 0.1;
-  done
-
-}
-
 # Main
 main() {
-
-  _waitForRsync;
 
   _rootOrSudo;
 

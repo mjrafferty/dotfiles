@@ -164,6 +164,7 @@ _login () {
       --exclude '.mysql_history' \
       --exclude '.rediscli_history' \
       --exclude '.zsh_history' \
+      --exclude '.zsh-histdb/.*' \
       --exclude '.mytop' \
       --exclude '*SNAPS*' \
       --exclude '.ssh' \
