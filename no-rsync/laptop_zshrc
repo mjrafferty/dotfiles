@@ -1,3 +1,4 @@
+#HISTDB_ENABLE_LOG=1;
 source ~/dotfiles/.commonrc
 
 # Find orphan files not owned by any package
@@ -63,5 +64,3 @@ if [ -e /usr/share/fzf/completion.zsh ]; then
   source /usr/share/fzf/key-bindings.zsh
   source /usr/share/fzf/completion.zsh
 fi
-
-#HISTDB_ENABLE_LOG=1;
