@@ -500,3 +500,11 @@ echo print_r(unserialize('${value}'),true);
 EOF
 
 }
+
+## Share a file with a quick and dirty web server
+shareFile() {
+
+  { printf "HTTP/1.0 200 OK\nContent-Length: %s\r\n\r\n" "$(wc -c "$1")"; cat "$1"; } \
+		| nc -l -p 8000
+
+}
