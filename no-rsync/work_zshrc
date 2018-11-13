@@ -19,3 +19,12 @@ export PATH="/usr/local/bin:/usr/local/Cellar/php@7.1/7.1.17/bin:$PATH:/Users/ma
 alias sshhome="ssh -p 8076 matt@mattrafferty.asuscomm.com -t ssh matt@192.168.1.210"
 alias sshpi="ssh -p 8076 matt@mattrafferty.asuscomm.com"
 #kitty + complete setup zsh | source /dev/stdin
+
+update_brew_links() {
+	for x in $(find /usr/local/Cellar/*/*/bin/*); do
+		bin="${x##*/}";
+		if [[ ! -e /usr/local/bin/${bin} ]]; then
+			ln $x /usr/local/bin/${bin};
+		fi
+	done
+}
