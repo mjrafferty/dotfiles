@@ -1,3 +1,4 @@
+DO_PROMPT_GAME=1;
 #HISTDB_ENABLE_LOG=1;
 source ~/dotfiles/.commonrc
 
@@ -64,3 +65,4 @@ if [ -e /usr/share/fzf/completion.zsh ]; then
   source /usr/share/fzf/key-bindings.zsh
   source /usr/share/fzf/completion.zsh
 fi
+
