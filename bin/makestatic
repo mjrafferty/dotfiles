@@ -162,6 +162,7 @@ main () {
   local keep_list command;
 
   command="_makeStatic";
+  arg=0;
 
   while getopts "hrd" OPTION $(_cmdline); do
 
@@ -176,24 +177,25 @@ main () {
         ;;
       d)
         command="_deleteStatic";
+        arg=1;
         ;;
       *);;
     esac
   done
 
-  if [[ -n "${ARGA[0]}" ]]; then
+  if [[ -n "${ARGA[arg]}" ]]; then
 
-    if [[ -f "${ARGA[0]}" ]]; then
+    if [[ -f "${ARGA[arg]}" ]]; then
 
       while read -r url; do
         "$command" "$url";
-      done < "${ARGA[0]}"
+      done < "${ARGA[arg]}"
 
       keep_list=1;
 
-    elif [[ "${ARGA[0]}" =~ sitemap ]]; then
+    elif [[ "${ARGA[arg]}" =~ sitemap ]]; then
 
-      _getSitemap "${ARGA[0]}";
+      _getSitemap "${ARGA[arg]}";
 
       if [[ -s "${URL_LIST}" ]]; then
 
@@ -205,7 +207,7 @@ main () {
 
     else
 
-      "$command" "${ARGA[0]}";
+      "$command" "${ARGA[arg]}";
 
     fi
 
