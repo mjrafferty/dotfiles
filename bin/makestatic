@@ -101,11 +101,11 @@ _deleteStatic() {
 
   if [[ "$uri" == *\/ ]]; then
 
-    rm "${STATIC_CACHE_DIR}${uri}index.html"
+    rm "${STATIC_CACHE_DIR}${uri}index.html" 2> /dev/null
 
   else
 
-    rm "${STATIC_CACHE_DIR}${uri}"
+    rm "${STATIC_CACHE_DIR}${uri}" 2> /dev/null
 
   fi \
     || echo "URL not cached."
