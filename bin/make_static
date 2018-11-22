@@ -1,0 +1,13 @@
+#! /bin/bash
+
+domain="${1}";
+uri="${2}";
+uri2="$(echo "$uri" | tr '/' '-' )"
+
+curl -s "${domain}${uri}" > "static${uri2}.html"
+
+cat <<- EOF
+RewriteCond %{REQUEST_URI} ^${uri}$ [NC]
+RewriteCond %{QUERY_STRING} ^$
+RewriteRule ^(.*)$ /static${uri2}.html [L]
+EOF

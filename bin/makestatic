@@ -1,0 +1,238 @@
+#! /bin/bash
+
+# Script Arguments
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+# Configurable Variables
+STATIC_CACHE_DIR="static_pages"
+USER_AGENT="Nexcess static page generator"
+
+# Alias executables to prevent PATH issues
+
+# Necessary Global Variables
+URL_LIST=""
+
+# Print usage
+_usage() {
+
+  cat <<- EOF
+  Make static copy of pages for temporary caching.
+
+  Usage:
+
+  makestatic [options] url/list_file
+
+  -r|--rewrites
+  -d|--delete
+  -h|--help
+
+EOF
+
+}
+
+# Convert long command line options into short ones for getopts
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--rewrites"|"-r")
+        args="${args}-r "
+        ;;
+      "--delete"|"-d")
+        args="${args}-d "
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+  done
+
+  echo "$args";
+
+}
+
+# Get user name from current dir
+_getusr() {
+  pwd | grep -Po "/((chroot/)?home/|local/)\K[^/]*"
+}
+
+# Create static page
+_makeStatic() {
+
+  domain="$(echo "${1}" | sed 's_\(https\?://\?[^/]*\).*_\1_')";
+  uri="$(echo "${1}" | sed 's_\(https\?://\)\?[^/]*\(.*\)_\2_')";
+
+  tmpfile=$(mktemp);
+  code=$(curl -s -A "${USER_AGENT}" "${domain}${uri}?${RANDOM}" -w "%{http_code}" -o "${tmpfile}");
+
+  if [[ "${code}" == "200" ]]; then
+
+    if [[ "$uri" == *\/ ]]; then
+
+      mkdir -p "${STATIC_CACHE_DIR}${uri}"
+      mv "${tmpfile}" "${STATIC_CACHE_DIR}${uri}index.html"
+
+    else
+
+      mkdir -p "$(dirname "${STATIC_CACHE_DIR}${uri}")"
+      mv "${tmpfile}" "${STATIC_CACHE_DIR}${uri}"
+
+    fi
+
+  else
+
+    echo "${code} ${1}"
+
+  fi
+
+}
+
+# Delete static page
+_deleteStatic() {
+
+  uri="$(echo "${1}" | sed 's_\(https\?://\)\?[^/]*\(.*\)_\2_')";
+
+  if [[ "$uri" == *\/ ]]; then
+
+    rm "${STATIC_CACHE_DIR}${uri}index.html"
+
+  else
+
+    rm "${STATIC_CACHE_DIR}${uri}"
+
+  fi \
+    || echo "URL not cached."
+
+}
+
+# Create .htaccess with no cache rules so that static files aren't cached by browsers
+_makeHtaccess() {
+
+cat <<- EOF > "${STATIC_CACHE_DIR}/.htaccess"
+Header Set Pragma "no-cache"
+Header Set Expires "Thu, 1 Jan 1970 00:00:00 GMT"
+Header Set Cache-Control "max-age=0, no-store, no-cache, must-revalidate"
+Header Unset ETag
+FileETag None
+EOF
+}
+
+# Show rewrites that should be added to .htaccess file to enable usage of static files.
+_printRewrites() {
+
+	echo "Add this to top of .htaccess";
+cat <<- EOF
+
+## Nexcess static page cache ##
+RewriteCond %{REQUEST_METHOD} !POST
+RewriteCond %{QUERY_STRING} ^$
+RewriteCond %{DOCUMENT_ROOT}/${STATIC_CACHE_DIR}/%{REQUEST_URI} -f
+RewriteRule ^(.*)$ /${STATIC_CACHE_DIR}/\$1 [L]
+
+RewriteCond %{REQUEST_METHOD} !POST
+RewriteCond %{QUERY_STRING} ^$
+RewriteCond %{DOCUMENT_ROOT}/${STATIC_CACHE_DIR}/%{REQUEST_URI} -d
+RewriteRule ^(.*)$ /${STATIC_CACHE_DIR}/\$1index.html [L]
+## Nexcess static page cache ##
+EOF
+
+}
+
+# Download and parse sitemap into list of url's
+_getSitemap() {
+
+  URL_LIST=$(mktemp);
+
+  curl -s "${1}" \
+    | xmllint --format - \
+    | grep -Po '<loc>\K.*(?=</loc>)' > "${URL_LIST}"
+
+}
+
+# Main
+main () {
+
+  local keep_list command;
+
+  command="_makeStatic";
+
+  while getopts "hrd" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      r)
+        _printRewrites;
+        exit 0;
+        ;;
+      d)
+        command="_deleteStatic";
+        ;;
+      *);;
+    esac
+  done
+
+  if [[ -n "${ARGA[0]}" ]]; then
+
+    if [[ -f "${ARGA[0]}" ]]; then
+
+      while read -r url; do
+        "$command" "$url";
+      done < "${ARGA[0]}"
+
+      keep_list=1;
+
+    elif [[ "${ARGA[0]}" =~ sitemap ]]; then
+
+      _getSitemap "${ARGA[0]}";
+
+      if [[ -s "${URL_LIST}" ]]; then
+
+        while read -r url; do
+          "$command" "$url";
+        done < "${URL_LIST}"
+
+      fi
+
+    else
+
+      "$command" "${ARGA[0]}";
+
+    fi
+
+  else
+
+    exit 1;
+
+  fi
+
+  if [[ -d "${STATIC_CACHE_DIR}" ]]; then
+
+    _makeHtaccess;
+
+    chown -R "$(_getusr)". ${STATIC_CACHE_DIR}
+
+    find "${STATIC_CACHE_DIR}" -type d -exec chmod 755 {} +
+    find "${STATIC_CACHE_DIR}" -type f -exec chmod 644 {} +
+
+  fi
+
+  # Cleanup
+  if [[ "${keep_list}" != 1 && -n "${URL_LIST}" && -e "${URL_LIST}" ]]; then
+    rm "${URL_LIST}"
+  fi
+
+	_printRewrites;
+
+}
+
+main;
