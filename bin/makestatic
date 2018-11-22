@@ -86,9 +86,11 @@ _makeStatic() {
 
     fi
 
+    echo "Cached ${1}";
+
   else
 
-    echo "${code} ${1}"
+    echo "Error: ${code} ${1}"
 
   fi
 
@@ -233,7 +235,7 @@ main () {
     rm "${URL_LIST}"
   fi
 
-	_printRewrites;
+	[[ "${arg}" == 0 ]] && _printRewrites;
 
 }
 
