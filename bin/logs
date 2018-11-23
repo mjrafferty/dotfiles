@@ -457,34 +457,34 @@ _transfer() {
 
   if [[ "$serverAll" == "YES" && "$deep" == "YES" ]]; then
 
-    mapfile -t files < <("$FIND" /home/*/var/*/logs/transfer* -type f 2> /dev/null)
+			mapfile -t files < <( "$FIND" {/var/log/interworx/{,*/},/home/*/var/}*/logs/transfer* -type f 2> /dev/null)
 
   elif [[ "$serverAll" == "YES" && "$deep" == "NO" ]]; then
 
-    mapfile -t files < <("$FIND" {/var/log/interworx/*,/home/*/var/*/logs}/transfer{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
+    mapfile -t files < <( "$FIND" {/var/log/interworx/{,*/},/home/*/var/}*/logs/transfer{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
 
   elif [[ "$userAll" == "YES" && "$deep" == "YES" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <("$FIND" /home/"$user"/var/*/logs/transfer* -type f 2> /dev/null)
+			mapfile -t files < <( "$FIND" {/var/log/interworx/{,*/},/home/"$user"/var/}*/logs/transfer* -type f 2> /dev/null)
     fi
 
   elif [[ "$userAll" == "YES" && "$deep" == "NO" ]]; then
 
     if [[ -n "$user" ]]; then
-      mapfile -t files < <("$FIND" /home/"$user"/var/*/logs/transfer{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
+			mapfile -t files < <( "$FIND" {/var/log/interworx/{,*/},/home/"$user"/var/}*/logs/transfer{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
     fi
 
   elif [[ "$deep" == "YES" ]]; then
 
     if [[ -n "$domain" ]]; then
-      mapfile -t files < <("$FIND" /home/"$user"/var/"$domain"/logs/transfer* -type f 2> /dev/null)
+			mapfile -t files < <( "$FIND" {/var/log/interworx/{,"$domain"/},/home/"$user"/var/}"$domain"/logs/transfer* -type f 2> /dev/null)
     fi
 
   else
 
     if [[ -n "$domain" ]]; then
-      mapfile -t files < <("$FIND" /home/"$user"/var/"$domain"/logs/transfer{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
+			mapfile -t files < <( "$FIND" {/var/log/interworx/{,"$domain"/},/home/"$user"/var/}"$domain"/logs/transfer{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
     fi
 
   fi
@@ -516,7 +516,8 @@ _domain(){
 
   elif [[ "$serverAll" == "YES" && "$deep" == "NO" ]]; then
 
-    mapfile -t files < <("$FIND" {/var/log/interworx/*,/home/*/var/*/logs}/error{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
+    mapfile -t files < <("$FIND" /home/*/var/{php-fpm,*/logs}/error{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
+    mapfile -t files < <( "$FIND" {/var/log/interworx/{,*/},/home/*/var/}*/logs/error{,-{,ssl-}"$("$DATE" "+%F")"}.log -type f 2> /dev/null)
 
   elif [[ "$userAll" == "YES" && "$deep" == "YES" ]]; then
 
