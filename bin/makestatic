@@ -77,18 +77,20 @@ _makeStatic() {
     if [[ "$uri" == *\/ ]]; then
 
       mkdir -p "${STATIC_CACHE_DIR}${uri}"
-      mv "${tmpfile}" "${STATIC_CACHE_DIR}${uri}index.html"
+      mv "${tmpfile}" "${STATIC_CACHE_DIR}${uri}index.static"
 
     else
 
       mkdir -p "$(dirname "${STATIC_CACHE_DIR}${uri}")"
-      mv "${tmpfile}" "${STATIC_CACHE_DIR}${uri}"
+      mv "${tmpfile}" "${STATIC_CACHE_DIR}${uri}.static"
 
     fi
 
+    echo "Cached ${1}";
+
   else
 
-    echo "${code} ${1}"
+    echo "Error: ${code} ${1}"
 
   fi
 
@@ -133,13 +135,13 @@ cat <<- EOF
 ## Nexcess static page cache ##
 RewriteCond %{REQUEST_METHOD} !POST
 RewriteCond %{QUERY_STRING} ^$
-RewriteCond %{DOCUMENT_ROOT}/${STATIC_CACHE_DIR}/%{REQUEST_URI} -f
-RewriteRule ^(.*)$ /${STATIC_CACHE_DIR}/\$1 [L]
+RewriteCond %{DOCUMENT_ROOT}/${STATIC_CACHE_DIR}/%{REQUEST_URI}.static -f
+RewriteRule ^(.*)$ /${STATIC_CACHE_DIR}/\$1.static [L]
 
 RewriteCond %{REQUEST_METHOD} !POST
 RewriteCond %{QUERY_STRING} ^$
 RewriteCond %{DOCUMENT_ROOT}/${STATIC_CACHE_DIR}/%{REQUEST_URI} -d
-RewriteRule ^(.*)$ /${STATIC_CACHE_DIR}/\$1index.html [L]
+RewriteRule ^(.*)$ /${STATIC_CACHE_DIR}/\$1index.static [L]
 ## Nexcess static page cache ##
 EOF
 
@@ -233,7 +235,7 @@ main () {
     rm "${URL_LIST}"
   fi
 
-	_printRewrites;
+	[[ "${arg}" == 0 ]] && _printRewrites;
 
 }
 
