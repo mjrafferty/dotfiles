@@ -710,7 +710,7 @@ _logsize () {
     if (( i > 0 )); then
       tables_in+=", "
     fi
-    tables_in+="\"${tables[i]}\"";
+    tables_in+="\"${PREFIX}${tables[i]}\"";
   done
 
   _connect -e <<- EOF
