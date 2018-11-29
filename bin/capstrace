@@ -12,9 +12,16 @@ readonly PIPE_PREFIX="${TEMP_DIR}/nexcess_strace_pipe-"
 readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
 readonly STRACE_FLAGS="-fTrvs200000"
 
+if [[ -n "${SUDO_USER}" ]]; then
+  readonly RUNNING_AS="${SUDO_USER}";
+else
+  readonly RUNNING_AS="${USER}";
+fi
+
 # Alias executables to prevent PATH issues
 readonly CAT='/bin/cat'
 readonly CHMOD='/bin/chmod'
+readonly CHOWN='/bin/chown'
 readonly CP='/bin/cp'
 readonly DATE='/bin/date'
 readonly DD='/bin/dd'
@@ -207,6 +214,7 @@ _strace () {
   fi
 
   "$CHMOD" 600 "${OUTPUT_DIR}"/*
+  "$CHOWN" "${RUNNING_AS}." "${OUTPUT_DIR}"/*
 
 }
 
@@ -272,6 +280,7 @@ _setup() {
   # Create output directory if necessary and restrict perms
   [[ -d $OUTPUT_DIR ]] || "$MKDIR" "${OUTPUT_DIR}";
   "$CHMOD" 700 "${OUTPUT_DIR}"
+  "$CHOWN" "${RUNNING_AS}." "${OUTPUT_DIR}"
 
   # Add the needed code to any files that don't currently have it
   for x in ${FILES[*]}; do
