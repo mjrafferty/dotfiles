@@ -7,7 +7,7 @@ readonly ARGA=("$@")
 # Configurable Variables
 readonly TMP_EXT=".nexcess.bak"
 readonly OUTPUT_DIR="${HOME}/nex_strace"
-readonly TEMP_DIR="/var/tmp"
+readonly TEMP_DIR="/dev/shm"
 readonly PIPE_PREFIX="${TEMP_DIR}/nexcess_strace_pipe-"
 readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
 readonly STRACE_FLAGS="-fTrvs200000"
