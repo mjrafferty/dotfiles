@@ -423,6 +423,10 @@ u () {
   $SETFACL -m u:"$user":rwX "$HOME"
   $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history.*,.zsh-histdb,clients,.vimfiles} 2> /dev/null
 
+  chmod 700 "$HOME"
+  chmod 700 "${HOME}/.ssh"
+  chmod 600 "${HOME}/.ssh/authorized_keys"
+
   # Switch user
   $SUDO HOME="$HOME" TMUX="$TMUX" -u "$user" "$MYSHELL"
 
@@ -431,10 +435,6 @@ u () {
 
   # Revoke the permissions given to that user
   $SETFACL -R -x u:"$user" ~/
-
-  chmod 700 "$HOME"
-  chmod 700 "${HOME}/.ssh"
-  chmod 600 "${HOME}/.ssh/authorized_keys"
 
 }
 
