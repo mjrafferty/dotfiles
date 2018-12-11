@@ -1,4 +1,4 @@
-DO_PROMPT_GAME=1;
+#DO_PROMPT_GAME=1;
 #HISTDB_ENABLE_LOG=1;
 source ~/dotfiles/.commonrc
 
