@@ -415,8 +415,8 @@ _magento(){
   local f=();
   local l x user domain;
 
-  user=$(pwd | "$GREP" -Po '^(/chroot)?/home/\K[^/]*');
-  domain=$(pwd | "$GREP" -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
+	user=$(pwd | "$GREP" -Po '^/((chroot/)?home/|local/)\K[^/]*');
+  domain=$(pwd | "$GREP" -Po '^/((chroot/)?home/|local/)[^/]*/\K[^/]*');
 
   l="$1"
 
@@ -452,8 +452,8 @@ _transfer() {
   serverAll="$2"
   userAll="$3"
 
-  user=$(pwd | "$GREP" -Po '^(/chroot)?/home/\K[^/]*');
-  domain=$(pwd | "$GREP" -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
+	user=$(pwd | "$GREP" -Po '^/((chroot/)?home/|local/)\K[^/]*');
+  domain=$(pwd | "$GREP" -Po '^/((chroot/)?home/|local/)[^/]*/\K[^/]*');
 
   if [[ "$serverAll" == "YES" && "$deep" == "YES" ]]; then
 
@@ -507,8 +507,8 @@ _domain(){
   serverAll="$2";
   userAll="$3"
 
-  user=$(pwd | "$GREP" -Po '^(/chroot)?/home/\K[^/]*');
-  domain=$(pwd | "$GREP" -Po '^(/chroot)?/home/[^/]*/\K[^/]*');
+	user=$(pwd | "$GREP" -Po '^/((chroot/)?home/|local/)\K[^/]*');
+  domain=$(pwd | "$GREP" -Po '^/((chroot/)?home/|local/)[^/]*/\K[^/]*');
 
   if [[ "$serverAll" == "YES" && "$deep" == "YES" ]]; then
 
