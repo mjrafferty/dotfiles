@@ -222,7 +222,7 @@ _watchScan() {
   # Find clamd process id
   clamdpid=$("$PGREP" -u clamav clamd);
 
-  SCAN_TIME="$("$PS" h -o stime -p "$scanpid")"
+  SCAN_TIME="$("$PS" h -o lstart -p "$scanpid")"
   start_time=$("$DATE" '+%s' -d "$SCAN_TIME")
 
   while [ -d /proc/"$scanpid" ]; do
