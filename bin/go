@@ -32,6 +32,7 @@ readonly STAT='/usr/bin/stat'
 readonly TR='/usr/bin/tr'
 readonly WHOIS='/usr/bin/whois'
 readonly XXD='/usr/bin/xxd'
+readonly LOGIN_ID="$(uuidgen | cut -c1-6)";
 
 # Necessary Global Variables
 TICKET="";
@@ -124,12 +125,12 @@ _syncHistory() {
   username="$1"
   ident_file="$2"
 
-  ("$RSYNC" -ql -rpt \
+  ("$RSYNC" -ql -rpt --remove-source-files \
     -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-    "$username@$DESTINATION":~/.zsh-history.log ~/dotfiles/.zsh-history.log 2> /dev/null
-  if [[ -e ~/dotfiles/.zsh-history.log ]]; then
-    cat ~/dotfiles/.zsh-history.log | sqlite3 ~/dotfiles/.zsh-history.db
-    rm ~/dotfiles/.zsh-history.log
+    "$username@$DESTINATION":~/.zsh-history"${LOGIN_ID}".log "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log" 2> /dev/null
+  if [[ -e "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log" ]]; then
+    cat "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log" | sqlite3 ~/dotfiles/.zsh-history.db
+    rm "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log"
   fi) &
 
 }
@@ -164,6 +165,7 @@ _login () {
       --exclude '.mysql_history' \
       --exclude '.rediscli_history' \
       --exclude '.zsh_history' \
+      --exclude '.zsh-history*.log' \
       --exclude '.zsh-histdb/.*' \
       --exclude '.mytop' \
       --exclude '*SNAPS*' \
@@ -272,6 +274,7 @@ _setEnv () {
 
   echo "export TICKET=${TICKET}" >> "$HOME"/dotfiles/.environment.sh;
 	echo "export MY_IP=\"${MY_IP}\"" >> "$HOME"/dotfiles/.environment.sh;
+	echo "export LOGIN_ID=\"${LOGIN_ID}\"" >> "$HOME"/dotfiles/.environment.sh;
 
 }
 

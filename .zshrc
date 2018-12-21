@@ -65,9 +65,6 @@ _mySetup () {
   # Create directories for files used by vim if necessary
     mkdir -p ~/.vimfiles/{backup,swp,undo}
 
-  # Source environment variables provided by login script
-  [ -r ~/.environment.sh ] && source ~/.environment.sh;
-
   # Create directory for preserving client/ticket data
     mkdir -p "$HOME"/clients/"$TICKET";
     export TICKETDIR="${HOME}/clients/${TICKET}";
@@ -132,6 +129,9 @@ _aliasFunctions() {
 
 # Main
 main() {
+
+  # Source environment variables provided by login script
+  [ -r ~/.environment.sh ] && source ~/.environment.sh;
 
   _rootOrSudo;
 
