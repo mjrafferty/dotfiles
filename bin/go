@@ -10,6 +10,8 @@ readonly DOMAIN_DB_CREATE="CREATE TABLE IF NOT EXISTS LOCATIONS ( domain PRIMARY
   CREATE TABLE IF NOT EXISTS TICKETS (ticket_id NOT NULL,domain NOT NULL,PRIMARY KEY (ticket_id,domain),FOREIGN KEY (domain) REFERENCES LOCATIONS(domain));"
 readonly IP_REGEX='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
 
+readonly IDENT_FILE="${HOME}/.ssh/nex${USER}.id_rsa";
+
 # Alias executables to prevent PATH issues
 readonly AWK='/bin/awk'
 readonly CAT='/bin/cat'
@@ -48,32 +50,32 @@ _usage () {
 
 
   destination         Location to login to. Typically should be
-                      a domain name, but also accepts IP's or
-                      abbreviated nexcess.net and nextmp.net names.
-                              i.e. go sip1-208
+  a domain name, but also accepts IP's or
+  abbreviated nexcess.net and nextmp.net names.
+  i.e. go sip1-208
 
   ticket              Ticket ID. Sets TICKET environment
-                      variable on destination. Subsequent logins
-                      can skip can be done with just ticket ID.
-                            i.e. go ASDF-1234
+  variable on destination. Subsequent logins
+  can skip can be done with just ticket ID.
+  i.e. go ASDF-1234
 
   commands            List of commands to run on login. Currently
-                      supported options are:
+  supported options are:
 
-                        htacc     Edit .htaccess for domain
+  htacc     Edit .htaccess for domain
 
-                        cdlogs    Go to site's log directory
+  cdlogs    Go to site's log directory
 
-                        editphp   Edit the user's php-fpm pool
+  editphp   Edit the user's php-fpm pool
 
-                        vhost     Edit the site's vhost
+  vhost     Edit the site's vhost
 
-                        exit      Exit the server after performing prior actions.
+  exit      Exit the server after performing prior actions.
 
   Flags:
 
-    -n|--no-cache       Skip cache lookup. Useful if incorrect server is cached.
-    -p|--permanent      Permanently store domain in cache.
+  -n|--no-cache       Skip cache lookup. Useful if incorrect server is cached.
+  -p|--permanent      Permanently store domain in cache.
 
 EOF
 
@@ -118,37 +120,85 @@ _findsite () {
 }
 ################################ END CHRIS ORLANDO'S WORK ##############################################
 
-_syncHistory() {
+_getHistory() {
 
-  local username ident_file
+  local username
 
   username="$1"
-  ident_file="$2"
 
-  ("$RSYNC" -ql -rpt --remove-source-files \
-    -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
+  "$RSYNC" -ql -rpt --remove-source-files \
+    -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
     "$username@$DESTINATION":~/.zsh-history"${LOGIN_ID}".log "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log" 2> /dev/null
   if [[ -e "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log" ]]; then
     cat "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log" | sqlite3 ~/dotfiles/.zsh-history.db
     rm "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log"
-  fi) &
+  fi
 
 }
 
-# Copy files and login to the destination
-_login () {
-
-  local ident_file ssh_ver username;
+_getRemoteUser() {
 
   ssh_ver=$("$CURL" "${DESTINATION}:22" 2> /dev/null | "$GREP" -Po 'OpenSSH_\K\d');
 
   if (( ssh_ver > 5 )); then
-    username="$USER";
+    echo "$USER";
   else
-    username="nex$USER";
+    echo "nex$USER";
   fi
 
-  ident_file="${HOME}/.ssh/nex${USER}.id_rsa";
+}
+
+_mainRsync() {
+
+  "$RSYNC" --compress --quiet --links --force --delete --chmod=o-rwx -rpt \
+    --exclude '.bash_history' \
+    --exclude 'clients' \
+    --exclude '.git' \
+    --exclude '.mysql_history' \
+    --exclude '.mytop' \
+    --exclude 'no-rsync' \
+    --exclude '.rediscli_history' \
+    --exclude '*SNAPS*' \
+    --exclude '.ssh' \
+    --exclude '.vim' \
+    --exclude '.vimfiles' \
+    --exclude '.zsh-histdb/.*' \
+    --exclude '.zsh_history' \
+    --exclude '.zsh-history*.log' \
+    -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
+    ~/dotfiles/ \
+    "$1@$DESTINATION":~/ 2> /dev/null
+
+}
+
+_asyncRsync() {
+
+  # Run this asynchronously since it won't be needed right away
+  "$RSYNC" --compress --quiet --links --force --delete --chmod=o-rwx -rpt \
+    --exclude 'bundle/vim-autoformat/samples' \
+    --exclude 'bundle/YouCompleteMe' \
+    -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
+    ~/dotfiles/.vim/ \
+    "$1@$DESTINATION":~/.vim/ 2> /dev/null
+
+}
+
+_login() {
+
+  "$SSH" -i "${IDENT_FILE}" \
+    -o UserKnownHostsFile=/dev/null \
+    -o StrictHostKeyChecking=no \
+    -o PasswordAuthentication=no \
+    "$1@$DESTINATION" || return 1;
+
+}
+
+# Copy files and login to the destination
+_loginWrapper () {
+
+  local username;
+
+  username="$(_getRemoteUser)"
 
   # Run rsync asynchronously. Sleep code must be present in .zshrc to prevent errors
   if [[ -d "$HOME"/dotfiles/ ]]; then
@@ -157,45 +207,17 @@ _login () {
       "$CHMOD" 700 ~/dotfiles;
     fi
 
-    "$RSYNC" --compress --quiet --links --force --delete --chmod=o-rwx -rpt \
-      --exclude 'clients' \
-      --exclude 'no-rsync' \
-      --exclude '.git' \
-      --exclude '.bash_history' \
-      --exclude '.mysql_history' \
-      --exclude '.rediscli_history' \
-      --exclude '.zsh_history' \
-      --exclude '.zsh-history*.log' \
-      --exclude '.zsh-histdb/.*' \
-      --exclude '.mytop' \
-      --exclude '*SNAPS*' \
-      --exclude '.ssh' \
-      --exclude '.vimfiles' \
-      --exclude '.vim' \
-      -e "ssh -q -i ${ident_file} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-      ~/dotfiles/ \
-      "$username@$DESTINATION":~/ 2> /dev/null
+    _mainRsync "$username"
 
-    # Run this asynchronously since it won't be needed right away
-    "$RSYNC" --compress --quiet --links --force --delete --chmod=o-rwx -rpt \
-      --exclude 'bundle/vim-autoformat/samples' \
-      --exclude 'bundle/YouCompleteMe' \
-      -e "ssh -q -i ~/.ssh/nexmrafferty.id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-      ~/dotfiles/.vim/ \
-      "$username@$DESTINATION":~/.vim/ 2> /dev/null &
+    _asyncRsync "$username" &
 
   fi;
 
-  "$RM" -f "$HOME"/dotfiles/action.sh
-  "$RM" -f "$HOME"/dotfiles/.enviornment.sh
+  "$RM" -f "$HOME"/dotfiles/action.sh "$HOME"/dotfiles/.enviornment.sh
 
-  "$SSH" -i "${ident_file}" \
-    -o UserKnownHostsFile=/dev/null \
-    -o StrictHostKeyChecking=no \
-    -o PasswordAuthentication=no \
-    "$username@$DESTINATION" || return 1;
+  _login "$username";
 
-  _syncHistory "$username" "$ident_file";
+  _getHistory "$username" &
 
 }
 
@@ -273,8 +295,8 @@ _setEnv () {
   true > "$HOME"/dotfiles/.environment.sh;
 
   echo "export TICKET=${TICKET}" >> "$HOME"/dotfiles/.environment.sh;
-	echo "export MY_IP=\"${MY_IP}\"" >> "$HOME"/dotfiles/.environment.sh;
-	echo "export LOGIN_ID=\"${LOGIN_ID}\"" >> "$HOME"/dotfiles/.environment.sh;
+  echo "export MY_IP=\"${MY_IP}\"" >> "$HOME"/dotfiles/.environment.sh;
+  echo "export LOGIN_ID=\"${LOGIN_ID}\"" >> "$HOME"/dotfiles/.environment.sh;
 
 }
 
@@ -288,19 +310,19 @@ _checkDB() {
 # Searches cache for destination
 _getCache() {
 
-    local query;
+  local query;
 
-    # If ticket is given, check cache for known destination associated with it
-    if [[ -n $TICKET ]]; then
-      query=$(printf "SELECT destination FROM LOCATIONS WHERE domain=(SELECT domain FROM TICKETS WHERE ticket_id='%s' limit 1);" "${TICKET}");
-      DESTINATION=$("$SQLITE" "$DOMAIN_DB_FILE" "$query") || _checkDB;
-    fi
+  # If ticket is given, check cache for known destination associated with it
+  if [[ -n $TICKET ]]; then
+    query=$(printf "SELECT destination FROM LOCATIONS WHERE domain=(SELECT domain FROM TICKETS WHERE ticket_id='%s' limit 1);" "${TICKET}");
+    DESTINATION=$("$SQLITE" "$DOMAIN_DB_FILE" "$query") || _checkDB;
+  fi
 
-    # Check cache for a known destination
-    if [[ -z $DESTINATION ]]; then
-      query=$(printf "SELECT destination FROM LOCATIONS WHERE domain='%s' AND timestamp > '%s';" "${DOMAIN}" "$(($("$DATE" "+%s")-172800))");
-      DESTINATION=$("$SQLITE" "$DOMAIN_DB_FILE" "$query") || _checkDB
-    fi
+  # Check cache for a known destination
+  if [[ -z $DESTINATION ]]; then
+    query=$(printf "SELECT destination FROM LOCATIONS WHERE domain='%s' AND timestamp > '%s';" "${DOMAIN}" "$(($("$DATE" "+%s")-172800))");
+    DESTINATION=$("$SQLITE" "$DOMAIN_DB_FILE" "$query") || _checkDB
+  fi
 
 }
 
@@ -429,7 +451,7 @@ main () {
     _setAction;
     _setEnv;
 
-    _login "$cloud" || return 1;
+    _loginWrapper || return 1;
 
     if [[ -z "$permanent" ]]; then
       timestamp="$("$DATE" "+%s")"
