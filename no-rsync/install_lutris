@@ -1,0 +1,52 @@
+#! /bin/bash
+
+CONFIG_DIR="/home/matt/.config/lutris/games/"
+LUTRIS_DB="/home/matt/.local/share/lutris/pga.db"
+
+name="$(echo ${1##*/} | sed -e "s/'//g" -e 's/\....$//' -e 's/([^\)]*)//g' -e 's/\[[^]]*]//g' -e 's/\(.*\), *\(The\)/\2 \1/' | tr '_' ' ')"
+slug="$(echo "$name" | sed -e 's/ *$//' -e 's/-+/-/g' | tr '[:upper:]' '[:lower:]' | tr '_ ' '-' | sed -e 's/--*/-/g')"
+platform="Nintendo Wii"
+runner="dolphin"
+directory="/home/matt/Games/Wii_Games"
+installed=1
+installed_at="$(date '+%s')"
+configpath="${slug}-${installed_at}"
+
+## Dosbox ##
+#executables=($(find "${directory}/GAME" -iname "*.exe" ))
+
+#for (( i=0; i<${#executables[@]}; i++ )); do
+
+	#echo "$i  ${executables[$i]}";
+
+#done | column -t;
+
+#echo;
+#read -rep "Choose main_file:" selection;
+## Dosbox ##
+
+sqlite3 "${LUTRIS_DB}" <<-EOF || exit 1
+  INSERT INTO Games
+  (name,slug,platform,runner,directory,installed,installed_at,configpath)
+  VALUES
+  ('$name','$slug','$platform','$runner','$directory','$installed','$installed_at','$configpath');
+EOF
+
+#doxbos
+#cat <<- EOF > "${CONFIG_DIR}${configpath}.yml"
+#${runner}: {}
+#game:
+  #config_file: ${directory}/dosbox.conf
+  #main_file: ${executables[selection]}
+  #working_dir: ${directory}
+#system: {}
+#EOF
+
+#gamecube
+cat <<- EOF > "${CONFIG_DIR}${configpath}.yml"
+${runner}: {}
+game:
+  main_file: $1
+  platform: '1'
+system: {}
+EOF
