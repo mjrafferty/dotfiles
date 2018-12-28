@@ -5,12 +5,20 @@ readonly ARGS="$*"
 readonly ARGA=("$@")
 
 # Configurable Variables
-CONFIG_DIR="/home/matt/.config/lutris/games/"
-LUTRIS_DB="/home/matt/.local/share/lutris/pga.db"
+CONFIG_DIR="${HOME}/.config/lutris/games/"
+LUTRIS_DB="${HOME}/.local/share/lutris/pga.db"
 
 # Alias executables to prevent PATH issues
 
 # Necessary Global Variables
+PLATFORM=""
+RUNNER=""
+DIRECTORY=""
+NAME=""
+SLUG=""
+INSTALLED=""
+INSTALLED_AT=""
+CONFIGPATH=""
 
 # Print usage
 _usage() {
@@ -42,6 +50,7 @@ _cmdline() {
 
 }
 
+# Filter name
 _filterName() {
 
   sed \
@@ -54,6 +63,7 @@ _filterName() {
 
 }
 
+# Filter slug
 _filterSlug() {
 
   sed -e 's/ *$//' -e 's/-+/-/g' \
@@ -63,9 +73,10 @@ _filterSlug() {
 
 }
 
+# Help user select an EXE file (dosbox)
 _selectExe() {
 
-  executables=($(find "${directory}/GAME" -iname "*.exe" ))
+  executables=($(find "${DIRECTORY}/GAME" -iname "*.exe" ))
 
   for (( i=0; i<${#executables[@]}; i++ )); do
 
@@ -78,26 +89,30 @@ _selectExe() {
 
 }
 
+# dosbox config
 _dosboxConfig() {
 
-  cat <<- EOF > "${CONFIG_DIR}${configpath}.yml"
-${runner}: {}
+  RUNNER="dosbox"
+
+  cat <<- EOF > "${CONFIG_DIR}${CONFIGPATH}.yml"
+${RUNNER}: {}
 game:
-  config_file: ${directory}/dosbox.conf
+  config_file: ${DIRECTORY}/dosbox.conf
   main_file: ${executables[selection]}
-  working_dir: ${directory}
+  working_dir: ${DIRECTORY}
 system: {}
 EOF
 
 }
 
+# gamecube config
 _gamecubeConfig() {
 
-platform="Nintendo Gamecube"
-runner="dolphin"
+  PLATFORM="Nintendo Gamecube"
+  RUNNER="dolphin"
 
-  cat <<- EOF > "${CONFIG_DIR}${configpath}.yml"
-${runner}: {}
+  cat <<- EOF > "${CONFIG_DIR}${CONFIGPATH}.yml"
+${RUNNER}: {}
 game:
   main_file: $1
   platform: '0'
@@ -106,13 +121,14 @@ EOF
 
 }
 
+# wii config
 _wiiConfig() {
 
-platform="Nintendo Wii"
-runner="dolphin"
+  PLATFORM="Nintendo Wii"
+  RUNNER="dolphin"
 
-  cat <<- EOF > "${CONFIG_DIR}${configpath}.yml"
-${runner}: {}
+  cat <<- EOF > "${CONFIG_DIR}${CONFIGPATH}.yml"
+${RUNNER}: {}
 game:
   main_file: $1
   platform: '1'
@@ -135,23 +151,23 @@ main () {
     esac
   done
 
-  platform="Nintendo Wii"
-  runner="dolphin"
-  directory="/home/matt/Games/Wii_Games"
+  for game in "${game_list[@]}"; do
 
-  name="$(echo ${1##*/} | _filterName)"
-  slug="$(echo "$name" | _filterSlug)"
+    NAME="$(echo ${1##*/} | _filterName)"
+    SLUG="$(echo "$NAME" | _filterSlug)"
 
-  installed=1
-  installed_at="$(date '+%s')"
-  configpath="${slug}-${installed_at}"
+    INSTALLED=1
+    INSTALLED_AT="$(date '+%s')"
+    CONFIGPATH="${SLUG}-${INSTALLED_AT}"
 
-  sqlite3 "${LUTRIS_DB}" <<-EOF || exit 1
+    sqlite3 "${LUTRIS_DB}" <<-EOF || exit 1
   INSERT INTO Games
   (name,slug,platform,runner,directory,installed,installed_at,configpath)
   VALUES
-  ('$name','$slug','$platform','$runner','$directory','$installed','$installed_at','$configpath');
+  ('$NAME','$SLUG','$PLATFORM','$RUNNER','$DIRECTORY','$INSTALLED','$INSTALLED_AT','$CONFIGPATH');
 EOF
+
+  done
 
 }
 
