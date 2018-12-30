@@ -40,6 +40,15 @@ _cmdline() {
       "--help"|"-h")
         args="${args}-h "
         ;;
+      "--dosbox"|"-d")
+        args="${args}-d "
+        ;;
+      "--wii"|"-w")
+        args="${args}-w "
+        ;;
+      "--gamecube"|"-g")
+        args="${args}-g "
+        ;;
       *)
         args="${args}${x} "
         ;;
@@ -61,7 +70,7 @@ _filterName() {
     -e 's/\(.*\), *\(The\)/\2 \1/' \
     | tr '_' ' '
 
-}
+  }
 
 # Filter slug
 _filterSlug() {
@@ -71,7 +80,7 @@ _filterSlug() {
     | tr '_ ' '-' \
     | sed -e 's/--*/-/g'
 
-}
+  }
 
 # Help user select an EXE file (dosbox)
 _selectExe() {
@@ -89,10 +98,9 @@ _selectExe() {
 
 }
 
-# dosbox config
-_dosboxConfig() {
 
-  RUNNER="dosbox"
+## Config file functions ##
+_dosboxConfig() {
 
   cat <<- EOF > "${CONFIG_DIR}${CONFIGPATH}.yml"
 ${RUNNER}: {}
@@ -105,11 +113,7 @@ EOF
 
 }
 
-# gamecube config
 _gamecubeConfig() {
-
-  PLATFORM="Nintendo Gamecube"
-  RUNNER="dolphin"
 
   cat <<- EOF > "${CONFIG_DIR}${CONFIGPATH}.yml"
 ${RUNNER}: {}
@@ -121,11 +125,7 @@ EOF
 
 }
 
-# wii config
 _wiiConfig() {
-
-  PLATFORM="Nintendo Wii"
-  RUNNER="dolphin"
 
   cat <<- EOF > "${CONFIG_DIR}${CONFIGPATH}.yml"
 ${RUNNER}: {}
@@ -137,36 +137,295 @@ EOF
 
 }
 
-# Main
-main () {
+_dreamcastConfig() {
+  //
+}
 
-  while getopts "h" OPTION $(_cmdline); do
+_dsConfig() {
+  //
+}
 
-    case $OPTION in
-      h)
-        _usage;
-        exit 0;
-        ;;
-      *);;
-    esac
-  done
+_gamegearConfig() {
+  //
+}
 
-  for game in "${game_list[@]}"; do
+_gbaConfig() {
+  //
+}
 
-    NAME="$(echo ${1##*/} | _filterName)"
-    SLUG="$(echo "$NAME" | _filterSlug)"
+_n64Config() {
+  //
+}
 
-    INSTALLED=1
-    INSTALLED_AT="$(date '+%s')"
-    CONFIGPATH="${SLUG}-${INSTALLED_AT}"
+_ps2Config() {
+  //
+}
 
-    sqlite3 "${LUTRIS_DB}" <<-EOF || exit 1
+_pspConfig() {
+  //
+}
+
+_psxConfig() {
+  //
+}
+
+_snesConfig() {
+  //
+}
+## Config file functions ##
+
+
+## Validation functions ##
+_dosboxValidate() {
+
+  game="$1"
+
+  echo "Failed to validate $game";
+  return 1
+
+}
+
+_gamecubeValidate() {
+
+  game="$1"
+
+  if [[ -f "$game" ]]; then
+    return 0;
+  else
+    echo "Failed to validate $game";
+    return 1
+  fi
+
+}
+
+_wiiValidate() {
+
+  game="$1"
+
+  if [[ -f "$game" ]]; then
+    return 0;
+  else
+    echo "Failed to validate $game";
+    return 1
+  fi
+
+}
+
+_dreamcastValidate() {
+
+  game="$1"
+
+  if [[ -f "$game" ]]; then
+    return 0;
+  else
+    echo "Failed to validate $game";
+    return 1
+  fi
+
+}
+
+_dsValidate() {
+
+  game="$1"
+
+  if [[ -f "$game" ]]; then
+    return 0;
+  else
+    echo "Failed to validate $game";
+    return 1
+  fi
+
+}
+
+_gamegearValidate() {
+
+  game="$1"
+
+  if [[ -f "$game" ]]; then
+    return 0;
+  else
+    echo "Failed to validate $game";
+    return 1
+  fi
+
+}
+
+_gbaValidate() {
+
+  game="$1"
+
+  if [[ -f "$game" ]]; then
+    return 0;
+  else
+    echo "Failed to validate $game";
+    return 1
+  fi
+
+}
+
+_n64Validate() {
+
+  game="$1"
+
+  if [[ -f "$game" ]]; then
+    return 0;
+  else
+    echo "Failed to validate $game";
+    return 1
+  fi
+
+}
+
+_ps2Validate() {
+
+  game="$1"
+
+  if [[ -f "$game" ]]; then
+    return 0;
+  else
+    echo "Failed to validate $game";
+    return 1
+  fi
+
+}
+
+_pspValidate() {
+
+  game="$1"
+
+  if [[ -f "$game" ]]; then
+    return 0;
+  else
+    echo "Failed to validate $game";
+    return 1
+  fi
+
+}
+
+_psxValidate() {
+
+  game="$1"
+
+  if [[ -f "$game" ]]; then
+    return 0;
+  else
+    echo "Failed to validate $game";
+    return 1
+  fi
+
+}
+
+_snesValidate() {
+
+  game="$1"
+
+  if [[ -f "$game" ]]; then
+    return 0;
+  else
+    echo "Failed to validate $game";
+    return 1
+  fi
+
+}
+## Validation functions ##
+
+
+_addtoDB(){
+
+  sqlite3 "${LUTRIS_DB}" <<-EOF || exit 1
   INSERT INTO Games
   (name,slug,platform,runner,directory,installed,installed_at,configpath)
   VALUES
   ('$NAME','$SLUG','$PLATFORM','$RUNNER','$DIRECTORY','$INSTALLED','$INSTALLED_AT','$CONFIGPATH');
 EOF
 
+}
+
+# Process games
+_addGames () {
+
+  # Skip invalid directory
+  if [[ -d "${PWD}/${1}" && ! "${1}" == "/"* ]]; then
+    DIRECTORY="${PWD}/${1}"
+  elif [[ -d "${1}" ]]; then
+    DIRECTORY="${1}"
+  else
+    echo "$1 is not a valid directory."
+    return;
+  fi
+
+  IFS="
+"
+
+  game_list=($(find "$DIRECTORY" -mindepth 1 -maxdepth 1))
+
+  for game in "${game_list[@]}"; do
+
+    NAME="$(echo ${game##*/} | _filterName)"
+    SLUG="$(echo "$NAME" | _filterSlug)"
+
+    already_installed=$(sqlite3 "${LUTRIS_DB}" "SELECT COUNT(*) from Games where slug='${SLUG}';");
+
+    # Skip games that are already installed
+    if ((already_installed > 0)); then
+      continue;
+    fi
+
+    INSTALLED=1
+    INSTALLED_AT="$(date '+%s')"
+    CONFIGPATH="${SLUG}-${INSTALLED_AT}"
+
+    case "${PLATFORM}" in
+      "MS-DOS")
+        _dosboxValidate "$game" || continue;
+        _dosboxConfig "$game"
+        ;;
+      "Nintendo Wii")
+        _wiiValidate "$game"  || continue;
+        _wiiConfig "$game"
+        ;;
+      "Nintendo Gamecube")
+        _gamecubeValidate "$game"  || continue;
+        _gamecubeConfig "$game"
+        ;;
+      *);;
+    esac
+
+    echo "Adding $NAME for $RUNNER"
+
+    _addtoDB;
+
+  done
+
+}
+
+# Main
+main () {
+
+  while getopts "hd:w:g:" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      d)
+        RUNNER="dosbox"
+        PLATFORM="MS-DOS"
+        _addGames "$OPTARG"
+        ;;
+      w)
+        RUNNER="dolphin"
+        PLATFORM="Nintendo Wii"
+        _addGames "$OPTARG"
+        ;;
+      g)
+        RUNNER="dolphin"
+        PLATFORM="Nintendo Gamecube"
+        _addGames "$OPTARG"
+        ;;
+      *);;
+    esac
   done
 
 }
