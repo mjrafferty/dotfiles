@@ -1,6 +1,6 @@
 #DO_PROMPT_GAME=1;
 #HISTDB_ENABLE_LOG=1;
-source ~/dotfiles/.commonrc
+source ~/.dotfiles/.commonrc
 
 # Find orphan files not owned by any package
 alias orphanfiles="find / \( \
