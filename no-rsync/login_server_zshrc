@@ -14,7 +14,7 @@ start_agent () {
 
   source "${SSH_ENV}" > /dev/null;
 
-  /usr/bin/ssh-add "${HOME}/.ssh/${USER}.id_rsa";
+  /usr/bin/ssh-add "${HOME}/.ssh/nex${USER}.id_rsa";
 }
 
 # Source SSH settings, if applicable
@@ -23,7 +23,7 @@ if [ -r "${SSH_ENV}" ]; then
   source "${SSH_ENV}" > /dev/null;
 
   # verify agent is running
-  [[ -r "/proc/${SSH_AGENT_PID}" ]] || start_agent;
+  #[[ -r "/proc/${SSH_AGENT_PID}" ]] || start_agent;
 
 else
   start_agent;

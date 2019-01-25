@@ -156,6 +156,7 @@ _mainRsync() {
     --exclude '.git' \
     --exclude '.mysql_history' \
     --exclude '.mytop' \
+    --exclude 'nex_strace' \
     --exclude 'no-rsync' \
     --exclude '.rediscli_history' \
     --exclude '*SNAPS*' \

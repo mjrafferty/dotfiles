@@ -11,6 +11,7 @@ zsh
   -path "*/.completions" -o \
   -path "*/.functions.sh" -o \
   -path "*/.mytop" -o \
+  -path "*/nex_strace" -o \
   -path "*/*history" -o \
   -path "*/.zsh-history*" -o \
   -path "*/*SNAPS*" -o \
