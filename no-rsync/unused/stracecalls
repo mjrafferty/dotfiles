@@ -1,0 +1,55 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+readonly AWK='/bin/awk'
+readonly COLUMN='/usr/bin/column'
+readonly HEAD='/usr/bin/head'
+readonly SORT='/bin/sort'
+readonly ZLESS='/usr/bin/zless'
+
+_awkStuff () {
+	"$AWK" '
+	{
+		gsub(/<|>/,"",$(NF));
+
+		if ( match($3,/^(access|lstat|open|munmap|mmap|stat|brk|chdir|socket|setitimer)\(/) )
+			{
+				syscall = gensub(/(\().*/,"\\1","G",$3);
+			}
+		else if ( match($3,/^poll\(/) )
+			{
+				syscall = gensub(/(\(.{7}).*/,"\\1","G",$3);
+			}
+		else {
+			syscall = gensub(/(\(..).*/,"\\1","G",$3);
+		}
+
+		time[syscall]+=$(NF);
+		numcalls[syscall]++;
+	}
+
+	END {
+		for (x in time)
+			{
+				printf "%s\t%10.4f\t%s\n",x,time[x],numcalls[x];
+			}
+	}'
+}
+
+main () {
+
+	echo;
+	(printf "syscall\ttime\tquantity\n%s\t%s\t%s\n" "----------" "----------" "----------"
+	"$ZLESS" "${ARGA[@]}" \
+		| _awkStuff  \
+		| "$SORT" -k2nr) \
+		| "$HEAD" -n30 \
+		| "$COLUMN" -t
+
+	echo;
+
+}
+
+main;

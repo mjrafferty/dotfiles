@@ -1,0 +1,18 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+readonly GREP='/bin/grep'
+readonly SORT='/bin/sort'
+readonly ZLESS='/usr/bin/zless'
+
+main () {
+
+  "$ZLESS" "${ARGA[@]}" \
+    | "$GREP" -Poh ' (open|stat)\(\"(/chroot/(home|local)/[^/]*/[^/]*/[^/]*/|)\K[^"]*(?!.* = -1)' \
+    | "$SORT" -u
+
+}
+
+main;

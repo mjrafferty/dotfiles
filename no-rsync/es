@@ -1,0 +1,74 @@
+#!/bin/bash
+
+server="moose-esmaster01.us-midwest-1.nexback.net:9200"
+index="webtransfer-2018.10.24"
+
+
+_openIndex() {
+
+  printf "Opening %s..." "${index}"
+
+  curl -X POST "${server}/${index}/_open" -s -o /dev/null
+
+  while curl -s "${server}/_cat/indices/${index}" | grep -q "^red"; do
+    sleep 1;
+  done
+  printf "Done\n"
+
+}
+
+_closeIndex() {
+
+  printf "Closing %s..." "${index}";
+  curl -X POST "${server}/${index}/_close" -s -o /dev/null
+  printf "Done\n\n";
+
+}
+
+_queryIndex() {
+
+  local response scroll_id hits_count message scroll_count
+
+  printf "Running query..."
+
+  response=$(curl -s $server/$index/_search?scroll=1m -d @query.json)
+
+  scroll_id=$(echo "$response" | jq -r ._scroll_id)
+  hits_count=$(echo "$response" | jq -r '.hits.hits | length')
+  message=$(echo "$response" | jq '.hits.hits| .[]._source.message' | sed 's/\\"/"/g')
+
+  echo "$message" >> "$index"
+
+  printf "Done\n";
+
+  scroll_count=0;
+
+  while [ "$hits_count" != "0" ]; do
+
+    printf "%s scroll %s..." "${index}" $((++scroll_count));
+
+    response=$(curl -s $server/_search/scroll -d "{ \"scroll\": \"1m\", \"scroll_id\": \"$scroll_id\" }")
+
+    scroll_id=$(echo "$response" | jq -r ._scroll_id)
+    hits_count=$(echo "$response" | jq -r '.hits.hits | length')
+    message=$(echo "$response" | jq '.hits.hits| .[]._source.message' | sed 's/\\"/"/g')
+
+    echo "$message" >> "$index"
+
+    printf "Done\n";
+
+  done
+
+  # Clear scroll ID
+  curl -s -X DELETE "${server}/_search/scroll" -d "{ \"scroll_id\": \"$scroll_id\" }"
+
+}
+
+for i in $(seq -w 6 10); do
+  index="webtransfer-2018.09.$i"
+  _openIndex;
+
+  _queryIndex;
+
+  _closeIndex;
+done

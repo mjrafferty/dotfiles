@@ -1,0 +1,16 @@
+{
+  "sort": ["_doc"],
+  "size": 1000,
+  "query": {
+    "bool": {
+      "filter": [
+        {"term": { "host" : "gencoop.nexcess.net" }},
+        {"or" : [
+          {"term": { "path" : "/home/spalonco/var/spalon.com/logs/transfer.log" }},
+          {"term": { "path" : "/home/spalonco/var/spalon.com/logs/transfer-ssl.log" }}
+        ]
+        }
+      ]
+    }
+  }
+}

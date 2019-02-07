@@ -1,0 +1,175 @@
+#!/bin/bash
+
+# Script Arguments
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+# Configurable Variables
+SERVER="moose-esmaster01.us-midwest-1.nexback.net:9200"
+
+# Alias executables to prevent PATH issues
+
+# Necessary Global Variables
+QUERY_FILE="$(mktemp)"
+
+# Print usage
+_usage() {
+
+  cat <<- EOF
+  This is the usage
+EOF
+
+}
+
+# Convert long command line options into short ones for getopts
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+  done
+
+  echo "$args";
+
+}
+
+# Open index
+_openIndex() {
+
+  printf "Opening %s..." "${index}"
+
+  curl -X POST "${SERVER}/${index}/_open" -s -o /dev/null
+
+  while curl -s "${SERVER}/_cat/indices/${index}" | grep -q "^red"; do
+    sleep 1;
+  done
+  printf "Done\n"
+
+}
+
+# Close index
+_closeIndex() {
+
+  printf "Closing %s..." "${index}";
+  curl -X POST "${SERVER}/${index}/_close" -s -o /dev/null
+  printf "Done\n\n";
+
+}
+
+# Send query and write output to file
+_queryIndex() {
+
+  local response scroll_id hits_count message scroll_count
+
+  printf "Running query..."
+
+  response=$(curl -s "$SERVER/$index/_search?scroll=1m" -d @"$QUERY_FILE")
+
+  scroll_id=$(echo "$response" | jq -r ._scroll_id)
+  hits_count=$(echo "$response" | jq -r '.hits.hits | length')
+  message=$(echo "$response" | jq '.hits.hits| .[]._source.message' | sed 's/\\"/"/g')
+
+  echo "$message" >> "$index"
+
+  printf "Done\n";
+
+  scroll_count=0;
+
+  while [ "$hits_count" != "0" ]; do
+
+    printf "\r%s scroll %s..." "${index}" $((++scroll_count));
+
+    response=$(curl -s $SERVER/_search/scroll -d "{ \"scroll\": \"1m\", \"scroll_id\": \"$scroll_id\" }")
+
+    scroll_id=$(echo "$response" | jq -r ._scroll_id)
+    hits_count=$(echo "$response" | jq -r '.hits.hits | length')
+    message=$(echo "$response" | jq -r '.hits.hits| .[]._source.message' | sed 's/\\"/"/g')
+
+    echo "$message" >> "$index"
+
+    printf "Done";
+
+  done
+
+  echo;
+
+  # Clear scroll ID, probably not necessary.
+  curl -s -X DELETE "${SERVER}/_search/scroll" -d "{ \"scroll_id\": \"$scroll_id\" }" 2> /dev/null
+
+}
+
+# Build query to send to elasticsearch server
+_buildQuery () {
+
+  cat <<- EOF > "$QUERY_FILE"
+{
+  "sort": ["_doc"],
+  "size": 1000,
+  "query": {
+    "bool": {
+      "filter": [
+        {"term": { "host" : "sip4-1247.nexcess.net" }},
+        {"or" : [
+          {"term": { "path" : "/home/mastersp/var/masterspaparts.com/logs/transfer.log" }},
+          {"term": { "path" : "/home/mastersp/var/masterspaparts.com/logs/transfer-ssl.log" }}
+        ]
+        }
+      ]
+    }
+  }
+}
+EOF
+
+}
+
+# Cleanup before exiting
+_cleanup () {
+
+  rm "$QUERY_FILE";
+
+}
+
+# Manage index and execute query
+_runQuery () {
+
+  _openIndex;
+  _queryIndex;
+  _closeIndex;
+
+}
+
+# Main
+main () {
+
+  while getopts "h" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      *);;
+    esac
+  done
+
+  _buildQuery;
+
+	for i in $(seq -w 26 29); do
+		index="webtransfer-2019.01.$i"
+    _runQuery;
+	done
+
+  _cleanup;
+
+}
+
+main;

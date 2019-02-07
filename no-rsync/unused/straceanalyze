@@ -1,0 +1,21 @@
+#! /bin/bash
+
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+readonly AWK='/bin/awk'
+readonly LESS='/usr/bin/less'
+
+main () {
+
+  local file;
+
+  file="${ARGA[0]}"
+
+  "$AWK" '{ gsub(/<|>/,"",$(NF)); printf "%10.6f %10.6f\n",(total_sum += $2),(user_sum += ($2 - $(NF))) }' "$file" \
+    | paste - "$file" \
+    | "$LESS" -S;
+
+}
+
+main;
