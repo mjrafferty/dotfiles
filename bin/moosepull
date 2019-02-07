@@ -146,6 +146,7 @@ _runQuery () {
 
 	# Don't close indexes opened by something/someone else
 	if [[ "$index_status" == "close" ]]; then
+		trap "_closeIndex" EXIT;
 		_openIndex;
 		_queryIndex;
 		_closeIndex;
