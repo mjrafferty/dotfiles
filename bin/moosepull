@@ -231,6 +231,10 @@ main () {
 
     while [[ "$date" != "$end_time" ]]; do
 
+      if [[ -z "$end_time" ]]; then
+        end_time="$(date -d "$date - 1day" "+%F")"
+      fi
+
       local index_status;
 
       index_status="$(curl -s "${SERVER}/_cat/indices/${index}?h=status")"
