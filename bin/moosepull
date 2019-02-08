@@ -74,11 +74,11 @@ _cmdline() {
 # Open index
 _openIndex() {
 
-  printf "Opening %s..." "${index}"
+  printf "Opening %s..." "${ACTIVE_INDEX}"
 
-  curl -X POST "${SERVER}/${index}/_open" -s -o /dev/null
+  curl -X POST "${SERVER}/${ACTIVE_INDEX}/_open" -s -o /dev/null
 
-  while curl -s "${SERVER}/_cat/indices/${index}" | grep -q "^red"; do
+  while curl -s "${SERVER}/_cat/indices/${ACTIVE_INDEX}" | grep -q "^red"; do
     sleep 1;
   done
 
@@ -89,8 +89,8 @@ _openIndex() {
 # Close index
 _closeIndex() {
 
-  printf "Closing %s..." "${index}";
-  curl -X POST "${SERVER}/${index}/_close" -s -o /dev/null
+  printf "Closing %s..." "${ACTIVE_INDEX}";
+  curl -X POST "${SERVER}/${ACTIVE_INDEX}/_close" -s -o /dev/null
   printf "Done\n\n";
 
 }
@@ -98,17 +98,17 @@ _closeIndex() {
 # Send query and write output to file
 _queryIndex() {
 
-  local response scroll_id hits_count message scroll_count
+  local response scroll_id hits_count message scroll_count output_file
 
   printf "Running query..."
 
-  response=$(curl -s "$SERVER/$index/_search?scroll=1m" -d @"$QUERY_FILE")
+  response=$(curl -s "$SERVER/$ACTIVE_INDEX/_search?scroll=1m" -d @"$QUERY_FILE")
 
   scroll_id=$(echo "$response" | jq -r ._scroll_id)
   hits_count=$(echo "$response" | jq -r '.hits.hits | length')
   message=$(echo "$response" | jq -r '.hits.hits| .[]._source.message' | sed 's/\\"/"/g')
 
-  echo "$message" >> "$index"
+  echo "$message" >> "$output_file"
 
   printf "Done\n";
 
@@ -116,7 +116,7 @@ _queryIndex() {
 
   while [ "$hits_count" != "0" ]; do
 
-    printf "\r%s scroll %s..." "${index}" $((++scroll_count));
+    printf "\r%s scroll %s..." "${ACTIVE_INDEX}" $((++scroll_count));
 
     response=$(curl -s "$SERVER/_search/scroll" -d "{ \"scroll\": \"1m\", \"scroll_id\": \"$scroll_id\" }")
 
@@ -124,7 +124,7 @@ _queryIndex() {
     hits_count=$(echo "$response" | jq -r '.hits.hits | length')
     message=$(echo "$response" | jq -r '.hits.hits| .[]._source.message' | sed 's/\\"/"/g')
 
-    echo "$message" >> "$index"
+    echo "$message" >> "$output_file"
 
   done
 
@@ -229,7 +229,7 @@ main () {
 
       ACTIVE_INDEX="$index-$(echo $date | tr '-' '.')"
 
-      index_status="$(curl -s "${SERVER}/_cat/indices/${index}?h=status")"
+      index_status="$(curl -s "${SERVER}/_cat/indices/${ACTIVE_INDEX}?h=status")"
 
       if [[ "$index_status" == "close"* ]]; then
         _openIndex;
@@ -239,23 +239,23 @@ main () {
         "weberror")
           for domain in "${domains[@]}"; do
             _buildQuery "$log_host" "$domain";
-            _queryIndex "$index" "$date"
+            _queryIndex;
           done
           ;;
         "webtransfer")
           for domain in "${domains[@]}"; do
             _buildQuery "$log_host" "$domain";
-            _queryIndex "$index" "$date"
+            _queryIndex;
           done
           ;;
         "phpfpm")
           _buildQuery "$log_host";
-          _queryIndex "$index" "$date"
+          _queryIndex;
           ;;
         "syslog")
           for log in "${logs[@]}"; do
             _buildQuery "$log_host" "$log";
-            _queryIndex "$index" "$date"
+            _queryIndex;
           done
           ;;
         *);;
