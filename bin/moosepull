@@ -6,11 +6,14 @@ readonly ARGA=("$@")
 
 # Configurable Variables
 SERVER="moose-esmaster01.us-midwest-1.nexback.net:9200"
+INDICES=( "webtransfer" "weberror" "syslog" "phpfpm" )
+LOGS=( "secure" "messages" )
 
 # Alias executables to prevent PATH issues
 
 # Necessary Global Variables
 QUERY_FILE="$(mktemp)"
+ACTIVE_INDEX="";
 
 # Print usage
 _usage() {
@@ -207,17 +210,24 @@ main () {
     esac
   done
 
+  if [[ -z "$start_time" ]]; then
+    echo "Start time must be specified.";
+    exit 1;
+  fi
+
+  if [[ -z "$end_time" ]]; then
+    end_time="$start_time"
+  fi
+
   for index in "${indices[@]}"; do
 
     date="$start_time"
 
-    if [[ -z "$end_time" ]]; then
-      end_time="$start_time"
-    fi
-
     while [[ "$date" != "$(date -d "$end_time + 1day" "+%F")" ]]; do
 
       local index_status;
+
+      ACTIVE_INDEX="$index-$(echo $date | tr '-' '.')"
 
       index_status="$(curl -s "${SERVER}/_cat/indices/${index}?h=status")"
 
