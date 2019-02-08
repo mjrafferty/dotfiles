@@ -6,8 +6,6 @@ readonly ARGA=("$@")
 
 # Configurable Variables
 SERVER="moose-esmaster01.us-midwest-1.nexback.net:9200"
-INDICES=( "webtransfer" "weberror" "syslog" "phpfpm" )
-LOGS=( "secure" "messages" )
 
 # Alias executables to prevent PATH issues
 
@@ -181,26 +179,10 @@ main () {
         log_host="$OPTARG"
         ;;
       i)
-        for ind in "${INDICES[@]}"; do
-          if [[ "$OPTARG" == "$ind" ]]; then
-            indices=($(echo "$OPTARG" | tr ',' ' '))
-          fi
-        done
-        if [[ -z "${indices[0]}" ]]; then
-          echo "Invalid index name."
-          exit 1;
-        fi
+        indices=($(echo "$OPTARG" | tr ',' ' '))
         ;;
       l)
-        for l in "${LOGS[@]}"; do
-          if [[ "$OPTARG" == "$l" ]]; then
-            logs=($(echo "$OPTARG" | tr ',' ' '))
-          fi
-        done
-        if [[ -z "${logs[0]}" ]]; then
-          echo "Invalid log name."
-          exit 1;
-        fi
+        logs=($(echo "$OPTARG" | tr ',' ' '))
         ;;
       s)
         if [[ "$OPTARG" =~ [0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
@@ -229,11 +211,11 @@ main () {
 
     date="$start_time"
 
-    while [[ "$date" != "$end_time" ]]; do
+    if [[ -z "$end_time" ]]; then
+      end_time="$start_time"
+    fi
 
-      if [[ -z "$end_time" ]]; then
-        end_time="$(date -d "$date - 1day" "+%F")"
-      fi
+    while [[ "$date" != "$(date -d "$end_time + 1day" "+%F")" ]]; do
 
       local index_status;
 
