@@ -6,6 +6,8 @@ readonly ARGA=("$@")
 
 # Configurable Variables
 SERVER="moose-esmaster01.us-midwest-1.nexback.net:9200"
+INDICES=( "webtransfer" "weberror" "syslog" "phpfpm" )
+LOGS=( "secure" "messages" )
 
 # Alias executables to prevent PATH issues
 
@@ -16,7 +18,15 @@ QUERY_FILE="$(mktemp)"
 _usage() {
 
   cat <<- EOF
-  This is the usage
+
+  -h|--help
+  -H|--host
+  -i|--index
+  -l|--logs
+  -s|--start
+  -e|--end
+  -d|--domains
+
 EOF
 
 }
@@ -31,6 +41,24 @@ _cmdline() {
     case "$x" in
       "--help"|"-h")
         args="${args}-h "
+        ;;
+      "--host"|"-H")
+        args="${args}-H "
+        ;;
+      "--index"|"-i")
+        args="${args}-i "
+        ;;
+      "--logs"|"-l")
+        args="${args}-l "
+        ;;
+      "--start"|"-s")
+        args="${args}-s "
+        ;;
+      "--end"|"-e")
+        args="${args}-e "
+        ;;
+      "--domains"|"-d")
+        args="${args}-d "
         ;;
       *)
         args="${args}${x} "
@@ -89,7 +117,7 @@ _queryIndex() {
 
     printf "\r%s scroll %s..." "${index}" $((++scroll_count));
 
-    response=$(curl -s $SERVER/_search/scroll -d "{ \"scroll\": \"1m\", \"scroll_id\": \"$scroll_id\" }")
+    response=$(curl -s "$SERVER/_search/scroll" -d "{ \"scroll\": \"1m\", \"scroll_id\": \"$scroll_id\" }")
 
     scroll_id=$(echo "$response" | jq -r ._scroll_id)
     hits_count=$(echo "$response" | jq -r '.hits.hits | length')
@@ -102,29 +130,31 @@ _queryIndex() {
   printf "Done\n";
 
   # Clear scroll ID, probably not necessary.
-  curl -s -X DELETE "${SERVER}/_search/scroll" -d "{ \"scroll_id\": \"$scroll_id\" }" 2> /dev/null
+  curl -s -X DELETE "${SERVER}/_search/scroll" -d "{ \"scroll_id\": \"$scroll_id\" }" &> /dev/null
 
 }
 
 # Build query to send to elasticsearch server
 _buildQuery () {
 
+  local host user domain
+
   cat <<- EOF > "$QUERY_FILE"
-{
+{QUERY_FILE
   "sort": ["_doc"],
   "size": 1000,
   "query": {
     "bool": {
       "filter": [
-        {"term": { "host" : "sip4-1247.nexcess.net" }},
+        {"term": { "host" : "${host}" }},
         {"or" : [
-          {"term": { "path" : "/home/mastersp/var/masterspaparts.com/logs/transfer.log" }},
-          {"term": { "path" : "/home/mastersp/var/masterspaparts.com/logs/transfer-ssl.log" }}
+          {"term": { "path" : "/home/${user}/var/${domain}/logs/transfer.log" }},
+          {"term": { "path" : "/home/${user}/var/${domain}/logs/transfer-ssl.log" }}
         ]
-        }
+      }
       ]
     }
-  }
+}
 }
 EOF
 
@@ -137,45 +167,113 @@ _cleanup () {
 
 }
 
-# Manage index and execute query
-_runQuery () {
-
-  local index_status;
-
-  index_status="$(curl -s "${SERVER}/_cat/indices/${index}?h=status")"
-
-	# Don't close indexes opened by something/someone else
-	if [[ "$index_status" == "close" ]]; then
-		trap "_closeIndex" EXIT;
-		_openIndex;
-		_queryIndex;
-		_closeIndex;
-	else
-		_queryIndex;
-	fi
-
-}
-
 # Main
 main () {
 
-  while getopts "h" OPTION $(_cmdline); do
+  while getopts "hH:i:l:s:e:d:" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
         _usage;
         exit 0;
         ;;
+      H)
+        log_host="$OPTARG"
+        ;;
+      i)
+        for ind in "${INDICES[@]}"; do
+          if [[ "$OPTARG" == "$ind" ]]; then
+            indices=($(echo "$OPTARG" | tr ',' ' '))
+          fi
+        done
+        if [[ -z "${indices[0]}" ]]; then
+          echo "Invalid index name."
+          exit 1;
+        fi
+        ;;
+      l)
+        for l in "${LOGS[@]}"; do
+          if [[ "$OPTARG" == "$l" ]]; then
+            logs=($(echo "$OPTARG" | tr ',' ' '))
+          fi
+        done
+        if [[ -z "${logs[0]}" ]]; then
+          echo "Invalid log name."
+          exit 1;
+        fi
+        ;;
+      s)
+        if [[ "$OPTARG" =~ [0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
+          start_time="$OPTARG"
+        else
+          echo "Invalid start time."
+          exit 1;
+        fi
+        ;;
+      e)
+        if [[ "$OPTARG" =~ [0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
+          end_time="$OPTARG"
+        else
+          echo "Invalid end time."
+          exit 1;
+        fi
+        ;;
+      d)
+        domains="$OPTARG";
+        ;;
       *);;
     esac
   done
 
-  _buildQuery;
+  for index in "${indices[@]}"; do
 
-	for i in $(seq -w 26 29); do
-		index="webtransfer-2019.01.$i"
-    _runQuery;
-	done
+    date="$start_time"
+
+    while [[ "$date" != "$end_time" ]]; do
+
+      local index_status;
+
+      index_status="$(curl -s "${SERVER}/_cat/indices/${index}?h=status")"
+
+      if [[ "$index_status" == "close"* ]]; then
+        _openIndex;
+      fi
+
+      case $index in
+        "weberror")
+          for domain in "${domains[@]}"; do
+            _buildQuery "$log_host" "$domain";
+            _queryIndex "$index" "$date"
+          done
+          ;;
+        "webtransfer")
+          for domain in "${domains[@]}"; do
+            _buildQuery "$log_host" "$domain";
+            _queryIndex "$index" "$date"
+          done
+          ;;
+        "phpfpm")
+          _buildQuery "$log_host";
+          _queryIndex "$index" "$date"
+          ;;
+        "syslog")
+          for log in "${logs[@]}"; do
+            _buildQuery "$log_host" "$log";
+            _queryIndex "$index" "$date"
+          done
+          ;;
+        *);;
+      esac
+
+      if [[ "$index_status" == "close"* ]]; then
+        _closeIndex;
+      fi
+
+      date="$(date -d "$date + 1day" "+%F")"
+
+    done
+
+  done
 
   _cleanup;
 
