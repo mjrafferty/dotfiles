@@ -100,6 +100,8 @@ _queryIndex() {
 
   local response scroll_id hits_count message scroll_count output_file
 
+  output_file="$1";
+
   printf "Running query..."
 
   response=$(curl -s "$SERVER/$ACTIVE_INDEX/_search?scroll=10m" -d @"$QUERY_FILE")
@@ -237,13 +239,13 @@ main () {
         "weberror")
           for domain in "${domains[@]}"; do
             _buildQuery "$log_host" "$domain";
-            _queryIndex;
+            _queryIndex "${domain}-$ACTIVE_INDEX";
           done
           ;;
         "webtransfer")
           for domain in "${domains[@]}"; do
             _buildQuery "$log_host" "$domain";
-            _queryIndex;
+            _queryIndex "${domain}-$ACTIVE_INDEX";
           done
           ;;
         "phpfpm")
