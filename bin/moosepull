@@ -138,7 +138,7 @@ _queryIndex() {
 # Build query to send to elasticsearch server
 _buildQuery () {
 
-  local host user domain
+  local host domain
 
   cat <<- EOF > "$QUERY_FILE"
 {
@@ -146,7 +146,10 @@ _buildQuery () {
   "size": 1000,
   "_source": "message",
   "query" : {
-    "query_string": { "query" : "+host:sip1-208*" }
+    "bool" : {
+      "filter" : { "wildcard" : { "host" : "${host}" }},
+      "filter" : { "wildcard" : { "path" : "/home/*/var/${domain}/logs/transfer*.log" }}
+    }
   }
 }
 EOF
