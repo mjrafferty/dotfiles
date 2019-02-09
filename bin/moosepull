@@ -233,6 +233,8 @@ main () {
     read -rp "Ticket: " ticket;
   fi
 
+  echo "Output going to ${OUTPUT_DIR}/${ticket}"
+
   for index in "${indices[@]}"; do
 
     local date;
