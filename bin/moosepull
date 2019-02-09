@@ -7,10 +7,6 @@ readonly ARGA=("$@")
 # Configurable Variables
 SERVER="moose-esmaster01.us-midwest-1.nexback.net:9200"
 OUTPUT_DIR="/var/esgrep-scratch"
-INDICES=( "webtransfer" "weberror" "syslog" "phpfpm" )
-LOGS=( "secure" "messages" )
-
-# Alias executables to prevent PATH issues
 
 # Necessary Global Variables
 QUERY_FILE="$(mktemp)"
@@ -151,7 +147,11 @@ _buildQuery () {
   log="$2"
 
   if [[ -n "$log" ]]; then
-    path=",\"filter\" : { \"wildcard\" : { \"path\" : \"/home/*/var/${log}/logs/transfer*.log\" }}"
+    case "$log" in
+      *)
+        path=",\"filter\" : { \"wildcard\" : { \"path\" : \"/home/*/var/${log}/logs/*.log\" }}";
+        ;;
+    esac
   fi
 
   cat <<- EOF > "$QUERY_FILE"
@@ -224,6 +224,7 @@ main () {
     esac
   done
 
+
   if [[ -z "$start_time" ]]; then
     echo "Start time must be specified.";
     exit 1;
@@ -233,11 +234,20 @@ main () {
     end_time="$start_time"
   fi
 
+  if [[ -z "$log_host" ]]; then
+    read -rp "No hostname Specified. Continue? N/y: " cont;
+    if [[ "$cont" != "y" ]]; then
+      exit 0;
+    fi
+  fi
+
   if [[ -z "$ticket" ]]; then
     read -rp "Ticket: " ticket;
   fi
 
+
   printf "\nOutput going to %s\n\n" "${OUTPUT_DIR}/${ticket}";
+
 
   for index in "${indices[@]}"; do
 
@@ -255,6 +265,7 @@ main () {
 
       index_status="$(curl -s "${SERVER}/_cat/indices/${ACTIVE_INDEX}?h=status")"
 
+
       if [[ "$index_status" == "close"* ]]; then
         _openIndex;
       elif [[ "$index_status" == "open"* ]]; then
@@ -263,6 +274,7 @@ main () {
         echo "Index $ACTIVE_INDEX not found. Skipping."
         continue;
       fi
+
 
       case $index in
         "weberror")
@@ -294,11 +306,13 @@ main () {
         *);;
       esac
 
+
       if [[ "$index_status" == "close"* ]]; then
         _closeIndex;
       elif [[ "$index_status" == "open"* ]]; then
         echo "Leaving index $ACTIVE_INDEX open."
       fi
+
 
     done
 
