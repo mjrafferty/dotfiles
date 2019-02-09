@@ -11,6 +11,7 @@ OUTPUT_DIR="/var/esgrep-scratch"
 # Necessary Global Variables
 QUERY_FILE="$(mktemp)"
 ACTIVE_INDEX="";
+INDEX_STATUS=""
 
 # Print usage
 _usage() {
@@ -75,24 +76,49 @@ _cmdline() {
 # Open index
 _openIndex() {
 
-  printf "Opening %s..." "${ACTIVE_INDEX}"
 
-  curl -X POST "${SERVER}/${ACTIVE_INDEX}/_open" -s -o /dev/null
+  INDEX_STATUS="$(curl -s "${SERVER}/_cat/indices/${ACTIVE_INDEX}?h=status")"
 
-  while curl -s "${SERVER}/_cat/indices/${ACTIVE_INDEX}" | grep -q "^red"; do
-    sleep 1;
-  done
 
-  printf "Done\n"
+  if [[ "$INDEX_STATUS" == "close"* ]]; then
+
+    printf "Opening %s..." "${ACTIVE_INDEX}"
+
+    curl -X POST "${SERVER}/${ACTIVE_INDEX}/_open" -s -o /dev/null
+
+    while curl -s "${SERVER}/_cat/indices/${ACTIVE_INDEX}" | grep -q "^red"; do
+      sleep 1;
+    done
+
+    printf "Done\n"
+
+  elif [[ "$INDEX_STATUS" == "open"* ]]; then
+
+    echo "Index $ACTIVE_INDEX already open."
+
+  else
+
+    echo "Index $ACTIVE_INDEX not found. Skipping."
+    return 1;
+
+  fi
 
 }
 
 # Close index
 _closeIndex() {
 
-  printf "Closing %s..." "${ACTIVE_INDEX}";
-  curl -X POST "${SERVER}/${ACTIVE_INDEX}/_close" -s -o /dev/null
-  printf "Done\n\n";
+  if [[ "$INDEX_STATUS" == "close"* ]]; then
+
+    printf "Closing %s..." "${ACTIVE_INDEX}";
+    curl -X POST "${SERVER}/${ACTIVE_INDEX}/_close" -s -o /dev/null
+    printf "Done\n\n";
+
+  elif [[ "$INDEX_STATUS" == "open"* ]]; then
+
+    prinft "Leaving index %s open.\n\n" "$ACTIVE_INDEX";
+
+  fi
 
 }
 
@@ -148,6 +174,12 @@ _buildQuery () {
 
   if [[ -n "$log" ]]; then
     case "$log" in
+      "messages")
+        path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/messages\" }}";
+        ;;
+      "secure")
+        path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/secure\" }}";
+        ;;
       *)
         path=",\"filter\" : { \"wildcard\" : { \"path\" : \"/home/*/var/${log}/logs/*.log\" }}";
         ;;
@@ -257,24 +289,13 @@ main () {
 
     while [[ "$date" != "$(date -d "$end_time + 1day" "+%F")" ]]; do
 
-      local index_status;
-
       ACTIVE_INDEX="$index-$(echo "$date" | tr '-' '.')"
 
       date="$(date -d "$date + 1day" "+%F")"
 
-      index_status="$(curl -s "${SERVER}/_cat/indices/${ACTIVE_INDEX}?h=status")"
-
-
-      if [[ "$index_status" == "close"* ]]; then
-        _openIndex;
-      elif [[ "$index_status" == "open"* ]]; then
-        echo "Index $ACTIVE_INDEX already open."
-      else
-        echo "Index $ACTIVE_INDEX not found. Skipping."
+      if ! _openIndex; then
         continue;
       fi
-
 
       case $index in
         "weberror")
@@ -306,13 +327,7 @@ main () {
         *);;
       esac
 
-
-      if [[ "$index_status" == "close"* ]]; then
-        _closeIndex;
-      elif [[ "$index_status" == "open"* ]]; then
-        echo "Leaving index $ACTIVE_INDEX open."
-      fi
-
+      _closeIndex;
 
     done
 
