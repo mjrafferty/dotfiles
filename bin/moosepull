@@ -6,6 +6,7 @@ readonly ARGA=("$@")
 
 # Configurable Variables
 SERVER="moose-esmaster01.us-midwest-1.nexback.net:9200"
+OUTPUT_DIR="/var/esgrep-scratch"
 INDICES=( "webtransfer" "weberror" "syslog" "phpfpm" )
 LOGS=( "secure" "messages" )
 
@@ -27,6 +28,7 @@ _usage() {
   -s|--start
   -e|--end
   -d|--domains
+  -t|--ticket
 
 EOF
 
@@ -60,6 +62,9 @@ _cmdline() {
         ;;
       "--domains"|"-d")
         args="${args}-d "
+        ;;
+      "--ticket"|"-t")
+        args="${args}-t "
         ;;
       *)
         args="${args}${x} "
@@ -171,7 +176,9 @@ _cleanup () {
 # Main
 main () {
 
-  while getopts "hH:i:l:s:e:d:" OPTION $(_cmdline); do
+  local log_host indices logs start_time end_time domains ticket
+
+  while getopts "hH:i:l:s:e:d:t:" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -206,6 +213,9 @@ main () {
       d)
         domains="$OPTARG";
         ;;
+      t)
+        ticket="$OPTARG";
+        ;;
       *);;
     esac
   done
@@ -219,7 +229,13 @@ main () {
     end_time="$start_time"
   fi
 
+  if [[ -z "$ticket" ]]; then
+    read -rp "Ticket: " ticket;
+  fi
+
   for index in "${indices[@]}"; do
+
+    local date;
 
     date="$start_time"
 
@@ -233,29 +249,38 @@ main () {
 
       if [[ "$index_status" == "close"* ]]; then
         _openIndex;
+      elif [[ "$index_status" == "open"* ]]; then
+        echo "Index $ACTIVE_INDEX already open."
+      else
+        echo "Index $ACTIVE_INDEX not found. Skipping."
+        continue;
       fi
 
       case $index in
         "weberror")
           for domain in "${domains[@]}"; do
+            mkdir -p "${OUTPUT_DIR}/${ticket}/${domain}" 2> /dev/null
             _buildQuery "$log_host" "$domain";
-            _queryIndex "${domain}-$ACTIVE_INDEX";
+            _queryIndex "${OUTPUT_DIR}/${ticket}/${domain}/${ACTIVE_INDEX}";
           done
           ;;
         "webtransfer")
           for domain in "${domains[@]}"; do
+            mkdir -p "${OUTPUT_DIR}/${ticket}/${domain}" 2> /dev/null
             _buildQuery "$log_host" "$domain";
-            _queryIndex "${domain}-$ACTIVE_INDEX";
+            _queryIndex "${OUTPUT_DIR}/${ticket}/${domain}/${ACTIVE_INDEX}";
           done
           ;;
         "phpfpm")
+          mkdir -p "${OUTPUT_DIR}/${ticket}" 2> /dev/null
           _buildQuery "$log_host";
-          _queryIndex;
+          _queryIndex "${OUTPUT_DIR}/${ticket}/${ACTIVE_INDEX}";
           ;;
         "syslog")
           for log in "${logs[@]}"; do
+            mkdir -p "${OUTPUT_DIR}/${ticket}/${log}" 2> /dev/null
             _buildQuery "$log_host" "$log";
-            _queryIndex;
+            _queryIndex "${OUTPUT_DIR}/${ticket}/${log}/${ACTIVE_INDEX}";
           done
           ;;
         *);;
@@ -263,6 +288,8 @@ main () {
 
       if [[ "$index_status" == "close"* ]]; then
         _closeIndex;
+      elif [[ "$index_status" == "open"* ]]; then
+        echo "Leaving index $ACTIVE_INDEX open."
       fi
 
       date="$(date -d "$date + 1day" "+%F")"
