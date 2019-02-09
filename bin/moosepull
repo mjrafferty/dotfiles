@@ -193,10 +193,10 @@ main () {
         log_host="$OPTARG"
         ;;
       i)
-        indices=($(echo "$OPTARG" | tr ',' ' '))
+        mapfile -t indices < <(echo "$OPTARG" | tr ',' '\n')
         ;;
       l)
-        logs=($(echo "$OPTARG" | tr ',' ' '))
+        mapfile -t logs < <(echo "$OPTARG" | tr ',' '\n')
         ;;
       s)
         if [[ "$OPTARG" =~ [0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
@@ -215,7 +215,7 @@ main () {
         fi
         ;;
       d)
-        domains="$OPTARG";
+        mapfile -t domains < <(echo "$OPTARG" | tr ',' '\n')
         ;;
       t)
         ticket="$OPTARG";
