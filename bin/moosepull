@@ -145,10 +145,14 @@ _queryIndex() {
 # Build query to send to elasticsearch server
 _buildQuery () {
 
-  local host domain
+  local host log path
 
   host="$1"
-  domain="$2"
+  log="$2"
+
+  if [[ -n "$log" ]]; then
+    path=",\"filter\" : { \"wildcard\" : { \"path\" : \"/home/*/var/${log}/logs/transfer*.log\" }}"
+  fi
 
   cat <<- EOF > "$QUERY_FILE"
 {
@@ -157,8 +161,8 @@ _buildQuery () {
   "_source": "message",
   "query" : {
     "bool" : {
-      "filter" : { "wildcard" : { "host" : "${host}*" }},
-      "filter" : { "wildcard" : { "path" : "/home/*/var/${domain}/logs/transfer*.log" }}
+      "filter" : { "wildcard" : { "host" : "${host}*" }}
+     ${path}
     }
   }
 }
@@ -233,7 +237,7 @@ main () {
     read -rp "Ticket: " ticket;
   fi
 
-  printf "Output going to %s\n\n" "${OUTPUT_DIR}/${ticket}";
+  printf "\nOutput going to %s\n\n" "${OUTPUT_DIR}/${ticket}";
 
   for index in "${indices[@]}"; do
 
