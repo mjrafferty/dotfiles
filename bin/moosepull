@@ -140,6 +140,9 @@ _buildQuery () {
 
   local host domain
 
+  host="$1"
+  domain="$2"
+
   cat <<- EOF > "$QUERY_FILE"
 {
   "sort": ["_doc"],
@@ -147,7 +150,7 @@ _buildQuery () {
   "_source": "message",
   "query" : {
     "bool" : {
-      "filter" : { "wildcard" : { "host" : "${host}" }},
+      "filter" : { "wildcard" : { "host" : "${host}*" }},
       "filter" : { "wildcard" : { "path" : "/home/*/var/${domain}/logs/transfer*.log" }}
     }
   }
