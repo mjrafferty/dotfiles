@@ -141,7 +141,7 @@ _buildQuery () {
   local host user domain
 
   cat <<- EOF > "$QUERY_FILE"
-{QUERY_FILE
+{
   "sort": ["_doc"],
   "size": 1000,
   "_source": "message",
