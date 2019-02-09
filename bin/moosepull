@@ -233,7 +233,7 @@ main () {
     read -rp "Ticket: " ticket;
   fi
 
-  echo "Output going to ${OUTPUT_DIR}/${ticket}"
+  printf "Output going to %s\n\n" "${OUTPUT_DIR}/${ticket}";
 
   for index in "${indices[@]}"; do
 
@@ -245,7 +245,7 @@ main () {
 
       local index_status;
 
-      ACTIVE_INDEX="$index-$(echo $date | tr '-' '.')"
+      ACTIVE_INDEX="$index-$(echo "$date" | tr '-' '.')"
 
       index_status="$(curl -s "${SERVER}/_cat/indices/${ACTIVE_INDEX}?h=status")"
 
