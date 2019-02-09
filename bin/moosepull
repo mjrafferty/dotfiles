@@ -102,7 +102,7 @@ _queryIndex() {
 
   printf "Running query..."
 
-  response=$(curl -s "$SERVER/$ACTIVE_INDEX/_search?scroll=1m" -d @"$QUERY_FILE")
+  response=$(curl -s "$SERVER/$ACTIVE_INDEX/_search?scroll=10m" -d @"$QUERY_FILE")
 
   scroll_id=$(echo "$response" | jq -r ._scroll_id)
   hits_count=$(echo "$response" | jq -r '.hits.hits | length')
@@ -118,7 +118,7 @@ _queryIndex() {
 
     printf "\r%s scroll %s..." "${ACTIVE_INDEX}" $((++scroll_count));
 
-    response=$(curl -s "$SERVER/_search/scroll" -d "{ \"scroll\": \"1m\", \"scroll_id\": \"$scroll_id\" }")
+    response=$(curl -s "$SERVER/_search/scroll" -d "{ \"scroll\": \"10m\", \"scroll_id\": \"$scroll_id\" }")
 
     scroll_id=$(echo "$response" | jq -r ._scroll_id)
     hits_count=$(echo "$response" | jq -r '.hits.hits | length')
@@ -144,18 +144,8 @@ _buildQuery () {
 {QUERY_FILE
   "sort": ["_doc"],
   "size": 1000,
-  "query": {
-    "bool": {
-      "filter": [
-        {"term": { "host" : "${host}" }},
-        {"or" : [
-          {"term": { "path" : "/home/${user}/var/${domain}/logs/transfer.log" }},
-          {"term": { "path" : "/home/${user}/var/${domain}/logs/transfer-ssl.log" }}
-        ]
-      }
-      ]
-    }
-}
+  "_source": "message",
+	"query_string": { "query" : "+host:sip1-208*" }
 }
 EOF
 
