@@ -116,7 +116,7 @@ _closeIndex() {
 
   elif [[ "$INDEX_STATUS" == "open"* ]]; then
 
-    prinft "Leaving index %s open.\n\n" "$ACTIVE_INDEX";
+    printf "Leaving index %s open.\n\n" "$ACTIVE_INDEX";
 
   fi
 
