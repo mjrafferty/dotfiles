@@ -18,14 +18,37 @@ _usage() {
 
   cat <<- EOF
 
-  -h|--help
-  -H|--host
-  -i|--index
-  -l|--logs
-  -s|--start
-  -e|--end
-  -d|--domains
-  -t|--ticket
+  Utility to simplify retrieval of log data from moose. Automatically manages
+  opening and closing of indexes. If an index is already open, it will be left
+  open. Output goes to $OUTPUT_DIR/ticket.
+
+    -i|--index      Comma separated list of indices to open.
+
+                      webtransfer,weberror,syslog,phpfpm
+
+    -H|--host       Hostname or hostname prefix to retrieve logs for.
+                    Ex: sip4-123, or mce123-node to match all webnodes.
+
+    -s|--start      Mandatory. Start day or only day that you want
+                    log data for. Must be in the format of YYYY-MM-DD.
+
+    -e|--end        Optional. Last day of logs to retrieve. Must be in
+                    the format of YYYY-MM-DD.
+
+    -l|--logs       Comma separated list of logs to retrieve. Currently
+                    only valid values are:
+
+                      messages,secure
+
+    -d|--domains    Comma separated list of domains to retrieve log data
+                    for when pulling from webtransfer or weberror indices.
+                    If ommitted, all domains on the matching hostname/s
+                    will be retrieved.
+
+    -t|--ticket     Ticket number to use for subdirectory name that logs
+                    should be placed in.
+
+    -h|--help
 
 EOF
 
@@ -76,9 +99,7 @@ _cmdline() {
 # Open index
 _openIndex() {
 
-
   INDEX_STATUS="$(curl -s "${SERVER}/_cat/indices/${ACTIVE_INDEX}?h=status")"
-
 
   if [[ "$INDEX_STATUS" == "close"* ]]; then
 
