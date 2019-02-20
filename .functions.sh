@@ -424,7 +424,7 @@ u () {
   $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,.zsh-histdb,clients,.vimfiles} 2> /dev/null
 
   # Switch user
-  $SUDO HOME="$HOME" TMUX="$TMUX" -u "$user" "$MYSHELL"
+  $SUDO HOME="$HOME" MAIN_SHELL_PID="$MAIN_SHELL_PID" TMUX="$TMUX" -u "$user" "$MYSHELL"
 
   # Give me permissions on any files the user created in my home dir
   $SUDO -u "$user" "$FIND" "$HOME" -user "$user" -exec $SETFACL -m u:"$USER":rwX {} +

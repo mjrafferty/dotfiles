@@ -165,7 +165,7 @@ _mainRsync() {
     --exclude '.vimfiles' \
     --exclude '.zsh-histdb/.*' \
     --exclude '.zsh_history' \
-    --exclude '.zsh-history*.log' \
+    --exclude '.zsh-history*' \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
     ~/dotfiles/ \
     "$1@$DESTINATION":~/ 2> /dev/null

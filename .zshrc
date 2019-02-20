@@ -127,6 +127,33 @@ _aliasFunctions() {
 
 }
 
+_logout () {
+
+  if [[ "$$" == "$MAIN_SHELL_PID" ]] then
+
+    # Cleanup home folder on logout
+    find "$HOME"/ -mindepth 1 \( \
+      -path "*/.bash_profile" -o \
+      -path "*/bin" -o \
+      -path "*/clients" -o \
+      -path "*/.commonrc" -o \
+      -path "*/.completions" -o \
+      -path "*/.functions.sh" -o \
+      -path "*/.mytop" -o \
+      -path "*/nex_strace" -o \
+      -path "*/*history" -o \
+      -path "*/.zsh-history*" -o \
+      -path "*/*SNAPS*" -o \
+      -path "*/.ssh" -o \
+      -path "*/.zlogin*" -o \
+      -path "*/.zpr*" -o \
+      -path "*/.vim*" -o \
+      -path "*/.zshrc" \) -prune -o -exec rm -rf {} + 2> /dev/null;
+
+  fi
+
+}
+
 # Main
 main() {
 
@@ -143,6 +170,11 @@ main() {
 
   # Expand PATH
   export PATH="${PATH}:/var/qmail/bin:/usr/local/bin:/usr/local/interworx/bin"
+
+  [[ -z $MAIN_SHELL_PID ]] && export MAIN_SHELL_PID="$$"
+
+  autoload -Uz add-zsh-hook
+  add-zsh-hook zshexit _logout;
 
 }
 
