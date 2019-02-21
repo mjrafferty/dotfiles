@@ -129,9 +129,14 @@ _getHistory() {
   "$RSYNC" -ql -rpt --remove-source-files \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
     "$username@$DESTINATION":~/.zsh-history"${LOGIN_ID}".log "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log" 2> /dev/null
+
   if [[ -e "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log" ]]; then
-    cat "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log" | sqlite3 ~/dotfiles/.zsh-history.db
+
+    cat "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log" \
+      | sqlite3 ~/dotfiles/.zsh-history.db
+
     rm "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log"
+
   fi
 
 }
@@ -165,7 +170,6 @@ _mainRsync() {
     --exclude '.vimfiles' \
     --exclude '.zsh-histdb/.*' \
     --exclude '.zsh_history' \
-    --exclude '.zsh-history*' \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
     ~/dotfiles/ \
     "$1@$DESTINATION":~/ 2> /dev/null

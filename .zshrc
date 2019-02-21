@@ -63,11 +63,11 @@ _sourceClient() {
 _mySetup () {
 
   # Create directories for files used by vim if necessary
-    mkdir -p ~/.vimfiles/{backup,swp,undo}
+  mkdir -p ~/.vimfiles/{backup,swp,undo}
 
   # Create directory for preserving client/ticket data
-    mkdir -p "$HOME"/clients/"$TICKET";
-    export TICKETDIR="${HOME}/clients/${TICKET}";
+  mkdir -p "$HOME"/clients/"$TICKET";
+  export TICKETDIR="${HOME}/clients/${TICKET}";
 
   # Source actions provided by login script
   [ -r ~/action.sh ] && source ~/action.sh;
@@ -136,10 +136,22 @@ _isLastShell() {
 
   other_shells="$(pgrep -P "${parent_pid}" | grep -v "$this_pid")"
 
-  if [[ -z "$other_shells" && ( $USER == "${HOME/*\//}" || $USER == "root" ) ]]; then
-    return 0;
+  if [[ $USER == "${HOME/*\//}" || $USER == "root"  ]]; then
+
+    if [[ -z "$other_shells" ]]; then
+
+      return 0;
+
+    else
+
+      return 1
+
+    fi
+
   else
+
     return 1;
+
   fi
 
 }
@@ -159,13 +171,16 @@ _logout () {
       -path "*/.mytop" -o \
       -path "*/nex_strace" -o \
       -path "*/*history" -o \
-      -path "*/.zsh-history*" -o \
+      -path "*/.zsh-hist*" -o \
       -path "*/*SNAPS*" -o \
       -path "*/.ssh" -o \
       -path "*/.zlogin*" -o \
       -path "*/.zpr*" -o \
       -path "*/.vim*" -o \
       -path "*/.zshrc" \) -prune -o -exec rm -rf {} + 2> /dev/null;
+
+      rm "${HOME}/.zsh-history${LOGIN_ID}.db"
+
   fi
 
 }
