@@ -127,9 +127,26 @@ _aliasFunctions() {
 
 }
 
+_isLastShell() {
+
+  local this_pid parent_pid other_shells;
+
+  this_pid="$$"
+	parent_pid="$(ps -o ppid "$this_pid" | grep -o '[0-9]*')"
+
+  other_shells="$(pgrep -P "${parent_pid}" | grep -v "$this_pid")"
+
+  if [[ -z "$other_shells" && ( $USER == "${HOME/*\//}" || $USER == "root" ) ]]; then
+    return 0;
+  else
+    return 1;
+  fi
+
+}
+
 _logout () {
 
-  if [[ "$$" == "$MAIN_SHELL_PID" ]] then
+  if _isLastShell; then
 
     # Cleanup home folder on logout
     find "$HOME"/ -mindepth 1 \( \
@@ -149,7 +166,6 @@ _logout () {
       -path "*/.zpr*" -o \
       -path "*/.vim*" -o \
       -path "*/.zshrc" \) -prune -o -exec rm -rf {} + 2> /dev/null;
-
   fi
 
 }
@@ -170,8 +186,6 @@ main() {
 
   # Expand PATH
   export PATH="${PATH}:/var/qmail/bin:/usr/local/bin:/usr/local/interworx/bin"
-
-  [[ -z $MAIN_SHELL_PID ]] && export MAIN_SHELL_PID="$$"
 
   autoload -Uz add-zsh-hook
   add-zsh-hook zshexit _logout;
