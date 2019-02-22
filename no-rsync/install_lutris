@@ -89,7 +89,7 @@ _selectExe() {
 
   for (( i=0; i<${#executables[@]}; i++ )); do
 
-    echo "$i  ${executables[$i]}";
+    echo "$i  ${executables[i]}";
 
   done | column -t;
 

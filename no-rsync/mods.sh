@@ -1,20 +1,19 @@
 #! /bin/bash
 
-# Minimum merge size formula (Algebra) : (load_order - no_merge) / (254 - no_merge - ((load_order - no_merge) / minimum) = minimum
+readonly MOD_DIR="/home/matt/mods/Skyrim_Tools/LE mods"
+readonly PROFILE_DIR="/home/matt/windoc/Documents/ModOrganizer/Skyrim/profiles"
+readonly STARTING_PROFILE="${PROFILE_DIR}/Stage 0 - All Enabled"
+readonly FULL_PLUGIN_LIST="${STARTING_PROFILE}/plugins.txt"
+readonly BASE_PROFILE="${PROFILE_DIR}/Stage 2 - Base"
+readonly BASE_PLUGIN_LIST="${BASE_PROFILE}/plugins.txt"
+readonly BASE_MODLIST="${BASE_PROFILE}/modlist.txt"
 
-readonly MOD_DIR="/mnt/f/Skyrim_Tools/LE mods"
-readonly PROFILE_DIR="/mnt/d/Documents/ModOrganizer/Skyrim/profiles"
-readonly STARTING_PROFILE="${PROFILE_DIR}/Test"
-readonly LOAD_ORDER="${STARTING_PROFILE}/plugins.txt"
-readonly NO_MERGE_PROFILE="${PROFILE_DIR}/No_Merge"
-readonly NO_MERGE_FILE="${NO_MERGE_PROFILE}/plugins.txt"
-
+# Minimum merge size formula (Algebra) : (load_order - base_plugin_count) / (254 - base_plugin_count - ((load_order - base_plugin_count) / minimum) = minimum
 readonly MERGE_SIZE="50";
 
 readonly IFS="
 "
 
-LOAD_ORDER_UNIX=$(mktemp);
 DEPENDENCIES=$(mktemp -d);
 DEPENDENTS=$(mktemp -d);
 MASTERS_FILE=$(mktemp);
@@ -26,26 +25,33 @@ _checkMasters() {
 
   local plugin dependency;
 
+  printf "Gathering plugin master data..."
+
   cd "$MOD_DIR" || exit 1;
 
-  echo "Gathering plugin master data..."
-
-  for plugin in $(tail -n +3 "$LOAD_ORDER_UNIX" | grep -Ev "^($( tail -n +2 "$NO_MERGE_FILE" | tr '\n' '|' | sed 's/|$//'))$"); do
+  for plugin in $(tail -n +7 "$FULL_PLUGIN_LIST" | grep -Ev "^($( tail -n +2 "$BASE_PLUGIN_LIST" | tr '\n' '|' | sed 's/|$//'))$"); do
 
     touch "$DEPENDENCIES"/"${plugin/*\//}".txt;
 
     for dependency in $(head -n50 -- */"$plugin" | grep -Poa "MAST..\K[[:print:]]*\.es."); do
 
       # Sanitizes masters that may not have correct capitalization
-      grep -i "^${dependency}$" "$LOAD_ORDER_UNIX"  \
-        | grep -Ev "^$( tail -n +2 "$NO_MERGE_FILE" | tr '\n' '|' | sed 's/|$//')$" \
+      grep -i "^${dependency}$" "$FULL_PLUGIN_LIST"  \
+        | grep -Ev "^$( tail -n +2 "$BASE_PLUGIN_LIST" | tr '\n' '|' | sed 's/|$//')$" \
         | tee -a "$DEPENDENCIES"/"${plugin/*\//}".txt;
 
     done
   done \
     | sort -u > "$MASTERS_FILE"
 
-  }
+  ## Hack because these aren't being identified as plugin masters with my crappy method of reading plugin files
+  #for hack in "Inigo.esp" "iNeed.esp" "3DNPC.esp"; do
+    #echo "$hack" > "$MASTERS_FILE"
+  #done
+
+  printf "Done\n"
+
+}
 
 # Plugins that have no masters that are to be merged, and no dependents, can be merged together easily
 _easyMerge(){
@@ -54,7 +60,7 @@ _easyMerge(){
 
   cd "$DEPENDENCIES" || exit 1;
 
-  echo "Creating list of easy to merge plugins..."
+  printf "Creating simple merges..."
 
   for dependency_list in *; do
 
@@ -73,6 +79,8 @@ _easyMerge(){
 
   split -dl  "$MERGE_SIZE" "$EASY_MERGE" "easymerge_";
 
+  printf "Done\n"
+
 }
 
 # Find logical merges based on masters and shared dependencies
@@ -82,7 +90,7 @@ _findMerges() {
 
   cd "$DEPENDENCIES" || exit 1;
 
-  echo "Generating dependent info...";
+  printf "Generating dependent info...";
 
   # For each master file that is to be included in a merge, find its dependents
   for master in $(cat "$MASTERS_FILE"); do
@@ -92,9 +100,11 @@ _findMerges() {
 
   done
 
+  printf "Done\n"
+
   cd "$DEPENDENTS" || exit 1;
 
-  echo "Combining merges with masters..."
+  printf "Combining merges with masters..."
 
   for dependents_list in *; do
 
@@ -105,7 +115,9 @@ _findMerges() {
     fi
   done
 
-  echo "Combining merges based on shared dependents..."
+  printf "Done\n"
+
+  printf "Combining merges based on shared dependents..."
 
   for dependents_list in *; do
 
@@ -122,6 +134,8 @@ _findMerges() {
     echo ${dependents_list/.txt/} >> ${dependents_list};
 
   done
+
+  printf "Done\n"
 
 }
 
@@ -208,7 +222,7 @@ _combineMerges () {
 
   local tempdata merge_name merge_quantity x y;
 
-  echo "Combining merges based on size...";
+  printf "Combining merges based on size...";
 
   tempdata=$(wc -l -- * | sort -k1nr | tail -n +2)
 
@@ -243,6 +257,8 @@ _combineMerges () {
   done
 
   mv ./* "$FINAL_MERGES";
+
+  printf "Done\n"
 
 }
 
@@ -291,25 +307,48 @@ _makeJson () {
 # Make merge profiles
 _makeProfiles () {
 
-  local merges merge;
+  local merges merge plugin;
 
-  cd "$FINAL_MERGES" || exit 1;
+  printf "Generating profiles..."
+
 
   mapfile -t merges < <(find . -maxdepth 1 -type f -printf '%P\n' | sed 's/\.es.\.txt//');
 
+  inc=1
+
   for merge in ${merges[*]}; do
 
-    if [[ -e "${PROFILE_DIR}/${merge}" ]]; then
+    local merge_profile="${PROFILE_DIR}/Merge Pack $inc";
 
-      rm -r "${PROFILE_DIR}/${merge}"
+    if [[ -e "${merge_profile}" ]]; then
+
+      rm -r "${merge_profile}"
 
     fi
 
-    cp -a "${NO_MERGE_PROFILE}" "${PROFILE_DIR}/${merge}"
+    cp -a "${BASE_PROFILE}" "${merge_profile}"
 
-    cat "$merge" > "${PROFILE_DIR}/${merge}/plugins.txt"
+    cat "$merge"* >> "${merge_profile}/plugins.txt"
+
+    cd "$MOD_DIR"
+
+    for plugin in $(cat "${merge_profile}/plugins.txt"); do
+
+      for mod in $(find */"$plugin" 2> /dev/null | grep -o '^[^/]*'); do
+
+        sed -i "s/-${mod}$/+${mod}/" "${merge_profile}/modlist.txt";
+
+      done
+
+    done
+
+    cd "$FINAL_MERGES" || exit 1;
+
+    ((inc++));
 
   done
+
+  printf "Done\n"
 
 }
 
@@ -317,8 +356,9 @@ _makeProfiles () {
 main() {
 
   #Make load order unix friendly
-  cp "$LOAD_ORDER" "$LOAD_ORDER_UNIX";
-  dos2unix -q "$LOAD_ORDER_UNIX"
+  dos2unix -q "$FULL_PLUGIN_LIST"
+  dos2unix -q "$BASE_PLUGIN_LIST"
+  dos2unix -q "$BASE_MODLIST"
 
   _checkMasters;
 
@@ -337,7 +377,7 @@ main() {
   ln -sf "$EASY_MERGE" ~/Easy_Merge
   ln -sf "$DEPENDENTS" ~/Dependents
   ln -sf "$FINAL_MERGES" ~/Final_Merges
-  ln -sf "$LOAD_ORDER_UNIX" ~/Load_Order
+  ln -sf "$FULL_PLUGIN_LIST" ~/Load_Order
 
 }
 
