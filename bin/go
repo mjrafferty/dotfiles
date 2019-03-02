@@ -218,9 +218,9 @@ _loginWrapper () {
 
   fi;
 
-  "$RM" -f "$HOME"/dotfiles/action.sh "$HOME"/dotfiles/.enviornment.sh
+  "$RM" -f "$HOME"/dotfiles/action.sh "$HOME/dotfiles/.environment${LOGIN_ID}.sh"
 
-  _login "$username";
+  _login "$username" || return 1;
 
   _getHistory "$username" &
 
@@ -297,11 +297,11 @@ _setAction () {
 _setEnv () {
 
   MY_IP=$(echo "$SSH_CLIENT" | "$GREP" -Po '([0-9]{1,3}\.){3}[0-9]{1,3}');
-  true > "$HOME"/dotfiles/.environment.sh;
+  true > "$HOME/dotfiles/.environment${LOGIN_ID}.sh";
 
-  echo "export TICKET=${TICKET}" >> "$HOME"/dotfiles/.environment.sh;
-  echo "export MY_IP=\"${MY_IP}\"" >> "$HOME"/dotfiles/.environment.sh;
-  echo "export LOGIN_ID=\"${LOGIN_ID}\"" >> "$HOME"/dotfiles/.environment.sh;
+  echo "export TICKET=${TICKET}" >> "$HOME/dotfiles/.environment${LOGIN_ID}.sh";
+  echo "export MY_IP=\"${MY_IP}\"" >> "$HOME/dotfiles/.environment${LOGIN_ID}.sh";
+  echo "export LOGIN_ID=\"${LOGIN_ID}\"" >> "$HOME/dotfiles/.environment${LOGIN_ID}.sh";
 
 }
 

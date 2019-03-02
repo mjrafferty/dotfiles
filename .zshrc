@@ -160,26 +160,29 @@ _logout () {
 
   if _isLastShell; then
 
-    # Cleanup home folder on logout
-    find "$HOME"/ -mindepth 1 \( \
-      -path "*/.bash_profile" -o \
-      -path "*/bin" -o \
-      -path "*/clients" -o \
-      -path "*/.commonrc" -o \
-      -path "*/.completions" -o \
-      -path "*/.functions.sh" -o \
-      -path "*/.mytop" -o \
-      -path "*/nex_strace" -o \
-      -path "*/*history" -o \
-      -path "*/.zsh-hist*" -o \
-      -path "*/*SNAPS*" -o \
-      -path "*/.ssh" -o \
-      -path "*/.zlogin*" -o \
-      -path "*/.zpr*" -o \
-      -path "*/.vim*" -o \
-      -path "*/.zshrc" \) -prune -o -exec rm -rf {} + 2> /dev/null;
+    cd "$HOME" || return 1;
 
-      rm "${HOME}/.zsh-history${LOGIN_ID}.db"
+    # Cleanup home folder on logout
+    find . -mindepth 1 \( \
+      -path "./.bash_profile" -o \
+      -path "./bin" -o \
+      -path "./clients" -o \
+      -path "./.commonrc" -o \
+      -path "./.completions" -o \
+      -path "./.functions.sh" -o \
+      -path "./.mytop" -o \
+      -path "./nex_strace" -o \
+      -path "./*history" -o \
+      -path "./.zsh-hist*" -o \
+      -path "./SNAPS*" -o \
+      -path "./.ssh" -o \
+      -path "./.zlogin*" -o \
+      -path "./.zpr*" -o \
+      -path "./.vim*" -o \
+      -path "./.zshrc" \
+      \) -prune -o -exec rm -rf {} + 2> /dev/null;
+
+      rm "${HOME}/.zsh-history${LOGIN_ID}.db" "${HOME}/.environment${LOGIN_ID}.sh"
 
   fi
 
@@ -189,7 +192,7 @@ _logout () {
 main() {
 
   # Source environment variables provided by login script
-  [ -r ~/.environment.sh ] && source ~/.environment.sh;
+  [ -r ~/.environment${LOGIN_ID}.sh ] && source ~/.environment${LOGIN_ID}.sh;
 
   _rootOrSudo;
 
