@@ -69,6 +69,8 @@ _mySetup () {
   mkdir -p "$HOME"/clients/"$TICKET";
   export TICKETDIR="${HOME}/clients/${TICKET}";
 
+  [[ -r /etc/nexcess/server_notes.txt ]] && cat /etc/nexcess/server_notes.txt;
+
   # Source actions provided by login script
   [ -r ~/action.sh ] && source ~/action.sh;
 
