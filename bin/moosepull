@@ -202,7 +202,7 @@ _buildQuery () {
         path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/secure\" }}";
         ;;
       *)
-        path=",\"filter\" : { \"wildcard\" : { \"path\" : \"/home/*/var/${log}/logs/*.log\" }}";
+        path=",\"filter\" : { \"regexp\" : { \"path\" : \"/(home/.*/var|var/log/interworx)/${log}/logs/.*log\" }}";
         ;;
     esac
   fi
