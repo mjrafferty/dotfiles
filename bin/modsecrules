@@ -10,9 +10,9 @@ readonly GREP='/bin/grep'
 readonly SORT='/bin/sort'
 
 if grep -q 'release 7' /etc/centos-release; then
-  MODGREP="sudo modgrep";
+  MODGREP=("sudo" "modgrep");
 else
-  MODGREP="modgrep";
+  MODGREP=("modgrep");
 fi
 
 _usage() {
@@ -32,7 +32,7 @@ main () {
     return 0;
   fi
 
-  "$MODGREP" -s "${ARGA[0]}" -f /var/log/httpd/modsec_audit.log \
+  "${MODGREP[@]}" -s "${ARGA[0]}" -f /var/log/httpd/modsec_audit.log \
     | "$GREP" -Po '.*\[id[^"]*"\K[0-9]*'  \
     | "$SORT" -u \
     | "$GREP" -Ev "$EXCLUDE_RULES";
