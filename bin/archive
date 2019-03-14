@@ -78,7 +78,7 @@ _compress () {
   else
 
     echo "Sorry, no idea how long this will take ...";
-    "$TAR" -zcf  "$file" "$target";
+    "$TAR" -zcf  "$file" "$target" "${excludes[@]}";
 
   fi \
     && echo -e "\nArchive created successfully!\n\n$PWD/$file\n";
@@ -130,11 +130,13 @@ main () {
     esac
   done
 
-  if [[ -z "$target" && -e "${ARGA[0]}" ]]; then
-    target="${ARGA[0]}"
-  else
-    echo "No valid target provided.";
-    exit 1;
+  if [[ -z "$target" ]]; then
+    if [[ -e "${ARGA[0]}" ]]; then
+      target="${ARGA[0]}"
+    else
+      echo "No valid target provided.";
+      exit 1;
+    fi
   fi
 
   file="${target/\//-}-$("$DATE" +%Y.%m.%d-%H.%M).tgz";
