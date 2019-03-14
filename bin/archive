@@ -23,6 +23,8 @@ _usage() {
   -e|--exclude  Comma separated list of files or directories
                 relateive to target to exclude.
 
+  -t|--target   Target file/directory to create archive from.
+
 EOF
 }
 
@@ -128,9 +130,11 @@ main () {
     esac
   done
 
-  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
+  if [[ -z "$target" && -e "${ARGA[0]}" ]]; then
+    target="${ARGA[0]}"
+  else
+    echo "No valid target provided.";
+    exit 1;
   fi
 
   file="${target/\//-}-$("$DATE" +%Y.%m.%d-%H.%M).tgz";
