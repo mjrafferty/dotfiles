@@ -20,7 +20,37 @@ _usage() {
 
   archive <target>
 
+  -e|--exclude  Comma separated list of files or directories
+                relateive to target to exclude.
+
 EOF
+}
+
+# Convert long command line options into short ones for getopts
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--exclude"|"-e")
+        args="${args}-e "
+        ;;
+      "--target"|"-t")
+        args="${args}-t "
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+  done
+
+  echo "$args";
+
 }
 
 _compress () {
@@ -33,13 +63,13 @@ _compress () {
 
   if [[ -f /usr/bin/pv && -f /usr/bin/pigz ]]; then
 
-    "$TAR" -cf - "$target" \
+    "$TAR" -cf - "$target" "${excludes[@]}" \
       | "$PV" -s "${size}" \
       | "$PIGZ" -c > "$file";
 
   elif [[ -f /usr/bin/pv ]]; then
 
-    "$TAR" -cf - "$target" \
+    "$TAR" -cf - "$target" "${excludes[@]}" \
       | "$PV" -s "${size}" \
       | "$GZIP" -c > "$file";
 
@@ -78,14 +108,33 @@ main () {
 
   local target file size sizem;
 
+  while getopts "he:t:" OPTION $(_cmdline); do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      e)
+        mapfile -t excludes < <(echo "$OPTARG" | tr ',' '\n')
+        for ((i=0;i<${#excludes[@]};i++)); do
+          excludes[i]="--exclude=*/${excludes[i]}/*";
+        done
+        ;;
+      t)
+        target="$OPTARG";
+        ;;
+      *);;
+    esac
+  done
+
   if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
     _usage;
     return 0;
   fi
 
-  target="${ARGA[0]}"
   file="${target/\//-}-$("$DATE" +%Y.%m.%d-%H.%M).tgz";
-  size=$("$DU" -sb "$target" | "$CUT" -f1);
+  size=$("$DU" "${excludes[@]}" -sb "$target" | "$CUT" -f1);
   sizem=$(echo "scale=3;$size/1024/1024" | bc);
 
   printf "Compressing %sM ... please be patient.\n" "$sizem"
