@@ -45,8 +45,10 @@ DBNAME=""
 PREFIX=""
 QUERY_TERM=";"
 
-if [[ -e $CONFIG_FILE ]]; then
+if [[ -e "$CONFIG_FILE" ]]; then
   SITEPATH="$PWD"
+elif [[ -e "../${CONFIG_FILE}" ]]; then
+  SITEPATH="../"
 else
   SITEPATH="$(pwd | "$GREP" -Po '(/chroot)?/home(/[^/]+){2}')"
 fi
