@@ -140,27 +140,27 @@ main () {
 
   # Parse command line arguments
   for ((x=0;x<${#ARGA[@]};x++)); do
-    case "${ARGA[$x]}" in
+    case "${ARGA[x]}" in
       "-h"|"--help")
         _usage;
         exit;
         ;;
       "-u"|"--user")
         ((x++));
-        user="${ARGA[$x]}";
+        user="${ARGA[x]}";
         ;;
       "-p"|"--pass")
         ((x++));
-        pass="${ARGA[$x]}";
+        pass="${ARGA[x]}";
         ;;
       "-d"|"--directory")
         ((x++));
-        if [[ -d "${PWD}/${ARGA[$x]}" ]]; then
-          protected_dir="${PWD}/${ARGA[$x]}";
-        elif [[ -d "${ARGA[$x]}" ]]; then
-          protected_dir="${ARGA[$x]}";
+        if [[ -d "${PWD}/${ARGA[x]}" ]]; then
+          protected_dir="${PWD}/${ARGA[x]}";
+        elif [[ -d "${ARGA[x]}" ]]; then
+          protected_dir="${ARGA[x]}";
         else
-          echo "Directory ${ARGA[$x]} does not exist."
+          echo "Directory ${ARGA[x]} does not exist."
           exit 1;
         fi
         ;;

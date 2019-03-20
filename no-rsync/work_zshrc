@@ -9,7 +9,6 @@ readonly READLINK='/usr/bin/readlink'
 
 [ -r ~/.dotfiles/.commonrc ] && source ~/.dotfiles/.commonrc;
 
-alias ls='ls -FG'
 alias rm='rm -r'
 unalias chown;
 unalias chmod;
@@ -18,13 +17,29 @@ export PATH="$PATH:/Users/mattrafferty/.local/bin"
 
 alias sshhome="ssh -p 8076 matt@mattrafferty.asuscomm.com -t ssh matt@192.168.1.210"
 alias sshpi="ssh -p 8076 matt@mattrafferty.asuscomm.com"
-#kitty + complete setup zsh | source /dev/stdin
 
 update_brew_links() {
-	for x in $(find /usr/local/Cellar/*/*/bin/*); do
-		bin="${x##*/}";
-		if [[ ! -e /usr/local/bin/${bin} ]]; then
-			ln $x /usr/local/bin/${bin};
+	for f in $(find /usr/local/Cellar/*/*/bin/*); do
+
+		bin="${f##*/}";
+
+		if [[ -e /usr/local/bin/${bin} ]]; then
+			rm -f "/usr/local/bin/${bin}";
 		fi
+
+		ln -s "$f" "/usr/local/bin/${bin}";
+
+	done
+
+	for f in $(find /usr/local/Cellar/{grep,gnu-sed,gawk,coreutils}/*/bin/g*); do
+
+		bin="${f##*/g}";
+
+		if [[ -e "/usr/local/bin/${bin}" ]]; then
+			rm -f "/usr/local/bin/${bin}";
+		fi
+
+		ln -s "$f" "/usr/local/bin/${bin}";
+
 	done
 }
