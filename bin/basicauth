@@ -118,6 +118,12 @@ AuthGroupFile /dev/null
 AuthName "Authorized Access Only"
 AuthType Basic
 Require valid-user
+
+SetEnvIf X-Host nexcesscdn.net allowed
+SetEnvIf Request_URI ^.well-known allowed
+Order allow,deny
+allow from env=allowed
+satisfy any
 # ----- End Basic Authentication -----
 
 EOF
