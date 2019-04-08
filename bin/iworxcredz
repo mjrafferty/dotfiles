@@ -63,7 +63,7 @@ main () {
     shift;
     shift;
   else
-    primaryDomain=$(~iworx/bin/listaccounts.pex | "$AWK" "/$(getusr)/"'{print $2}');
+    primaryDomain=$(~iworx/bin/listaccounts.pex | "$AWK" "/^$(getusr)/"'{print $2}');
   fi
 
   # Execute request
