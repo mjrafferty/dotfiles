@@ -34,10 +34,6 @@
 	path = nerdcommenter
 	url = https://github.com/scrooloose/nerdcommenter
 	branch = master
-[submodule "YouCompleteMe"]
-	path = YouCompleteMe
-	url = https://github.com/Valloric/YouCompleteMe
-	branch = master
 [submodule "vim-autoformat"]
 	path = vim-autoformat
 	url = https://github.com/Chiel92/vim-autoformat
@@ -205,3 +201,7 @@
 [submodule ".vim/bundle/vim-gutentags"]
 	path = .vim/bundle/vim-gutentags
 	url = https://github.com/ludovicchabant/vim-gutentags
+[submodule ".vim/.vim/bundle/YouCompleteMe"]
+	path = .vim/.vim/bundle/YouCompleteMe
+	url = https://github.com/Valloric/YouCompleteMe
+	branch = master
