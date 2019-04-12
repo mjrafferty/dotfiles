@@ -52,7 +52,7 @@ set ruler                               " show the cursor position all the time
 set showcmd                             " display incomplete commands
 set incsearch                           " do incremental searching
 set relativenumber                      " add line numbers
-set number                      " add line numbers
+set number                              " add line numbers
 set cursorline                          " underlines current line
 set scrolloff=3                         " keeps cursor away from top and bottom edges
 set wildmenu
