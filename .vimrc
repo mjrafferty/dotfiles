@@ -144,11 +144,6 @@ let g:ale_lint_delay = 1000
 let g:ale_sh_shellcheck_options = '-s bash'
 let g:ale_linters_sh_shellcheck_exclusions = "SC1117,SC2016"
 
-" easytags plugin settings
-let g:easytags_suppress_ctags_warning = 1
-let g:easytags_async=1
-let g:easytags_python_enabled=1
-
 " YouCompleteMe plugin settings
 let g:ycm_always_populate_location_list = 1
 let g:ycm_complete_in_comments = 1
