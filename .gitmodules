@@ -18,10 +18,6 @@
 	path = ale
 	url = https://github.com/w0rp/ale
 	branch = master
-[submodule "ctrlp.vim"]
-	path = ctrlp.vim
-	url = https://github.com/kien/ctrlp.vim
-	branch = master
 [submodule "delimitMate"]
 	path = delimitMate
 	url = https://github.com/Raimondi/delimitMate
@@ -46,10 +42,6 @@
 	path = vim-autoformat
 	url = https://github.com/Chiel92/vim-autoformat
 	branch = master
-[submodule "vim-indent-guides"]
-	path = vim-indent-guides
-	url = https://github.com/nathanaelkane/vim-indent-guides
-	branch = master
 [submodule "vim-multiple-cursors"]
 	path = vim-multiple-cursors
 	url = https://github.com/terryma/vim-multiple-cursors
@@ -69,10 +61,6 @@
 [submodule "undotree"]
 	path = undotree
 	url = https://github.com/mbbill/undotree
-	branch = master
-[submodule "vim-easytags"]
-	path = vim-easytags
-	url = https://github.com/oepn/vim-easytags
 	branch = master
 [submodule "vim-misc"]
 	path = vim-misc
@@ -214,3 +202,6 @@
 	path = .vim/bundle/fzf.vim
 	url = https://github.com/junegunn/fzf.vim
 	branch = master
+[submodule ".vim/bundle/vim-gutentags"]
+	path = .vim/bundle/vim-gutentags
+	url = https://github.com/ludovicchabant/vim-gutentags
