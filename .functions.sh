@@ -216,7 +216,7 @@ resellers () {
 
 # Lookup Siteworx account details
 acctdetail () {
-  $NODEWORX -u -n -c Siteworx -a querySiteworxAccountDetails --domain $(~iworx/bin/listaccounts.pex | $AWK "/$($GETUSR)/"'{print $2}') \
+  $NODEWORX -u -n -c Siteworx -a querySiteworxAccountDetails --domain "$(~iworx/bin/listaccounts.pex | $AWK "/^$($GETUSR)/ {print \$2}")" \
     | $SED 's:\([a-zA-Z]\) \([a-zA-Z]\):\1_\2:g;s:\b1\b:YES:g;s:\b0\b:NO:g' \
     | $COLUMN -t
 }
@@ -414,27 +414,33 @@ dashes () {
 ## Switch to a user
 u () {
 
-  local user;
+  local user home;
 
   user="$(pwd | "$GREP" -Po "home/\K[^/]*")"
+  home="$(mktemp -d)"
 
-  # Give permissions on my home dir to new user
-  $SETFACL -R -m u:"$user":rX "$HOME" 2> /dev/null
-  $SETFACL -m u:"$user":rwX "$HOME"
+	chmod 711 "$HOME"
+  $SETFACL -m u:"$user":rwX "$home"
+
+	find "$HOME" -mindepth 1 -maxdepth 1 ! -name .ssh \
+		| while read -r x; do
+			# Give permissions on my home dir to new user
+			$SETFACL -R -m u:"$user":rX "$x" 2> /dev/null
+			ln -s "$x" "${home}/${x##*/}"
+			chown -h "${user}." "${home}/${x##*/}"
+		done
+
   $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,.zsh-histdb,clients,.vimfiles} 2> /dev/null
 
   # Switch user
-  $SUDO HOME="$HOME" TMUX="$TMUX" -u "$user" "$MYSHELL"
+  $SUDO HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
 
   # Give me permissions on any files the user created in my home dir
   $SUDO -u "$user" "$FIND" "$HOME" -user "$user" -exec $SETFACL -m u:"$USER":rwX {} +
 
   # Revoke the permissions given to that user
   $SETFACL -R -x u:"$user" ~/
-
-  chmod 700 "$HOME"
-  chmod 700 "${HOME}/.ssh"
-  chmod 600 "${HOME}/.ssh/authorized_keys"
+	chmod 700 "$HOME"
 
 }
 
