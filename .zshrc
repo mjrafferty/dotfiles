@@ -57,10 +57,6 @@ _sourceClient() {
 
   source /etc/nexcess/bash_functions.sh
 
-  chmod 700 "$HOME"
-  chmod 700 "${HOME}/.ssh"
-  chmod 600 "${HOME}/.ssh/authorized_keys"
-
 }
 
 # Basic setup to be run on shell startup
