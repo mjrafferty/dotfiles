@@ -202,7 +202,3 @@
 	path = .vim/bundle/vim-gutentags
 	url = https://github.com/ludovicchabant/vim-gutentags
 	branch = master
-[submodule ".vim/.vim/bundle/YouCompleteMe"]
-	path = .vim/.vim/bundle/YouCompleteMe
-	url = https://github.com/Valloric/YouCompleteMe
-	branch = master
