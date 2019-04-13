@@ -436,7 +436,7 @@ u () {
   $SUDO HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
 
   # Give me permissions on any files the user created in my home dir
-  $SUDO -u "$user" "$FIND" "$HOME" -user "$user" -exec $SETFACL -m u:"$USER":rwX {} +
+  $SUDO -u "$user" "$FIND" "$home" -type f -user "$user" -exec $SETFACL -m u:"$USER":rwX {} +
 
   # Revoke the permissions given to that user
   $SETFACL -R -x u:"$user" ~/
