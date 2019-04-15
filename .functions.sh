@@ -422,12 +422,11 @@ u () {
 	chmod 711 "$HOME"
   $SETFACL -m u:"$user":rwX "$home"
 
+  # Give permissions on my home dir to new user
 	find "$HOME" -mindepth 1 -maxdepth 1 ! -name .ssh \
 		| while read -r x; do
-			# Give permissions on my home dir to new user
 			$SETFACL -R -m u:"$user":rX "$x" 2> /dev/null
 			ln -s "$x" "${home}/${x##*/}"
-			chown -h "${user}." "${home}/${x##*/}"
 		done
 
   $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,.zsh-histdb,clients,.vimfiles} 2> /dev/null
