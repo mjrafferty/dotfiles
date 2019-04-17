@@ -24,7 +24,7 @@ BEGIN {
 
   split(substr($0,start,stop),temp,":");
 
-  timestamp=sprintf("%02s:%02s",temp[1],(int(temp[2] / i) * i))
+  timestamp=sprintf("%02d:%02d",temp[1],(int(temp[2] / i) * i))
 
   if(tstart==0){
     tstart=timestamp;
@@ -70,7 +70,7 @@ END {
       ttemp[1]=0;
     }
 
-    tinc=sprintf("%02s:%02s",ttemp[1],ttemp[2]);
+    tinc=sprintf("%02d:%02d",ttemp[1],ttemp[2]);
   }
 
   # Sort the array because awk
