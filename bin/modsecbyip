@@ -37,7 +37,7 @@ main () {
   # Find unique uris
   uris=($(echo "$logentries" | "$CUT" -f2 | "$CUT" -d/ -f1-4 | "$SORT" -u ));
 
-  echo "<IfModule mod_security2.c>";
+  echo "  <IfModule mod_security2.c>";
   # Print LocationMatch block for each uri
   for ((i=0;i<${#uris[@]};i++)); do
 
@@ -45,20 +45,20 @@ main () {
 
     uniqueid=($(echo "$logentries" | "$GREP" "${uris[$i]}"| "$CUT" -f1));
 
-    echo "  <LocationMatch ${uris[$i]} >";
-    echo "    # Ticket ID: $TICKET"
+    echo "    <LocationMatch ${uris[i]} >";
+    echo "      # Ticket ID: $TICKET"
     for ((x=0;x<${#uniqueid[@]};x++)); do
 
-      modsecrules "${uniqueid[$x]}";
+      modsecrules "${uniqueid[x]}";
 
     done \
       | "$SORT" -u \
-      | "$SED" 's/^/    SecRuleRemoveById /';
+      | "$SED" 's/^/      SecRuleRemoveById /';
 
-    echo "  </LocationMatch>";
+    echo "    </LocationMatch>";
 
   done;
-  echo "</IfModule>";
+  echo "  </IfModule>";
 }
 
 main;

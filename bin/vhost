@@ -40,7 +40,7 @@ main () {
 
   fi
 
-  mapfile -t vhost < <("$GREP" -l "$domain" /etc/httpd/conf.d/vhost*);
+  mapfile -t vhost < <("$GREP" -l "$domain" /etc/httpd/conf.d/vhost_*.conf);
 
   if [ -z "${vhost[0]}" ]; then
 
