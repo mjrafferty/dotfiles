@@ -36,7 +36,7 @@ main () {
 
   else
 
-    domain="$(pwd | "$GREP" -o '/home/[^/]*/[^/]*')";
+    domain="$(pwd | "$GREP" -Eo '/home/[^/]*(/[^/]*)?')";
 
   fi
 
