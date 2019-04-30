@@ -171,10 +171,12 @@ _monitor() {
 # Main
 main () {
 
-  local address daemon_time x main_pid start_time current_time;
+  local cmdline address daemon_time x main_pid start_time current_time;
+
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
   # Parse command line options
-  while getopts "hi:d:k" OPTION $(_cmdline); do
+  while getopts "hi:d:k" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)

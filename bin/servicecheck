@@ -310,9 +310,13 @@ _nginx() {
 # Main
 main () {
 
+  local cmdline;
+
   PROCESS_DATA=$("$PS" -C php-fpm,httpd,httpd.worker,memcached,redis-server,mysqld,haproxy,varnishd,pound,nginx -o user,pid,cmd);
 
-  while getopts "hpaMrmHvP" OPTION $(_cmdline); do
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts "hpaMrmHvP" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)

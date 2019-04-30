@@ -613,7 +613,7 @@ _act() {
 # Main
 main () {
 
-  local logFuncs cmd;
+  local cmdline logFuncs cmd;
   local deep="NO"
   local serverAll="NO"
   local userAll="NO"

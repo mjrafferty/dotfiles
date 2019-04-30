@@ -108,9 +108,11 @@ _chown () {
 
 main () {
 
-  local target file size sizem;
+  local cmdline target file size sizem;
 
-  while getopts "he:t:" OPTION $(_cmdline); do
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts "he:t:" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)

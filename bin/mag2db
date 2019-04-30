@@ -876,13 +876,15 @@ EOF
 # Main
 main () {
 
-  local runCommand runOption
+  local cmdline runCommand runOption
 
   _getConfig;
 
   _makeDefaultsFile;
 
-  while getopts "hAbcilLmP:uposOqIgCL" OPTION $(_cmdline); do
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts "hAbcilLmP:uposOqIgCL" OPTION "${cmdline[*]}"; do
 
     case $OPTION in
       h)

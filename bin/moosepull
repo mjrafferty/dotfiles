@@ -233,9 +233,11 @@ _cleanup () {
 # Main
 main () {
 
-  local log_host indices logs start_time end_time domains ticket
+  local cmdline log_host indices logs start_time end_time domains ticket
 
-  while getopts "hH:i:l:s:e:d:t:" OPTION $(_cmdline); do
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts "hH:i:l:s:e:d:t:" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)

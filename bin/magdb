@@ -1079,13 +1079,15 @@ EOF
 # Main
 main () {
 
-  local runCommand runOption
+  local cmdline runCommand runOption
 
   _getConfig;
 
   _makeDefaultsFile;
 
-  while getopts "hAbcilSmTP:uxposOqIgCaLe" OPTION $(_cmdline); do
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts "hAbcilSmTP:uxposOqIgCaLe" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)

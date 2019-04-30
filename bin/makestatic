@@ -161,12 +161,14 @@ _getSitemap() {
 # Main
 main () {
 
-  local keep_list command;
+  local cmdline keep_list command;
 
   command="_makeStatic";
   arg=0;
 
-  while getopts "hrd" OPTION $(_cmdline); do
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts "hrd" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)

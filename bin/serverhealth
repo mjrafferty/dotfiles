@@ -255,7 +255,11 @@ _maxclients () {
 # Main
 main () {
 
-  while getopts "hqpamlds" OPTION $(_cmdline); do
+  local cmdline;
+
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts "hqpamlds" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)

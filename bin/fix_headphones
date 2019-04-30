@@ -43,9 +43,11 @@ _cmdline() {
 # Main
 main () {
 
-  local sink
+  local cmdline sink
 
-  while getopts "h" OPTION $(_cmdline); do
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts "h" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)

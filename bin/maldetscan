@@ -377,11 +377,13 @@ _cleanUp () {
 # Main
 main () {
 
-  local filepath scanpid
+  local cmdline filepath scanpid
 
   trap '_cleanUp && exit' INT QUIT TERM;
 
-  while getopts "hne:a:p:" OPTION $(_cmdline); do
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts "hne:a:p:" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
