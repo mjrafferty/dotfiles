@@ -32,7 +32,6 @@
 [[  -z  $TR          ]]  &&  export readonly  TR='/usr/bin/tr'
 [[  -z  $UNIQ        ]]  &&  export readonly  UNIQ='/usr/bin/uniq'
 [[  -z  $XARGS       ]]  &&  export readonly  XARGS='/usr/bin/xargs'
-[[  -z  $ZLESS       ]]  &&  export readonly  ZLESS='/usr/bin/zless'
 [[  -z  $MYSHELL     ]]  &&  export readonly  MYSHELL="$("$READLINK" /proc/$$/exe)"
 
 if [[ "$MYSHELL" =~ zsh ]]; then
@@ -446,7 +445,7 @@ u () {
 ## Find broken symbolic links
 brokenlinks () {
 
-  local tifs x path;
+  local tifs x path link dir;
 
   path="$1"
 
@@ -458,13 +457,9 @@ brokenlinks () {
 
 	for x in $("$FIND" "$path" -type l); do
 
-    local link
-
     link="$("$READLINK" "$x")" 2> /dev/null
 
     if [[ ! "$link" == "/"* ]]; then
-
-      local dir
 
       dir="$PWD"
 

@@ -576,15 +576,33 @@ _act() {
         ;;
 
       "cat")
-        "$TAI64NLOCAL" < <("$ZLESS" -f "${LOG_FILES[@]}");
-        ;;
+				for file in "${LOG_FILES[@]}"; do
+					case "$file" in
+						*.zip)
+							zip=1;
+							;;
+						*.gz)
+							zip=1;
+							;;
+						*.xz)
+							xz=1;
+							bin="xzless"
+							;;
+					esac
+				done
+				if [[ -n "$xz" && -n "$zip" ]]; then
+					echo "Mixed compression formats not supported";
+					return 1;
+				fi
+				"$TAI64NLOCAL" < <("$ZLESS" -f "${LOG_FILES[@]}");
+				;;
 
-      *)
-        "$TAIL" -n10 "${LOG_FILES[@]}" | "$TAI64NLOCAL" | $PAGER;
-        ;;
-    esac
+			*)
+				"$TAIL" -n10 "${LOG_FILES[@]}" | "$TAI64NLOCAL" | $PAGER;
+				;;
+		esac
 
-  else
+	else
 
     echo "No Logs found";
 
