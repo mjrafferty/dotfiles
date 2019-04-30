@@ -884,7 +884,7 @@ main () {
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
-  while getopts "hAbcilLmP:uposOqIgCL" OPTION "${cmdline[*]}"; do
+  while getopts "hAbcilLmP:uposOqIgCL" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
