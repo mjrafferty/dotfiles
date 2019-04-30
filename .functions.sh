@@ -508,3 +508,9 @@ shareFile() {
 		| nc -l -p 8000
 
 }
+
+# Geoip lookup
+geoip () {
+	curl -s "https://www.maxmind.com/geoip/v2.1/city/${1}?use-downloadable-db=1&demo=1" \
+		| jq .
+}
