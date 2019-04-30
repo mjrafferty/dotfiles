@@ -618,7 +618,9 @@ main () {
   local serverAll="NO"
   local userAll="NO"
 
-  while getopts "hfpsHmcMiPeEOVldtA:TLCDSU" OPTION $(_cmdline); do
+  cmdline=($(_cmdline));
+
+  while getopts "hfpsHmcMiPeEOVldtA:TLCDSU" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
