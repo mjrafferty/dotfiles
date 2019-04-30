@@ -618,7 +618,7 @@ main () {
   local serverAll="NO"
   local userAll="NO"
 
-  cmdline=($(_cmdline));
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
   while getopts "hfpsHmcMiPeEOVldtA:TLCDSU" OPTION "${cmdline[@]}"; do
 
