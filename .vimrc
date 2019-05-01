@@ -179,6 +179,10 @@ let delimitMate_expand_cr= 1
 " gutentags plugin settings
 let g:gutentags_cache_dir="~/.cache"
 
+" tagbar plugin settings
+let g:tagbar_width=30
+
+highlight TagbarHighlight ctermbg=DarkGray
 "----------------------------
 "---- End Plugin Settings ---
 "----------------------------
@@ -244,6 +248,9 @@ au BufReadPost *
       \ if line("'\"") > 1 && line("'\"") <= line("$") |
       \   exe "normal! g`\"" |
       \ endif
+
+" Automatically open tagbar for supported files
+autocmd VimEnter * nested :call tagbar#autoopen(1)
 
 "-------------------------
 "----- End Autocmds ------
