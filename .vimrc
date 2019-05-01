@@ -34,6 +34,7 @@ Plugin 'junegunn/rainbow_parentheses.vim'
 Plugin 'morhetz/gruvbox'
 Plugin 'sheerun/vim-polyglot'
 Plugin 'junegunn/fzf.vim'
+Plugin 'Yggdroot/indentLine'
 call vundle#end()                       " required
 
 "-------------------------
@@ -68,6 +69,11 @@ set laststatus=2
 set smartindent
 set smarttab
 set clipboard=autoselect
+set colorcolumn=120
+
+" Default regxp engine makes syntax highlighting  super slow for some reason
+set regexpengine=1
+set lazyredraw
 
 " Undo settings
 set undofile
@@ -141,9 +147,9 @@ nnoremap <cr> :noh<CR><CR>:<backspace>
 
 " ale plugin settings
 let g:ale_open_list = 1
-let g:ale_lint_delay = 1000
+let g:ale_lint_delay = 5000
 let g:ale_sh_shellcheck_options = '-s bash'
-let g:ale_linters_sh_shellcheck_exclusions = "SC1117,SC2016"
+let g:ale_linters_sh_shellcheck_exclusions = "SC2016"
 
 " YouCompleteMe plugin settings
 let g:ycm_always_populate_location_list = 1

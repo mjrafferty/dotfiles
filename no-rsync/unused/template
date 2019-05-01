@@ -43,7 +43,11 @@ _cmdline() {
 # Main
 main () {
 
-  while getopts "h" OPTION $(_cmdline); do
+  local cmdline;
+
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts "h" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
