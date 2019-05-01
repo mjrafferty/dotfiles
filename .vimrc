@@ -46,30 +46,30 @@ call vundle#end()                       " required
 """""""""""""""""""""""""""""
 
 " Misc settings
-set backspace=2                         " Controls backspace behavior
-set hidden
-set history=50                          " keep 50 lines of command line history
-set ruler                               " show the cursor position all the time
-set showcmd                             " display incomplete commands
-set incsearch                           " do incremental searching
-set relativenumber                      " add line numbers
-set number                              " add line numbers
-set cursorline                          " underlines current line
-set scrolloff=3                         " keeps cursor away from top and bottom edges
-set wildmenu
-set wildmode=full
-set gdefault
-set showmatch                           " Show matching brackets.
-set ignorecase                          " Do case insensitive matching
-set smartcase                           " Do smart case matching
-set nowrap                              " Do not wrap code
 set autowrite                           " Automatically save before commands like :next and :make
-set hlsearch
-set laststatus=2
-set smartindent
-set smarttab
+set backspace=2                         " Controls backspace behavior
 set clipboard=autoselect
 set colorcolumn=120
+set cursorline                          " underlines current line
+set gdefault
+set hidden
+set history=50                          " keep 50 lines of command line history
+set hlsearch
+set ignorecase                          " Do case insensitive matching
+set incsearch                           " do incremental searching
+set laststatus=2
+set nowrap                              " Do not wrap code
+set number                              " add line numbers
+set relativenumber                      " add relative line numbers
+set ruler                               " show the cursor position all the time
+set scrolloff=3                         " keeps cursor away from top and bottom edges
+set showcmd                             " display incomplete commands
+set showmatch                           " Show matching brackets.
+set smartcase                           " Do smart case matching
+set smartindent
+set smarttab
+set wildmenu
+set wildmode=full
 
 " Default regxp engine makes syntax highlighting  super slow for some reason
 set regexpengine=1
@@ -175,6 +175,9 @@ let g:UltiSnipsSnippetDirectories=["UltiSnips", "mysnippets"]
 " delimitMate plugin settings
 let delimitMate_expand_space = 1
 let delimitMate_expand_cr= 1
+
+" gutentags plugin settings
+let g:gutentags_cache_dir="~/.cache"
 
 "----------------------------
 "---- End Plugin Settings ---
