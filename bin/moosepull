@@ -7,6 +7,7 @@ readonly ARGA=("$@")
 # Configurable Variables
 SERVER="moose-esmaster01.us-midwest-1.nexback.net:9200"
 OUTPUT_DIR="/var/esgrep-scratch"
+INDEX_OPEN_TIMEOUT=120
 
 # Necessary Global Variables
 QUERY_FILE="$(mktemp)"
@@ -24,7 +25,7 @@ _usage() {
 
     -i|--index      Comma separated list of indices to open.
 
-                      webtransfer,weberror,syslog,phpfpm
+                      webtransfer,weberror,syslog,phpfpm,modsec_audit
 
     -H|--host       Hostname or hostname prefix to retrieve logs for.
                     Ex: sip4-123, or mce123-node to match all webnodes.
@@ -38,7 +39,10 @@ _usage() {
     -l|--logs       Comma separated list of logs to retrieve. Currently
                     only valid values are:
 
-                      messages,secure
+                      apf_log,audit,clamd,cron,fail2ban,freshclam,modsec_debug,
+                      kern,maillog,messages,mysqld,procreaper,proftpd_auth,
+                      proftpd_sftp,proftpd_tls,proftpd_xfer,secure,send,
+                      sftp,smtp2,smtp,spooler,yum
 
     -d|--domains    Comma separated list of domains to retrieve log data
                     for when pulling from webtransfer or weberror indices.
@@ -99,6 +103,8 @@ _cmdline() {
 # Open index
 _openIndex() {
 
+  local timer
+
   INDEX_STATUS="$(curl -s "${SERVER}/_cat/indices/${ACTIVE_INDEX}?h=status")"
 
   if [[ "$INDEX_STATUS" == "close"* ]]; then
@@ -108,7 +114,17 @@ _openIndex() {
     curl -X POST "${SERVER}/${ACTIVE_INDEX}/_open" -s -o /dev/null
 
     while curl -s "${SERVER}/_cat/indices/${ACTIVE_INDEX}" | grep -q "^red"; do
+
+      if ((timer >= INDEX_OPEN_TIMEOUT)); then
+        printf "Failed\n"
+        _closeIndex > /dev/null
+        return 1;
+      fi
+
       sleep 1;
+
+      timer++;
+
     done
 
     printf "Done\n"
@@ -195,11 +211,23 @@ _buildQuery () {
 
   if [[ -n "$log" ]]; then
     case "$log" in
-      "messages")
-        path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/messages\" }}";
+      "apf_log"|"clamd"|"cron"|"freshclam"|"kern"|"maillog"|"messages"|"secure"|"spooler")
+        path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/${log}\" }}";
         ;;
-      "secure")
-        path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/secure\" }}";
+      "fail2ban"|"procreaper"|"sftp"|"yum")
+        path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/${log}.log\" }}";
+        ;;
+      "send"|"smtp"|"smtp2")
+        path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/${log}/current\" }}";
+        ;;
+      "modsec_debug")
+        path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/httpd/${log}.log\" }}";
+        ;;
+      "audit")
+        path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/${log}/${log}.log\" }}";
+        ;;
+      "proftpd_auth"|"proftpd_sftp"|"proftpd_tls"|"proftpd_xfer")
+        path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/proftpd/${log/_/\/}.log\" }}";
         ;;
       *)
         path=",\"filter\" : { \"regexp\" : { \"path\" : \"/(home/.*/var|var/log/interworx)/${log}/logs/.*log\" }}";
@@ -336,6 +364,11 @@ main () {
           done
           ;;
         "phpfpm")
+          mkdir -p "${OUTPUT_DIR}/${ticket}" 2> /dev/null
+          _buildQuery "$log_host";
+          _queryIndex "${OUTPUT_DIR}/${ticket}/${ACTIVE_INDEX}";
+          ;;
+        "modsec_audit")
           mkdir -p "${OUTPUT_DIR}/${ticket}" 2> /dev/null
           _buildQuery "$log_host";
           _queryIndex "${OUTPUT_DIR}/${ticket}/${ACTIVE_INDEX}";
