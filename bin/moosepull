@@ -123,7 +123,7 @@ _openIndex() {
 
       sleep 1;
 
-      timer++;
+      ((timer++));
 
     done
 
@@ -227,7 +227,7 @@ _buildQuery () {
         path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/${log}/${log}.log\" }}";
         ;;
       "proftpd_auth"|"proftpd_sftp"|"proftpd_tls"|"proftpd_xfer")
-        path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/proftpd/${log/_/\/}.log\" }}";
+        path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/${log/_//}.log\" }}";
         ;;
       *)
         path=",\"filter\" : { \"regexp\" : { \"path\" : \"/(home/.*/var|var/log/interworx)/${log}/logs/.*log\" }}";
