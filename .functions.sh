@@ -494,7 +494,7 @@ phpunserialize () {
   value="$*"
 
   if [[ -z "$value" ]]; then
-    value="$(cat /dev/stdin)"
+    value="$(cat)"
   fi
 
   php -r "echo print_r(unserialize('${value}'),true);"
