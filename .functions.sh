@@ -497,6 +497,9 @@ phpunserialize () {
     value="$(cat)"
   fi
 
+  # shellcheck disable=SC2001
+  value="$(echo "$value" | sed "s/'/\\\'/g")"
+
   php -r "echo print_r(unserialize('${value}'),true);"
 
 }
