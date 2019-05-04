@@ -32,6 +32,7 @@
 [[  -z  $TR          ]]  &&  export readonly  TR='/usr/bin/tr'
 [[  -z  $UNIQ        ]]  &&  export readonly  UNIQ='/usr/bin/uniq'
 [[  -z  $XARGS       ]]  &&  export readonly  XARGS='/usr/bin/xargs'
+# shellcheck disable=SC2155
 [[  -z  $MYSHELL     ]]  &&  export readonly  MYSHELL="$("$READLINK" /proc/$$/exe)"
 
 if [[ "$MYSHELL" =~ zsh ]]; then
@@ -231,6 +232,7 @@ addbackups () {
 ## Simple System Status to check if services that should be running are running
 srvstatus(){
   local servicelist;
+  # shellcheck disable=SC2207
   servicelist=($($CHKCONFIG --list | $AWK '/3:on/ {print $1}' | sort));
 
   printf "\n%-18s %s\n%-18s %s\n" " Service" " Status" "$(dashes 18)" "$(dashes 55)";
@@ -245,6 +247,7 @@ srvstatus(){
 nameservers () {
   local nameservers;
   echo;
+  # shellcheck disable=SC2207
   nameservers=($($SED -n 's/ns[1-2]="\([^"]*\).*/\1/p' ~iworx/iworx.ini))
   for (( x=ARRAY_START; x<${#nameservers[@]}+ARRAY_START; x++ )) do
     echo "${nameservers[$x]} ($($DIG +short "${nameservers[$x]}"))";
@@ -255,6 +258,7 @@ nameservers () {
 # stat the files listed in the given maldet report
 maldetstat () {
   local files;
+  # shellcheck disable=SC2207
   files=($($AWK '{print $3}' /usr/local/maldetect/sess/session.hits."$1"));
   for (( x=ARRAY_START; x<${#files[@]}+ARRAY_START; x++ )); do
     $STATT "${files[$x]}";
@@ -490,14 +494,10 @@ phpunserialize () {
   value="$*"
 
   if [[ -z "$value" ]]; then
-    value=`cat`
+    value="$(cat /dev/stdin)"
   fi
 
-  php <<- EOF
-<?php
-echo print_r(unserialize('${value}'),true);
-?>
-EOF
+  php -r "echo print_r(unserialize('${value}'),true);"
 
 }
 
