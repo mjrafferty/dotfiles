@@ -221,12 +221,6 @@ acctdetail () {
     | $COLUMN -t
 }
 
-## Enable Siteworx backups for an account
-addbackups () {
-  $NODEWORX -u -n -c Siteworx -a edit --domain "$(~iworx/bin/listaccounts.pex | $AWK "/$($GETUSR)/"'{print $2}')" --OPT_BACKUP 1;
-}
-
-
 ######## Miscellaneous ########
 
 ## Simple System Status to check if services that should be running are running
@@ -369,7 +363,7 @@ lsnapshots () {
   else
     DBNAME="$1";
   fi
-  $LS -lah /home/.snapshots/daily.*/localhost/mysql/"$DBNAME".sql.gz;
+  $LS -lah /home/.snapshots/daily.*/localhost/mysql/"$DBNAME".sql.xz;
   echo
 }
 
