@@ -953,7 +953,11 @@ main () {
     esac
   done
 
-  "$runCommand" "$runOption"
+  if [[ -n "$runCommand" ]]; then
+    "$runCommand" "$runOption"
+  else
+    _usage;
+  fi
 
   _cleanUp;
 
