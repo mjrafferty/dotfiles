@@ -713,7 +713,7 @@ main () {
         QUERY_TERM="\\G";
         ;;
       "?")
-        echo "$OPTARG is not a valid option";
+        echo "-${OPTARG} is not a supported option." >&2
         ;;
       *);;
     esac

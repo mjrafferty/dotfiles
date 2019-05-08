@@ -187,7 +187,7 @@ main () {
         arg=1;
         ;;
       "?")
-        echo "$OPTARG is not a valid option";
+        echo "-${OPTARG} is not a supported option." >&2
         ;;
       *);;
     esac

@@ -229,7 +229,7 @@ main () {
         DEPTH="$OPTARG";
         ;;
       "?")
-        echo "$OPTARG is not a valid option";
+        echo "-${OPTARG} is not a supported option." >&2
         ;;
       *);;
     esac
