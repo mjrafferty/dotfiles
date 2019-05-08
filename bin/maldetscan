@@ -80,6 +80,9 @@ _cmdline() {
       "--path"|"-p")
         args="${args}-p "
         ;;
+      "--"*)
+        echo "$x is not a supported option." >&2
+        ;;
       *)
         args="${args}${x} "
         ;;
@@ -383,7 +386,7 @@ main () {
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
-  while getopts "hne:a:p:" OPTION "${cmdline[@]}"; do
+  while getopts ":hne:a:p:" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
@@ -409,6 +412,9 @@ main () {
         ;;
       p)
         filepath="$OPTARG";
+        ;;
+      "?")
+        echo "$OPTARG is not a valid option";
         ;;
       *);;
     esac

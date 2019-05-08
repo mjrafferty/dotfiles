@@ -48,6 +48,9 @@ _cmdline() {
       "--delete"|"-d")
         args="${args}-d "
         ;;
+      "--"*)
+        echo "$x is not a supported option." >&2
+        ;;
       *)
         args="${args}${x} "
         ;;
@@ -168,7 +171,7 @@ main () {
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
-  while getopts "hrd" OPTION "${cmdline[@]}"; do
+  while getopts ":hrd" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
@@ -182,6 +185,9 @@ main () {
       d)
         command="_deleteStatic";
         arg=1;
+        ;;
+      "?")
+        echo "$OPTARG is not a valid option";
         ;;
       *);;
     esac

@@ -35,6 +35,9 @@ _cmdline() {
       "--process"|"-p")
         args="${args}-p "
         ;;
+      "--"*)
+        echo "$x is not a supported option." >&2
+        ;;
       *)
         args="${args}${x} "
         ;;
@@ -52,7 +55,7 @@ main () {
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
-  while getopts "hu:p:" OPTION "${cmdline[@]}"; do
+  while getopts ":hu:p:" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
@@ -64,6 +67,9 @@ main () {
         ;;
       p)
 				process_name="$OPTARG"
+        ;;
+      "?")
+        echo "$OPTARG is not a valid option";
         ;;
       *);;
     esac

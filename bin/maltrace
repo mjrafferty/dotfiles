@@ -84,6 +84,9 @@ _cmdline() {
       "--kill"|"-k")
         args="${args}-k "
         ;;
+      "--"*)
+        echo "$x is not a supported option." >&2
+        ;;
       *)
         args="${args}${x} ";
         ;;
@@ -176,7 +179,7 @@ main () {
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
   # Parse command line options
-  while getopts "hi:d:k" OPTION "${cmdline[@]}"; do
+  while getopts ":hi:d:k" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
@@ -194,6 +197,9 @@ main () {
         MONITOR_PID="$("$PGREP" -oP "$main_pid")";
         _cleanUp;
         exit;
+        ;;
+      "?")
+        echo "$OPTARG is not a valid option";
         ;;
       *);;
     esac

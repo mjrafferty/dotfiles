@@ -150,6 +150,9 @@ _cmdline() {
       "--list"|"-L")
         args="${args}-L "
         ;;
+      "--"*)
+        echo "$x is not a supported option." >&2
+        ;;
       *)
         args="${args}${x} "
         ;;
@@ -884,7 +887,7 @@ main () {
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
-  while getopts "hAbcilLmP:uposOqIgCL" OPTION "${cmdline[@]}"; do
+  while getopts ":hAbcilLmP:uposOqIgCL" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
@@ -942,6 +945,9 @@ main () {
         ;;
       L)
         QUERY_TERM="\\G";
+        ;;
+      "?")
+        echo "$OPTARG is not a valid option";
         ;;
       *);;
     esac

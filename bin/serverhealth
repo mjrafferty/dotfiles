@@ -81,6 +81,9 @@ _cmdline() {
       "--services"|"-s")
         args="${args}-s "
         ;;
+      "--"*)
+        echo "$x is not a supported option." >&2
+        ;;
       *)
         args="${args}${x} "
         ;;
@@ -259,7 +262,7 @@ main () {
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
-  while getopts "hqpamlds" OPTION "${cmdline[@]}"; do
+  while getopts ":hqpamlds" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
@@ -293,6 +296,9 @@ main () {
       s)
         _checkservices;
         exit 0;
+        ;;
+      "?")
+        echo "$OPTARG is not a valid option";
         ;;
       *);;
     esac

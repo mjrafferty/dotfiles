@@ -68,6 +68,9 @@ _cmdline() {
       "--user"|"-u")
         args="${args}-u "
         ;;
+      "--"*)
+        echo "$x is not a supported option." >&2
+        ;;
       *)
         args="${args}${x} "
         ;;
@@ -212,7 +215,7 @@ main () {
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
-  while getopts "hu:d:" OPTION "${cmdline[@]}"; do
+  while getopts ":hu:d:" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
@@ -224,6 +227,9 @@ main () {
         ;;
       d)
         DEPTH="$OPTARG";
+        ;;
+      "?")
+        echo "$OPTARG is not a valid option";
         ;;
       *);;
     esac

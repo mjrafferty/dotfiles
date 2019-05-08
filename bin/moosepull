@@ -90,6 +90,9 @@ _cmdline() {
       "--ticket"|"-t")
         args="${args}-t "
         ;;
+      "--"*)
+        echo "$x is not a supported option." >&2
+        ;;
       *)
         args="${args}${x} "
         ;;
@@ -265,7 +268,7 @@ main () {
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
-  while getopts "hH:i:l:s:e:d:t:" OPTION "${cmdline[@]}"; do
+  while getopts ":hH:i:l:s:e:d:t:" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
@@ -302,6 +305,9 @@ main () {
         ;;
       t)
         ticket="$OPTARG";
+        ;;
+      "?")
+        echo "$OPTARG is not a valid option";
         ;;
       *);;
     esac
