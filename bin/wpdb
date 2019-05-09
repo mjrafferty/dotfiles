@@ -647,10 +647,6 @@ main () {
 
   local cmdline runCommand runOption
 
-  _getConfig;
-
-  _makeDefaultsFile;
-
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
   while getopts ":hAbcilLmP:uposOqIgCL" OPTION "${cmdline[@]}"; do
@@ -718,6 +714,15 @@ main () {
       *);;
     esac
   done
+
+  if [[ -z "$runCommand" ]]; then
+    _usage;
+    exit 1;
+  fi
+
+  _getConfig;
+
+  _makeDefaultsFile;
 
   "$runCommand" "$runOption"
 
