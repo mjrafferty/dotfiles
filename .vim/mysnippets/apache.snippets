@@ -33,14 +33,14 @@ snippet files
 endsnippet
 # <Location>
 snippet loc
-	<Location /status>
+	<Location "${1:location}">
 		${0:${VISUAL}}
 	</Location>
 endsnippet
 # <LocationMatch>
 snippet locma
-	<LocationMatch /status>
-		SetHandler server-status
+	<LocationMatch "${1:regex}">
+		${0:${VISUAL}}
 	</LocationMatch>
 endsnippet
 # <Header>
@@ -69,11 +69,11 @@ snippet rerul
 endsnippet
 # <BrowserMatchNoCase>
 snippet broma
-	BrowserMatchNoCase Robot is_a_robot
+	BrowserMatchNoCase "${1:regex}" "${0:set_variable}"
 endsnippet
 # <SetEnfIf>
 snippet seten
-	SetEnvIf Request_URI "\.gif$" object_is_image=gif
+	SetEnvIf "${1:test_variable}" "${2:regex}" "${0:set_variable}"
 endsnippet
 # <ExpiresActive>
 snippet expac
