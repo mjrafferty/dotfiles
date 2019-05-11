@@ -228,8 +228,10 @@ endfunction
 """""""""""""""""""""""""
 
 " Calls Tab key functions when Tab or Shift-Tab is pressed
-au InsertEnter * exec "inoremap <silent> " . g:UltiSnipsExpandTrigger     . " <C-R>=g:UltiSnips_Complete()<cr>"
-au InsertEnter * exec "inoremap <silent> " . g:UltiSnipsJumpBackwardTrigger . " <C-R>=g:UltiSnips_Reverse()<cr>"
+au InsertEnter *
+      \ exec "inoremap <silent> " . g:UltiSnipsExpandTrigger . " <C-R>=g:UltiSnips_Complete()<cr>"
+au InsertEnter *
+      \ exec "inoremap <silent> " . g:UltiSnipsJumpBackwardTrigger . " <C-R>=g:UltiSnips_Reverse()<cr>"
 
 " Remove trailing whitespace on save
 au BufWritePre * :%s/\s\+$//e
@@ -250,7 +252,7 @@ au BufReadPost *
       \ endif
 
 " Automatically open tagbar for supported files
-autocmd VimEnter * nested :call tagbar#autoopen(1)
+au VimEnter * nested :call tagbar#autoopen(1)
 
 "-------------------------
 "----- End Autocmds ------
