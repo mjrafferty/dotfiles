@@ -27,19 +27,19 @@ snippet dirma
 endsnippet
 # <Files>
 snippet files
-	<Files "${1:files}">
+	<Files ${1:files}>
 		${0:${VISUAL}}
 	</Files>
 endsnippet
 # <Location>
 snippet loc
-	<Location "${1:location}">
+	<Location ${1:location}>
 		${0:${VISUAL}}
 	</Location>
 endsnippet
 # <LocationMatch>
 snippet locma
-	<LocationMatch "${1:regex}">
+	<LocationMatch ${1:regex}>
 		${0:${VISUAL}}
 	</LocationMatch>
 endsnippet
@@ -69,11 +69,11 @@ snippet rerul
 endsnippet
 # <BrowserMatchNoCase>
 snippet broma
-	BrowserMatchNoCase "${1:regex}" "${0:set_variable}"
+	BrowserMatchNoCase ${1:regex} ${0:set_variable}
 endsnippet
 # <SetEnfIf>
 snippet seten
-	SetEnvIf "${1:test_variable}" "${2:regex}" "${0:set_variable}"
+	SetEnvIf ${1:test_variable} ${2:regex} ${0:set_variable}
 endsnippet
 # <ExpiresActive>
 snippet expac
