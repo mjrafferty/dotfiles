@@ -156,7 +156,7 @@ main () {
         exit 0;
         ;;
       k)
-        "$PKILL" -6 trafficmon -P 1;
+        "$PKILL" trafficmon;
         ;;
       "?")
         echo "-${OPTARG} is not a supported option." >&2
