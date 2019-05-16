@@ -89,7 +89,7 @@ _monitor () {
 	local port
 
 	"$TAIL" -fn0 "${IPTABLES_LOG_FILE}" \
-		| "$GREP" -Po 'PROTO=\w+ SPT=\K\d+' \
+		| "$GREP" --line-buffered -Po 'PROTO=\w+ SPT=\K\d+' \
 		| while read -r port;  do
 			_capture "$port";
 		done
