@@ -80,10 +80,11 @@ _capture () {
       | tee -a /dev/stderr \
       | grep --line-buffered -Po '\d+(?=/\w+)' \
       | while read -r pid; do
+          printf "\nPS\n: "
           "$PS" -lf -p "$pid"
-          echo;
+          printf "\nLSOF\n: "
           "$LSOF" -Pn -p "$pid"
-          printf "\n\n\n"
+          printf "\n\n"
         done
     echo;
   } >> "$OUTPUT_FILE" 2>&1
@@ -155,7 +156,7 @@ main () {
         exit 0;
         ;;
       k)
-        "$PKILL" trafficmon -P 1;
+        "$PKILL" -6 trafficmon -P 1;
         ;;
       "?")
         echo "-${OPTARG} is not a supported option." >&2
