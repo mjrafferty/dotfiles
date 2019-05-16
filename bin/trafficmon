@@ -68,19 +68,22 @@ _capture () {
 
   port="$1";
 
-  { "$DATE" "+%F-%T";
+  {
+    "$DATE" "+%F-%T";
 
-  printf "Netstat: ";
-  netstat -tnap \
-    | "$GREP" "${SERVER_IP}:${port}" \
-    | tee >&2 \
-    | grep --line-buffered -Po '\d+(?=/\w+)'
-    | while read -r pid; do
-      "$PS" -lf -p "$pid"
-      echo;
-      "$LSOF" -Pn -p "$pid"
-      printf "\n\n\n"
-    done } >> "$OUTPUT_FILE" 2>&1
+    printf "Netstat: ";
+    netstat -tnap \
+      | "$GREP" "${SERVER_IP}:${port}" \
+      | tee >&2 \
+      | grep --line-buffered -Po '\d+(?=/\w+)' \
+      | while read -r pid; do
+          "$PS" -lf -p "$pid"
+          echo;
+          "$LSOF" -Pn -p "$pid"
+          printf "\n\n\n"
+        done
+    echo;
+  } >> "$OUTPUT_FILE" 2>&1
 
 }
 
