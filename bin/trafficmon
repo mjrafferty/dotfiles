@@ -24,7 +24,7 @@ readonly SLEEP='/bin/sleep'
 readonly TAIL='/usr/bin/tail'
 
 # Necessary Global Variables
-
+SERVER_IP="$(ifconfig | grep -m1 -Po 'inet addr:\K[0-9,.]*')"
 
 # Print usage
 _usage() {
