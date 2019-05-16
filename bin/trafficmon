@@ -74,7 +74,7 @@ _capture () {
   netstat -tnap \
     | "$GREP" "${SERVER_IP}:${port}" \
     | tee >&2 \
-    | awk '{gsub(/\/.*/,"",$(NF)); print $(NF)}' \
+    | grep --line-buffered -Po '\d+(?=/\w+)'
     | while read -r pid; do
       "$PS" -lf -p "$pid"
       echo;
