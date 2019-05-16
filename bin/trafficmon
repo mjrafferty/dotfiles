@@ -68,7 +68,7 @@ _capture () {
 
   port="$1";
 
-  "$DATE" "+%F-%T";
+  { "$DATE" "+%F-%T";
 
   printf "Netstat: ";
   netstat -tnap \
@@ -80,7 +80,7 @@ _capture () {
       echo;
       "$LSOF" -Pn -p "$pid"
       printf "\n\n\n"
-    done >> "$OUTPUT_FILE" 2>&1
+    done } >> "$OUTPUT_FILE" 2>&1
 
 }
 
