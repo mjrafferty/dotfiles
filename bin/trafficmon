@@ -1,0 +1,166 @@
+#! /bin/bash
+
+# Script Arguments
+readonly ARGS="$*"
+readonly ARGA=("$@")
+
+readonly RUNNING_AS="${SUDO_USER:-$USER}";
+readonly RUNNING_AS_HOME="$(/bin/find /home/{,nexcess.net/}"${RUNNING_AS}" -mindepth 0 -maxdepth 0 -type d 2> /dev/null)"
+
+# Configurable Variables
+readonly IPTABLES_LOG_FILE="/var/log/messages"
+readonly OUTPUT_FILE="/var/log/trafficmon.log"
+
+# Alias executables to prevent PATH issues
+readonly CAT='/bin/cat'
+readonly DATE='/bin/date'
+readonly GREP='/bin/grep'
+readonly KILL='/bin/kill'
+readonly LSOF='/usr/sbin/lsof'
+readonly MKDIR='/bin/mkdir'
+readonly PKILL='/usr/bin/pkill'
+readonly PS='/bin/ps'
+readonly SLEEP='/bin/sleep'
+readonly TAIL='/usr/bin/tail'
+
+# Necessary Global Variables
+
+
+# Print usage
+_usage() {
+
+  "$CAT" <<- EOF
+
+EOF
+
+}
+
+# Convert long command line options into short ones for getopts
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    local args
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--"*)
+        echo "$x is not a supported option." >&2
+        ;;
+      *)
+        args="${args}${x} ";
+        ;;
+    esac
+
+  done
+
+  echo "$args";
+
+}
+
+_capture () {
+
+  local port pid;
+
+  port="$1";
+
+  "$DATE" "+%F-%T";
+
+  printf "Netstat: ";
+  netstat -tnap \
+    | "$GREP" "${SERVER_IP}:${port}" \
+    | tee >&2 \
+    | awk '{gsub(/\/.*/,"",$(NF)); print $(NF)}' \
+    | while read -r pid; do
+      "$PS" -lf -p "$pid"
+      echo;
+      "$LSOF" -Pn -p "$pid"
+      printf "\n\n\n"
+    done >> "$OUTPUT_FILE" 2>&1
+
+}
+
+_monitor () {
+
+	local port
+
+	"$TAIL" -fn0 "${IPTABLES_LOG_FILE}" \
+		| "$GREP" -Po 'PROTO=\w+ SPT=\K\d+' \
+		| while read -r port;  do
+			_capture "$port";
+		done
+
+}
+
+# Monitor for incoming requests
+_run () {
+
+  local last_messages_inode current_messages_inode
+
+  last_messages_inode="$(stat -c "%i" "${IPTABLES_LOG_FILE}")"
+
+  # Perform monitoring in background
+  _monitor &
+  MONITOR_PID="$!"
+
+  trap 'return' INT QUIT TERM;
+
+  while [[ -e /proc/"$MONITOR_PID" ]]; do
+
+    current_messages_inode="$(stat -c "%i" "${IPTABLES_LOG_FILE}")"
+
+    ## Restart monitor if log has rotated
+    if [[ "$current_messages_inode" != "$last_messages_inode" ]]; then
+      "$KILL" "$MONITOR_PID" &> /dev/null
+      _monitor &
+      MONITOR_PID="$!"
+    fi
+
+    "$SLEEP" 5;
+
+  done
+
+}
+
+
+# Clean up any changes made
+_cleanUp() {
+
+  "$KILL" "$MONITOR_PID" 2> /dev/null
+
+}
+
+# Main
+main () {
+
+  local cmdline
+
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts ":h" OPTION "${cmdline[@]}"; do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      "?")
+        echo "-${OPTARG} is not a supported option." >&2
+        ;;
+      *);;
+    esac
+  done
+
+  trap "_cleanUp" EXIT;
+
+  _run;
+
+  _cleanUp;
+
+}
+
+main &
