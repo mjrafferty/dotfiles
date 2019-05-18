@@ -1,5 +1,12 @@
 #! /bin/bash
 
+# shellcheck disable=SC2154
+if [[ "$nex_user_shell" == "zsh" ]]; then
+  ARRAY_START="1";
+else
+  ARRAY_START="0";
+fi
+
 # Convert ipv4 IP to binary form
 sup_iptobinary() {
   awk '
@@ -19,7 +26,7 @@ sup_iptobinary() {
 # Print out subnets containing provided ips in cidr notation
 sup_ipstocidr() {
 
-  local current_block max_block last_ip;
+  local current_block max_block last_ip current_ip;
 
   max_block="16";
   current_block="32";
@@ -27,17 +34,51 @@ sup_ipstocidr() {
   sup_iptobinary \
     | sort -u \
     | while read -r ip; do
-      if [[ -z "$last_ip" ]]; then
-        last_ip="$ip";
+
+      ## Read first IP from list
+      if [[ -z "${last_ip[0]}" ]]; then
+
+        # shellcheck disable=SC2207
+        last_ip=($(echo "$ip" | tr -d '.' | sed 's/./& /g'));
+        # shellcheck disable=SC2207
+        current_ip=($(echo "$ip" | tr -d '.' | sed 's/./& /g'));
         continue;
+
       fi
-      for ((x=1;x<32;x++)); do
-        if (( current_block <= max_block )); then
-          echo "${ip}/${current_block}";
-          current_block="32";
+
+      # Set currently active IP
+      # shellcheck disable=SC2207
+      current_ip=($(echo "$ip" | tr -d '.' | sed 's/./& /g'));
+
+      # Walk through bits
+      for ((x=ARRAY_START;x<${#current_ip[@]}+ARRAY_START;x++)); do
+
+        # if bits match, skip to next bit
+        if (( current_ip[x] == last_ip[x] )); then
+
           continue;
+
+        else
+
+          if (( x >= max_block )); then
+
+            current_block="$x";
+            continue;
+
+          else
+
+            echo "${ip}/${current_block}";
+
+            last_ip=("${current_ip[@]}")
+            current_block="32";
+
+            break;
+
+          fi
         fi
+
       done
+
     done
 
   }
