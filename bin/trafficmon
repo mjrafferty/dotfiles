@@ -122,13 +122,14 @@ _run () {
 
     ## Restart monitor if log has rotated
     if [[ "$current_messages_inode" != "$last_messages_inode" ]]; then
-      "$KILL" -6 "$MONITOR_PID" &> /dev/null
+      "$PKILL" -P "$MONITOR_PID" &> /dev/null
+      "$KILL" "$MONITOR_PID" &> /dev/null
       _monitor &
       MONITOR_PID="$!"
       last_messages_inode="${current_messages_inode}";
     fi
 
-    "$SLEEP" 5;
+    "$SLEEP" 60;
 
   done
 
