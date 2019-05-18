@@ -49,7 +49,7 @@ _cmdline() {
         args="${args}-h "
         ;;
       "--kill"|"-k")
-        args="${args}-h "
+        args="${args}-k "
         ;;
       "--"*)
         echo "$x is not a supported option." >&2
