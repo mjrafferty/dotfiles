@@ -25,12 +25,9 @@ sup_iptobinary() {
 
 sup_bintoip() {
 
-	echo "$*"  \
-		| tr -d ' .' \
-		| fold -w8 \
-		| bc \
-		| paste -sd'.' -
-
+		tr -d ' .' \
+    | sed -e 's/.\{8\}/&,".",/g' -e 's/^/ibase=2; print /' -e 's/,".",$//' \
+    | bc
 }
 
 # Print out subnets containing provided ips in cidr notation
