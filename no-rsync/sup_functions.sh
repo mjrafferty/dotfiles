@@ -23,6 +23,16 @@ sup_iptobinary() {
     }'
 }
 
+sup_bintoip() {
+
+	echo "$*"  \
+		| tr -d ' .' \
+		| fold -w8 \
+		| bc \
+		| paste -sd'.' -
+
+}
+
 # Print out subnets containing provided ips in cidr notation
 sup_ipstocidr() {
 
@@ -67,7 +77,7 @@ sup_ipstocidr() {
 
           else
 
-            echo "${ip}/${current_block}";
+            echo "$(sup_bintoip "${current_ip[@]}")/${current_block}";
 
             last_ip=("${current_ip[@]}")
             current_block="32";
@@ -80,6 +90,8 @@ sup_ipstocidr() {
       done
 
     done
+
+    #echo "${current_ip}/${current_block}";
 
   }
 
