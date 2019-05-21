@@ -24,6 +24,7 @@ sup_iptobinary() {
       split($0,bin,".");
       printf("%08i.%08i.%08i.%08i\n",d2b(bin[1]),d2b(bin[2]),d2b(bin[3]),d2b(bin[4]));
     }'
+
 }
 
 sup_bintoip() {
@@ -31,6 +32,7 @@ sup_bintoip() {
 		tr -d ' .' \
     | sed -e 's/.\{8\}/&,".",/g' -e 's/^/ibase=2; print /' -e 's/,".",$//' \
     | bc
+
 }
 
 # Print out subnets containing provided ips in cidr notation
@@ -43,14 +45,15 @@ sup_ipstocidr() {
 
   sup_iptobinary \
     | sort -u \
-    | while read -r ip; do
+    |  {
+    while read -r ip; do
 
       ## Read first IP from list
       if [[ -z "${last_ip[ARRAY_START]}" ]]; then
 
         # shellcheck disable=SC2207
         last_ip=($(echo "$ip" | tr -d '.' | sed 's/./& /g'));
-        # shellcheck disable=SC2207,2030
+        # shellcheck disable=SC2207
         current_ip=($(echo "$ip" | tr -d '.' | sed 's/./& /g'));
         continue;
 
@@ -73,8 +76,8 @@ sup_ipstocidr() {
           if (( x >= max_block )); then
 
             # shellcheck disable=SC2030
-            current_block="$x";
-            continue;
+            current_block="$((x-ARRAY_START))";
+            continue 2;
 
           else
 
@@ -86,16 +89,17 @@ sup_ipstocidr() {
             break;
 
           fi
-        fi
+          fi
+
+        done
 
       done
 
-    done
+      echo "$(echo "${current_ip[@]}" | sup_bintoip)/${current_block}"
 
-    # shellcheck disable=2031
-    echo "$(echo "${current_ip[@]}" | sup_bintoip)/${current_block}";
+    }
 
-  }
+}
 
 # Print lines containing ip within cidr subnet
 sup_grepcidr() {
