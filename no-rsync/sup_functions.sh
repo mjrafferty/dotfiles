@@ -1,5 +1,6 @@
 #! /bin/bash
 
+nex_user_shell="zsh"
 # shellcheck disable=SC2154
 if [[ "$nex_user_shell" == "zsh" ]]; then
   ARRAY_START="1";
@@ -9,7 +10,9 @@ fi
 
 # Convert ipv4 IP to binary form
 sup_iptobinary() {
-  awk '
+
+  grep -Po '([0-9]{1,3}\.){3}[0-9]{1,3}' \
+    | awk '
     function d2b(d,  b) {
       while(d) {
         b=d%2b;
@@ -43,11 +46,11 @@ sup_ipstocidr() {
     | while read -r ip; do
 
       ## Read first IP from list
-      if [[ -z "${last_ip[0]}" ]]; then
+      if [[ -z "${last_ip[ARRAY_START]}" ]]; then
 
         # shellcheck disable=SC2207
         last_ip=($(echo "$ip" | tr -d '.' | sed 's/./& /g'));
-        # shellcheck disable=SC2207
+        # shellcheck disable=SC2207,2030
         current_ip=($(echo "$ip" | tr -d '.' | sed 's/./& /g'));
         continue;
 
@@ -69,12 +72,13 @@ sup_ipstocidr() {
 
           if (( x >= max_block )); then
 
+            # shellcheck disable=SC2030
             current_block="$x";
             continue;
 
           else
 
-            echo "$(sup_bintoip "${current_ip[@]}")/${current_block}";
+            echo "$(echo "${last_ip[@]}" | sup_bintoip)/${current_block}";
 
             last_ip=("${current_ip[@]}")
             current_block="32";
@@ -88,7 +92,8 @@ sup_ipstocidr() {
 
     done
 
-    #echo "${current_ip}/${current_block}";
+    # shellcheck disable=2031
+    echo "$(echo "${current_ip[@]}" | sup_bintoip)/${current_block}";
 
   }
 
