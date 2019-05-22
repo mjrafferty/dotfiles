@@ -252,7 +252,7 @@ au BufReadPost *
       \ endif
 
 " Automatically open tagbar for supported files
-au VimEnter * nested :call tagbar#autoopen(1)
+"au VimEnter * nested :call tagbar#autoopen(1)
 
 "-------------------------
 "----- End Autocmds ------
