@@ -671,7 +671,12 @@ _password () {
 
   local username password;
 
-  username="$1"
+  if [[ -n "$1" ]]; then
+    username="$1"
+  else
+    echo "No username provided."
+    return 1
+  fi
 
   read -rp "New password (default: xkcd): " password;
 
@@ -879,7 +884,7 @@ EOF
 # Main
 main () {
 
-  local cmdline runCommand runOption
+  local cmdline exit_code runCommand runOption
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
@@ -960,7 +965,11 @@ main () {
 
   "$runCommand" "$runOption"
 
+  exit_code="$?"
+
   _cleanUp;
+
+  exit "$exit_code"
 
 }
 

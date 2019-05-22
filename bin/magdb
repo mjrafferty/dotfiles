@@ -1180,7 +1180,11 @@ main () {
 
   "$runCommand" "$runOption"
 
+  exit_code="$?"
+
   _cleanUp;
+
+  exit "$exit_code";
 
 }
 
