@@ -305,7 +305,7 @@ _whereBuilder() {
       else
         read -rp "${tc}${where}"$'\n\n'"Value: " value;
         if [[ "${operators[operator]}" =~ "IN" ]]; then
-					value="$(echo "${value}" | sed -e "s/[\,, ,\",']*\([^\,, ,\",']+\)[\,, ,\",']*/,'\1'/g" -e 's/^,//')"
+					value="$(echo "${value}" | sed -e "s/[\,, ,\",']*\([^\,, ,\",']*\)[\,, ,\",']*/,'\1'/g" -e 's/^,//')"
           where+=" (${value})";
         else
           where+=" \"${value}\"";
