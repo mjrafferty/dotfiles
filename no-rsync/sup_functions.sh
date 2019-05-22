@@ -29,8 +29,10 @@ sup_iptobinary() {
 
 sup_bintoip() {
 
-		tr -d ' .' \
-    | sed -e 's/.\{8\}/&,".",/g' -e 's/^/ibase=2; print /' -e 's/,".",$//' \
+  tr -d ' .' \
+    | fold -w 32 \
+    | tee \
+    | sed -e 's/.\{8\}/&,".",/g' -e 's/^/ibase=2; print /' -e 's/,".",$//' -e 's/$/,"\\n"/' \
     | bc
 
 }
@@ -103,5 +105,38 @@ sup_ipstocidr() {
 
 # Print lines containing ip within cidr subnet
 sup_grepcidr() {
-  echo "";
+
+  local bin_ip cidr highs lows regex;
+
+  # shellcheck disable=SC2207
+  ips=($(echo "$*" | grep -Po '([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{2}'));
+
+  for ((ip=ARRAY_START;ip<${#ips[@]}+ARRAY_START;ip++)); do
+
+    cidr="$(echo "${ips[ip]}" | cut -d'/' -f2)";
+    bin_ip="$(echo "${ips[ip]}" | cut -d'/' -f1 | sup_iptobinary | tr -d ' .' | cut -c1-"$cidr")";
+
+    # shellcheck disable=SC2207
+    highs=($(printf "%-32s\n" "$bin_ip" | tr ' ' '1' | sup_bintoip | tr '.' '\n'))
+    # shellcheck disable=SC2207
+    lows=($(printf "%-32s\n" "$bin_ip" | tr ' ' '0' | sup_bintoip | tr '.' '\n'))
+
+    for ((x=ARRAY_START;x<${#lows[@]}+ARRAY_START;x++)); do
+
+      if ((lows[x] == highs[x])); then
+
+        regex+="${lows[x]}";
+
+        if ((x<${#lows[@]}+ARRAY_START-1)); then
+          regex+='\.';
+        fi
+
+      fi
+
+    done
+
+    echo "$regex";
+
+  done
+
 }
