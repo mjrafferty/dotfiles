@@ -33,17 +33,17 @@ END {
   for (i in incoming) {
     tmpidxi[sprintf("%16d ", incoming[i]),i] = i
   }
-  num = asorti(tmpidxi)
+  numi = asorti(tmpidxi)
 
   for (i in outgoing) {
     tmpidxo[sprintf("%16d ", outgoing[i]),i] = i
   }
-  num = asorti(tmpidxo)
+  numo = asorti(tmpidxo)
   ## End Sorting ##
 
   printf "\nIncoming:\n";
 
-  for (i=num; i>=num-20; i--) {
+  for (i=numi; i>=numi-20; i--) {
     split(tmpidxi[i], tmpi, " ")
     printf("%-16s %7d MB\n", tmpi[2], tmpi[1]/1024/1024)
   }
@@ -51,7 +51,7 @@ END {
 
   printf "\nOutgoing:\n"
 
-  for (i=num; i>=num-20; i--) {
+  for (i=numo; i>=numo-20; i--) {
     split(tmpidxo[i], tmpo, " ")
     printf("%-16s %7d MB\n", tmpo[2], tmpo[1]/1024/1024)
   }
