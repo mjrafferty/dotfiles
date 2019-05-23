@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 ## Watch connections to server, and the IPs those connections are coming from
 

@@ -75,7 +75,7 @@ sup_ipstocidr() {
 
         else
 
-          if (( x >= max_block )); then
+          if (( x-ARRAY_START >= max_block )); then
 
             # shellcheck disable=SC2030
             current_block="$((x-ARRAY_START))";
@@ -108,6 +108,9 @@ sup_grepcidr() {
 
   local bin_ip cidr highs lows regex;
 
+  # matches numbers 0-255
+  octet_regex="([0-9]|[1-9][0-9]|(1[0-9]{2}|2([0-4][0-9]|5[0-5])))"
+
   # shellcheck disable=SC2207
   ips=($(echo "$*" | grep -Po '([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{2}'));
 
@@ -131,9 +134,45 @@ sup_grepcidr() {
           regex+='\.';
         fi
 
+      else
+
+        break;
+
       fi
 
     done
+
+    if (( highs[x]-lows[x] > 1 )); then
+
+      if (( x-ARRAY_START == 0 )); then
+        mid="";
+      elif (( x-ARRAY_START == 1 )); then
+        mid="";
+      elif (( x-ARRAY_START == 2 )); then
+        mid="";
+      elif (( x-ARRAY_START == 3 )); then
+        mid="";
+      fi
+
+      mid+="|";
+
+    fi
+
+    if (( x-ARRAY_START == 0 )); then
+      first="${lows[x]}";
+      last="${highs[x]}";
+    elif (( x-ARRAY_START == 1 )); then
+      first="${lows[x]}";
+      last="${highs[x]}";
+    elif (( x-ARRAY_START == 2 )); then
+      first="${lows[x]}";
+      last="${highs[x]}";
+    elif (( x-ARRAY_START == 3 )); then
+      first="${lows[x]}";
+      last="${highs[x]}";
+    fi
+
+    regex="${regex}(${first}|${mid}${last})"
 
     echo "$regex";
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /usr/bin/env bash
 
 # Script Arguments
 readonly ARGS="$*"
@@ -44,10 +44,9 @@ _usage() {
                       proftpd_sftp,proftpd_tls,proftpd_xfer,secure,send,
                       sftp,smtp2,smtp,spooler,yum
 
-    -d|--domains    Comma separated list of domains to retrieve log data
-                    for when pulling from webtransfer or weberror indices.
-                    If ommitted, all domains on the matching hostname/s
-                    will be retrieved.
+    -d|--domains    Mandatory for webtransfer and weberror. Comma separated
+                    list of domains to retrieve log data for when pulling
+                    from webtransfer or weberror indices.
 
     -t|--ticket     Ticket number to use for subdirectory name that logs
                     should be placed in.
