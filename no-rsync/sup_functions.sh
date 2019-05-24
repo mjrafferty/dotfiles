@@ -40,15 +40,18 @@ sup_bintoip() {
 # Print out subnets containing provided ips in cidr notation
 sup_ipstocidr() {
 
-  local current_block max_block last_ip current_ip;
+  local current_block max_block num_ips last_ip current_ip;
 
   max_block="16";
   current_block="32";
+  num_ips=0;
 
   sup_iptobinary \
     | sort -u \
     |  {
     while read -r ip; do
+
+      ((num_ips++));
 
       ## Read first IP from list
       if [[ -z "${last_ip[ARRAY_START]}" ]]; then
@@ -83,21 +86,24 @@ sup_ipstocidr() {
 
           else
 
-            echo "$(echo "${last_ip[@]}" | sup_bintoip)/${current_block}";
+            ((num_ips--));
 
+            echo "${num_ips} $(echo "${last_ip[@]}" | sup_bintoip)/${current_block}";
+
+            num_ips=1;
             last_ip=("${current_ip[@]}")
             current_block="32";
 
             break;
 
           fi
-          fi
+        fi
 
         done
 
       done
 
-      echo "$(echo "${current_ip[@]}" | sup_bintoip)/${current_block}"
+      echo "${num_ips} $(echo "${current_ip[@]}" | sup_bintoip)/${current_block}"
 
     }
 
