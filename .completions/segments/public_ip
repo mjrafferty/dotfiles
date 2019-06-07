@@ -3,11 +3,6 @@
 typeset -gF _P9K_PUBLIC_IP_TIMESTAMP
 typeset -g  _P9K_PUBLIC_IP
 
-set_default -i POWERLEVEL9K_PUBLIC_IP_TIMEOUT 300
-set_default -a POWERLEVEL9K_PUBLIC_IP_METHODS dig curl wget
-set_default    POWERLEVEL9K_PUBLIC_IP_NONE ""
-set_default    POWERLEVEL9K_PUBLIC_IP_HOST "http://ident.me"
-set_default    POWERLEVEL9K_PUBLIC_IP_VPN_INTERFACE ""
 
 prompt_public_ip() {
   if (( ! $#_P9K_PUBLIC_IP || EPOCHREALTIME >= _P9K_PUBLIC_IP_TIMESTAMP + POWERLEVEL9K_PUBLIC_IP_TIMEOUT )); then

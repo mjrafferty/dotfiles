@@ -1,6 +1,5 @@
 ################################################################
 # Host: machine (where am I)
-set_default POWERLEVEL9K_HOST_TEMPLATE "%m"
 prompt_host() {
   if [[ -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
     "$1_prompt_segment" "$0_REMOTE" "$2" "${DEFAULT_COLOR}" yellow SSH_ICON 0 '' "${POWERLEVEL9K_HOST_TEMPLATE}"

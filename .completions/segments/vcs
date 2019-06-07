@@ -10,18 +10,9 @@ typeset -gA vcs_states=(
   'loading'       'grey'
 )
 
-set_default POWERLEVEL9K_VCS_ACTIONFORMAT_FOREGROUND red
-set_default POWERLEVEL9K_SHOW_CHANGESET false
-set_default POWERLEVEL9K_VCS_LOADING_TEXT loading
-set_default -i POWERLEVEL9K_VCS_INTERNAL_HASH_LENGTH 8
-set_default -a POWERLEVEL9K_VCS_GIT_HOOKS vcs-detect-changes git-untracked git-aheadbehind git-stash git-remotebranch git-tagname
-set_default -a POWERLEVEL9K_VCS_HG_HOOKS vcs-detect-changes
-set_default -a POWERLEVEL9K_VCS_SVN_HOOKS vcs-detect-changes svn-detect-changes
 
 # If it takes longer than this to fetch git repo status, display the prompt with a greyed out
 # vcs segment and fix it asynchronously when the results come it.
-set_default -F POWERLEVEL9K_VCS_MAX_SYNC_LATENCY_SECONDS 0.05
-set_default -a POWERLEVEL9K_VCS_BACKENDS git
 
 powerlevel9k_vcs_init() {
   if [[ -n "$POWERLEVEL9K_CHANGESET_HASH_LENGTH" ]]; then

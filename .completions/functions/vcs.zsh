@@ -6,7 +6,6 @@
 # https://github.com/bhilburn/powerlevel9k
 ################################################################
 
-set_default POWERLEVEL9K_VCS_SHOW_SUBMODULE_DIRTY false
 function +vi-git-untracked() {
   [[ -z "${vcs_comm[gitdir]}" || "${vcs_comm[gitdir]}" == "." ]] && return
 
@@ -73,7 +72,6 @@ function +vi-git-remotebranch() {
     fi
 }
 
-set_default POWERLEVEL9K_VCS_HIDE_TAGS false
 function +vi-git-tagname() {
     if [[ "$POWERLEVEL9K_VCS_HIDE_TAGS" == "false" ]]; then
         # If we are on a tag, append the tagname to the current branch string.

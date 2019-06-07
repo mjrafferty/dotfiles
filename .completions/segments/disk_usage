@@ -1,8 +1,5 @@
 ################################################################
 # Segment that indicates usage level of current partition.
-set_default POWERLEVEL9K_DISK_USAGE_ONLY_WARNING false
-set_default -i POWERLEVEL9K_DISK_USAGE_WARNING_LEVEL 90
-set_default -i POWERLEVEL9K_DISK_USAGE_CRITICAL_LEVEL 95
 prompt_disk_usage() {
   (( $+commands[df] )) || return
   local disk_usage=${${=${(f)"$(command df -P . 2>/dev/null)"}[2]}[5]%%%}

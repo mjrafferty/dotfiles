@@ -13,7 +13,6 @@ function _p9k_rbenv_global_version() {
 ################################################################
 # Segment to display rbenv information
 # https://github.com/rbenv/rbenv#choosing-the-ruby-version
-set_default POWERLEVEL9K_RBENV_PROMPT_ALWAYS_SHOW false
 prompt_rbenv() {
   local v=$RBENV_VERSION
   if [[ -z $v ]]; then

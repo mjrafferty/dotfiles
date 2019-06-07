@@ -2,7 +2,6 @@
 # Kubernetes Current Context/Namespace
 
 # Set to false to truncate trailing "/default": "mycontext/default" will become "mycontext".
-set_default POWERLEVEL9K_KUBECONTEXT_SHOW_DEFAULT_NAMESPACE true
 
 # Defines context classes for the purpose of applying different styling to different contexts.
 #
@@ -27,7 +26,6 @@ set_default POWERLEVEL9K_KUBECONTEXT_SHOW_DEFAULT_NAMESPACE true
 #   POWERLEVEL9K_KUBECONTEXT_PROD_BACKGROUND=red
 #   POWERLEVEL9K_KUBECONTEXT_TESTING_BACKGROUND=green
 #   POWERLEVEL9K_KUBECONTEXT_OTHER_BACKGROUND=yellow
-set_default -a POWERLEVEL9K_KUBECONTEXT_CLASSES
 
 prompt_kubecontext() {
   (( $+commands[kubectl] )) || return

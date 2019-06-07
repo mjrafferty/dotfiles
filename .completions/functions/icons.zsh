@@ -14,8 +14,6 @@
 # Initialize the icon list according to the user's `POWERLEVEL9K_MODE`.
 typeset -gAH icons
 
-set_default POWERLEVEL9K_HIDE_BRANCH_ICON false
-set_default POWERLEVEL9K_MODE ""
 
 typeset -gi _P9K_ICONS_INITIALIZED=0
 

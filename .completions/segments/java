@@ -4,7 +4,6 @@
 #   POWERLEVEL9K_JAVA_VERSION_FULL=false => 1.8.0_212
 #
 # These correspond to `java -fullversion` and `java -version` respectively.
-set_default POWERLEVEL9K_JAVA_VERSION_FULL true
 
 # print Java version number
 prompt_java_version() {

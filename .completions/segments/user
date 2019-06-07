@@ -1,7 +1,6 @@
 ################################################################
 # User: user (who am I)
 # Note that if $DEFAULT_USER is not set, this prompt segment will always print
-set_default POWERLEVEL9K_USER_TEMPLATE "%n"
 prompt_user() {
   local user=$(whoami)
   [[ $POWERLEVEL9K_ALWAYS_SHOW_USER != true && $user == $DEFAULT_USER ]] && return

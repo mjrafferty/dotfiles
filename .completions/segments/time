@@ -2,8 +2,6 @@
 # System time
 
 # If set to true, `time` prompt will update every second.
-set_default POWERLEVEL9K_EXPERIMENTAL_TIME_REALTIME false
-set_default POWERLEVEL9K_TIME_FORMAT "%D{%H:%M:%S}"
 prompt_time() {
   local t=$POWERLEVEL9K_TIME_FORMAT
   [[ $POWERLEVEL9K_EXPERIMENTAL_TIME_REALTIME == true ]] || t=${(%)t}

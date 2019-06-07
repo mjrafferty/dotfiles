@@ -1,7 +1,5 @@
 ################################################################
 # Segment to indicate background jobs with an icon.
-set_default POWERLEVEL9K_BACKGROUND_JOBS_VERBOSE true
-set_default POWERLEVEL9K_BACKGROUND_JOBS_VERBOSE_ALWAYS false
 prompt_background_jobs() {
   local msg
   if [[ $POWERLEVEL9K_BACKGROUND_JOBS_VERBOSE == true ]]; then

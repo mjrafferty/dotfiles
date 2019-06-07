@@ -1,8 +1,6 @@
 ################################################################
 # Display the duration the command needed to run.
 typeset -gF _P9K_COMMAND_DURATION
-set_default -i POWERLEVEL9K_COMMAND_EXECUTION_TIME_THRESHOLD 3
-set_default -i POWERLEVEL9K_COMMAND_EXECUTION_TIME_PRECISION 2
 prompt_command_execution_time() {
   (( _P9K_COMMAND_DURATION < POWERLEVEL9K_COMMAND_EXECUTION_TIME_THRESHOLD )) && return
   # Print time in human readable format

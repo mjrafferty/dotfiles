@@ -2,6 +2,7 @@
 
 _p9k_installation_dir="$HOME/.completions"
 
+source "${_p9k_installation_dir}/functions/defaults.zsh"
 source "${_p9k_installation_dir}/functions/utilities.zsh"
 source "${_p9k_installation_dir}/functions/icons.zsh"
 source "${_p9k_installation_dir}/functions/colors.zsh"
@@ -16,14 +17,36 @@ typeset -g _P9K_N
 typeset -gi _P9K_I
 typeset -g _P9K_BG
 typeset -g _P9K_F
-
+typeset -ga _P9K_LEFT_JOIN=(1)
+typeset -ga _P9K_RIGHT_JOIN=(1)
+typeset -g _P9K_XY _P9K_ALIGNED_RPROMPT
+typeset -gi _P9K_X _P9K_Y _P9K_M _P9K_RPROMPT_DONE _P9K_IND
+typeset -gF _P9K_TIMER_START
+typeset -g _P9K_PROMPT
+typeset -g _P9K_RPROMPT
+typeset -g _P9K_LEFT_PREFIX
+typeset -g _P9K_LEFT_SUFFIX
+typeset -g _P9K_RIGHT_PREFIX
+typeset -g _P9K_RIGHT_SUFFIX
+typeset -g _P9K_REFRESH_REASON
+typeset -gi _P9K_REGION_ACTIVE
+typeset -g DEFAULT_COLOR
+typeset -g DEFAULT_COLOR_INVERTED
+typeset -gi _P9K_INITIALIZED=0
+typeset -g OS
+typeset -g OS_ICON
+typeset -g SED_EXTENDED_REGEX_PARAMETER
+typeset -g  _P9K_TIMER_FIFO
+typeset -gi _P9K_TIMER_FD=0
+typeset -gi _P9K_TIMER_PID=0
+typeset -gi _P9K_TIMER_SUBSHELL=0
+typeset -gi _P9K_ENABLED=0
 
 ## Caching Section ##
 
 # Specifies the maximum number of elements in the cache. When the cache grows over this limit,
 # it gets cleared. This is meant to avoid memory leaks when a rogue prompt is filling the cache
 # with data.
-set_default -i POWERLEVEL9K_MAX_CACHE_SIZE 10000
 
 # Caching allows storing array-to-array associations. It should be used like this:
 #
@@ -85,6 +108,71 @@ _p9k_cached_cmd_stdout_stderr() {
 
 ## Caching Section ##
 
+## Timer Section ##
+
+_p9k_on_timer() {
+  emulate -L zsh
+  local dummy
+  while IFS='' read -t -u $_P9K_TIMER_FD dummy; do true; done
+  zle && zle .reset-prompt && zle -R
+}
+
+_p9k_kill_timer() {
+  emulate -L zsh
+  if (( ZSH_SUBSHELL == _P9K_TIMER_SUBSHELL )); then
+    (( _P9K_TIMER_PID )) && kill -- -$_P9K_TIMER_PID &>/dev/null
+    command rm -f $_P9K_TIMER_FIFO
+  fi
+}
+
+_p9k_start_timer() {
+  emulate -L zsh
+  setopt err_return no_bg_nice
+
+  _P9K_TIMER_FIFO=$(mktemp -u "${TMPDIR:-/tmp}"/p9k.$$.timer.pipe.XXXXXXXXXX)
+  mkfifo $_P9K_TIMER_FIFO
+  sysopen -rw -o cloexec,sync -u _P9K_TIMER_FD $_P9K_TIMER_FIFO
+  zsystem flock $_P9K_TIMER_FIFO
+
+  zle -F $_P9K_TIMER_FD _p9k_on_timer
+
+  # `kill -WINCH $$` is a workaround for a bug in zsh. After a background job completes, callbacks
+  # registered with `zle -F` stop firing until the user presses any key or the process receives a
+  # signal (any signal at all).
+  zsh -c "
+  zmodload zsh/system
+  while sleep 1 && ! zsystem flock -t 0 ${(q)_P9K_TIMER_FIFO} && kill -WINCH $$ && echo; do
+    true
+  done
+  command rm -f ${(q)_P9K_TIMER_FIFO}
+  " </dev/null >&$_P9K_TIMER_FD 2>/dev/null &!
+
+  _P9K_TIMER_PID=$!
+  _P9K_TIMER_SUBSHELL=$ZSH_SUBSHELL
+
+  add-zsh-hook zshexit _p9k_kill_timer
+}
+
+_p9k_init_timer() {
+
+  if ! _p9k_start_timer ; then
+    echo "powerlevel10k: failed to initialize background timer" >&2
+    if (( _P9K_TIMER_FD )); then
+      zle -F $_P9K_TIMER_FD
+      exec {_P9K_TIMER_FD}>&-
+      _P9K_TIMER_FD=0
+    fi
+    if (( _P9K_TIMER_PID )); then
+      kill -- -$_P9K_TIMER_PID &>/dev/null
+      _P9K_TIMER_PID=0
+    fi
+    command rm -f $_P9K_TIMER_FIFO
+    _P9K_TIMER_FIFO=''
+    unset -f _p9k_on_timer
+  fi
+}
+
+## Timer Section ##
 
 # Sets _P9K_RETVAL to the icon whose name is supplied via $1.
 _p9k_get_icon() {
@@ -92,10 +180,6 @@ _p9k_get_icon() {
   _P9K_RETVAL=${(g::)${${(P)var_name}-$icons[$1]}}
   [[ $_P9K_RETVAL != $'\b'? ]] || _P9K_RETVAL="%{$_P9K_RETVAL%}"  # penance for past sins
 }
-
-
-typeset -ga _P9K_LEFT_JOIN=(1)
-typeset -ga _P9K_RIGHT_JOIN=(1)
 
 _p9k_translate_color() {
   if [[ $1 == '<->' ]]; then     # decimal color code: 255
@@ -127,7 +211,6 @@ _p9k_escape_rcurly() {
   _P9K_RETVAL=${${1//\\/\\\\}//\}/\\\}}
 }
 
-
 # Begin a left prompt segment.
 #
 #    * $1: Name of the function that was originally invoked.
@@ -140,7 +223,6 @@ _p9k_escape_rcurly() {
 #    * $7: If not empty but becomes empty after parameter expansion and process substitution,
 #          the segment isn't rendered.
 #   * $8+: The segment content
-set_default POWERLEVEL9K_WHITESPACE_BETWEEN_LEFT_SEGMENTS " "
 left_prompt_segment() {
   if ! _p9k_cache_get "$0" "$1" "$2" "$3" "$4" "$5"; then
     _p9k_color $3 $1 BACKGROUND
@@ -226,7 +308,6 @@ left_prompt_segment() {
 }
 
 # The same as left_prompt_segment above but for the right prompt.
-set_default POWERLEVEL9K_WHITESPACE_BETWEEN_RIGHT_SEGMENTS " "
 right_prompt_segment() {
   if ! _p9k_cache_get "$0" "$1" "$2" "$3" "$4" "$5"; then
     _p9k_color $3 $1 BACKGROUND
@@ -302,10 +383,6 @@ right_prompt_segment() {
   _P9K_PROMPT+=${_P9K_CACHE_VAL[4]}
 }
 
-
-typeset -g _P9K_XY _P9K_ALIGNED_RPROMPT
-typeset -gi _P9K_X _P9K_Y _P9K_M _P9K_RPROMPT_DONE _P9K_IND
-
 # Returns 1 if the cursor is at the very end of the screen.
 _p9k_left_prompt_end_line() {
   _p9k_get_icon LEFT_SEGMENT_SEPARATOR
@@ -325,7 +402,6 @@ _p9k_left_prompt_end_line() {
   fi
 }
 
-
 ################################################################
 # The 'custom` prompt provides a way for users to invoke commands and display
 # the output in a segment.
@@ -339,7 +415,6 @@ prompt_custom() {
   [[ -n $content ]] || return
   "$1_prompt_segment" "${0}_${3:u}" "$2" $DEFAULT_COLOR_INVERTED $DEFAULT_COLOR "CUSTOM_${segment_name}_ICON" 0 '' "$content"
 }
-
 
 ################################################################
 # Show a ratio of tests vs code
@@ -356,12 +431,10 @@ build_test_stats() {
   (( ratio < 50 )) && "$1_prompt_segment" "$2_BAD" "$3" "red" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
 }
 
-
 ################################################################
 # Prompt processing and drawing
 ################################################################
 # Main prompt
-set_default -a POWERLEVEL9K_LEFT_PROMPT_ELEMENTS context dir vcs
 
 # Returns 1 if the cursor is at the very end of the screen.
 build_left_prompt() {
@@ -387,7 +460,6 @@ build_left_prompt() {
 }
 
 # Right prompt
-set_default -a POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS status root_indicator background_jobs history time
 build_right_prompt() {
   local -i index=1
   local element
@@ -408,20 +480,10 @@ build_right_prompt() {
   done
 }
 
-typeset -gF _P9K_TIMER_START
-
 powerlevel9k_preexec() {
   _P9K_TIMER_START=$EPOCHREALTIME
 }
 
-typeset -g _P9K_PROMPT
-typeset -g _P9K_RPROMPT
-typeset -g _P9K_LEFT_PREFIX
-typeset -g _P9K_LEFT_SUFFIX
-typeset -g _P9K_RIGHT_PREFIX
-typeset -g _P9K_RIGHT_SUFFIX
-
-set_default POWERLEVEL9K_DISABLE_RPROMPT false
 _p9k_set_prompt() {
   emulate -L zsh
   PROMPT=
@@ -450,8 +512,6 @@ _p9k_set_prompt() {
   fi
 }
 
-typeset -g _P9K_REFRESH_REASON
-
 _p9k_update_prompt() {
   (( _P9K_ENABLED )) || return
   _P9K_REFRESH_REASON=$1
@@ -459,11 +519,6 @@ _p9k_update_prompt() {
   _P9K_REFRESH_REASON=''
   zle && zle .reset-prompt && zle -R
 }
-
-typeset -gi _P9K_REGION_ACTIVE
-
-set_default POWERLEVEL9K_PROMPT_ADD_NEWLINE false
-set_default POWERLEVEL9K_SHOW_RULER false
 
 powerlevel9k_refresh_prompt_inplace() {
   emulate -L zsh
@@ -492,94 +547,6 @@ powerlevel9k_prepare_prompts() {
 _p9k_zle_keymap_select() {
   zle && zle .reset-prompt && zle -R
 }
-
-set_default POWERLEVEL9K_IGNORE_TERM_COLORS false
-set_default POWERLEVEL9K_IGNORE_TERM_LANG false
-set_default POWERLEVEL9K_DISABLE_GITSTATUS false
-set_default -i POWERLEVEL9K_VCS_MAX_INDEX_SIZE_DIRTY -1
-set_default -i POWERLEVEL9K_VCS_STAGED_MAX_NUM 1
-set_default -i POWERLEVEL9K_VCS_UNSTAGED_MAX_NUM 1
-set_default -i POWERLEVEL9K_VCS_UNTRACKED_MAX_NUM 1
-set_default -i POWERLEVEL9K_VCS_COMMITS_AHEAD_MAX_NUM -1
-set_default -i POWERLEVEL9K_VCS_COMMITS_BEHIND_MAX_NUM -1
-
-typeset -g DEFAULT_COLOR
-typeset -g DEFAULT_COLOR_INVERTED
-typeset -gi _P9K_INITIALIZED=0
-
-typeset -g OS
-typeset -g OS_ICON
-typeset -g SED_EXTENDED_REGEX_PARAMETER
-
-## Timer Section ##
-typeset -g  _P9K_TIMER_FIFO
-typeset -gi _P9K_TIMER_FD=0
-typeset -gi _P9K_TIMER_PID=0
-typeset -gi _P9K_TIMER_SUBSHELL=0
-
-_p9k_on_timer() {
-  emulate -L zsh
-  local dummy
-  while IFS='' read -t -u $_P9K_TIMER_FD dummy; do true; done
-  zle && zle .reset-prompt && zle -R
-}
-
-_p9k_kill_timer() {
-  emulate -L zsh
-  if (( ZSH_SUBSHELL == _P9K_TIMER_SUBSHELL )); then
-    (( _P9K_TIMER_PID )) && kill -- -$_P9K_TIMER_PID &>/dev/null
-    command rm -f $_P9K_TIMER_FIFO
-  fi
-}
-
-_p9k_start_timer() {
-  emulate -L zsh
-  setopt err_return no_bg_nice
-
-  _P9K_TIMER_FIFO=$(mktemp -u "${TMPDIR:-/tmp}"/p9k.$$.timer.pipe.XXXXXXXXXX)
-  mkfifo $_P9K_TIMER_FIFO
-  sysopen -rw -o cloexec,sync -u _P9K_TIMER_FD $_P9K_TIMER_FIFO
-  zsystem flock $_P9K_TIMER_FIFO
-
-  zle -F $_P9K_TIMER_FD _p9k_on_timer
-
-  # `kill -WINCH $$` is a workaround for a bug in zsh. After a background job completes, callbacks
-  # registered with `zle -F` stop firing until the user presses any key or the process receives a
-  # signal (any signal at all).
-  zsh -c "
-  zmodload zsh/system
-  while sleep 1 && ! zsystem flock -t 0 ${(q)_P9K_TIMER_FIFO} && kill -WINCH $$ && echo; do
-    true
-  done
-  command rm -f ${(q)_P9K_TIMER_FIFO}
-  " </dev/null >&$_P9K_TIMER_FD 2>/dev/null &!
-
-  _P9K_TIMER_PID=$!
-  _P9K_TIMER_SUBSHELL=$ZSH_SUBSHELL
-
-  add-zsh-hook zshexit _p9k_kill_timer
-}
-
-_p9k_init_timer() {
-
-  if ! _p9k_start_timer ; then
-    echo "powerlevel10k: failed to initialize background timer" >&2
-    if (( _P9K_TIMER_FD )); then
-      zle -F $_P9K_TIMER_FD
-      exec {_P9K_TIMER_FD}>&-
-      _P9K_TIMER_FD=0
-    fi
-    if (( _P9K_TIMER_PID )); then
-      kill -- -$_P9K_TIMER_PID &>/dev/null
-      _P9K_TIMER_PID=0
-    fi
-    command rm -f $_P9K_TIMER_FIFO
-    _P9K_TIMER_FIFO=''
-    unset -f _p9k_on_timer
-  fi
-}
-
-## Timer Section ##
 
 # Does ZSH have a certain off-by-one bug that triggers when PROMPT overflows to a new line?
 #
@@ -856,8 +823,6 @@ _p9k_init() {
 
   _P9K_INITIALIZED=1
 }
-
-typeset -gi _P9K_ENABLED=0
 
 prompt_mattnew_setup() {
   prompt_powerlevel9k_teardown

@@ -1,6 +1,5 @@
 ################################################################
 # System date
-set_default POWERLEVEL9K_DATE_FORMAT "%D{%d.%m.%y}"
 prompt_date() {
   local d=$POWERLEVEL9K_DATE_FORMAT
   [[ $POWERLEVEL9K_EXPERIMENTAL_TIME_REALTIME == true ]] || d=${(%)d}

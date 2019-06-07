@@ -1,7 +1,5 @@
 ################################################################
 # Anaconda Environment
-set_default POWERLEVEL9K_ANACONDA_LEFT_DELIMITER "("
-set_default POWERLEVEL9K_ANACONDA_RIGHT_DELIMITER ")"
 prompt_anaconda() {
   local p=${CONDA_PREFIX:-$CONDA_ENV_PATH}
   if [[ -n $p ]]; then

@@ -1,6 +1,5 @@
 ################################################################
 # Segment to diplay Node version
-set_default P9K_NODE_VERSION_PROJECT_ONLY false
 prompt_node_version() {
   (( $+commands[node] )) || return
 

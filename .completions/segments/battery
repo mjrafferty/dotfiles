@@ -1,9 +1,5 @@
 ################################################################
 # Segment that displays the battery status in levels and colors
-set_default -i POWERLEVEL9K_BATTERY_LOW_THRESHOLD  10
-set_default -i POWERLEVEL9K_BATTERY_HIDE_ABOVE_THRESHOLD 999
-set_default -a POWERLEVEL9K_BATTERY_LEVEL_BACKGROUND
-set_default    POWERLEVEL9K_BATTERY_VERBOSE true
 typeset     -g POWERLEVEL9K_BATTERY_STAGES
 
 typeset -gA _P9K_BATTERY_STATES=(

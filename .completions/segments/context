@@ -2,9 +2,6 @@
 ################################################################
 # Context: user@hostname (who am I and where am I)
 # Note that if $DEFAULT_USER is not set, this prompt segment will always print
-set_default POWERLEVEL9K_ALWAYS_SHOW_CONTEXT false
-set_default POWERLEVEL9K_ALWAYS_SHOW_USER false
-set_default POWERLEVEL9K_CONTEXT_TEMPLATE "%n@%m"
 prompt_context() {
   local content
   if [[ $POWERLEVEL9K_ALWAYS_SHOW_CONTEXT == true || -z $DEFAULT_USER || -n $SSH_CLIENT || -n $SSH_TTY ]]; then

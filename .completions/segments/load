@@ -1,6 +1,5 @@
 ################################################################
 # Segment to display load
-set_default -i POWERLEVEL9K_LOAD_WHICH 5
 prompt_load() {
   local bucket=2
   case $POWERLEVEL9K_LOAD_WHICH in

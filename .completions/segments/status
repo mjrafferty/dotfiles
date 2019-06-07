@@ -2,13 +2,7 @@
 # Status: When an error occur, return the error code, or a cross icon if option is set
 # Display an ok icon when no error occur, or hide the segment if option is set to false
 #
-set_default POWERLEVEL9K_STATUS_CROSS false
-set_default POWERLEVEL9K_STATUS_OK true
-set_default POWERLEVEL9K_STATUS_SHOW_PIPESTATUS true
-set_default POWERLEVEL9K_STATUS_HIDE_SIGNAME false
 # old options, retro compatibility
-set_default POWERLEVEL9K_STATUS_VERBOSE true
-set_default POWERLEVEL9K_STATUS_OK_IN_NON_VERBOSE false
 
 exit_code_or_status() {
   local ec=$1
