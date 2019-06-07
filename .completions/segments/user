@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # User: user (who am I)
 # Note that if $DEFAULT_USER is not set, this prompt segment will always print

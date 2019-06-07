@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # A newline in your prompt, so you can segments on multiple lines.
 prompt_newline() {

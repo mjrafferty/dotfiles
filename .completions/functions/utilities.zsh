@@ -1,4 +1,4 @@
-# vim:ft=zsh ts=2 sw=2 sts=2 et fenc=utf-8
+# vim:ft=bash
 ################################################################
 # Utility functions
 # This file holds some utility-functions for
@@ -9,7 +9,7 @@
 # Usage: set_default [OPTION]... NAME [VALUE]...
 #
 # Options are the same as in `typeset`.
-function set_default() {
+set_default() {
   emulate -L zsh
   local -a flags=(-g)
   while true; do
@@ -31,7 +31,7 @@ function set_default() {
   fi
 }
 
-function _p9k_g_expand() {
+_p9k_g_expand() {
   (( $+parameters[$1] )) || return
   local -a ts=("${=$(typeset -p $1)}")
   shift ts
@@ -54,7 +54,7 @@ function _p9k_g_expand() {
 #   _p9k_prompt_length $'\t' => 8
 #   _p9k_prompt_length '%F{red}abc' => 3
 #   _p9k_prompt_length $'%{a\b%Gb%}' => 1
-function _p9k_prompt_length() {
+_p9k_prompt_length() {
   emulate -L zsh
   local -i x y=$#1 m
   if (( y )); then
@@ -75,7 +75,7 @@ typeset -g _P9K_BYTE_SUFFIX=('B' 'K' 'M' 'G' 'T' 'P' 'E' 'Z' 'Y')
 
 # 42 => 42B
 # 1536 => 1.5K
-function _p9k_human_readable_bytes() {
+_p9k_human_readable_bytes() {
   typeset -F 2 n=$1
   local suf
   for suf in $_P9K_BYTE_SUFFIX; do
@@ -98,7 +98,7 @@ segment_in_use() {
      -n "${POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS[(r)${key}_joined]}" ]]
 }
 
-function _p9k_parse_ip() {
+_p9k_parse_ip() {
   local desiredInterface=${1:-'^[^ ]+'}
 
   if [[ $OS == OSX ]]; then
@@ -138,4 +138,25 @@ function _p9k_parse_ip() {
   fi
 
   return 1
+}
+
+################################################################
+# Show a ratio of tests vs code
+build_test_stats() {
+  local code_amount="$4"
+  local tests_amount="$5"
+  local headline="$6"
+
+  (( code_amount > 0 )) || return
+  local -F 2 ratio=$(( 100. * tests_amount / code_amount ))
+
+  (( ratio >= 75 )) && "$1_prompt_segment" "${2}_GOOD" "$3" "cyan" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
+  (( ratio >= 50 && ratio < 75 )) && "$1_prompt_segment" "$2_AVG" "$3" "yellow" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
+  (( ratio < 50 )) && "$1_prompt_segment" "$2_BAD" "$3" "red" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
+}
+
+_p9k_read_file() {
+  _P9K_RETVAL=''
+  [[ -n $1 ]] && read -r _P9K_RETVAL <$1
+  [[ -n $_P9K_RETVAL ]]
 }

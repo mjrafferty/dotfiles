@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to display Ruby Version Manager information
 prompt_rvm() {

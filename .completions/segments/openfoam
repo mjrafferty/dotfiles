@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Display openfoam information
 prompt_openfoam() {

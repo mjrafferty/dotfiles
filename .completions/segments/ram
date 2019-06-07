@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to display free RAM and used Swap
 prompt_ram() {

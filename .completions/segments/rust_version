@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to display Rust version number
 prompt_rust_version() {

@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # todo.sh: shows the number of tasks in your todo.sh file
 prompt_todo() {

@@ -1,4 +1,5 @@
-function _p9k_read_rbenv_version_file() {
+# vim:ft=bash
+_p9k_read_rbenv_version_file() {
   [[ -r $1 ]] || return
   local content
   read -r content <$1 2>/dev/null
@@ -6,7 +7,7 @@ function _p9k_read_rbenv_version_file() {
   [[ -n $_P9K_RETVAL ]]
 }
 
-function _p9k_rbenv_global_version() {
+_p9k_rbenv_global_version() {
   _p9k_read_rbenv_version_file ${RBENV_ROOT:-$HOME/.rbenv}/version || _P9K_RETVAL=system
 }
 

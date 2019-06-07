@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Public IP segment
 typeset -gF _P9K_PUBLIC_IP_TIMESTAMP

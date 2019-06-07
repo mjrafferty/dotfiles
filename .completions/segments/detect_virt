@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Detection for virtualization (systemd based systems only)
 prompt_detect_virt() {

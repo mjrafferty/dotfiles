@@ -1,4 +1,4 @@
-# vim:ft=zsh ts=2 sw=2 sts=2 et fenc=utf-8
+# vim:ft=bash
 ################################################################
 # Color functions
 # This file holds some color-functions for
@@ -271,9 +271,9 @@ typeset -gAh __P9K_COLORS=(
 
 # For user convenience: type `getColorCode background` or `getColorCode foreground` to see
 # the list of predefined colors.
-function getColorCode() {
+getColorCode() {
   if (( ARGC == 1 )); then
-    case $1 in 
+    case $1 in
       foreground)
         local k
         for k in "${(k@)__P9K_COLORS}"; do
@@ -294,4 +294,30 @@ function getColorCode() {
   fi
   echo "Usage: getColorCode background|foreground" >&2
   return 1
+}
+
+_p9k_translate_color() {
+  if [[ $1 == '<->' ]]; then     # decimal color code: 255
+    _P9K_RETVAL=$1
+  elif [[ $1 == '#'* ]]; then  # hexademical color code: #ffffff
+    _P9K_RETVAL=$1
+  else                         # named color: red
+    # Strip prifixes if there are any.
+    _P9K_RETVAL=$__P9K_COLORS[${${${1#bg-}#fg-}#br}]
+  fi
+}
+
+# Resolves a color to its numerical value, or an empty string. Communicates the result back
+# by setting _P9K_RETVAL.
+_p9k_color() {
+  local user_var=POWERLEVEL9K_${(U)${2}#prompt_}_${3}
+  _p9k_translate_color ${${(P)user_var}:-${1}}
+}
+
+_p9k_background() {
+  [[ -n $1 ]] && _P9K_RETVAL="%K{$1}" || _P9K_RETVAL="%k"
+}
+
+_p9k_foreground() {
+  [[ -n $1 ]] && _P9K_RETVAL="%F{$1}" || _P9K_RETVAL="%f"
 }

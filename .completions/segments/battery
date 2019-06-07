@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment that displays the battery status in levels and colors
 typeset     -g POWERLEVEL9K_BATTERY_STAGES
@@ -8,12 +9,6 @@ typeset -gA _P9K_BATTERY_STATES=(
   'charged'       'green'
   'disconnected'  "$DEFAULT_COLOR_INVERTED"
 )
-
-function _p9k_read_file() {
-  _P9K_RETVAL=''
-  [[ -n $1 ]] && read -r _P9K_RETVAL <$1
-  [[ -n $_P9K_RETVAL ]]
-}
 
 prompt_battery() {
   local state remain

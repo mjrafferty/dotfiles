@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to display laravel version
 prompt_laravel_version() {

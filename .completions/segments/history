@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Command number (in local history)
 prompt_history() {

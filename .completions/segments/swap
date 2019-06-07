@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to display Swap information
 prompt_swap() {

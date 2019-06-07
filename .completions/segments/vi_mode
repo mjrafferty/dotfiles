@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Vi Mode: show editing mode (NORMAL|INSERT|VISUAL)
 #

@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to display load
 prompt_load() {

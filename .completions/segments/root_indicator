@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to print an icon if user is root.
 prompt_root_indicator() {

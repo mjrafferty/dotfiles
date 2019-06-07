@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to display PHP version number
 prompt_php_version() {

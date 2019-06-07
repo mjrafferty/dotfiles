@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # VCS segment: shows the state of your repository, if you are in a folder under
 # version control
@@ -10,6 +11,13 @@ typeset -gA vcs_states=(
   'loading'       'grey'
 )
 
+_p9k_update_prompt() {
+  (( _P9K_ENABLED )) || return
+  _P9K_REFRESH_REASON=$1
+  _p9k_set_prompt
+  _P9K_REFRESH_REASON=''
+  zle && zle .reset-prompt && zle -R
+}
 
 # If it takes longer than this to fetch git repo status, display the prompt with a greyed out
 # vcs segment and fix it asynchronously when the results come it.
@@ -74,7 +82,7 @@ typeset -gAH _P9K_LAST_GIT_PROMPT
 # git workdir => 1 if gitstatus is slow on it, 0 if it's fast.
 typeset -gAH _P9K_GIT_SLOW
 
-function _p9k_vcs_style() {
+_p9k_vcs_style() {
   local color=${(P)${:-POWERLEVEL9K_VCS_${1}_${2}FORMAT_FOREGROUND}}
   if [[ -z $color ]]; then
     _P9K_RETVAL=""
@@ -92,7 +100,7 @@ function _p9k_vcs_style() {
   _P9K_RETVAL="%F{$color}"
 }
 
-function _p9k_vcs_render() {
+_p9k_vcs_render() {
   if (( $+_P9K_NEXT_VCS_DIR )); then
     local -a msg
     local dir=${${GIT_DIR:a}:-$PWD}
@@ -257,7 +265,7 @@ function _p9k_vcs_render() {
   return 0
 }
 
-function _p9k_vcs_resume() {
+_p9k_vcs_resume() {
   emulate -L zsh
 
   if [[ $VCS_STATUS_RESULT == ok-async ]]; then
@@ -290,7 +298,7 @@ function _p9k_vcs_resume() {
   fi
 }
 
-function _p9k_vcs_gitstatus() {
+_p9k_vcs_gitstatus() {
   [[ $POWERLEVEL9K_DISABLE_GITSTATUS == true ]] && return 1
   if [[ $_P9K_REFRESH_REASON == precmd ]]; then
     if (( $+_P9K_NEXT_VCS_DIR )); then

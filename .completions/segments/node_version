@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to diplay Node version
 prompt_node_version() {

@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # dir_writable: Display information about the user's permission to write in the current directory
 prompt_dir_writable() {

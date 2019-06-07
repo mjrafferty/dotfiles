@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to display SSH icon when connected
 prompt_ssh() {

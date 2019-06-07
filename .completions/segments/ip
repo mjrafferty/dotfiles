@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to display the current IP address
 prompt_ip() {

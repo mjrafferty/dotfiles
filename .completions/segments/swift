@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to display Swift version
 prompt_swift_version() {

@@ -1,3 +1,4 @@
+# vim:ft=bash
 () {
   emulate -L zsh && setopt no_unset pipe_fail
 

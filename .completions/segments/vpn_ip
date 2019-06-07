@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to display if VPN is active
 # prompt if vpn active

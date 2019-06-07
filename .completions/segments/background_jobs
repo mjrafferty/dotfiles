@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to indicate background jobs with an icon.
 prompt_background_jobs() {

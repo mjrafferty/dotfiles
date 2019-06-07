@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Status: When an error occur, return the error code, or a cross icon if option is set
 # Display an ok icon when no error occur, or hide the segment if option is set to false

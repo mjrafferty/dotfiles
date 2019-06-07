@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Docker machine
 prompt_docker_machine() {

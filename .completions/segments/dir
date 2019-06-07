@@ -1,3 +1,4 @@
+# vim:ft=bash
 
 # Stop shortening the directory once its length is no greater than this. The value can be either
 # absolute (e.g., '50') or a percentage of terminal width (e.g, '50%').
@@ -8,7 +9,7 @@
 # Individual elements are patterns. They are expanded with the options set
 # by `emulate zsh && setopt extended_glob`.
 
-function _p9k_shorten_delim_len() {
+_p9k_shorten_delim_len() {
   local def=$1
   _P9K_RETVAL=${POWERLEVEL9K_SHORTEN_DELIMITER_LENGTH:--1}
   (( _P9K_RETVAL >= 0 )) || _p9k_prompt_length $1

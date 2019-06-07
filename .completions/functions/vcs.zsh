@@ -1,4 +1,4 @@
-# vim:ft=zsh ts=2 sw=2 sts=2 et fenc=utf-8
+# vim:ft=bash
 ################################################################
 # vcs
 # This file holds supplemental VCS functions
@@ -6,7 +6,7 @@
 # https://github.com/bhilburn/powerlevel9k
 ################################################################
 
-function +vi-git-untracked() {
++vi-git-untracked() {
   [[ -z "${vcs_comm[gitdir]}" || "${vcs_comm[gitdir]}" == "." ]] && return
 
   # get the root for the current repo or submodule
@@ -26,7 +26,7 @@ function +vi-git-untracked() {
   VCS_WORKDIR_HALF_DIRTY=true
 }
 
-function +vi-git-aheadbehind() {
++vi-git-aheadbehind() {
     local ahead behind
     local -a gitstatus
 
@@ -43,7 +43,7 @@ function +vi-git-aheadbehind() {
     hook_com[misc]+=${(j::)gitstatus}
 }
 
-function +vi-git-remotebranch() {
++vi-git-remotebranch() {
     local remote
     local branch_name="${hook_com[branch]}"
 
@@ -72,7 +72,7 @@ function +vi-git-remotebranch() {
     fi
 }
 
-function +vi-git-tagname() {
++vi-git-tagname() {
     if [[ "$POWERLEVEL9K_VCS_HIDE_TAGS" == "false" ]]; then
         # If we are on a tag, append the tagname to the current branch string.
         local tag
@@ -99,14 +99,14 @@ function +vi-git-tagname() {
 
 # Show count of stashed changes
 # Port from https://github.com/whiteinge/dotfiles/blob/5dfd08d30f7f2749cfc60bc55564c6ea239624d9/.zsh_shouse_prompt#L268
-function +vi-git-stash() {
++vi-git-stash() {
   if [[ -s "${vcs_comm[gitdir]}/logs/refs/stash" ]] ; then
     local -a stashes=( "${(@f)"$(<${vcs_comm[gitdir]}/logs/refs/stash)"}" )
     hook_com[misc]+=" $(print_icon 'VCS_STASH_ICON')${#stashes}"
   fi
 }
 
-function +vi-hg-bookmarks() {
++vi-hg-bookmarks() {
   if [[ -n "${hgbmarks[@]}" ]]; then
     hook_com[hg-bookmark-string]=" $(print_icon 'VCS_BOOKMARK_ICON')${hgbmarks[@]}"
 
@@ -117,7 +117,7 @@ function +vi-hg-bookmarks() {
   fi
 }
 
-function +vi-vcs-detect-changes() {
++vi-vcs-detect-changes() {
   if [[ "${hook_com[vcs]}" == "git" ]]; then
 
     local remote=$(command git ls-remote --get-url 2> /dev/null)
@@ -146,7 +146,7 @@ function +vi-vcs-detect-changes() {
   fi
 }
 
-function +vi-svn-detect-changes() {
++vi-svn-detect-changes() {
   local svn_status="$(svn status)"
   if [[ -n "$(echo "$svn_status" | \grep \^\?)" ]]; then
     hook_com[unstaged]+=" $(print_icon 'VCS_UNTRACKED_ICON')"

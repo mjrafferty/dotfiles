@@ -1,11 +1,12 @@
-function _p9k_read_pyenv_version_file() {
+# vim:ft=bash
+_p9k_read_pyenv_version_file() {
   [[ -r $1 ]] || return
   local content
   read -rd $'\0' content <$1 2>/dev/null
   _P9K_RETVAL=${${(j.:.)${(@)${=content}#python-}:-system}}
 }
 
-function _p9k_pyenv_global_version() {
+_p9k_pyenv_global_version() {
   _p9k_read_pyenv_version_file ${PYENV_ROOT:-$HOME/.pyenv}/version || _P9K_RETVAL=system
 }
 

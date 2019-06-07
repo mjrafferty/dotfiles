@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to display NodeEnv
 prompt_nodeenv() {

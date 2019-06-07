@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Symfony2-PHPUnit test ratio
 prompt_symfony2_tests() {

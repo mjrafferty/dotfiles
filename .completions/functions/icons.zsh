@@ -1,4 +1,4 @@
-# vim:ft=zsh ts=2 sw=2 sts=2 et fenc=utf-8
+# vim:ft=bash
 ################################################################
 # icons
 # This file holds the icon definitions and
@@ -17,7 +17,7 @@ typeset -gAH icons
 
 typeset -gi _P9K_ICONS_INITIALIZED=0
 
-function _p9k_init_icons() {
+_p9k_init_icons() {
   (( _P9K_ICONS_INITIALIZED )) && return
   _P9K_ICONS_INITIALIZED=1
 
@@ -555,7 +555,7 @@ function _p9k_init_icons() {
 
 # Safety function for printing icons
 # Prints the named icon, or if that icon is undefined, the string name.
-function print_icon() {
+print_icon() {
   _p9k_init_icons
   local icon_name=$1
   local var_name=POWERLEVEL9K_${icon_name}
@@ -570,7 +570,7 @@ function print_icon() {
 #   * $1 string - If "original", then the original icons are printed,
 #                 otherwise "print_icon" is used, which takes the users
 #                 overrides into account.
-function get_icon_names() {
+get_icon_names() {
   _p9k_init_icons
   # Iterate over a ordered list of keys of the icons array
   for key in ${(@kon)icons}; do
@@ -583,4 +583,11 @@ function get_icon_names() {
       echo "$(print_icon "$key")"
     fi
   done
+}
+
+# Sets _P9K_RETVAL to the icon whose name is supplied via $1.
+_p9k_get_icon() {
+  local var_name=POWERLEVEL9K_$1
+  _P9K_RETVAL=${(g::)${${(P)var_name}-$icons[$1]}}
+  [[ $_P9K_RETVAL != $'\b'? ]] || _P9K_RETVAL="%{$_P9K_RETVAL%}"  # penance for past sins
 }

@@ -1,3 +1,4 @@
+# vim:ft=bash
 ################################################################
 # Segment to print a little OS icon
 prompt_os_icon() {
