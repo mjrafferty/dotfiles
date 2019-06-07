@@ -1,111 +1,53 @@
 #! /bin/bash
 
-nex_user_shell="zsh"
-# shellcheck disable=SC2154
-if [[ "$nex_user_shell" == "zsh" ]]; then
-  ARRAY_START="1";
-else
-  ARRAY_START="0";
-fi
+_sup_octetregex() {
 
-# Convert ipv4 IP to binary form
-sup_iptobinary() {
+  local low high;
 
-  grep -Po '([0-9]{1,3}\.){3}[0-9]{1,3}' \
-    | awk '
-    function d2b(d,  b) {
-      while(d) {
-        b=d%2b;
-        d=int(d/2);
-      }
-      return(b);
-    }
-    {
-      split($0,bin,".");
-      printf("%08i.%08i.%08i.%08i\n",d2b(bin[1]),d2b(bin[2]),d2b(bin[3]),d2b(bin[4]));
-    }'
+	low="$1";
+	high="$2";
 
-}
+  if (( high < max )); then
+    return 1;
+  fi
 
-sup_bintoip() {
+  if (( low == high )); then
 
-  tr -d ' .' \
-    | fold -w 32 \
-    | tee \
-    | sed -e 's/.\{8\}/&,".",/g' -e 's/^/ibase=2; print /' -e 's/,".",$//' -e 's/$/,"\\n"/' \
-    | bc
+    echo "${high}";
 
-}
+  elif (( low < 10 )); then
 
-# Print out subnets containing provided ips in cidr notation
-sup_ipstocidr() {
+    if (( high < 10 )); then
+      echo "[${low}-${high}]";
+    elif (( high < 100 )); then
+      #echo "[1-9][0-9]|[${low}-9]";
+    elif (( high < 200 )); then
+      #echo "[1-9][0-9]|[${low}-9]";
+    else
+      #echo "((1[0-9]{2}|2([0-4][0-9]|5[0-5]))|[1-9][0-9]|[0-9])";
+    fi
 
-  local current_block max_block num_ips last_ip current_ip;
+  elif (( low < 100 )); then
 
-  max_block="16";
-  current_block="32";
-  num_ips=0;
+    if (( high < 100 )); then
+      #echo "[1-9][0-9]";
+    elif (( high < 200 )); then
+      #echo "[1-9][0-9]";
+    else
+      #echo "(1[0-9]{2}|2([0-4][0-9]|5[0-5]))|[1-9][0-9]";
+    fi
 
-  sup_iptobinary \
-    | sort -u \
-    |  {
-    while read -r ip; do
+  elif (( low < 200 )); then
 
-      ((num_ips++));
+    if (( high < 200 )); then
+      #echo "[1-9][0-9]";
+    else
+      #echo "(1[0-9]{2}|2([0-4][0-9]|5[0-5]))|[1-9][0-9]";
+    fi
 
-      ## Read first IP from list
-      if [[ -z "${last_ip[ARRAY_START]}" ]]; then
-
-        # shellcheck disable=SC2207
-        last_ip=($(echo "$ip" | tr -d '.' | sed 's/./& /g'));
-        # shellcheck disable=SC2207
-        current_ip=($(echo "$ip" | tr -d '.' | sed 's/./& /g'));
-        continue;
-
-      fi
-
-      # Set currently active IP
-      # shellcheck disable=SC2207
-      current_ip=($(echo "$ip" | tr -d '.' | sed 's/./& /g'));
-
-      # Walk through bits
-      for ((x=ARRAY_START;x<${#current_ip[@]}+ARRAY_START;x++)); do
-
-        # if bits match, skip to next bit
-        if (( current_ip[x] == last_ip[x] )); then
-
-          continue;
-
-        else
-
-          if (( x-ARRAY_START >= max_block )); then
-
-            # shellcheck disable=SC2030
-            current_block="$((x-ARRAY_START))";
-            continue 2;
-
-          else
-
-            ((num_ips--));
-
-            echo "${num_ips} $(echo "${last_ip[@]}" | sup_bintoip)/${current_block}";
-
-            num_ips=1;
-            last_ip=("${current_ip[@]}")
-            current_block="32";
-
-            break;
-
-          fi
-        fi
-
-        done
-
-      done
-
-      echo "${num_ips} $(echo "${current_ip[@]}" | sup_bintoip)/${current_block}"
-
-    }
+  else
+    #echo "(1[0-9]{2}|2([0-4][0-9]|5[0-5]))";
+  fi
 
 }
 
@@ -115,7 +57,7 @@ sup_grepcidr() {
   local bin_ip cidr highs lows regex;
 
   # matches numbers 0-255
-  octet_regex="([0-9]|[1-9][0-9]|(1[0-9]{2}|2([0-4][0-9]|5[0-5])))"
+  local octet="((1[0-9]{2}|2([0-4][0-9]|5[0-5]))|[1-9][0-9]|[0-9])";
 
   # shellcheck disable=SC2207
   ips=($(echo "$*" | grep -Po '([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{2}'));

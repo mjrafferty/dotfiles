@@ -1,4 +1,10 @@
 #! /bin/bash
+# ============
+# Bash configuration
+# -e exit on first error
+# -u error is variable unset
+# -x display commands for debugging
+set -eux
 
 # Script Arguments
 readonly ARGS="$*"

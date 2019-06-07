@@ -1,0 +1,7 @@
+################################################################
+# Segment to display the current IP address
+set_default POWERLEVEL9K_IP_INTERFACE "^[^ ]+"
+prompt_ip() {
+  _p9k_parse_ip $POWERLEVEL9K_IP_INTERFACE || return
+  "$1_prompt_segment" "$0" "$2" "cyan" "$DEFAULT_COLOR" 'NETWORK_ICON' 0 '' "${_P9K_RETVAL//\%/%%}"
+}

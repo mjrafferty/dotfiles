@@ -18,6 +18,8 @@ export PATH="$PATH:/Users/mattrafferty/.local/bin"
 alias sshhome="ssh -p 8076 matt@mattrafferty.asuscomm.com -t ssh matt@192.168.1.210"
 alias sshpi="ssh -p 8076 matt@mattrafferty.asuscomm.com"
 
+export nex_user_shell="zsh";
+
 update_brew () {
 
   brew update;
