@@ -1,0 +1,12 @@
+# vim:ft=bash
+################################################################
+# A newline in your prompt, so you can segments on multiple lines.
+prompt_newline() {
+  [[ "$1" == "right" ]] && return
+  _p9k_left_prompt_end_line && _P9K_PROMPT+=$'\n'
+  _P9K_PROMPT+='${${_P9K_BG::=NONE}+}'
+  if [[ $POWERLEVEL9K_PROMPT_ON_NEWLINE == true ]]; then
+    _p9k_get_icon MULTILINE_NEWLINE_PROMPT_PREFIX
+    _P9K_PROMPT+=$_P9K_RETVAL
+  fi
+}

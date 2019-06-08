@@ -1,0 +1,14 @@
+# vim:ft=bash
+################################################################
+# Segment to indicate background jobs with an icon.
+prompt_background_jobs() {
+  local msg
+  if [[ $POWERLEVEL9K_BACKGROUND_JOBS_VERBOSE == true ]]; then
+    if [[ $POWERLEVEL9K_BACKGROUND_JOBS_VERBOSE_ALWAYS == true ]]; then
+      msg='${(%):-%j}'
+    else
+      msg='${${(%):-%j}:#1}'
+    fi
+  fi
+  $1_prompt_segment $0 $2 "$DEFAULT_COLOR" cyan BACKGROUND_JOBS_ICON 1 '${${(%):-%j}:#0}' "$msg"
+}

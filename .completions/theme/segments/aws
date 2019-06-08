@@ -1,0 +1,9 @@
+# vim:ft=bash
+################################################################
+# AWS Profile
+prompt_aws() {
+  local aws_profile="${AWS_PROFILE:-$AWS_DEFAULT_PROFILE}"
+  if [[ -n "$aws_profile" ]]; then
+    "$1_prompt_segment" "$0" "$2" red white 'AWS_ICON' 0 '' "${aws_profile//\%/%%}"
+  fi
+}

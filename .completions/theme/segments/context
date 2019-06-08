@@ -1,0 +1,35 @@
+# vim:ft=bash
+
+################################################################
+# Context: user@hostname (who am I and where am I)
+# Note that if $DEFAULT_USER is not set, this prompt segment will always print
+prompt_context() {
+  local content
+  if [[ $POWERLEVEL9K_ALWAYS_SHOW_CONTEXT == true || -z $DEFAULT_USER || -n $SSH_CLIENT || -n $SSH_TTY ]]; then
+    content=$POWERLEVEL9K_CONTEXT_TEMPLATE
+  else
+    local user=$(whoami)
+    if [[ $user != $DEFAULT_USER ]]; then
+      content="${POWERLEVEL9K_CONTEXT_TEMPLATE}"
+    elif [[ $POWERLEVEL9K_ALWAYS_SHOW_USER == true ]]; then
+      content="${user//\%/%%}"
+    else
+      return
+    fi
+  fi
+
+  local current_state="DEFAULT"
+  if [[ "${(%):-%#}" == '#' ]]; then
+    current_state="ROOT"
+  elif [[ -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
+    if [[ -n "$SUDO_COMMAND" ]]; then
+      current_state="REMOTE_SUDO"
+    else
+      current_state="REMOTE"
+    fi
+  elif [[ -n "$SUDO_COMMAND" ]]; then
+    current_state="SUDO"
+  fi
+
+  "$1_prompt_segment" "${0}_${current_state}" "$2" "$DEFAULT_COLOR" yellow '' 0 '' "${content}"
+}

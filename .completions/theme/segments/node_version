@@ -1,0 +1,18 @@
+# vim:ft=bash
+################################################################
+# Segment to diplay Node version
+prompt_node_version() {
+  (( $+commands[node] )) || return
+
+  if [[ $P9K_NODE_VERSION_PROJECT_ONLY == true ]] ; then
+    local dir=$PWD
+    while true; do
+      [[ $dir == / ]] && return
+      [[ -e $dir/package.json ]] && break
+      dir=${dir:h}
+    done
+  fi
+
+  _p9k_cached_cmd_stdout node --version && [[ $_P9K_RETVAL == v?* ]] || return
+  "$1_prompt_segment" "$0" "$2" "green" "white" 'NODE_ICON' 0 '' "${_P9K_RETVAL#v}"
+}
