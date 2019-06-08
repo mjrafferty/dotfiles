@@ -1,8 +1,0 @@
-# vim:ft=bash
-################################################################
-# System date
-prompt_date() {
-  local d=$POWERLEVEL9K_DATE_FORMAT
-  [[ $POWERLEVEL9K_EXPERIMENTAL_TIME_REALTIME == true ]] || d=${(%)d}
-  "$1_prompt_segment" "$0" "$2" "$DEFAULT_COLOR_INVERTED" "$DEFAULT_COLOR" "DATE_ICON" 0 '' "${d//\%/%%}"
-}
