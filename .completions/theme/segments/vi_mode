@@ -11,3 +11,29 @@ prompt_vi_mode() {
     $1_prompt_segment $0_INSERT $2 "$DEFAULT_COLOR" blue '' 0 '${${KEYMAP:-0}:#vicmd}' "$POWERLEVEL9K_VI_INSERT_MODE_STRING"
   fi
 }
+
+function _p9k_zle_line_pre_redraw() {
+
+  if [[ $KEYMAP == vicmd ]] && [[ ${REGION_ACTIVE:-0} != $_P9K_REGION_ACTIVE ]]; then
+
+    _P9K_REGION_ACTIVE=${REGION_ACTIVE:-0}
+
+    zle
+    zle .reset-prompt
+    zle -R
+
+  fi
+}
+
+if (( $+POWERLEVEL9K_VI_VISUAL_MODE_STRING )); then
+  if is-at-least 5.3; then
+    autoload -Uz add-zle-hook-widget
+    add-zle-hook-widget line-pre-redraw _p9k_zle_line_pre_redraw
+    add-zle-hook-widget -D line-pre-redraw user:_zsh_highlight_widget_orig-\*
+    add-zle-hook-widget -D line-pre-redraw user:_zsh_autosuggest_bound_\*
+    _p9k_g_expand POWERLEVEL9K_VI_VISUAL_MODE_STRING
+  else
+    >&2 print -P '%F{yellow}WARNING!%f POWERLEVEL9K_VI_VISUAL_MODE_STRING requires ZSH >= 5.3.'
+    >&2 print -r "Your zsh version is $ZSH_VERSION. Either upgrade zsh or unset POWERLEVEL9K_VI_VISUAL_MODE_STRING."
+  fi
+fi

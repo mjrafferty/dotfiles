@@ -556,9 +556,12 @@ _p9k_init_icons() {
 # Safety function for printing icons
 # Prints the named icon, or if that icon is undefined, the string name.
 print_icon() {
+
   _p9k_init_icons
+
   local icon_name=$1
   local var_name=POWERLEVEL9K_${icon_name}
+
   if [[ -n "${(tP)var_name}" ]]; then
     echo -n "${(P)var_name}"
   else

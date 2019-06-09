@@ -10,6 +10,7 @@ fi
 unsetopt nocaseglob;
 
 fpath=($HOME/.completions $fpath)
+fpath=($HOME/.completions/theme $fpath)
 
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
@@ -29,8 +30,8 @@ fi
 export LANG="en_US.UTF-8"
 export PAGER="/usr/bin/less -inSFr"
 export MANPAGER="/usr/bin/less -inSFr"
-export EDITOR="/usr/bin/vim"
-export VISUAL="/usr/bin/vim"
+export EDITOR="vim"
+export VISUAL="vim"
 export HISTFILE="$HOME/.zsh_history"
 
 if [[ -n $TMUX ]]; then

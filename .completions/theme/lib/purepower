@@ -2,8 +2,12 @@
 () {
   emulate -L zsh && setopt no_unset pipe_fail
 
+  typeset -ga POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=( dir vcs)
+  typeset -ga POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=( status command_execution_time background_jobs custom_rprompt context)
+
   # `$(_pp_c x y`) evaluates to `y` if the terminal supports >= 256 colors and to `x` otherwise.
   zmodload zsh/terminfo
+
   if (( terminfo[colors] >= 256 )); then
     function _pp_c() { print -nr -- $2 }
   else
@@ -22,12 +26,6 @@
     function _pp_s() { print -nr -- $1 }
   fi
 
-  typeset -ga POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
-      dir vcs)
-
-  typeset -ga POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
-      status command_execution_time background_jobs custom_rprompt context)
-
   local ins=$(_pp_s '>' '❯')
   local cmd=$(_pp_s '<' '❮')
   if (( ${PURE_POWER_USE_P10K_EXTENSIONS:-1} )); then
@@ -37,16 +35,16 @@
     p=$ins
   fi
 
-  #if (( ${PURE_POWER_USE_P10K_EXTENSIONS:-1} )); then
-    #typeset -g ZLE_RPROMPT_INDENT=0
-    #typeset -g POWERLEVEL9K_SHOW_RULER=true
-    #typeset -g POWERLEVEL9K_RULER_CHAR=$(_pp_s '-' '─')
-    #typeset -g POWERLEVEL9K_RULER_BACKGROUND=none
-    #typeset -g POWERLEVEL9K_RULER_FOREGROUND=$(_pp_c 5 237)
-  #else
-    #typeset -g POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
-    #function custom_rprompt() { }
-  #fi
+  if (( ${PURE_POWER_USE_P10K_EXTENSIONS:-1} )); then
+    typeset -g ZLE_RPROMPT_INDENT=0
+    typeset -g POWERLEVEL9K_SHOW_RULER=true
+    typeset -g POWERLEVEL9K_RULER_CHAR=$(_pp_s '-' '─')
+    typeset -g POWERLEVEL9K_RULER_BACKGROUND=none
+    typeset -g POWERLEVEL9K_RULER_FOREGROUND=$(_pp_c 5 237)
+  else
+    typeset -g POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
+    function custom_rprompt() { }
+  fi
 
   typeset -g POWERLEVEL9K_PROMPT_ON_NEWLINE=false
   typeset -g POWERLEVEL9K_RPROMPT_ON_NEWLINE=false

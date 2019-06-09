@@ -11,6 +11,12 @@ typeset -gA vcs_states=(
   'loading'       'grey'
 )
 
+# git workdir => the last prompt we've shown for it
+typeset -gAH _P9K_LAST_GIT_PROMPT
+
+# git workdir => 1 if gitstatus is slow on it, 0 if it's fast.
+typeset -gAH _P9K_GIT_SLOW
+
 _p9k_update_prompt() {
   (( _P9K_ENABLED )) || return
   _P9K_REFRESH_REASON=$1
@@ -75,12 +81,6 @@ powerlevel9k_vcs_init() {
     zstyle ':vcs_info:*' get-revision true
   fi
 }
-
-# git workdir => the last prompt we've shown for it
-typeset -gAH _P9K_LAST_GIT_PROMPT
-
-# git workdir => 1 if gitstatus is slow on it, 0 if it's fast.
-typeset -gAH _P9K_GIT_SLOW
 
 _p9k_vcs_style() {
   local color=${(P)${:-POWERLEVEL9K_VCS_${1}_${2}FORMAT_FOREGROUND}}
@@ -354,3 +354,18 @@ prompt_vcs() {
     fi
   fi
 }
+
+powerlevel9k_vcs_init
+
+if [[ $POWERLEVEL9K_DISABLE_GITSTATUS != true ]] && (( ${POWERLEVEL9K_VCS_BACKENDS[(I)git]} )); then
+
+  source ${POWERLEVEL9K_GITSTATUS_DIR:-${_p9k_installation_dir}/gitstatus}/gitstatus.plugin.zsh
+
+  gitstatus_start                                                                 \
+    -s ${POWERLEVEL9K_VCS_MAX_NUM_STAGED:-$POWERLEVEL9K_VCS_STAGED_MAX_NUM}       \
+    -u ${POWERLEVEL9K_VCS_MAX_NUM_UNSTAGED:-$POWERLEVEL9K_VCS_UNSTAGED_MAX_NUM}   \
+    -d ${POWERLEVEL9K_VCS_MAX_NUM_UNTRACKED:-$POWERLEVEL9K_VCS_UNTRACKED_MAX_NUM} \
+    -m $POWERLEVEL9K_VCS_MAX_INDEX_SIZE_DIRTY                                     \
+    POWERLEVEL9K
+
+fi
