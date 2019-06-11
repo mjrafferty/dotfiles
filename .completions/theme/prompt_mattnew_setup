@@ -2,7 +2,6 @@
 
 _p9k_installation_dir="$HOME/.completions/theme"
 
-
 typeset  -g   DEFAULT_COLOR
 typeset  -g   DEFAULT_COLOR_INVERTED
 typeset  -g   OS
@@ -350,7 +349,7 @@ _p9k_set_os() {
   OS_ICON=$_P9K_RETVAL
 }
 
-_p9k_set_os_type() {
+_p9k_identify_os() {
 
   local os_release_id
 
@@ -363,8 +362,6 @@ _p9k_set_os_type() {
       CYGWIN_NT-* | MSYS_NT-*)   _p9k_set_os Windows WINDOWS_ICON;;
       FreeBSD|OpenBSD|DragonFly) _p9k_set_os BSD     FREEBSD_ICON;;
       Linux)
-
-        OS='Linux';
 
         if [[ -f /etc/os-release && "${(f)$((</etc/os-release) 2>/dev/null)}" =~ "ID=([A-Za-z]+)" ]]; then
           os_release_id="${match[1]}"
@@ -526,7 +523,7 @@ _p9k_init() {
   _p9k_init_icons
   _p9k_init_strings
 
-  _p9k_set_os_type
+  _p9k_identify_os
 
   if [[ $POWERLEVEL9K_COLOR_SCHEME == light ]]; then
     DEFAULT_COLOR=white
