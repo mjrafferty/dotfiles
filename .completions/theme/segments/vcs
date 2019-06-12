@@ -18,11 +18,12 @@ typeset -gAH _P9K_LAST_GIT_PROMPT
 typeset -gAH _P9K_GIT_SLOW
 
 _p9k_update_prompt() {
-  (( _P9K_ENABLED )) || return
+
   _P9K_REFRESH_REASON=$1
   _p9k_set_prompt
   _P9K_REFRESH_REASON=''
   zle && zle .reset-prompt && zle -R
+
 }
 
 # If it takes longer than this to fetch git repo status, display the prompt with a greyed out
@@ -355,17 +356,21 @@ prompt_vcs() {
   fi
 }
 
-powerlevel9k_vcs_init
 
-if [[ $POWERLEVEL9K_DISABLE_GITSTATUS != true ]] && (( ${POWERLEVEL9K_VCS_BACKENDS[(I)git]} )); then
+_p9k_vcs_segment_setup(){
 
-  source ${POWERLEVEL9K_GITSTATUS_DIR:-${_p9k_installation_dir}/gitstatus}/gitstatus.plugin.zsh
+  powerlevel9k_vcs_init
 
-  gitstatus_start                                                                 \
-    -s ${POWERLEVEL9K_VCS_MAX_NUM_STAGED:-$POWERLEVEL9K_VCS_STAGED_MAX_NUM}       \
-    -u ${POWERLEVEL9K_VCS_MAX_NUM_UNSTAGED:-$POWERLEVEL9K_VCS_UNSTAGED_MAX_NUM}   \
-    -d ${POWERLEVEL9K_VCS_MAX_NUM_UNTRACKED:-$POWERLEVEL9K_VCS_UNTRACKED_MAX_NUM} \
-    -m $POWERLEVEL9K_VCS_MAX_INDEX_SIZE_DIRTY                                     \
-    POWERLEVEL9K
+  if [[ $POWERLEVEL9K_DISABLE_GITSTATUS != true ]] && (( ${POWERLEVEL9K_VCS_BACKENDS[(I)git]} )); then
 
-fi
+    source ${POWERLEVEL9K_GITSTATUS_DIR:-${_p9k_installation_dir}/gitstatus}/gitstatus.plugin.zsh
+
+    gitstatus_start                                                                 \
+      -s ${POWERLEVEL9K_VCS_MAX_NUM_STAGED:-$POWERLEVEL9K_VCS_STAGED_MAX_NUM}       \
+      -u ${POWERLEVEL9K_VCS_MAX_NUM_UNSTAGED:-$POWERLEVEL9K_VCS_UNSTAGED_MAX_NUM}   \
+      -d ${POWERLEVEL9K_VCS_MAX_NUM_UNTRACKED:-$POWERLEVEL9K_VCS_UNTRACKED_MAX_NUM} \
+      -m $POWERLEVEL9K_VCS_MAX_INDEX_SIZE_DIRTY                                     \
+      POWERLEVEL9K
+
+  fi
+}

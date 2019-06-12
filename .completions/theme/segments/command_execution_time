@@ -3,15 +3,22 @@
 # Display the duration the command needed to run.
 
 typeset -gF _P9K_COMMAND_DURATION
+typeset  -gF  _P9K_TIMER_START
 
 prompt_command_execution_time() {
+
+  _P9K_COMMAND_DURATION=$((EPOCHREALTIME - _P9K_TIMER_START))
+  _P9K_TIMER_START=1e10
+
+  local humanReadableDuration
+
   (( _P9K_COMMAND_DURATION < POWERLEVEL9K_COMMAND_EXECUTION_TIME_THRESHOLD )) && return
+
   # Print time in human readable format
   # For that use `strftime` and convert
   # the duration (float) to an seconds
   # (integer).
   # See http://unix.stackexchange.com/a/89748
-  local humanReadableDuration
   if (( _P9K_COMMAND_DURATION > 3600 )); then
     humanReadableDuration=$(TZ=GMT; strftime '%H:%M:%S' $(( int(rint(_P9K_COMMAND_DURATION)) )))
   elif (( _P9K_COMMAND_DURATION > 60 )); then
@@ -30,4 +37,15 @@ prompt_command_execution_time() {
   fi
 
   "$1_prompt_segment" "$0" "$2" "red" "yellow1" 'EXECUTION_TIME_ICON' 0 '' "${humanReadableDuration}"
+
+}
+
+_p9k_command_execution_time_segment_setup(){
+
+  _P9K_TIMER_START=1e10
+
+}
+
+_p9k_command_execution_time_segment_preexec(){
+  _P9K_TIMER_START=$EPOCHREALTIME
 }

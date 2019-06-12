@@ -6,13 +6,11 @@ typeset  -g   DEFAULT_COLOR
 typeset  -g   DEFAULT_COLOR_INVERTED
 typeset  -g   OS
 typeset  -g   OS_ICON
-typeset  -g   SED_EXTENDED_REGEX_PARAMETER
+
 typeset  -g   _P9K_BG
 typeset  -g   _P9K_CACHE_KEY
-typeset  -g   _P9K_F
 typeset  -g   _P9K_LEFT_PREFIX
 typeset  -g   _P9K_LEFT_SUFFIX
-typeset  -g   _P9K_N
 typeset  -g   _P9K_PROMPT
 typeset  -g   _P9K_REFRESH_REASON
 typeset  -g   _P9K_RETVAL
@@ -20,21 +18,24 @@ typeset  -g   _P9K_RIGHT_PREFIX
 typeset  -g   _P9K_RIGHT_SUFFIX
 typeset  -g   _P9K_RPROMPT
 typeset  -g   _P9K_TIMER_FIFO
-typeset  -g   _P9K_XY _P9K_ALIGNED_RPROMPT
+typeset  -g   _P9K_ALIGNED_RPROMPT
 typeset  -gA  _P9K_CACHE
-typeset  -gF  _P9K_TIMER_START
 typeset  -ga  _P9K_CACHE_VAL
 typeset  -ga  _P9K_LEFT_JOIN=(1)
 typeset  -ga  _P9K_RIGHT_JOIN=(1)
-typeset  -ga  _P9K_T
-typeset  -gi  _P9K_ENABLED=0
-typeset  -gi  _P9K_I
 typeset  -gi  _P9K_INITIALIZED=0
-typeset  -gi  _P9K_REGION_ACTIVE
 typeset  -gi  _P9K_TIMER_FD=0
 typeset  -gi  _P9K_TIMER_PID=0
 typeset  -gi  _P9K_TIMER_SUBSHELL=0
-typeset  -gi  _P9K_X _P9K_Y _P9K_M _P9K_RPROMPT_DONE_P9K_IND
+
+typeset  -gi  _P9K_X
+typeset  -gi  _P9K_Y
+typeset  -gi  _P9K_M
+typeset  -g   _P9K_XY
+typeset  -g   _P9K_F
+typeset  -g   _P9K_N
+typeset  -ga  _P9K_T
+typeset  -gi  _P9K_I
 
 source "${_p9k_installation_dir}/lib/utilities.zsh"
 source "${_p9k_installation_dir}/theme.conf"
@@ -514,6 +515,58 @@ _p9k_do_rprompt_align() {
   _P9K_ALIGNED_RPROMPT+='$_P9K_T[$((3+!_P9K_IND))]'
 }
 
+_p9k_init_prompts(){
+
+  # Assemble left prompt
+  for ((i = 2; i <= $#POWERLEVEL9K_LEFT_PROMPT_ELEMENTS; ++i)); do
+    elem=$POWERLEVEL9K_LEFT_PROMPT_ELEMENTS[i]
+    if [[ $elem == *_joined ]]; then
+      _P9K_LEFT_JOIN+=$_P9K_LEFT_JOIN[((i-1))]
+    else
+      _P9K_LEFT_JOIN+=$i
+    fi
+  done
+
+  _p9k_init_left_prefix;
+
+  # Assemble right prompt
+  for ((i = 2; i <= $#POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS; ++i)); do
+    elem=$POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS[i]
+    if [[ $elem == *_joined ]]; then
+      _P9K_RIGHT_JOIN+=$_P9K_RIGHT_JOIN[((i-1))]
+    else
+      _P9K_RIGHT_JOIN+=$i
+    fi
+  done
+
+  _p9k_do_rprompt_align;
+
+  _P9K_RIGHT_PREFIX+='${${_P9K_BG::=NONE}+}${${_P9K_I::=0}+}'
+  _P9K_RIGHT_SUFFIX+='%f%b%k'
+  _P9K_RIGHT_PREFIX+='%f%b%k'
+
+}
+
+_p9k_init_left_prefix(){
+
+  _P9K_LEFT_PREFIX+='${${_P9K_IND::=${${ZLE_RPROMPT_INDENT:-1}/#-*/0}}+}'
+
+  if [[ $POWERLEVEL9K_PROMPT_ADD_NEWLINE == true ]]; then
+    repeat ${POWERLEVEL9K_PROMPT_ADD_NEWLINE_COUNT:-1} _P9K_LEFT_PREFIX+=$'\n'
+  fi
+
+  _p9k_do_ruler;
+
+  if [[ $ITERM_SHELL_INTEGRATION_INSTALLED == Yes ]]; then
+    _P9K_LEFT_PREFIX+="%{$(iterm2_prompt_mark)%}"
+  fi
+
+  _P9K_LEFT_PREFIX+='${${_P9K_BG::=NONE}+}${${_P9K_I::=0}+}'
+
+  _p9k_do_multiline;
+
+}
+
 _p9k_init() {
 
   local i elem
@@ -534,44 +587,11 @@ _p9k_init() {
     DEFAULT_COLOR_INVERTED=white
   fi
 
-  for ((i = 2; i <= $#POWERLEVEL9K_LEFT_PROMPT_ELEMENTS; ++i)); do
-    elem=$POWERLEVEL9K_LEFT_PROMPT_ELEMENTS[$i]
-    if [[ $elem == *_joined ]]; then
-      _P9K_LEFT_JOIN+=$_P9K_LEFT_JOIN[((i-1))]
-    else
-      _P9K_LEFT_JOIN+=$i
-    fi
-  done
-
-  for ((i = 2; i <= $#POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS; ++i)); do
-    elem=$POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS[$i]
-    if [[ $elem == *_joined ]]; then
-      _P9K_RIGHT_JOIN+=$_P9K_RIGHT_JOIN[((i-1))]
-    else
-      _P9K_RIGHT_JOIN+=$i
-    fi
-  done
+  _p9k_init_prompts;
 
   if [[ $POWERLEVEL9K_EXPERIMENTAL_TIME_REALTIME == true ]]; then
     _p9k_init_timer
   fi
-
-  _p9k_do_rprompt_align;
-
-  _P9K_LEFT_PREFIX+='${${_P9K_IND::=${${ZLE_RPROMPT_INDENT:-1}/#-*/0}}+}'
-
-  if [[ $POWERLEVEL9K_PROMPT_ADD_NEWLINE == true ]]; then
-    repeat ${POWERLEVEL9K_PROMPT_ADD_NEWLINE_COUNT:-1} _P9K_LEFT_PREFIX+=$'\n'
-  fi
-
-  _p9k_do_ruler;
-
-  if [[ $ITERM_SHELL_INTEGRATION_INSTALLED == Yes ]]; then
-    _P9K_LEFT_PREFIX+="%{$(iterm2_prompt_mark)%}"
-  fi
-
-  _P9K_LEFT_PREFIX+='${${_P9K_BG::=NONE}+}${${_P9K_I::=0}+}'
-  _P9K_RIGHT_PREFIX+='${${_P9K_BG::=NONE}+}${${_P9K_I::=0}+}'
 
   _p9k_get_icon LEFT_SEGMENT_SEPARATOR
   _P9K_T=("%f$_P9K_RETVAL" "" $'\n')
@@ -581,11 +601,6 @@ _p9k_init() {
   else
     _P9K_T+=''
   fi
-
-  _P9K_RIGHT_SUFFIX+='%f%b%k'
-  _P9K_RIGHT_PREFIX+='%f%b%k'
-
-  _p9k_do_multiline;
 
   _p9k_check_warnings;
 
@@ -611,18 +626,25 @@ powerlevel9k_prepare_prompts() {
 
   _P9K_EXIT_CODE=$?
   _P9K_PIPE_EXIT_CODES=( "$pipestatus[@]" )
-  _P9K_COMMAND_DURATION=$((EPOCHREALTIME - _P9K_TIMER_START))
-  _P9K_TIMER_START=1e10
-  _P9K_REGION_ACTIVE=0
 
   unsetopt localoptions
   setopt nopromptbang prompt{percent,subst}
 
   powerlevel9k_refresh_prompt_inplace
+
 }
 
 powerlevel9k_preexec() {
-  _P9K_TIMER_START=$EPOCHREALTIME
+
+  # Run preexec hooks for segments
+  for element in "${POWERLEVEL9K_LEFT_PROMPT_ELEMENTS[@]}" "${POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS[@]}"; do
+    if [[ -f "${_p9k_installation_dir}/segments/${element}" ]]; then
+			if typeset -f _p9k_${element}_segment_preexec > /dev/null; then
+				_p9k_${element}_segment_preexec;
+			fi
+    fi
+  done
+
 }
 
 prompt_mattnew_setup() {
@@ -631,23 +653,26 @@ prompt_mattnew_setup() {
 
   # Load enabled segments
   for element in "${POWERLEVEL9K_LEFT_PROMPT_ELEMENTS[@]}" "${POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS[@]}"; do
-    [[ -f "${_p9k_installation_dir}/segments/${element}" ]] \
-      && source "${_p9k_installation_dir}/segments/${element}";
+    if [[ -f "${_p9k_installation_dir}/segments/${element}" ]]; then
+      source "${_p9k_installation_dir}/segments/${element}";
+			if typeset -f _p9k_${element}_segment_setup > /dev/null; then
+				_p9k_${element}_segment_setup;
+			fi
+    fi
   done
 
   add-zsh-hook precmd powerlevel9k_prepare_prompts
   add-zsh-hook preexec powerlevel9k_preexec
-
-  _P9K_TIMER_START=1e10
-  _P9K_ENABLED=1
 }
 
 prompt_powerlevel9k_teardown() {
+
   add-zsh-hook -D precmd powerlevel9k_\*
   add-zsh-hook -D preexec powerlevel9k_\*
+
   PROMPT='%m%# '
   RPROMPT=
-  _P9K_ENABLED=0
+
 }
 
 autoload -U colors && colors

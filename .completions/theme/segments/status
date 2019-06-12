@@ -5,6 +5,9 @@
 #
 # old options, retro compatibility
 
+typeset -gi _P9K_EXIT_CODE
+typeset -ga _P9K_PIPE_EXIT_CODES
+
 exit_code_or_status() {
   local ec=$1
   if [[ "$POWERLEVEL9K_STATUS_HIDE_SIGNAME" = true ]] || (( ec <= 128 )); then
@@ -13,9 +16,6 @@ exit_code_or_status() {
     _P9K_RETVAL="SIG${signals[$((sig + 1))]}($((ec - 128)))"
   fi
 }
-
-typeset -gi _P9K_EXIT_CODE
-typeset -ga _P9K_PIPE_EXIT_CODES
 
 prompt_status() {
   if ! _p9k_cache_get "$0" "$2" "$_P9K_EXIT_CODE" "${(@)_P9K_PIPE_EXIT_CODES}"; then
