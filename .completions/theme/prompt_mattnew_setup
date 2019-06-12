@@ -37,6 +37,7 @@ typeset  -gi  _P9K_TIMER_SUBSHELL=0
 typeset  -gi  _P9K_X _P9K_Y _P9K_M _P9K_RPROMPT_DONE_P9K_IND
 
 source "${_p9k_installation_dir}/lib/utilities.zsh"
+source "${_p9k_installation_dir}/theme.conf"
 source "${_p9k_installation_dir}/lib/defaults.zsh"
 source "${_p9k_installation_dir}/lib/cache.zsh"
 source "${_p9k_installation_dir}/lib/timer.zsh"
@@ -603,6 +604,7 @@ powerlevel9k_refresh_prompt_inplace() {
   _P9K_REFRESH_REASON=precmd
   _p9k_set_prompt
   _P9K_REFRESH_REASON=''
+
 }
 
 powerlevel9k_prepare_prompts() {
@@ -614,8 +616,7 @@ powerlevel9k_prepare_prompts() {
   _P9K_REGION_ACTIVE=0
 
   unsetopt localoptions
-  prompt_opts=(cr percent sp subst)
-  setopt nopromptbang prompt{cr,percent,sp,subst}
+  setopt nopromptbang prompt{percent,subst}
 
   powerlevel9k_refresh_prompt_inplace
 }
@@ -658,5 +659,3 @@ zmodload zsh/system
 zmodload -F zsh/stat b:zstat
 
 prompt_mattnew_setup
-
-#source "${_p9k_installation_dir}/lib/purepower"
