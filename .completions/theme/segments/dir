@@ -41,7 +41,8 @@ _p9k_truncate_to_unique() {
     fi
     local -i j=1
     for (( ; j + d < $#dir; ++j )); do
-      local -a matching=($parent/$dir[1,j]*/(N))
+      local -a matching
+      matching=($parent/$dir[1,j]*/(N))
       (( $#matching == 1 )) && break
     done
     if (( j + d < $#dir )); then
@@ -88,7 +89,7 @@ _p9k_truncate_with_folder_marker(){
 
   if [[ -n $POWERLEVEL9K_SHORTEN_FOLDER_MARKER ]]; then
     local dir=$PWD
-    local -a m=()
+    local -a m
     local -i i=$(($#parts - 1))
     for (( ; i > 1; --i )); do
       dir=${dir:h}
@@ -162,7 +163,7 @@ prompt_dir() {
 
   local p
   local func=''
-  local -a parts=()
+  local -a parts
   local -i fake_first=0
   local delim=${POWERLEVEL9K_SHORTEN_DELIMITER-$'\u2026'}
   local -i shortenlen=${POWERLEVEL9K_SHORTEN_DIR_LENGTH:--1}

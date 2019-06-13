@@ -3,36 +3,6 @@
 typeset -g _P9K_BYTE_SUFFIX
 _P9K_BYTE_SUFFIX=('B' 'K' 'M' 'G' 'T' 'P' 'E' 'Z' 'Y')
 
-# Usage: set_default [OPTION]... NAME [VALUE]...
-set_default() {
-
-  emulate -L zsh
-
-  local varname
-  local -a flags=(-g)
-
-  while true; do
-    case $1 in
-      --) shift; break;;
-      -*) flags+=$1; shift;;
-      *) break;
-    esac
-  done
-
-  varname=$1
-
-  shift
-
-  if [[ -n ${(tP)varname} ]]; then
-    typeset $flags $varname
-  elif [[ "$flags" == *[aA]* ]]; then
-    eval "typeset ${(@q)flags} ${(q)varname}=(${(qq)@})"
-  else
-    typeset $flags $varname="$*"
-  fi
-
-}
-
 # If we execute `print -P $1`, how many characters will be printed on the last line?
 _p9k_prompt_length() {
 

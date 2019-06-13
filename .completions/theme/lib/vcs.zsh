@@ -101,7 +101,8 @@
 # Port from https://github.com/whiteinge/dotfiles/blob/5dfd08d30f7f2749cfc60bc55564c6ea239624d9/.zsh_shouse_prompt#L268
 +vi-git-stash() {
   if [[ -s "${vcs_comm[gitdir]}/logs/refs/stash" ]] ; then
-    local -a stashes=( "${(@f)"$(<${vcs_comm[gitdir]}/logs/refs/stash)"}" )
+    local -a stashes
+    stashes=( "${(@f)"$(<${vcs_comm[gitdir]}/logs/refs/stash)"}" )
     hook_com[misc]+=" $(print_icon 'VCS_STASH_ICON')${#stashes}"
   fi
 }
