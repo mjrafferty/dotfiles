@@ -8,7 +8,8 @@
 
 # https://jonasjacek.github.io/colors/
 # use color names by default to allow dark/light themes to adjust colors based on names
-typeset -gAh __P9K_COLORS=(
+typeset -gAh __P9K_COLORS
+__P9K_COLORS=(
   black 000
   red 001
   green 002

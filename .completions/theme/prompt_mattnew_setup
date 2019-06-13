@@ -21,8 +21,10 @@ typeset  -g   _P9K_TIMER_FIFO
 typeset  -g   _P9K_ALIGNED_RPROMPT
 typeset  -gA  _P9K_CACHE
 typeset  -ga  _P9K_CACHE_VAL
-typeset  -ga  _P9K_LEFT_JOIN=(1)
-typeset  -ga  _P9K_RIGHT_JOIN=(1)
+typeset  -ga  _P9K_LEFT_JOIN
+_P9K_LEFT_JOIN=(1)
+typeset  -ga  _P9K_RIGHT_JOIN
+_P9K_RIGHT_JOIN=(1)
 typeset  -gi  _P9K_INITIALIZED=0
 typeset  -gi  _P9K_TIMER_FD=0
 typeset  -gi  _P9K_TIMER_PID=0
@@ -38,8 +40,8 @@ typeset  -ga  _P9K_T
 typeset  -gi  _P9K_I
 
 source "${_p9k_installation_dir}/lib/utilities.zsh"
-source "${_p9k_installation_dir}/theme.conf"
 source "${_p9k_installation_dir}/lib/defaults.zsh"
+source "${_p9k_installation_dir}/theme.conf"
 source "${_p9k_installation_dir}/lib/cache.zsh"
 source "${_p9k_installation_dir}/lib/timer.zsh"
 source "${_p9k_installation_dir}/lib/icons.zsh"

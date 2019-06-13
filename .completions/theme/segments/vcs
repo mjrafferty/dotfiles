@@ -4,7 +4,9 @@
 # version control
 
 # The vcs segment can have 4 different states - defaults to 'clean'.
-typeset -gA vcs_states=(
+typeset -gA vcs_states
+
+vcs_states=(
   'clean'         'green'
   'modified'      'yellow'
   'untracked'     'green'

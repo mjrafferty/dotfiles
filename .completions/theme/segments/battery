@@ -3,7 +3,8 @@
 # Segment that displays the battery status in levels and colors
 typeset     -g POWERLEVEL9K_BATTERY_STAGES
 
-typeset -gA _P9K_BATTERY_STATES=(
+typeset -gA _P9K_BATTERY_STATES
+_P9K_BATTERY_STATES=(
   'low'           'red'
   'charging'      'yellow'
   'charged'       'green'
