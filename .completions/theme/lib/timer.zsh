@@ -1,5 +1,10 @@
 # vim:ft=bash
 
+typeset  -g   _P9K_TIMER_FIFO
+typeset  -gi  _P9K_TIMER_FD=0
+typeset  -gi  _P9K_TIMER_PID=0
+typeset  -gi  _P9K_TIMER_SUBSHELL=0
+
 _p9k_on_timer() {
   emulate -L zsh
   local dummy

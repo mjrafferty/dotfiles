@@ -1,6 +1,61 @@
 # vim:ft=bash
 ################################################################
 # Segment to print a little OS icon
+
+typeset  -g _PK9_OS_ICON
+
 prompt_os_icon() {
-  "$1_prompt_segment" "$0" "$2" "black" "white" '' 0 '' "$OS_ICON"
+  "$1_prompt_segment" "$0" "$2" "black" "white" '' 0 '' "$_PK9_OS_ICON"
+}
+
+_p9k_set_os() {
+
+  _p9k_get_icon $1
+  _PK9_OS_ICON=$_P9K_RETVAL
+}
+
+_p9k_os_icon_segment_setup() {
+
+  local os_release_id
+
+  if [[ $(uname -o 2>/dev/null) == Android ]]; then
+    _p9k_set_os Android ANDROID_ICON
+  else
+    case $(uname) in
+      SunOS)                     _p9k_set_os SUNOS_ICON;;
+      Darwin)                    _p9k_set_os APPLE_ICON;;
+      CYGWIN_NT-* | MSYS_NT-*)   _p9k_set_os WINDOWS_ICON;;
+      FreeBSD|OpenBSD|DragonFly) _p9k_set_os FREEBSD_ICON;;
+      Linux)
+
+        if [[ -f /etc/os-release && "${(f)$((</etc/os-release) 2>/dev/null)}" =~ "ID=([A-Za-z]+)" ]]; then
+          os_release_id="${match[1]}"
+        fi
+
+        case "$os_release_id" in
+          *arch*)                  _p9k_set_os LINUX_ARCH_ICON;;
+          *debian*)                _p9k_set_os LINUX_DEBIAN_ICON;;
+          *raspbian*)              _p9k_set_os LINUX_RASPBIAN_ICON;;
+          *ubuntu*)                _p9k_set_os LINUX_UBUNTU_ICON;;
+          *elementary*)            _p9k_set_os LINUX_ELEMENTARY_ICON;;
+          *fedora*)                _p9k_set_os LINUX_FEDORA_ICON;;
+          *coreos*)                _p9k_set_os LINUX_COREOS_ICON;;
+          *gentoo*)                _p9k_set_os LINUX_GENTOO_ICON;;
+          *mageia*)                _p9k_set_os LINUX_MAGEIA_ICON;;
+          *centos*)                _p9k_set_os LINUX_CENTOS_ICON;;
+          *opensuse*|*tumbleweed*) _p9k_set_os LINUX_OPENSUSE_ICON;;
+          *sabayon*)               _p9k_set_os LINUX_SABAYON_ICON;;
+          *slackware*)             _p9k_set_os LINUX_SLACKWARE_ICON;;
+          *linuxmint*)             _p9k_set_os LINUX_MINT_ICON;;
+          *alpine*)                _p9k_set_os LINUX_ALPINE_ICON;;
+          *aosc*)                  _p9k_set_os LINUX_AOSC_ICON;;
+          *nixos*)                 _p9k_set_os LINUX_NIXOS_ICON;;
+          *devuan*)                _p9k_set_os LINUX_DEVUAN_ICON;;
+          *manjaro*)               _p9k_set_os LINUX_MANJARO_ICON;;
+          *)                       _p9k_set_os LINUX_ICON;;
+        esac
+        ;;
+    esac
+  fi
+
 }

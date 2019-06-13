@@ -3,6 +3,9 @@
 # it gets cleared. This is meant to avoid memory leaks when a rogue prompt is filling the cache
 # with data.
 
+typeset  -gA  _P9K_CACHE
+typeset  -g   _P9K_CACHE_KEY
+
 # Caching allows storing array-to-array associations. It should be used like this:
 #
 #   if ! _p9k_cache_get "$key1" "$key2"; then
