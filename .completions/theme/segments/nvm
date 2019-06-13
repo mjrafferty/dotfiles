@@ -3,7 +3,8 @@
 # the observable behavior of Powerlevel10k.
 _p9k_nvm_ls_default() {
   local v=default
-  local -a seen=($v)
+  local -a seen
+  seen=($v)
   local target
   while [[ -r $NVM_DIR/alias/$v ]] && read target <$NVM_DIR/alias/$v; do
     [[ -n $target && ${seen[(I)$target]} == 0 ]] || return
@@ -39,7 +40,7 @@ _p9k_nvm_ls_default() {
     fi
   fi
 
-  local -a dirs=()
+  local -a dirs
   case $v in
     node|node-|stable)
       dirs=($NVM_DIR/versions/node $NVM_DIR)
@@ -59,7 +60,8 @@ _p9k_nvm_ls_default() {
     ;;
   esac
 
-  local -a matches=(${^dirs}/${~v}(/N))
+  local -a matches
+  matches=(${^dirs}/${~v}(/N))
   (( $#matches )) || return
 
   emulate -L zsh && setopt extendedglob
