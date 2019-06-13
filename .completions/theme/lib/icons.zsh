@@ -591,6 +591,6 @@ get_icon_names() {
 # Sets _P9K_RETVAL to the icon whose name is supplied via $1.
 _p9k_get_icon() {
   local var_name=POWERLEVEL9K_$1
-  _P9K_RETVAL=${(g::)${${(P)var_name}-$icons[$1]}}
+  _P9K_RETVAL=${${${(P)var_name}-$icons[$1]}}
   [[ $_P9K_RETVAL != $'\b'? ]] || _P9K_RETVAL="%{$_P9K_RETVAL%}"  # penance for past sins
 }
