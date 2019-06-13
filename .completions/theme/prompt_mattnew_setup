@@ -577,7 +577,6 @@ _p9k_init() {
   (( _P9K_INITIALIZED )) && return
 
   _p9k_init_icons
-  _p9k_init_strings
 
   _p9k_identify_os
 

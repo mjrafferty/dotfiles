@@ -33,26 +33,6 @@ set_default() {
 
 }
 
-_p9k_g_expand() {
-
-  (( $+parameters[$1] )) || return
-
-  local x
-  local -a ts
-  ts=("${=$(typeset -p $1)}")
-
-  shift ts
-
-  for x in "${ts[@]}"; do
-    [[ $x == -* ]] || break
-    # Don't change readonly variables. Ideally, we shouldn't modify any variables at all,
-    # but for now this will do.
-    [[ $x == -*r* ]] && return
-  done
-
-  typeset -g $1=${(g::)${(P)1}}
-}
-
 # If we execute `print -P $1`, how many characters will be printed on the last line?
 _p9k_prompt_length() {
 
@@ -249,25 +229,4 @@ _p9k_prompt_overflow_bug() {
 
   is-at-least 5.5 && ! is-at-least 5.7.2
 
-}
-
-_p9k_init_strings() {
-  # To find candidates:
-  #
-  #   egrep 'set_default [^-]' powerlevel9k.zsh-theme | egrep -v '(true|false)$'
-  _p9k_g_expand POWERLEVEL9K_ANACONDA_LEFT_DELIMITER
-  _p9k_g_expand POWERLEVEL9K_ANACONDA_RIGHT_DELIMITER
-  _p9k_g_expand POWERLEVEL9K_CONTEXT_TEMPLATE
-  _p9k_g_expand POWERLEVEL9K_DATE_FORMAT
-  _p9k_g_expand POWERLEVEL9K_DIR_PATH_SEPARATOR
-  _p9k_g_expand POWERLEVEL9K_HOME_FOLDER_ABBREVIATION
-  _p9k_g_expand POWERLEVEL9K_HOST_TEMPLATE
-  _p9k_g_expand POWERLEVEL9K_SHORTEN_DELIMITER
-  _p9k_g_expand POWERLEVEL9K_TIME_FORMAT
-  _p9k_g_expand POWERLEVEL9K_USER_TEMPLATE
-  _p9k_g_expand POWERLEVEL9K_VCS_LOADING_TEXT
-  _p9k_g_expand POWERLEVEL9K_VI_COMMAND_MODE_STRING
-  _p9k_g_expand POWERLEVEL9K_VI_INSERT_MODE_STRING
-  _p9k_g_expand POWERLEVEL9K_WHITESPACE_BETWEEN_LEFT_SEGMENTS
-  _p9k_g_expand POWERLEVEL9K_WHITESPACE_BETWEEN_RIGHT_SEGMENTS
 }
