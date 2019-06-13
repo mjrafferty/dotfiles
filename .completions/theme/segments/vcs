@@ -4,6 +4,10 @@
 # version control
 
 # The vcs segment can have 4 different states - defaults to 'clean'.
+
+typeset -gFH _P9K_GITSTATUS_START_TIME
+typeset -gH _P9K_NEXT_VCS_DIR
+typeset -gFH _P9K_GITSTATUS_START_TIME
 typeset -gA vcs_states
 
 vcs_states=(
@@ -28,31 +32,38 @@ _p9k_update_prompt() {
 
 }
 
-# If it takes longer than this to fetch git repo status, display the prompt with a greyed out
-# vcs segment and fix it asynchronously when the results come it.
-
 powerlevel9k_vcs_init() {
+
+  local component state color var
+
   if [[ -n "$POWERLEVEL9K_CHANGESET_HASH_LENGTH" ]]; then
     POWERLEVEL9K_VCS_INTERNAL_HASH_LENGTH="$POWERLEVEL9K_CHANGESET_HASH_LENGTH"
   fi
 
-  local component state
   for component in REMOTE_URL COMMIT BRANCH TAG REMOTE_BRANCH STAGED UNSTAGED UNTRACKED \
                    OUTGOING_CHANGES INCOMING_CHANGES STASH ACTION; do
-    local color=${(P)${:-POWERLEVEL9K_VCS_${component}FORMAT_FOREGROUND}}
+
+    color=${(P)${:-POWERLEVEL9K_VCS_${component}FORMAT_FOREGROUND}}
+
     if [[ -n $color ]]; then
+
       for state in "${(@k)vcs_states}"; do
-        local var=POWERLEVEL9K_VCS_${(U)state}_${component}FORMAT_FOREGROUND
+
+        var=POWERLEVEL9K_VCS_${(U)state}_${component}FORMAT_FOREGROUND
+
         if [[ -z ${(P)var} ]]; then
           typeset -g $var=$color
         fi
+
       done
+
     fi
   done
 
   autoload -Uz vcs_info
 
   VCS_CHANGESET_PREFIX=''
+
   if [[ "$POWERLEVEL9K_SHOW_CHANGESET" == true ]]; then
     VCS_CHANGESET_PREFIX="$(print_icon 'VCS_COMMIT_ICON')%0.$POWERLEVEL9K_VCS_INTERNAL_HASH_LENGTH""i "
   fi
@@ -60,6 +71,7 @@ powerlevel9k_vcs_init() {
   zstyle ':vcs_info:*' check-for-changes true
 
   VCS_DEFAULT_FORMAT="$VCS_CHANGESET_PREFIX%b%c%u%m"
+
   zstyle ':vcs_info:*' formats "$VCS_DEFAULT_FORMAT"
   zstyle ':vcs_info:*' actionformats "%b %F{${POWERLEVEL9K_VCS_ACTIONFORMAT_FOREGROUND}}| %a%f"
   zstyle ':vcs_info:*' stagedstr " $(print_icon 'VCS_STAGED_ICON')"
@@ -83,45 +95,70 @@ powerlevel9k_vcs_init() {
   if [[ "$POWERLEVEL9K_SHOW_CHANGESET" == true ]]; then
     zstyle ':vcs_info:*' get-revision true
   fi
+
 }
 
 _p9k_vcs_style() {
-  local color=${(P)${:-POWERLEVEL9K_VCS_${1}_${2}FORMAT_FOREGROUND}}
+
+  local color
+
+  color=${(P)${:-POWERLEVEL9K_VCS_${1}_${2}FORMAT_FOREGROUND}}
+
   if [[ -z $color ]]; then
     _P9K_RETVAL=""
     return
   fi
+
   if [[ $color == <-> ]]; then
     color=${(l:3::0:)color}
   else
     color=$__P9K_COLORS[${${${color#bg-}#fg-}#br}]
+
     if [[ -z $color ]]; then
       _P9K_RETVAL=""
       return
     fi
+
   fi
+
   _P9K_RETVAL="%F{$color}"
 }
 
 _p9k_vcs_render() {
+
+  local -a msg cache_key cur_prompt stale_prompt
+  local dir state ws id bg
+  local -i n
+
   if (( $+_P9K_NEXT_VCS_DIR )); then
-    local -a msg
-    local dir=${${GIT_DIR:a}:-$PWD}
+
+    dir=${${GIT_DIR:a}:-$PWD}
+
     while true; do
+
       msg=("${(@0)${_P9K_LAST_GIT_PROMPT[$dir]}}")
       [[ $#msg -gt 1 || -n ${msg[1]} ]] && break
       [[ $dir == / ]] && msg=() && break
       dir=${dir:h}
+
     done
+
     if (( $#msg )); then
+
       $2_prompt_segment $1_LOADING $3 "${vcs_states[loading]}" "$DEFAULT_COLOR" '' 0 '' "${msg[@]}"
+
     else
+
       _p9k_get_icon VCS_LOADING_ICON
+
       if [[ -n $_P9K_RETVAL || -n $POWERLEVEL9K_VCS_LOADING_TEXT ]]; then
         $2_prompt_segment $1_LOADING $3 "${vcs_states[loading]}" "$DEFAULT_COLOR" VCS_LOADING_ICON 0 '' "$POWERLEVEL9K_VCS_LOADING_TEXT"
       fi
+
     fi
+
     return 0
+
   fi
 
   [[ $VCS_STATUS_RESULT == ok-* ]] || return 1
@@ -138,7 +175,7 @@ _p9k_vcs_render() {
   (( POWERLEVEL9K_VCS_COMMITS_BEHIND_MAX_NUM >= 0 && VCS_STATUS_COMMITS_BEHIND > POWERLEVEL9K_VCS_COMMITS_BEHIND_MAX_NUM )) &&
     VCS_STATUS_COMMITS_BEHIND=$POWERLEVEL9K_VCS_COMMITS_BEHIND_MAX_NUM
 
-  local -a cache_key
+
   cache_key=(
     "$VCS_STATUS_LOCAL_BRANCH"
     "$VCS_STATUS_REMOTE_BRANCH"
@@ -155,14 +192,14 @@ _p9k_vcs_render() {
     "$VCS_STATUS_STASHES"
     "$VCS_STATUS_TAG"
   )
+
   if [[ $POWERLEVEL9K_SHOW_CHANGESET == true || -z $VCS_STATUS_LOCAL_BRANCH ]]; then
     cache_key+=$VCS_STATUS_COMMIT
   fi
 
   if ! _p9k_cache_get "${(@)cache_key}"; then
-    local state=CLEAN
-    local -a cur_prompt
-    local -a stale_prompt
+
+    state=CLEAN
 
     function _$0_fmt() {
       _p9k_vcs_style $state $1
@@ -200,7 +237,6 @@ _p9k_vcs_render() {
       fi
     fi
 
-    local ws
     if [[ $POWERLEVEL9K_SHOW_CHANGESET == true || -z $VCS_STATUS_LOCAL_BRANCH ]]; then
       _p9k_get_icon VCS_COMMIT_ICON
       _$0_fmt COMMIT "$_P9K_RETVAL${${VCS_STATUS_COMMIT:0:$POWERLEVEL9K_VCS_INTERNAL_HASH_LENGTH}:-HEAD}"
@@ -259,90 +295,134 @@ _p9k_vcs_render() {
     _p9k_cache_set "${1}_$state" "${vcs_states[${(L)state}]}" "${stale_prompt[@]}" "${cur_prompt[@]}"
   fi
 
-  local id=${_P9K_CACHE_VAL[1]}
-  local bg=${_P9K_CACHE_VAL[2]}
+  id=${_P9K_CACHE_VAL[1]}
+  bg=${_P9K_CACHE_VAL[2]}
+
   shift 2 _P9K_CACHE_VAL
-  local -i n=$(($#_P9K_CACHE_VAL / 2))
+
+  n=$(($#_P9K_CACHE_VAL / 2))
+
   _P9K_LAST_GIT_PROMPT[$VCS_STATUS_WORKDIR]="${(pj:\0:)_P9K_CACHE_VAL[1,$n]}"
+
   shift $n _P9K_CACHE_VAL
+
   $2_prompt_segment "$id" "$3" "$bg" "$DEFAULT_COLOR" '' 0 '' "${(@)_P9K_CACHE_VAL}"
+
   return 0
+
 }
 
 _p9k_vcs_resume() {
+
+  local latency
+
   emulate -L zsh
 
   if [[ $VCS_STATUS_RESULT == ok-async ]]; then
-    local latency=$((EPOCHREALTIME - _P9K_GITSTATUS_START_TIME))
+
+    latency=$((EPOCHREALTIME - _P9K_GITSTATUS_START_TIME))
+
     if (( latency > POWERLEVEL9K_VCS_MAX_SYNC_LATENCY_SECONDS )); then
       _P9K_GIT_SLOW[$VCS_STATUS_WORKDIR]=1
     elif (( latency < 0.8 * POWERLEVEL9K_VCS_MAX_SYNC_LATENCY_SECONDS )); then  # 0.8 to avoid flip-flopping
       _P9K_GIT_SLOW[$VCS_STATUS_WORKDIR]=0
     fi
+
   fi
 
   if [[ -z $_P9K_NEXT_VCS_DIR ]]; then
+
     unset _P9K_NEXT_VCS_DIR
     _p9k_update_prompt gitstatus
+
   else
-    typeset -gFH _P9K_GITSTATUS_START_TIME=$EPOCHREALTIME
+
+    _P9K_GITSTATUS_START_TIME=$EPOCHREALTIME
+
     if ! gitstatus_query -d $_P9K_NEXT_VCS_DIR -t 0 -c _p9k_vcs_resume POWERLEVEL9K; then
       unset _P9K_NEXT_VCS_DIR
       return
     fi
+
     case $VCS_STATUS_RESULT in
       *-sync)
         unset _P9K_NEXT_VCS_DIR
         _p9k_update_prompt gitstatus
         ;;
       tout)
-        typeset -gH _P9K_NEXT_VCS_DIR=""
+        _P9K_NEXT_VCS_DIR=""
         ;;
     esac
+
   fi
 }
 
 _p9k_vcs_gitstatus() {
+
+  local dir
+  local -F timeout
+
   [[ $POWERLEVEL9K_DISABLE_GITSTATUS == true ]] && return 1
+
   if [[ $_P9K_REFRESH_REASON == precmd ]]; then
+
     if (( $+_P9K_NEXT_VCS_DIR )); then
-      typeset -gH _P9K_NEXT_VCS_DIR=${${GIT_DIR:a}:-$PWD}
+
+      _P9K_NEXT_VCS_DIR=${${GIT_DIR:a}:-$PWD}
+
     else
-      local dir=${${GIT_DIR:a}:-$PWD}
-      local -F timeout=$POWERLEVEL9K_VCS_MAX_SYNC_LATENCY_SECONDS
+
+      dir=${${GIT_DIR:a}:-$PWD}
+
+      timeout=$POWERLEVEL9K_VCS_MAX_SYNC_LATENCY_SECONDS
+
       while true; do
+
         case "$_P9K_GIT_SLOW[$dir]" in
           "") [[ $dir == / ]] && break; dir=${dir:h};;
           0) break;;
           1) timeout=0; break;;
         esac
+
       done
-      typeset -gFH _P9K_GITSTATUS_START_TIME=$EPOCHREALTIME
+
+      _P9K_GITSTATUS_START_TIME=$EPOCHREALTIME
+
       gitstatus_query -d ${${GIT_DIR:a}:-$PWD} -t $timeout -c _p9k_vcs_resume POWERLEVEL9K || return 1
-      [[ $VCS_STATUS_RESULT == tout ]] && typeset -gH _P9K_NEXT_VCS_DIR=""
+
+      [[ $VCS_STATUS_RESULT == tout ]] && _P9K_NEXT_VCS_DIR=""
+
     fi
   fi
+
   return 0
 }
 
-################################################################
-# Segment to show VCS information
-
 prompt_vcs() {
+
+  local vcs_prompt
+  local current_state
   local -a backends
+
   backends=($POWERLEVEL9K_VCS_BACKENDS)
+
   if (( ${backends[(I)git]} )) && _p9k_vcs_gitstatus; then
     _p9k_vcs_render $0 $1 $2 && return
     backends=(${backends:#git})
   fi
+
   if (( $#backends )); then
+
     VCS_WORKDIR_DIRTY=false
     VCS_WORKDIR_HALF_DIRTY=false
-    local current_state=""
+
     # Actually invoke vcs_info manually to gather all information.
     zstyle ':vcs_info:*' enable ${backends}
+
     vcs_info
-    local vcs_prompt="${vcs_info_msg_0_}"
+
+    vcs_prompt="${vcs_info_msg_0_}"
+
     if [[ -n "$vcs_prompt" ]]; then
       if [[ "$VCS_WORKDIR_DIRTY" == true ]]; then
         # $vcs_visual_identifier gets set in +vi-vcs-detect-changes in functions/vcs.zsh,
@@ -358,6 +438,7 @@ prompt_vcs() {
       $1_prompt_segment "${0}_${(U)current_state}" "$2" "${vcs_states[$current_state]}" "$DEFAULT_COLOR" "$vcs_visual_identifier" 0 '' "$vcs_prompt"
     fi
   fi
+
 }
 
 

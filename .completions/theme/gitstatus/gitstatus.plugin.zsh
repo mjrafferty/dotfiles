@@ -1,3 +1,5 @@
+# vim ft:bash
+#
 # Copyright 2019 Roman Perepelitsa.
 #
 # This file is part of GitStatus. It provides ZSH bindings.
@@ -106,7 +108,9 @@ autoload -Uz add-zsh-hook && zmodload zsh/datetime zsh/system || return
 #
 # It's illegal to call gitstatus_query if the last asynchronous call with the same NAME hasn't
 # completed yet. If you need to issue concurrent requests, use different NAME arguments.
-function gitstatus_query() {
+
+gitstatus_query() {
+
   emulate -L zsh
   setopt err_return no_unset
 
@@ -114,6 +118,7 @@ function gitstatus_query() {
   local dir=${${GIT_DIR:-$PWD}:a}
   local callback=''
   local -F timeout=-1
+
   while true; do
     getopts "d:c:t:" opt || break
     case $opt in
@@ -124,6 +129,7 @@ function gitstatus_query() {
       done) break;;
     esac
   done
+
   (( OPTIND == ARGC )) || { echo "usage: gitstatus_query [OPTION]... NAME" >&2; return 1 }
   local name=${*[$OPTIND]}
 
@@ -146,8 +152,10 @@ function gitstatus_query() {
   [[ $VCS_STATUS_RESULT != tout || -n $callback ]]
 }
 
-function _gitstatus_process_response() {
+_gitstatus_process_response() {
+
   emulate -L zsh
+
   setopt err_return no_unset
 
   local name=$1
@@ -157,16 +165,22 @@ function _gitstatus_process_response() {
   local -i dirty_max_index_size=_GITSTATUS_DIRTY_MAX_INDEX_SIZE_${name}
 
   typeset -g VCS_STATUS_RESULT
+
   (( timeout >= 0 )) && local -a t=(-t $timeout) || local -a t=()
+
   local -a resp
+
   IFS=$'\x1f' read -rd $'\x1e' -u ${(P)resp_fd_var} $t -A resp || {
     VCS_STATUS_RESULT=tout
     return
   }
 
   local -a header=("${(@Q)${(z)resp[1]}}")
+
   [[ ${header[1]} == $req_id ]] && local -i ours=1 || local -i ours=0
+
   shift header
+
   [[ ${resp[2]} == 1 ]] && {
     (( ours )) && VCS_STATUS_RESULT=ok-sync || VCS_STATUS_RESULT=ok-async
     typeset -g  VCS_STATUS_WORKDIR="${resp[3]}"
@@ -184,6 +198,7 @@ function _gitstatus_process_response() {
     typeset -gi VCS_STATUS_COMMITS_BEHIND="${resp[15]}"
     typeset -gi VCS_STATUS_STASHES="${resp[16]}"
     typeset -g  VCS_STATUS_TAG="${resp[17]}"
+
     typeset -gi VCS_STATUS_HAS_STAGED=$((VCS_STATUS_NUM_STAGED > 0))
     (( dirty_max_index_size >= 0 && VCS_STATUS_INDEX_SIZE > dirty_max_index_size )) && {
       typeset -gi VCS_STATUS_HAS_UNSTAGED=-1
@@ -192,8 +207,11 @@ function _gitstatus_process_response() {
       typeset -gi VCS_STATUS_HAS_UNSTAGED=$((VCS_STATUS_NUM_UNSTAGED > 0))
       typeset -gi VCS_STATUS_HAS_UNTRACKED=$((VCS_STATUS_NUM_UNTRACKED > 0))
     }
+
   } || {
+
     (( ours )) && VCS_STATUS_RESULT=norepo-sync || VCS_STATUS_RESULT=norepo-async
+
     unset VCS_STATUS_WORKDIR
     unset VCS_STATUS_COMMIT
     unset VCS_STATUS_LOCAL_BRANCH
@@ -212,9 +230,11 @@ function _gitstatus_process_response() {
     unset VCS_STATUS_COMMITS_BEHIND
     unset VCS_STATUS_STASHES
     unset VCS_STATUS_TAG
+
   }
 
   (( ! ours )) && (( #header )) && emulate -L zsh && "${header[@]}" || true
+
 }
 
 # Starts gitstatusd in the background. Does nothing and succeeds if gitstatusd is already running.
@@ -235,7 +255,19 @@ function _gitstatus_process_response() {
 #
 #   -m INT    If a repo has more files in its index than this, override -u and -d (but not -s)
 #             with zeros. Negative value means infinity. Defaults to -1.
-function gitstatus_start() {
+
+gitstatus_start_impl() {
+
+  [[ ${GITSTATUS_ENABLE_LOGGING:-0} != 1 ]] || {
+  xtrace_file=$(mktemp "${TMPDIR:-/tmp}"/gitstatus.$$.xtrace.XXXXXXXXXX)
+  typeset -g GITSTATUS_XTRACE_${name}=$xtrace_file
+  exec {stderr_fd}>&2 2>$xtrace_file
+  setopt xtrace
+
+}
+
+gitstatus_start() {
+
   emulate -L zsh
   setopt err_return no_unset no_bg_nice
 
@@ -245,6 +277,7 @@ function gitstatus_start() {
   local -i max_num_unstaged=1
   local -i max_num_untracked=1
   local -i dirty_max_index_size=-1
+
   while true; do
     getopts "t:s:u:d:m:" opt || break
     case $opt in
@@ -266,14 +299,6 @@ function gitstatus_start() {
   local dir && dir=${${(%):-%x}:A:h}
   local xtrace_file lock_file req_fifo resp_fifo log_file
   local -i stderr_fd=-1 lock_fd=-1 req_fd=-1 resp_fd=-1 daemon_pid=-1
-
-  function gitstatus_start_impl() {
-    [[ ${GITSTATUS_ENABLE_LOGGING:-0} != 1 ]] || {
-      xtrace_file=$(mktemp "${TMPDIR:-/tmp}"/gitstatus.$$.xtrace.XXXXXXXXXX)
-      typeset -g GITSTATUS_XTRACE_${name}=$xtrace_file
-      exec {stderr_fd}>&2 2>$xtrace_file
-      setopt xtrace
-    }
 
     local os && os=$(uname -s) && [[ -n $os ]]
     [[ $os != Linux || $(uname -o) != Android ]] || os=Android
@@ -415,7 +440,7 @@ function gitstatus_start() {
 # Stops gitstatusd if it's running.
 #
 # Usage: gitstatus_stop NAME.
-function gitstatus_stop() {
+ gitstatus_stop() {
   emulate -L zsh
   setopt no_unset
   (( ARGC == 1 )) || { echo "usage: gitstatus_stop NAME" >&2; return 1 }
@@ -454,7 +479,7 @@ function gitstatus_stop() {
 #
 # Returns 0 if and only if `gitstatus_start NAME` has succeeded previously.
 # If it returns non-zero, gitstatus_query NAME is guaranteed to return non-zero.
-function gitstatus_check() {
+gitstatus_check() {
   emulate -L zsh
   (( ARGC == 1 )) || { echo "usage: gitstatus_check NAME" >&2; return 1 }
   [[ -n ${(P)${:-GITSTATUS_DAEMON_PID_${1}}} ]]
