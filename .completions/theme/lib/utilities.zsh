@@ -1,6 +1,7 @@
 # vim:ft=bash
 
-typeset -g _P9K_BYTE_SUFFIX=('B' 'K' 'M' 'G' 'T' 'P' 'E' 'Z' 'Y')
+typeset -g _P9K_BYTE_SUFFIX
+_P9K_BYTE_SUFFIX=('B' 'K' 'M' 'G' 'T' 'P' 'E' 'Z' 'Y')
 
 # Usage: set_default [OPTION]... NAME [VALUE]...
 set_default() {
@@ -37,7 +38,8 @@ _p9k_g_expand() {
   (( $+parameters[$1] )) || return
 
   local x
-  local -a ts=("${=$(typeset -p $1)}")
+  local -a ts
+  ts=("${=$(typeset -p $1)}")
 
   shift ts
 
