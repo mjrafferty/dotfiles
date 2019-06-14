@@ -451,6 +451,7 @@ _p9k_do_rprompt_align() {
 
   _P9K_ALIGNED_RPROMPT+=' $_P9K_RPROMPT'
   _P9K_ALIGNED_RPROMPT+='$_P9K_T[$((3+!_P9K_IND))]'
+
 }
 
 _p9k_init_prompts(){
