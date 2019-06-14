@@ -259,6 +259,7 @@ prompt_dir() {
     parts=("${(@)parts//$'\0'/$delim$style}")
 
     local sep=$POWERLEVEL9K_DIR_PATH_SEPARATOR$style
+
     if [[ -n $POWERLEVEL9K_DIR_PATH_SEPARATOR_FOREGROUND ]]; then
       _p9k_translate_color $POWERLEVEL9K_DIR_PATH_SEPARATOR_FOREGROUND
       _p9k_foreground $_P9K_RETVAL

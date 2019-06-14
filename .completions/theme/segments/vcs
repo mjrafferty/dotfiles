@@ -7,7 +7,6 @@
 
 typeset -gFH _P9K_GITSTATUS_START_TIME
 typeset -gH _P9K_NEXT_VCS_DIR
-typeset -gFH _P9K_GITSTATUS_START_TIME
 typeset -gA vcs_states
 
 vcs_states=(
@@ -366,7 +365,7 @@ _p9k_vcs_gitstatus() {
 
   if [[ $_P9K_REFRESH_REASON == precmd ]]; then
 
-    if (( $+_P9K_NEXT_VCS_DIR )); then
+    if (( -z $_P9K_NEXT_VCS_DIR )); then
 
       _P9K_NEXT_VCS_DIR=${${GIT_DIR:a}:-$PWD}
 
@@ -388,7 +387,7 @@ _p9k_vcs_gitstatus() {
 
       _P9K_GITSTATUS_START_TIME=$EPOCHREALTIME
 
-      gitstatus_query -d ${${GIT_DIR:a}:-$PWD} -t $timeout -c _p9k_vcs_resume POWERLEVEL9K || return 1
+      #gitstatus_query -d ${${GIT_DIR:a}:-$PWD} -t $timeout -c _p9k_vcs_resume POWERLEVEL9K || return 1
 
       [[ $VCS_STATUS_RESULT == tout ]] && _P9K_NEXT_VCS_DIR=""
 
