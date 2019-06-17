@@ -1,0 +1,12 @@
+# vim:ft=bash
+################################################################
+# A newline in your prompt, so you can modules on multiple lines.
+prompt_newline() {
+  [[ "$1" == "right" ]] && return
+  _riff_left_prompt_end_line && _RIFF_PROMPT+=$'\n'
+  _RIFF_PROMPT+='${${_RIFF_BG::=NONE}+}'
+  if [[ $RIFF_PROMPT_ON_NEWLINE == true ]]; then
+    _riff_get_icon MULTILINE_NEWLINE_PROMPT_PREFIX
+    _RIFF_PROMPT+=$_RIFF_RETVAL
+  fi
+}

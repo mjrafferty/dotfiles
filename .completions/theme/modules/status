@@ -1,0 +1,65 @@
+# vim:ft=bash
+################################################################
+# Status: When an error occur, return the error code, or a cross icon if option is set
+# Display an ok icon when no error occur, or hide the module if option is set to false
+#
+# old options, retro compatibility
+
+typeset -gi _RIFF_EXIT_CODE
+typeset -ga _RIFF_PIPE_EXIT_CODES
+
+exit_code_or_status() {
+
+  local ec=$1
+
+  if [[ "$RIFF_STATUS_HIDE_SIGNAME" = true ]] || (( ec <= 128 )); then
+    _RIFF_RETURN_MESSAGE=$ec
+  else
+    _RIFF_RETURN_MESSAGE="SIG${signals[$((sig + 1))]}($((ec - 128)))"
+  fi
+
+}
+
+_riff_status_run() {
+
+    local ec_text
+    local ec_sum
+    local ec
+
+    if [[ $RIFF_STATUS_SHOW_PIPESTATUS == true ]]; then
+      if (( $#_RIFF_PIPE_EXIT_CODES > 1 )); then
+        ec_sum=${_RIFF_PIPE_EXIT_CODES[1]}
+        exit_code_or_status "${_RIFF_PIPE_EXIT_CODES[1]}"
+
+      else
+        ec_sum=${_RIFF_EXIT_CODE}
+        exit_code_or_status "${_RIFF_EXIT_CODE}"
+      fi
+      ec_text=$_RIFF_RETURN_MESSAGE
+      for ec in "${(@)_RIFF_PIPE_EXIT_CODES[2,-1]}"; do
+        (( ec_sum += ec ))
+        exit_code_or_status "$ec"
+        ec_text+="|$_RIFF_RETURN_MESSAGE"
+      done
+    else
+      ec_sum=${_RIFF_EXIT_CODE}
+      # We use _RIFF_EXIT_CODE instead of the right-most _RIFF_PIPE_EXIT_CODES item because
+      # PIPE_FAIL may be set.
+      exit_code_or_status "${_RIFF_EXIT_CODE}"
+      ec_text=$_RIFF_RETURN_MESSAGE
+    fi
+
+    if (( ec_sum > 0 )); then
+      if [[ "$RIFF_STATUS_CROSS" == false && "$RIFF_STATUS_VERBOSE" == true ]]; then
+        _RIFF_CACHE_VAL=("$0_ERROR" "$2" red yellow1 CARRIAGE_RETURN_ICON 0 '' "$ec_text")
+      else
+        _RIFF_CACHE_VAL=("$0_ERROR" "$2" "$DEFAULT_COLOR" red FAIL_ICON 0 '' '')
+      fi
+    elif [[ "$RIFF_STATUS_OK" == true ]] && [[ "$RIFF_STATUS_VERBOSE" == true || "$RIFF_STATUS_OK_IN_NON_VERBOSE" == true ]]; then
+      _RIFF_CACHE_VAL=("$0_OK" "$2" "$DEFAULT_COLOR" green OK_ICON 0 '' '')
+    else
+      return
+    fi
+
+  _RIFF_RETURN_MESSAGE="${(@)_RIFF_CACHE_VAL}"
+}

@@ -1,0 +1,24 @@
+# vim:ft=bash
+################################################################
+# Segment to display PHP version number
+
+typeset -g RIFF_PHP_VERSION_FG="grey93"
+typeset -g RIFF_PHP_VERSION_BG="fuchsia"
+
+_riff_php_version_run() {
+
+  local -a match
+  local version
+
+  setopt extendedglob
+
+  _RIFF_RETURN_MESSAGE=$(php --version)
+
+  if [[ $_RIFF_RETURN_MESSAGE == (#b)(*$'\n')#(PHP [[:digit:].]##)* ]]; then
+    version=$match[2]
+    _RIFF_RETURN_MESSAGE="${version//\%/%%}"
+  else
+    return;
+  fi
+
+}

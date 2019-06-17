@@ -1,0 +1,20 @@
+# vim:ft=bash
+################################################################
+# System date
+
+typeset -g RIFF_DATE_FORMAT
+typeset -g RIFF_DATE_FG
+typeset -g RIFF_DATE_BG
+RIFF_DATE_FORMAT="%D{%m-%d-%y}"
+
+_riff_date_run() {
+
+  local d=$RIFF_DATE_FORMAT
+
+  if [[ $RIFF_EXPERIMENTAL_TIME_REALTIME != true ]]; then
+    d=${(%)d}
+  fi
+
+  _RIFF_RETURN_MESSAGE="${d//\%/%%}"
+
+}

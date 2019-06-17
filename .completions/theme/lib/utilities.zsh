@@ -1,10 +1,10 @@
 # vim:ft=bash
 
-typeset -g _P9K_BYTE_SUFFIX
-_P9K_BYTE_SUFFIX=('B' 'K' 'M' 'G' 'T' 'P' 'E' 'Z' 'Y')
+typeset -g _RIFF_BYTE_SUFFIX
+_RIFF_BYTE_SUFFIX=('B' 'K' 'M' 'G' 'T' 'P' 'E' 'Z' 'Y')
 
 # If we execute `print -P $1`, how many characters will be printed on the last line?
-_p9k_prompt_length() {
+_riff_prompt_length() {
 
   emulate -L zsh
 
@@ -25,24 +25,24 @@ _p9k_prompt_length() {
 
   fi
 
-  _P9K_RETVAL=$x
+  _RIFF_RETVAL=$x
 }
 
-_p9k_human_readable_bytes() {
+_riff_human_readable_bytes() {
 
   local suf
   typeset -F 2 n
   n=$1
 
-  for suf in $_P9K_BYTE_SUFFIX; do
+  for suf in $_RIFF_BYTE_SUFFIX; do
     (( n < 100 )) && break
     (( n /= 1024 ))
   done
 
-  _P9K_RETVAL=$n$suf
+  _RIFF_RETVAL=$n$suf
 }
 
-_p9k_parse_ip() {
+_riff_parse_ip() {
 
   local desiredInterface rawInterfaces pattern relevantInterfaces newline interfaceName interface ipFound
   local -a interfaces relevantInterfaces interfaceStates
@@ -86,7 +86,7 @@ _p9k_parse_ip() {
         interfaceStates=(${(s:,:)match[1]})
 
         if (( ${interfaceStates[(I)UP]} )); then
-          _P9K_RETVAL=$ipFound
+          _RIFF_RETVAL=$ipFound
           return
         fi
 
@@ -103,7 +103,7 @@ _p9k_parse_ip() {
 
     for interface in "${(@)interfaces}"; do
       if [[ "$interface" =~ $pattern ]]; then
-        _P9K_RETVAL=$match[1]
+        _RIFF_RETVAL=$match[1]
         return
       fi
     done
@@ -131,56 +131,56 @@ build_test_stats() {
  ratio=$(( 100. * tests_amount / code_amount ))
 
   if (( ratio >= 75 )); then
-    "$1_prompt_segment" "${2}_GOOD" "$3" "cyan" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
+    "$1_prompt_module" "${2}_GOOD" "$3" "cyan" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
   elif (( ratio >= 50 )); then
-    "$1_prompt_segment" "$2_AVG" "$3" "yellow" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
+    "$1_prompt_module" "$2_AVG" "$3" "yellow" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
   else
-    "$1_prompt_segment" "$2_BAD" "$3" "red" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
+    "$1_prompt_module" "$2_BAD" "$3" "red" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
   fi
 }
 
-_p9k_read_file() {
+_riff_read_file() {
 
-  _P9K_RETVAL=''
+  _RIFF_RETVAL=''
 
   if [[ -n $1 ]]; then
-    read -r _P9K_RETVAL <$1
+    read -r _RIFF_RETVAL <$1
   fi
 
-  [[ -n $_P9K_RETVAL ]]
+  [[ -n $_RIFF_RETVAL ]]
 
 }
 
-_p9k_escape_rcurly() {
-  _P9K_RETVAL=${${1//\\/\\\\}//\}/\\\}}
+_riff_escape_rcurly() {
+  _RIFF_RETVAL=${${1//\\/\\\\}//\}/\\\}}
 }
 
 # Returns 1 if the cursor is at the very end of the screen.
-_p9k_left_prompt_end_line() {
+_riff_left_prompt_end_line() {
 
-  _p9k_get_icon LEFT_SEGMENT_SEPARATOR
-  _p9k_escape_rcurly $_P9K_RETVAL
+  _riff_get_icon LEFT_SEGMENT_SEPARATOR
+  _riff_escape_rcurly $_RIFF_RETVAL
 
-  _P9K_PROMPT+="%k%b"
-  _P9K_PROMPT+="\${_P9K_N::=}"
-  _P9K_PROMPT+="\${\${\${_P9K_BG:#NONE}:-\${_P9K_N:=1}}+}"
-  _P9K_PROMPT+="\${\${_P9K_N:=2}+}"
-  _P9K_PROMPT+="\${\${_P9K_T[2]::=%F{\$_P9K_BG\}$_P9K_RETVAL}+}"
-  _P9K_PROMPT+="\${_P9K_T[\$_P9K_N]}"
-  _P9K_PROMPT+="%f$1%f%k%b"
+  _RIFF_PROMPT+="%k%b"
+  _RIFF_PROMPT+="\${_RIFF_N::=}"
+  _RIFF_PROMPT+="\${\${\${_RIFF_BG:#NONE}:-\${_RIFF_N:=1}}+}"
+  _RIFF_PROMPT+="\${\${_RIFF_N:=2}+}"
+  _RIFF_PROMPT+="\${\${_RIFF_T[2]::=%F{\$_RIFF_BG\}$_RIFF_RETVAL}+}"
+  _RIFF_PROMPT+="\${_RIFF_T[\$_RIFF_N]}"
+  _RIFF_PROMPT+="%f$1%f%k%b"
 
-  if (( ! _P9K_RPROMPT_DONE )); then
-    _P9K_PROMPT+=$_P9K_ALIGNED_RPROMPT
-    _P9K_RPROMPT_DONE=1
+  if (( ! _RIFF_RPROMPT_DONE )); then
+    _RIFF_PROMPT+=$_RIFF_ALIGNED_RPROMPT
+    _RIFF_RPROMPT_DONE=1
     return 1
   fi
 }
 
-_p9k_zle_keymap_select() {
+_riff_zle_keymap_select() {
   zle && zle .reset-prompt && zle -R
 }
 
-_p9k_prompt_overflow_bug() {
+_riff_prompt_overflow_bug() {
 # Does ZSH have a certain off-by-one bug that triggers when PROMPT overflows to a new line?
 #
 # Bug: https://github.com/zsh-users/zsh/commit/d8d9fee137a5aa2cf9bf8314b06895bfc2a05518.

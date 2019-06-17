@@ -1,0 +1,7 @@
+# vim:ft=bash
+################################################################
+# Segment to display the current IP address
+prompt_ip() {
+  _riff_parse_ip $RIFF_IP_INTERFACE || return
+  "$1_prompt_module" "$0" "$2" "cyan" "$DEFAULT_COLOR" 'NETWORK_ICON' 0 '' "${_RIFF_RETVAL//\%/%%}"
+}

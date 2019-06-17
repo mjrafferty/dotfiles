@@ -2,26 +2,26 @@
 ################################################################
 # icons
 # This file holds the icon definitions and
-# icon-functions for the powerlevel9k-ZSH-theme
-# https://github.com/bhilburn/powerlevel9k
+# icon-functions for the riff-ZSH-theme
+# https://github.com/bhilburn/riff
 ################################################################
 
 # These characters require the Powerline fonts to work properly. If you see
 # boxes or bizarre characters below, your fonts are not correctly installed. If
-# you do not want to install a special font, you can set `POWERLEVEL9K_MODE` to
+# you do not want to install a special font, you can set `RIFF_MODE` to
 # `compatible`. This shows all icons in regular symbols.
 
-# Initialize the icon list according to the user's `POWERLEVEL9K_MODE`.
+# Initialize the icon list according to the user's `RIFF_MODE`.
 typeset -gAH icons
 
 
-typeset -gi _P9K_ICONS_INITIALIZED=0
+typeset -gi _RIFF_ICONS_INITIALIZED=0
 
-_p9k_init_icons() {
-  (( _P9K_ICONS_INITIALIZED )) && return
-  _P9K_ICONS_INITIALIZED=1
+_riff_init_icons() {
+  (( _RIFF_ICONS_INITIALIZED )) && return
+  _RIFF_ICONS_INITIALIZED=1
 
-  case $POWERLEVEL9K_MODE in
+  case $RIFF_MODE in
     'flat'|'awesome-patched')
       # Awesome-Patched Font required! See:
       # https://github.com/gabrielelana/awesome-terminal-fonts/tree/patching-strategy/patched
@@ -530,7 +530,7 @@ _p9k_init_icons() {
   esac
 
   # Override the above icon settings with any user-defined variables.
-  case $POWERLEVEL9K_MODE in
+  case $RIFF_MODE in
     'flat')
       # Set the right locale to protect special characters
       local LC_ALL="" LC_CTYPE="en_US.UTF-8"
@@ -548,7 +548,7 @@ _p9k_init_icons() {
     ;;
   esac
 
-  if [[ "$POWERLEVEL9K_HIDE_BRANCH_ICON" == true ]]; then
+  if [[ "$RIFF_HIDE_BRANCH_ICON" == true ]]; then
       icons[VCS_BRANCH_ICON]=''
   fi
 }
@@ -557,10 +557,10 @@ _p9k_init_icons() {
 # Prints the named icon, or if that icon is undefined, the string name.
 print_icon() {
 
-  _p9k_init_icons
+  _riff_init_icons
 
   local icon_name=$1
-  local var_name=POWERLEVEL9K_${icon_name}
+  local var_name=RIFF_${icon_name}
 
   if [[ -n "${(tP)var_name}" ]]; then
     echo -n "${(P)var_name}"
@@ -574,10 +574,10 @@ print_icon() {
 #                 otherwise "print_icon" is used, which takes the users
 #                 overrides into account.
 get_icon_names() {
-  _p9k_init_icons
+  _riff_init_icons
   # Iterate over a ordered list of keys of the icons array
   for key in ${(@kon)icons}; do
-    echo -n "POWERLEVEL9K_$key: "
+    echo -n "RIFF_$key: "
     if [[ "${1}" == "original" ]]; then
       # print the original icons as they are defined in the array above
       echo "${icons[$key]}"
@@ -588,9 +588,9 @@ get_icon_names() {
   done
 }
 
-# Sets _P9K_RETVAL to the icon whose name is supplied via $1.
-_p9k_get_icon() {
-  local var_name=POWERLEVEL9K_$1
-  _P9K_RETVAL=${${${(P)var_name}-$icons[$1]}}
-  [[ $_P9K_RETVAL != $'\b'? ]] || _P9K_RETVAL="%{$_P9K_RETVAL%}"  # penance for past sins
+# Sets _RIFF_RETVAL to the icon whose name is supplied via $1.
+_riff_get_icon() {
+  local var_name=RIFF_$1
+  _RIFF_RETVAL=${${${(P)var_name}-$icons[$1]}}
+  [[ $_RIFF_RETVAL != $'\b'? ]] || _RIFF_RETVAL="%{$_RIFF_RETVAL%}"  # penance for past sins
 }

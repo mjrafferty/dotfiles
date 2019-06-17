@@ -1,0 +1,281 @@
+# vim:ft=bash
+
+# Stop shortening the directory once its length is no greater than this. The value can be either
+# absolute (e.g., '50') or a percentage of terminal width (e.g, '50%').
+#
+# Currently only applied when RIFF_SHORTEN_STRATEGY=truncate_to_unique. If you want to use
+# it with another shortening strategy, open an issue.
+
+# Individual elements are patterns. They are expanded with the options set
+# by `emulate zsh && setopt extended_glob`.
+
+_riff_shorten_delim_len() {
+  _RIFF_RETVAL=${RIFF_SHORTEN_DELIMITER_LENGTH:--1}
+  (( _RIFF_RETVAL >= 0 )) || _riff_prompt_length $1
+}
+
+_riff_truncate_to_unique() {
+
+  local -i i=2 n=1
+  [[ $p == /* ]] && (( ++i ))
+  delim=${RIFF_SHORTEN_DELIMITER-'*'}
+  _riff_prompt_length $delim
+  local -i real_delim_len=_RIFF_RETVAL
+  local -i d=${RIFF_SHORTEN_DELIMITER_LENGTH:--1}
+  (( d >= 0 )) || d=real_delim_len
+  shortenlen=${RIFF_SHORTEN_DIR_LENGTH:-1}
+  (( shortenlen >= 0 )) && n=shortenlen
+  if [[ $RIFF_DIR_MAX_LENGTH == *% ]]; then
+    local -i max_len=$(( COLUMNS * $RIFF_DIR_MAX_LENGTH[1,-2] / 100 ))
+  else
+    local -i max_len=RIFF_DIR_MAX_LENGTH
+  fi
+  local -i len=$#p
+  local parent="${PWD%/${(pj./.)parts[i,-1]}}"
+  for (( ; len > max_len && i <= $#parts - n; ++i )); do
+    local dir=$parts[i]
+    if [[ -n $RIFF_SHORTEN_FOLDER_MARKER &&
+      -n $parent/$dir/${~RIFF_SHORTEN_FOLDER_MARKER}(#qN) ]]; then
+          parent+=/$dir
+          continue
+    fi
+    local -i j=1
+    for (( ; j + d < $#dir; ++j )); do
+      local -a matching
+      matching=($parent/$dir[1,j]*/(N))
+      (( $#matching == 1 )) && break
+    done
+    if (( j + d < $#dir )); then
+      (( len -= ($#dir - j - real_delim_len) ))
+      parts[i]=$dir[1,j]$'\0'
+    fi
+    parent+=/$dir
+  done
+
+}
+
+_riff_truncate_absolute() {
+
+  if (( shortenlen > 0 && $#p > shortenlen )); then
+
+    _riff_shorten_delim_len $delim
+
+    if (( $#p > shortenlen + $_RIFF_RETVAL )); then
+
+      local -i n=shortenlen
+      local -i i=$#parts
+
+      while true; do
+
+        local dir=$parts[i]
+        local -i len=$(( $#dir + (i > 1) ))
+
+        if (( len <= n )); then
+          (( n -= len ))
+          (( --i ))
+        else
+          parts[i]=$'\0'$dir[-n,-1]
+          parts[1,i-1]=()
+          break
+        fi
+
+      done
+    fi
+  fi
+
+}
+
+_riff_truncate_with_folder_marker(){
+
+  if [[ -n $RIFF_SHORTEN_FOLDER_MARKER ]]; then
+    local dir=$PWD
+    local -a m
+    local -i i=$(($#parts - 1))
+    for (( ; i > 1; --i )); do
+      dir=${dir:h}
+      [[ -n $dir/${~RIFF_SHORTEN_FOLDER_MARKER}(#qN) ]] && m+=$i
+    done
+    m+=1
+    for (( i=1; i < $#m; ++i )); do
+      (( m[i] - m[i+1] > 2 )) && parts[m[i+1]+1,m[i]-1]=($'\0')
+    done
+  fi
+
+}
+
+_riff_truncate_to_first_and_last(){
+
+  if (( shortenlen > 0 )); then
+    local -i i=$(( shortenlen + 1 ))
+    [[ $p == /* ]] && (( ++i ))
+    for (( ; i <= $#parts - shortenlen; ++i )); do
+      parts[i]=$'\0'
+    done
+  fi
+
+}
+
+_riff_truncated_with_package_name(){
+
+  () {
+  [[ $RIFF_SHORTEN_STRATEGY == truncate_with_package_name &&
+    $+commands[jq] == 1 && $#RIFF_DIR_PACKAGE_FILES > 0 ]] || return
+      local pat="(${(j:|:)RIFF_DIR_PACKAGE_FILES})"
+      local -i i=$#parts
+      local dir=$PWD
+      for (( ; i > 0; --i )); do
+        local pkg_file=''
+        for pkg_file in $dir/${~pat}(N); do
+          local -H stat=()
+          zstat -H stat -- $pkg_file 2>/dev/null || return
+          if ! _riff_cache_get $0_pkg $stat[inode] $stat[mtime] $stat[size]; then
+            local pkg_name=''
+            pkg_name=$(command jq -j '.name' <$pkg_file 2>/dev/null) || pkg_name=''
+            _riff_cache_set "$pkg_name"
+          fi
+          [[ -n $_RIFF_CACHE_VAL[1] ]] || return
+          parts[1,i]=($_RIFF_CACHE_VAL[1])
+          fake_first=1
+          return
+        done
+        dir=${dir:h}
+      done
+    }
+  if (( shortenlen > 0 )); then
+    _riff_shorten_delim_len $delim
+    local -i d=_RIFF_RETVAL pref=shortenlen suf=0 i=2
+    [[ $RIFF_SHORTEN_STRATEGY == truncate_middle ]] && suf=pref
+    for (( ; i < $#parts; ++i )); do
+      local dir=$parts[i]
+      if (( $#dir > pref + suf + d )); then
+        dir[pref+1,-suf-1]=$'\0'
+        parts[i]=$dir
+          fi
+        done
+      fi
+}
+
+################################################################
+# Dir: current working directory
+prompt_dir() {
+
+  emulate -L zsh && setopt extended_glob
+
+  local p
+  local func=''
+  local -a parts
+  local -i fake_first=0
+  local delim=${RIFF_SHORTEN_DELIMITER-$'\u2026'}
+  local -i shortenlen=${RIFF_SHORTEN_DIR_LENGTH:--1}
+
+  if [[ $RIFF_DIR_PATH_ABSOLUTE == true ]]; then
+    p=$PWD
+  else
+    p=${(%):-%~}
+  fi
+
+  if [[ $p == '~['* ]]; then
+    # If "${(%):-%~}" expands to "~[a]/]/b", is the first component "~[a]" or "~[a]/]"?
+    # One would expect "${(%):-%-1~}" to give the right answer but alas it always simply
+    # gives the module before the first slash, which would be "~[a]" in this case. Worse,
+    # for "~[a/b]" it'll give the nonsensical "~a[". To solve this problem we have to
+    # repeat what "${(%):-%~}" does and hope that it produces the same result.
+    for func in zsh_directory_name $zsh_directory_name_functions; do
+      if (( $+functions[$func] )) && $func d $PWD && [[ $p == '~['$reply[1]']'* ]]; then
+        parts+='~['$reply[1]']'
+        break
+      fi
+    done
+
+    if (( $#parts )); then
+      parts+=(${(s:/:)${p#$parts[1]}})
+    else
+      p=$PWD
+      parts=("${(s:/:)p}")
+    fi
+  else
+    parts=("${(s:/:)p}")
+  fi
+
+  case $RIFF_SHORTEN_STRATEGY in
+    truncate_absolute|truncate_absolute_chars) _riff_truncate_absolute ;;
+    truncate_with_package_name|truncate_middle|truncate_from_right) _riff_truncated_with_package_name ;;
+    truncate_to_last)
+      fake_first=$(($#parts > 1))
+      parts[1,-2]=()
+    ;;
+    truncate_to_first_and_last) _riff_truncate_to_first_and_last ;;
+    truncate_to_unique) _riff_truncate_to_unique ;;
+    truncate_with_folder_marker) _riff_truncate_with_folder_marker ;;
+    *)
+      if (( shortenlen > 0 )); then
+        local -i len=$#parts
+        [[ -z $parts[1] ]] && (( --len ))
+        if (( len > shortenlen )); then
+          parts[1,-shortenlen-1]=($'\0')
+        fi
+      fi
+    ;;
+  esac
+
+  [[ $RIFF_DIR_SHOW_WRITABLE == true && ! -w $PWD ]]
+  local w=$?
+
+  if ! _riff_cache_get $0 $w $fake_first "$delim" "${parts[@]}"; then
+    local state='' icon=''
+    if (( ! w )); then
+      state=NOT_WRITABLE
+      icon=LOCK_ICON
+    else
+      case $PWD in
+        /etc|/etc/*) state=ETC;            icon=ETC_ICON;;
+        ~)           state=HOME;           icon=HOME_ICON;;
+        ~/*)         state=HOME_SUBFOLDER; icon=HOME_SUB_ICON;;
+        *)           state=DEFAULT;        icon=FOLDER_ICON;;
+      esac
+    fi
+
+    local style=%b
+    _riff_color blue $0_$state BACKGROUND
+    _riff_background $_RIFF_RETVAL
+    style+=$_RIFF_RETVAL
+
+    _riff_color "$DEFAULT_COLOR" "$0_$state" FOREGROUND
+    _riff_foreground $_RIFF_RETVAL
+    style+=$_RIFF_RETVAL
+
+    parts=("${(@)parts//\%/%%}")
+    [[ $fake_first == 0 && $parts[1] == '~' ]] && parts[1]=$RIFF_HOME_FOLDER_ABBREVIATION$style
+    [[ $RIFF_DIR_OMIT_FIRST_CHARACTER == true && $#parts > 1 && -n $parts[2] ]] && parts[1]=()
+
+    local last_fg=
+    [[ $RIFF_DIR_PATH_HIGHLIGHT_BOLD == true ]] && last_fg+=%B
+    if [[ -n $RIFF_DIR_PATH_HIGHLIGHT_FOREGROUND ]]; then
+      _riff_translate_color $RIFF_DIR_PATH_HIGHLIGHT_FOREGROUND
+      _riff_foreground $_RIFF_RETVAL
+      last_fg+=$_RIFF_RETVAL
+    fi
+    parts[-1]=$last_fg${parts[-1]//$'\0'/$'\0'$last_fg}$style
+    parts=("${(@)parts//$'\0'/$delim$style}")
+
+    local sep=$RIFF_DIR_PATH_SEPARATOR$style
+
+    if [[ -n $RIFF_DIR_PATH_SEPARATOR_FOREGROUND ]]; then
+      _riff_translate_color $RIFF_DIR_PATH_SEPARATOR_FOREGROUND
+      _riff_foreground $_RIFF_RETVAL
+      sep=$_RIFF_RETVAL$sep
+    fi
+
+    _riff_cache_set "$0_$state" "$2" blue "$DEFAULT_COLOR" "$icon" 0 "" "${(pj.$sep.)parts}"
+  fi
+
+  "$1_prompt_module" "$_RIFF_CACHE_VAL[@]"
+
+}
+
+_riff_dir_module_setup(){
+  if  [[ $RIFF_SHORTEN_STRATEGY == truncate_with_package_name && $+commands[jq] == 0 ]]; then
+    >&2 print -P '%F{yellow}WARNING!%f %BRIFF_SHORTEN_STRATEGY=truncate_with_package_name%b requires %F{green}jq%f.'
+    >&2 print -P 'Either install %F{green}jq%f or change the value of %BRIFF_SHORTEN_STRATEGY%b.'
+  fi
+}

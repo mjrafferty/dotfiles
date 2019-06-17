@@ -1,0 +1,47 @@
+# vim:ft=bash
+################################################################
+# Public IP module
+typeset -gF _RIFF_PUBLIC_IP_TIMESTAMP
+typeset -g  _RIFF_PUBLIC_IP
+
+
+prompt_public_ip() {
+  if (( ! $#_RIFF_PUBLIC_IP || EPOCHREALTIME >= _RIFF_PUBLIC_IP_TIMESTAMP + RIFF_PUBLIC_IP_TIMEOUT )); then
+    _RIFF_PUBLIC_IP=''
+    local method
+    for method in $RIFF_PUBLIC_IP_METHODS; do
+      case $method in
+        'dig')
+          if (( $+commands[dig] )); then
+            _RIFF_PUBLIC_IP="$(command dig +time=1 +tries=1 +short myip.opendns.com @resolver1.opendns.com 2> /dev/null)"
+            [[ $_RIFF_PUBLIC_IP == ';'* ]] && _RIFF_PUBLIC_IP=''
+          fi
+        ;;
+        'curl')
+          if (( $+commands[curl] )); then
+            _RIFF_PUBLIC_IP="$(command curl --max-time 10 -w '\n' "$RIFF_PUBLIC_IP_HOST" 2> /dev/null)"
+          fi
+        ;;
+        'wget')
+          if (( $+commands[wget] )); then
+            _RIFF_PUBLIC_IP="$(wget -T 10 -qO- "$RIFF_PUBLIC_IP_HOST" 2> /dev/null)"
+          fi
+        ;;
+      esac
+      if [[ -n $_RIFF_PUBLIC_IP ]]; then
+        _RIFF_PUBLIC_IP_TIMESTAMP=$EPOCHREALTIME
+        break
+      fi
+    done
+  fi
+
+  local ip=${_RIFF_PUBLIC_IP:-$RIFF_PUBLIC_IP_NONE}
+  [[ -n $ip ]] || return
+
+  local icon='PUBLIC_IP_ICON'
+  if [[ -n $RIFF_PUBLIC_IP_VPN_INTERFACE ]]; then
+    _riff_parse_ip $RIFF_PUBLIC_IP_VPN_INTERFACE && icon='VPN_ICON'
+  fi
+
+  $1_prompt_module "$0" "$2" "$DEFAULT_COLOR" "$DEFAULT_COLOR_INVERTED" "$icon" 0 '' "${ip//\%/%%}"
+}

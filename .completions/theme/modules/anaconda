@@ -1,0 +1,10 @@
+# vim:ft=bash
+################################################################
+# Anaconda Environment
+prompt_anaconda() {
+  local p=${CONDA_PREFIX:-$CONDA_ENV_PATH}
+  if [[ -n $p ]]; then
+    local msg="$RIFF_ANACONDA_LEFT_DELIMITER${${p:t}//\%/%%}$RIFF_ANACONDA_RIGHT_DELIMITER"
+    "$1_prompt_module" "$0" "$2" "blue" "$DEFAULT_COLOR" 'PYTHON_ICON' 0 '' "$msg"
+  fi
+}

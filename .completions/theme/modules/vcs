@@ -1,0 +1,460 @@
+# vim:ft=bash
+################################################################
+# VCS module: shows the state of your repository, if you are in a folder under
+# version control
+
+# The vcs module can have 4 different states - defaults to 'clean'.
+
+typeset -gFH _RIFF_GITSTATUS_START_TIME
+typeset -gH _RIFF_NEXT_VCS_DIR
+typeset -gA vcs_states
+
+vcs_states=(
+  'clean'         'green'
+  'modified'      'yellow'
+  'untracked'     'green'
+  'loading'       'grey'
+)
+
+# git workdir => the last prompt we've shown for it
+typeset -gAH _RIFF_LAST_GIT_PROMPT
+
+# git workdir => 1 if gitstatus is slow on it, 0 if it's fast.
+typeset -gAH _RIFF_GIT_SLOW
+
+_riff_update_prompt() {
+
+  _RIFF_REFRESH_REASON=$1
+  _riff_set_prompt
+  _RIFF_REFRESH_REASON=''
+  zle && zle .reset-prompt && zle -R
+
+}
+
+riff_vcs_init() {
+
+  local component state color var
+
+  if [[ -n "$RIFF_CHANGESET_HASH_LENGTH" ]]; then
+    RIFF_VCS_INTERNAL_HASH_LENGTH="$RIFF_CHANGESET_HASH_LENGTH"
+  fi
+
+  for component in REMOTE_URL COMMIT BRANCH TAG REMOTE_BRANCH STAGED UNSTAGED UNTRACKED \
+                   OUTGOING_CHANGES INCOMING_CHANGES STASH ACTION; do
+
+    color=${(P)${:-RIFF_VCS_${component}FORMAT_FOREGROUND}}
+
+    if [[ -n $color ]]; then
+
+      for state in "${(@k)vcs_states}"; do
+
+        var=RIFF_VCS_${(U)state}_${component}FORMAT_FOREGROUND
+
+        if [[ -z ${(P)var} ]]; then
+          typeset -g $var=$color
+        fi
+
+      done
+
+    fi
+  done
+
+  autoload -Uz vcs_info
+
+  VCS_CHANGESET_PREFIX=''
+
+  if [[ "$RIFF_SHOW_CHANGESET" == true ]]; then
+    VCS_CHANGESET_PREFIX="$(print_icon 'VCS_COMMIT_ICON')%0.$RIFF_VCS_INTERNAL_HASH_LENGTH""i "
+  fi
+
+  zstyle ':vcs_info:*' check-for-changes true
+
+  VCS_DEFAULT_FORMAT="$VCS_CHANGESET_PREFIX%b%c%u%m"
+
+  zstyle ':vcs_info:*' formats "$VCS_DEFAULT_FORMAT"
+  zstyle ':vcs_info:*' actionformats "%b %F{${RIFF_VCS_ACTIONFORMAT_FOREGROUND}}| %a%f"
+  zstyle ':vcs_info:*' stagedstr " $(print_icon 'VCS_STAGED_ICON')"
+  zstyle ':vcs_info:*' unstagedstr " $(print_icon 'VCS_UNSTAGED_ICON')"
+  zstyle ':vcs_info:git*+set-message:*' hooks $RIFF_VCS_GIT_HOOKS
+  zstyle ':vcs_info:hg*+set-message:*' hooks $RIFF_VCS_HG_HOOKS
+  zstyle ':vcs_info:svn*+set-message:*' hooks $RIFF_VCS_SVN_HOOKS
+
+  # For Hg, only show the branch name
+  zstyle ':vcs_info:hg*:*' branchformat "$(print_icon 'VCS_BRANCH_ICON')%b"
+  # The `get-revision` function must be turned on for dirty-check to work for Hg
+  zstyle ':vcs_info:hg*:*' get-revision true
+  zstyle ':vcs_info:hg*:*' get-bookmarks true
+  zstyle ':vcs_info:hg*+gen-hg-bookmark-string:*' hooks hg-bookmarks
+
+  # TODO: fix the %b (branch) format for svn. Using %b breaks color-encoding of the foreground
+  # for the rest of the powerline.
+  zstyle ':vcs_info:svn*:*' formats "$VCS_CHANGESET_PREFIX%c%u"
+  zstyle ':vcs_info:svn*:*' actionformats "$VCS_CHANGESET_PREFIX%c%u %F{${RIFF_VCS_ACTIONFORMAT_FOREGROUND}}| %a%f"
+
+  if [[ "$RIFF_SHOW_CHANGESET" == true ]]; then
+    zstyle ':vcs_info:*' get-revision true
+  fi
+
+}
+
+_riff_vcs_style() {
+
+  local color
+
+  color=${(P)${:-RIFF_VCS_${1}_${2}FORMAT_FOREGROUND}}
+
+  if [[ -z $color ]]; then
+    _RIFF_RETVAL=""
+    return
+  fi
+
+  if [[ $color == <-> ]]; then
+    color=${(l:3::0:)color}
+  else
+    color=$__RIFF_COLORS[${${${color#bg-}#fg-}#br}]
+
+    if [[ -z $color ]]; then
+      _RIFF_RETVAL=""
+      return
+    fi
+
+  fi
+
+  _RIFF_RETVAL="%F{$color}"
+}
+
+_riff_vcs_render() {
+
+  local -a msg cache_key cur_prompt stale_prompt
+  local dir state ws id bg
+  local -i n
+
+  if (( $+_RIFF_NEXT_VCS_DIR )); then
+
+    dir=${${GIT_DIR:a}:-$PWD}
+
+    while true; do
+
+      msg=("${(@0)${_RIFF_LAST_GIT_PROMPT[$dir]}}")
+      [[ $#msg -gt 1 || -n ${msg[1]} ]] && break
+      [[ $dir == / ]] && msg=() && break
+      dir=${dir:h}
+
+    done
+
+    if (( $#msg )); then
+
+      $2_prompt_module $1_LOADING $3 "${vcs_states[loading]}" "$DEFAULT_COLOR" '' 0 '' "${msg[@]}"
+
+    else
+
+      _riff_get_icon VCS_LOADING_ICON
+
+      if [[ -n $_RIFF_RETVAL || -n $RIFF_VCS_LOADING_TEXT ]]; then
+        $2_prompt_module $1_LOADING $3 "${vcs_states[loading]}" "$DEFAULT_COLOR" VCS_LOADING_ICON 0 '' "$RIFF_VCS_LOADING_TEXT"
+      fi
+
+    fi
+
+    return 0
+
+  fi
+
+  [[ $VCS_STATUS_RESULT == ok-* ]] || return 1
+
+  (( ${RIFF_VCS_GIT_HOOKS[(I)git-untracked]} )) || VCS_STATUS_HAS_UNTRACKED=0
+  (( ${RIFF_VCS_GIT_HOOKS[(I)git-aheadbehind]} )) || { VCS_STATUS_COMMITS_AHEAD=0 && VCS_STATUS_COMMITS_BEHIND=0 }
+  (( ${RIFF_VCS_GIT_HOOKS[(I)git-stash]} )) || VCS_STATUS_STASHES=0
+  (( ${RIFF_VCS_GIT_HOOKS[(I)git-remotebranch]} )) || VCS_STATUS_REMOTE_BRANCH=""
+  (( ${RIFF_VCS_GIT_HOOKS[(I)git-tagname]} )) || VCS_STATUS_TAG=""
+
+  (( RIFF_VCS_COMMITS_AHEAD_MAX_NUM >= 0 && VCS_STATUS_COMMITS_AHEAD > RIFF_VCS_COMMITS_AHEAD_MAX_NUM )) &&
+    VCS_STATUS_COMMITS_AHEAD=$RIFF_VCS_COMMITS_AHEAD_MAX_NUM
+
+  (( RIFF_VCS_COMMITS_BEHIND_MAX_NUM >= 0 && VCS_STATUS_COMMITS_BEHIND > RIFF_VCS_COMMITS_BEHIND_MAX_NUM )) &&
+    VCS_STATUS_COMMITS_BEHIND=$RIFF_VCS_COMMITS_BEHIND_MAX_NUM
+
+
+  cache_key=(
+    "$VCS_STATUS_LOCAL_BRANCH"
+    "$VCS_STATUS_REMOTE_BRANCH"
+    "$VCS_STATUS_REMOTE_URL"
+    "$VCS_STATUS_ACTION"
+    "$VCS_STATUS_NUM_STAGED"
+    "$VCS_STATUS_NUM_UNSTAGED"
+    "$VCS_STATUS_NUM_UNTRACKED"
+    "$VCS_STATUS_HAS_STAGED"
+    "$VCS_STATUS_HAS_UNSTAGED"
+    "$VCS_STATUS_HAS_UNTRACKED"
+    "$VCS_STATUS_COMMITS_AHEAD"
+    "$VCS_STATUS_COMMITS_BEHIND"
+    "$VCS_STATUS_STASHES"
+    "$VCS_STATUS_TAG"
+  )
+
+  if [[ $RIFF_SHOW_CHANGESET == true || -z $VCS_STATUS_LOCAL_BRANCH ]]; then
+    cache_key+=$VCS_STATUS_COMMIT
+  fi
+
+  if ! _riff_cache_get "${(@)cache_key}"; then
+
+    state=CLEAN
+
+    function _$0_fmt() {
+      _riff_vcs_style $state $1
+      cur_prompt+=$_RIFF_RETVAL$2
+      _riff_vcs_style LOADING $1
+      stale_prompt+=$_RIFF_RETVAL$2
+    }
+
+    trap "unfunction _$0_fmt" EXIT
+
+    if (( ${RIFF_VCS_GIT_HOOKS[(I)vcs-detect-changes]} )); then
+      if [[ $VCS_STATUS_HAS_STAGED != 0 || $VCS_STATUS_HAS_UNSTAGED != 0 ]]; then
+        state=MODIFIED
+      elif [[ $VCS_STATUS_HAS_UNTRACKED != 0 ]]; then
+        state=UNTRACKED
+      fi
+
+      # It's weird that removing vcs-detect-changes from RIFF_VCS_GIT_HOOKS gets rid
+      # of the GIT icon. That's what vcs_info does, so we do the same in the name of compatiblity.
+      if [[ "$VCS_STATUS_REMOTE_URL" == *github* ]] then
+        _riff_get_icon VCS_GIT_GITHUB_ICON
+        _$0_fmt REMOTE_URL $_RIFF_RETVAL
+      elif [[ "$VCS_STATUS_REMOTE_URL" == *bitbucket* ]] then
+        _riff_get_icon VCS_GIT_BITBUCKET_ICON
+        _$0_fmt REMOTE_URL $_RIFF_RETVAL
+      elif [[ "$VCS_STATUS_REMOTE_URL" == *stash* ]] then
+        _riff_get_icon VCS_GIT_GITHUB_ICON
+        _$0_fmt REMOTE_URL $_RIFF_RETVAL
+      elif [[ "$VCS_STATUS_REMOTE_URL" == *gitlab* ]] then
+        _riff_get_icon VCS_GIT_GITLAB_ICON
+        _$0_fmt REMOTE_URL $_RIFF_RETVAL
+      else
+        _riff_get_icon VCS_GIT_ICON
+        _$0_fmt REMOTE_URL $_RIFF_RETVAL
+      fi
+    fi
+
+    if [[ $RIFF_SHOW_CHANGESET == true || -z $VCS_STATUS_LOCAL_BRANCH ]]; then
+      _riff_get_icon VCS_COMMIT_ICON
+      _$0_fmt COMMIT "$_RIFF_RETVAL${${VCS_STATUS_COMMIT:0:$RIFF_VCS_INTERNAL_HASH_LENGTH}:-HEAD}"
+      ws=' '
+    fi
+
+    if [[ -n $VCS_STATUS_LOCAL_BRANCH ]]; then
+      _riff_get_icon VCS_BRANCH_ICON
+      _$0_fmt BRANCH "$ws$_RIFF_RETVAL${VCS_STATUS_LOCAL_BRANCH//\%/%%}"
+    fi
+
+    if [[ $RIFF_VCS_HIDE_TAGS == false && -n $VCS_STATUS_TAG ]]; then
+      _riff_get_icon VCS_TAG_ICON
+      _$0_fmt TAG " $_RIFF_RETVAL${VCS_STATUS_TAG//\%/%%}"
+    fi
+
+    if [[ -n $VCS_STATUS_ACTION ]]; then
+      _$0_fmt ACTION " | ${VCS_STATUS_ACTION//\%/%%}"
+    else
+      if [[ -n $VCS_STATUS_REMOTE_BRANCH &&
+            $VCS_STATUS_LOCAL_BRANCH != $VCS_STATUS_REMOTE_BRANCH ]]; then
+        _riff_get_icon VCS_REMOTE_BRANCH_ICON
+        _$0_fmt REMOTE_BRANCH " $_RIFF_RETVAL${VCS_STATUS_REMOTE_BRANCH//\%/%%}"
+      fi
+      if [[ $VCS_STATUS_HAS_STAGED == 1 ]]; then
+        _riff_get_icon VCS_STAGED_ICON
+        (( ${RIFF_VCS_MAX_NUM_STAGED:-$RIFF_VCS_STAGED_MAX_NUM} != 1 )) && _RIFF_RETVAL+=$VCS_STATUS_NUM_STAGED
+        _$0_fmt STAGED " $_RIFF_RETVAL"
+      fi
+      if [[ $VCS_STATUS_HAS_UNSTAGED == 1 ]]; then
+        _riff_get_icon VCS_UNSTAGED_ICON
+        (( ${RIFF_VCS_MAX_NUM_UNSTAGED:-$RIFF_VCS_UNSTAGED_MAX_NUM} != 1 )) && _RIFF_RETVAL+=$VCS_STATUS_NUM_UNSTAGED
+        _$0_fmt UNSTAGED " $_RIFF_RETVAL"
+      fi
+      if [[ $VCS_STATUS_HAS_UNTRACKED == 1 ]]; then
+        _riff_get_icon VCS_UNTRACKED_ICON
+        (( ${RIFF_VCS_MAX_NUM_UNTRACKED:-$RIFF_VCS_UNTRACKED_MAX_NUM} != 1 )) && _RIFF_RETVAL+=$VCS_STATUS_NUM_UNTRACKED
+        _$0_fmt UNTRACKED " $_RIFF_RETVAL"
+      fi
+      if [[ $VCS_STATUS_COMMITS_BEHIND -gt 0 ]]; then
+        _riff_get_icon VCS_INCOMING_CHANGES_ICON
+        (( RIFF_VCS_COMMITS_BEHIND_MAX_NUM != 1 )) && _RIFF_RETVAL+=$VCS_STATUS_COMMITS_BEHIND
+        _$0_fmt INCOMING_CHANGES " $_RIFF_RETVAL"
+      fi
+      if [[ $VCS_STATUS_COMMITS_AHEAD -gt 0 ]]; then
+        _riff_get_icon VCS_OUTGOING_CHANGES_ICON
+        (( RIFF_VCS_COMMITS_AHEAD_MAX_NUM != 1 )) && _RIFF_RETVAL+=$VCS_STATUS_COMMITS_AHEAD
+        _$0_fmt OUTGOING_CHANGES " $_RIFF_RETVAL"
+      fi
+      if [[ $VCS_STATUS_STASHES -gt 0 ]]; then
+        _riff_get_icon VCS_STASH_ICON
+        _$0_fmt STASH " $_RIFF_RETVAL$VCS_STATUS_STASHES"
+      fi
+    fi
+
+    _riff_cache_set "${1}_$state" "${vcs_states[${(L)state}]}" "${stale_prompt[@]}" "${cur_prompt[@]}"
+  fi
+
+  id=${_RIFF_CACHE_VAL[1]}
+  bg=${_RIFF_CACHE_VAL[2]}
+
+  shift 2 _RIFF_CACHE_VAL
+
+  n=$(($#_RIFF_CACHE_VAL / 2))
+
+  _RIFF_LAST_GIT_PROMPT[$VCS_STATUS_WORKDIR]="${(pj:\0:)_RIFF_CACHE_VAL[1,$n]}"
+
+  shift $n _RIFF_CACHE_VAL
+
+  $2_prompt_module "$id" "$3" "$bg" "$DEFAULT_COLOR" '' 0 '' "${(@)_RIFF_CACHE_VAL}"
+
+  return 0
+
+}
+
+_riff_vcs_resume() {
+
+  local latency
+
+  emulate -L zsh
+
+  if [[ $VCS_STATUS_RESULT == ok-async ]]; then
+
+    latency=$((EPOCHREALTIME - _RIFF_GITSTATUS_START_TIME))
+
+    if (( latency > RIFF_VCS_MAX_SYNC_LATENCY_SECONDS )); then
+      _RIFF_GIT_SLOW[$VCS_STATUS_WORKDIR]=1
+    elif (( latency < 0.8 * RIFF_VCS_MAX_SYNC_LATENCY_SECONDS )); then  # 0.8 to avoid flip-flopping
+      _RIFF_GIT_SLOW[$VCS_STATUS_WORKDIR]=0
+    fi
+
+  fi
+
+  if [[ -z $_RIFF_NEXT_VCS_DIR ]]; then
+
+    unset _RIFF_NEXT_VCS_DIR
+    _riff_update_prompt gitstatus
+
+  else
+
+    _RIFF_GITSTATUS_START_TIME=$EPOCHREALTIME
+
+    if ! gitstatus_query -d $_RIFF_NEXT_VCS_DIR -t 0 -c _riff_vcs_resume RIFF; then
+      unset _RIFF_NEXT_VCS_DIR
+      return
+    fi
+
+    case $VCS_STATUS_RESULT in
+      *-sync)
+        unset _RIFF_NEXT_VCS_DIR
+        _riff_update_prompt gitstatus
+        ;;
+      tout)
+        _RIFF_NEXT_VCS_DIR=""
+        ;;
+    esac
+
+  fi
+}
+
+_riff_vcs_gitstatus() {
+
+  local dir
+  local -F timeout
+
+  [[ $RIFF_DISABLE_GITSTATUS == true ]] && return 1
+
+  if [[ $_RIFF_REFRESH_REASON == precmd ]]; then
+
+    if (( -z $_RIFF_NEXT_VCS_DIR )); then
+
+      _RIFF_NEXT_VCS_DIR=${${GIT_DIR:a}:-$PWD}
+
+    else
+
+      dir=${${GIT_DIR:a}:-$PWD}
+
+      timeout=$RIFF_VCS_MAX_SYNC_LATENCY_SECONDS
+
+      while true; do
+
+        case "$_RIFF_GIT_SLOW[$dir]" in
+          "") [[ $dir == / ]] && break; dir=${dir:h};;
+          0) break;;
+          1) timeout=0; break;;
+        esac
+
+      done
+
+      _RIFF_GITSTATUS_START_TIME=$EPOCHREALTIME
+
+      gitstatus_query -d ${${GIT_DIR:a}:-$PWD} -t $timeout -c _riff_vcs_resume RIFF || return 1
+
+      [[ $VCS_STATUS_RESULT == tout ]] && _RIFF_NEXT_VCS_DIR=""
+
+    fi
+  fi
+
+  return 0
+}
+
+prompt_vcs() {
+
+  local vcs_prompt
+  local current_state
+  local -a backends
+
+  backends=($RIFF_VCS_BACKENDS)
+
+  if (( ${backends[(I)git]} )) && _riff_vcs_gitstatus; then
+    _riff_vcs_render $0 $1 $2 && return
+    backends=(${backends:#git})
+  fi
+
+  if (( $#backends )); then
+
+    VCS_WORKDIR_DIRTY=false
+    VCS_WORKDIR_HALF_DIRTY=false
+
+    # Actually invoke vcs_info manually to gather all information.
+    zstyle ':vcs_info:*' enable ${backends}
+
+    vcs_info
+
+    vcs_prompt="${vcs_info_msg_0_}"
+
+    if [[ -n "$vcs_prompt" ]]; then
+      if [[ "$VCS_WORKDIR_DIRTY" == true ]]; then
+        # $vcs_visual_identifier gets set in +vi-vcs-detect-changes in functions/vcs.zsh,
+        # as we have there access to vcs_info internal hooks.
+        current_state='modified'
+      else
+        if [[ "$VCS_WORKDIR_HALF_DIRTY" == true ]]; then
+          current_state='untracked'
+        else
+          current_state='clean'
+        fi
+      fi
+      $1_prompt_module "${0}_${(U)current_state}" "$2" "${vcs_states[$current_state]}" "$DEFAULT_COLOR" "$vcs_visual_identifier" 0 '' "$vcs_prompt"
+    fi
+  fi
+
+}
+
+
+_riff_vcs_module_setup(){
+
+  riff_vcs_init
+
+  if [[ $RIFF_DISABLE_GITSTATUS != true ]] && (( ${RIFF_VCS_BACKENDS[(I)git]} )); then
+
+    source ${RIFF_GITSTATUS_DIR:-${_riff_installation_dir}/gitstatus}/gitstatus.plugin.zsh
+
+    gitstatus_start                                                                 \
+      -s ${RIFF_VCS_MAX_NUM_STAGED:-$RIFF_VCS_STAGED_MAX_NUM}       \
+      -u ${RIFF_VCS_MAX_NUM_UNSTAGED:-$RIFF_VCS_UNSTAGED_MAX_NUM}   \
+      -d ${RIFF_VCS_MAX_NUM_UNTRACKED:-$RIFF_VCS_UNTRACKED_MAX_NUM} \
+      -m $RIFF_VCS_MAX_INDEX_SIZE_DIRTY                                     \
+      RIFF
+
+  fi
+}

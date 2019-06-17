@@ -1,0 +1,50 @@
+# vim:ft=bash
+################################################################
+# Vi Mode: show editing mode (NORMAL|INSERT|VISUAL)
+#
+# VISUAL mode is shown as NORMAL unless RIFF_VI_VISUAL_MODE_STRING is explicitly set.
+# Your ZSH version must be >= 5.3 if you set this parameter.
+
+typeset  -gi  _RIFF_REGION_ACTIVE
+
+prompt_vi_mode() {
+
+  _RIFF_REGION_ACTIVE=0
+
+  $1_prompt_module $0_NORMAL $2 "$DEFAULT_COLOR" white '' 0 '${$((!${#${:-$KEYMAP$_RIFF_REGION_ACTIVE}:#vicmd0})):#0}' "$RIFF_VI_COMMAND_MODE_STRING"
+  $1_prompt_module $0_VISUAL $2 "$DEFAULT_COLOR" white '' 0 '${$((!${#${:-$KEYMAP$_RIFF_REGION_ACTIVE}:#vicmd1})):#0}' "$RIFF_VI_VISUAL_MODE_STRING"
+
+  if [[ -n $RIFF_VI_INSERT_MODE_STRING ]]; then
+    $1_prompt_module $0_INSERT $2 "$DEFAULT_COLOR" blue '' 0 '${${KEYMAP:-0}:#vicmd}' "$RIFF_VI_INSERT_MODE_STRING"
+  fi
+
+}
+
+ _riff_zle_line_pre_redraw() {
+
+  if [[ $KEYMAP == vicmd ]] && [[ ${REGION_ACTIVE:-0} != $_RIFF_REGION_ACTIVE ]]; then
+
+    _RIFF_REGION_ACTIVE=${REGION_ACTIVE:-0}
+
+    zle
+    zle .reset-prompt
+    zle -R
+
+  fi
+}
+
+_riff_vcs_module_setup(){
+
+  if (( $+RIFF_VI_VISUAL_MODE_STRING )); then
+    if is-at-least 5.3; then
+      autoload -Uz add-zle-hook-widget
+      add-zle-hook-widget line-pre-redraw _riff_zle_line_pre_redraw
+      add-zle-hook-widget -D line-pre-redraw user:_zsh_highlight_widget_orig-\*
+      add-zle-hook-widget -D line-pre-redraw user:_zsh_autosuggest_bound_\*
+    else
+      >&2 print -P '%F{yellow}WARNING!%f RIFF_VI_VISUAL_MODE_STRING requires ZSH >= 5.3.'
+      >&2 print -r "Your zsh version is $ZSH_VERSION. Either upgrade zsh or unset RIFF_VI_VISUAL_MODE_STRING."
+    fi
+    fi
+
+}

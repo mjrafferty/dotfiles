@@ -2,8 +2,8 @@
 ################################################################
 # vcs
 # This file holds supplemental VCS functions
-# for the powerlevel9k-ZSH-theme
-# https://github.com/bhilburn/powerlevel9k
+# for the riff-ZSH-theme
+# https://github.com/bhilburn/riff
 ################################################################
 
 +vi-git-untracked() {
@@ -16,7 +16,7 @@
 
   local untrackedFiles=$(command git ls-files --others --exclude-standard "${repoTopLevel}" 2> /dev/null)
 
-  if [[ -z $untrackedFiles && "$POWERLEVEL9K_VCS_SHOW_SUBMODULE_DIRTY" == "true" ]]; then
+  if [[ -z $untrackedFiles && "$RIFF_VCS_SHOW_SUBMODULE_DIRTY" == "true" ]]; then
     untrackedFiles+=$(command git submodule foreach --quiet --recursive 'command git ls-files --others --exclude-standard' 2> /dev/null)
   fi
 
@@ -50,14 +50,14 @@
     # Are we on a remote-tracking branch?
     remote=${$(command git rev-parse --verify HEAD@{upstream} --symbolic-full-name 2>/dev/null)/refs\/(remotes|heads)\/}
 
-    if [[ -n "$POWERLEVEL9K_VCS_SHORTEN_LENGTH" ]]; then
-     if [ ${#hook_com[branch]} -gt ${POWERLEVEL9K_VCS_SHORTEN_LENGTH} ]; then
-       case "$POWERLEVEL9K_VCS_SHORTEN_STRATEGY" in
+    if [[ -n "$RIFF_VCS_SHORTEN_LENGTH" ]]; then
+     if [ ${#hook_com[branch]} -gt ${RIFF_VCS_SHORTEN_LENGTH} ]; then
+       case "$RIFF_VCS_SHORTEN_STRATEGY" in
          truncate_middle)
-           hook_com[branch]="${branch_name:0:$POWERLEVEL9K_VCS_SHORTEN_LENGTH}${POWERLEVEL9K_VCS_SHORTEN_DELIMITER}${branch_name: -$POWERLEVEL9K_VCS_SHORTEN_LENGTH}"
+           hook_com[branch]="${branch_name:0:$RIFF_VCS_SHORTEN_LENGTH}${RIFF_VCS_SHORTEN_DELIMITER}${branch_name: -$RIFF_VCS_SHORTEN_LENGTH}"
          ;;
          truncate_from_right)
-           hook_com[branch]="${branch_name:0:$POWERLEVEL9K_VCS_SHORTEN_LENGTH}${POWERLEVEL9K_VCS_SHORTEN_DELIMITER}"
+           hook_com[branch]="${branch_name:0:$RIFF_VCS_SHORTEN_LENGTH}${RIFF_VCS_SHORTEN_DELIMITER}"
          ;;
        esac
      fi
@@ -73,7 +73,7 @@
 }
 
 +vi-git-tagname() {
-    if [[ "$POWERLEVEL9K_VCS_HIDE_TAGS" == "false" ]]; then
+    if [[ "$RIFF_VCS_HIDE_TAGS" == "false" ]]; then
         # If we are on a tag, append the tagname to the current branch string.
         local tag
         tag=$(command git describe --tags --exact-match HEAD 2>/dev/null)
@@ -87,7 +87,7 @@
                 # exists, so we have to manually retrieve it and clobber the branch
                 # string.
                 local revision
-                revision=$(command git rev-list -n 1 --abbrev-commit --abbrev=${POWERLEVEL9K_VCS_INTERNAL_HASH_LENGTH} HEAD)
+                revision=$(command git rev-list -n 1 --abbrev-commit --abbrev=${RIFF_VCS_INTERNAL_HASH_LENGTH} HEAD)
                 hook_com[branch]="$(print_icon 'VCS_BRANCH_ICON')${revision} $(print_icon 'VCS_TAG_ICON')${tag}"
             else
                 # We are on both a tag and a branch; print both by appending the tag name.

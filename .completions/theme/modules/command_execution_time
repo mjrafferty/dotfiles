@@ -1,0 +1,60 @@
+# vim:ft=bash
+################################################################
+# Display the duration the command needed to run.
+
+typeset -gi RIFF_COMMAND_EXECUTION_TIME_PRECISION
+typeset -g RIFF_COMMAND_EXECUTION_TIME_FG
+typeset -g RIFF_COMMAND_EXECUTION_TIME_BG
+
+RIFF_COMMAND_EXECUTION_TIME_FG="white"
+RIFF_COMMAND_EXECUTION_TIME_BG="navy"
+RIFF_COMMAND_EXECUTION_TIME_PRECISION=2
+
+typeset -gF _RIFF_COMMAND_DURATION
+typeset -gF _RIFF_TIMER_START
+
+_riff_command_execution_time_run() {
+
+  _RIFF_COMMAND_DURATION=$((EPOCHREALTIME - _RIFF_TIMER_START))
+  _RIFF_TIMER_START=1e10
+
+  local humanReadableDuration
+
+  if (( _RIFF_COMMAND_DURATION < RIFF_COMMAND_EXECUTION_TIME_THRESHOLD )); then
+    _RIFF_RETURN_MESSAGE=""
+    return
+  fi
+
+  if (( _RIFF_COMMAND_DURATION < 60 )); then
+
+    if ((RIFF_COMMAND_EXECUTION_TIME_PRECISION == 0)); then
+      typeset -i humanReadableDuration
+    else
+      typeset -F ${RIFF_COMMAND_EXECUTION_TIME_PRECISION} humanReadableDuration
+    fi
+
+    humanReadableDuration=$_RIFF_COMMAND_DURATION
+
+  elif (( _RIFF_COMMAND_DURATION < 3600 )); then
+
+    humanReadableDuration=$(TZ=GMT; strftime '%M:%S' $(( int(rint(_RIFF_COMMAND_DURATION)) )))
+
+  else
+
+    humanReadableDuration=$(TZ=GMT; strftime '%H:%M:%S' $(( int(rint(_RIFF_COMMAND_DURATION)) )))
+
+  fi
+
+  _RIFF_RETURN_MESSAGE="${humanReadableDuration}"
+
+}
+
+_riff_command_execution_time_module_setup(){
+
+  _RIFF_TIMER_START=1e10
+
+}
+
+_riff_command_execution_time_module_preexec(){
+  _RIFF_TIMER_START=$EPOCHREALTIME
+}

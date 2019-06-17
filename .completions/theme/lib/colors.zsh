@@ -2,14 +2,14 @@
 ################################################################
 # Color functions
 # This file holds some color-functions for
-# the powerlevel9k-ZSH-theme
-# https://github.com/bhilburn/powerlevel9k
+# the riff-ZSH-theme
+# https://github.com/bhilburn/riff
 ################################################################
 
 # https://jonasjacek.github.io/colors/
 # use color names by default to allow dark/light themes to adjust colors based on names
-typeset -gAh __P9K_COLORS
-__P9K_COLORS=(
+typeset -gAh __RIFF_COLORS
+__RIFF_COLORS=(
   black 000
   red 001
   green 002
@@ -17,7 +17,7 @@ __P9K_COLORS=(
   blue 004
   magenta 005
   cyan 006
-  white 007
+  silver 007
   grey 008
   maroon 009
   lime 010
@@ -27,7 +27,7 @@ __P9K_COLORS=(
   purple 013
   aqua 014
   teal 014
-  silver 015
+  white 015
   grey0 016
   navyblue 017
   darkblue 018
@@ -277,16 +277,16 @@ getColorCode() {
     case $1 in
       foreground)
         local k
-        for k in "${(k@)__P9K_COLORS}"; do
-          local v=${__P9K_COLORS[$k]}
+        for k in "${(k@)__RIFF_COLORS}"; do
+          local v=${__RIFF_COLORS[$k]}
           print -P "%F{$v}$v - $k%f"
         done
         return
         ;;
       background)
         local k
-        for k in "${(k@)__P9K_COLORS}"; do
-          local v=${__P9K_COLORS[$k]}
+        for k in "${(k@)__RIFF_COLORS}"; do
+          local v=${__RIFF_COLORS[$k]}
           print -P "%K{$v}$v - $k%k"
         done
         return
@@ -297,28 +297,45 @@ getColorCode() {
   return 1
 }
 
-_p9k_translate_color() {
+_riff_translate_color() {
+
   if [[ $1 == '<->' ]]; then     # decimal color code: 255
-    _P9K_RETVAL=$1
+    _RIFF_RETURN_MESSAGE=$1
   elif [[ $1 == '#'* ]]; then  # hexademical color code: #ffffff
-    _P9K_RETVAL=$1
+    _RIFF_RETURN_MESSAGE=$1
   else                         # named color: red
     # Strip prifixes if there are any.
-    _P9K_RETVAL=$__P9K_COLORS[${${${1#bg-}#fg-}#br}]
+    _RIFF_RETURN_MESSAGE=$__RIFF_COLORS[${${${1#bg-}#fg-}#br}]
   fi
+
 }
 
 # Resolves a color to its numerical value, or an empty string. Communicates the result back
-# by setting _P9K_RETVAL.
-_p9k_color() {
-  local user_var=POWERLEVEL9K_${(U)${2}#prompt_}_${3}
-  _p9k_translate_color ${${(P)user_var}:-${1}}
+# by setting _RIFF_RETURN_MESSAGE.
+_riff_color() {
+
+  local user_var=RIFF_${(U)${2}#prompt_}_${3}
+
+  _riff_translate_color ${${(P)user_var}:-${1}}
+
 }
 
-_p9k_background() {
-  [[ -n $1 ]] && _P9K_RETVAL="%K{$1}" || _P9K_RETVAL="%k"
+_riff_background() {
+
+  if [[ -n $1 ]]; then
+    _RIFF_RETURN_MESSAGE="%K{$1}"
+  else
+    _RIFF_RETURN_MESSAGE="%k"
+  fi
+
 }
 
-_p9k_foreground() {
-  [[ -n $1 ]] && _P9K_RETVAL="%F{$1}" || _P9K_RETVAL="%f"
+_riff_foreground() {
+
+  if [[ -n $1 ]]; then
+    _RIFF_RETURN_MESSAGE="%F{$1}";
+  else
+    _RIFF_RETURN_MESSAGE="%f"
+  fi
+
 }

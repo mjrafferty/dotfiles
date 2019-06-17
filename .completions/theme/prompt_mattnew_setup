@@ -1,614 +1,154 @@
 # vim:ft=bash
 
-_p9k_installation_dir="$HOME/.completions/theme"
+_riff_installation_dir="$HOME/.completions/theme"
 
-typeset  -g   DEFAULT_COLOR
-typeset  -g   DEFAULT_COLOR_INVERTED
+## Configurables
+typeset -g  RIFF_LEFT_SEPARATOR
+typeset -g  RIFF_RIGHT_SEPARATOR
+typeset -ga RIFF_LEFT_PROMPT_ELEMENTS
+typeset -ga RIFF_RIGHT_PROMPT_ELEMENTS
 
-typeset  -g   _P9K_BG
-typeset  -g   _P9K_LEFT_PREFIX
-typeset  -g   _P9K_LEFT_SUFFIX
-typeset  -g   _P9K_PROMPT
-typeset  -g   _P9K_REFRESH_REASON
-typeset  -g   _P9K_RETVAL
-typeset  -g   _P9K_RIGHT_PREFIX
-typeset  -g   _P9K_RIGHT_SUFFIX
-typeset  -g   _P9K_RPROMPT
-typeset  -g   _P9K_ALIGNED_RPROMPT
-typeset  -ga  _P9K_CACHE_VAL
-typeset  -ga  _P9K_LEFT_JOIN; _P9K_LEFT_JOIN=(1)
-typeset  -ga  _P9K_RIGHT_JOIN; _P9K_RIGHT_JOIN=(1)
-typeset  -gi  _P9K_INITIALIZED=0
+RIFF_LEFT_SEPARATOR=" "
+RIFF_LEFT_SEPARATOR=" "
+RIFF_LEFT_PROMPT_ELEMENTS=(user context php_version)
+RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time date)
 
-typeset  -gi  _P9K_X
-typeset  -gi  _P9K_Y
-typeset  -gi  _P9K_M
-typeset  -g   _P9K_XY
-typeset  -g   _P9K_F
-typeset  -g   _P9K_N
-typeset  -ga  _P9K_T
-typeset  -gi  _P9K_I
+## Necessary global variables
+typeset -g _RIFF_EXIT_CODE        # Capture command exit code
+typeset -g _RIFF_RETURN_MESSAGE   # Used as a temporary storage for values to avoid using subshells
 
-source "${_p9k_installation_dir}/lib/utilities.zsh"
-source "${_p9k_installation_dir}/lib/defaults.zsh"
-source "${_p9k_installation_dir}/theme.conf"
-source "${_p9k_installation_dir}/lib/cache.zsh"
-source "${_p9k_installation_dir}/lib/timer.zsh"
-source "${_p9k_installation_dir}/lib/icons.zsh"
-source "${_p9k_installation_dir}/lib/colors.zsh"
-source "${_p9k_installation_dir}/lib/vcs.zsh"
+source "${_riff_installation_dir}/lib/colors.zsh"
 
-################################################################
-# The 'custom` prompt provides a way for users to invoke commands and display
-# the output in a segment.
-prompt_custom() {
+_riff_set_module_text() {
 
-  local segment_name command content
-  local -a cmd
+  local module module_text fg_color bg_color
+  local -u config # Convert module name to upper case when checking config
 
-  segment_name="${3:u}"
-  command="POWERLEVEL9K_CUSTOM_${segment_name}"
-  cmd=("${(@Q)${(z)${(P):-POWERLEVEL9K_CUSTOM_${segment_name}}}}")
+  module="$1"
+  config="RIFF_${module}"
 
-  whence $cmd[1] &>/dev/null || return
+  "_riff_${module}_run"
+  module_text="${_RIFF_RETURN_MESSAGE}"
 
-  content=$("$cmd[@]")
+  _riff_translate_color "${${(P)config}_FG}"
+  fg_color="${_RIFF_RETURN_MESSAGE}"
 
-  if [[ -n $content ]]; then
-    "$1_prompt_segment" "${0}_${3:u}" "$2" $DEFAULT_COLOR_INVERTED $DEFAULT_COLOR "CUSTOM_${segment_name}_ICON" 0 '' "$content"
-  fi
+  _riff_foreground "${fg_color}"
+  fg_color="${_RIFF_RETURN_MESSAGE}"
+
+  _riff_translate_color "${${(P)config}_BG}"
+  bg_color="${_RIFF_RETURN_MESSAGE}"
+
+  _riff_background "${bg_color}"
+  bg_color="${_RIFF_RETURN_MESSAGE}"
+
+  _RIFF_RETURN_MESSAGE="${fg_color}${bg_color}${module_text}"
 
 }
 
-left_prompt_segment() {
-# Begin a left prompt segment.
-#
-#    * $1: Name of the function that was originally invoked.
-#          Necessary, to make the dynamic color-overwrite mechanism work.
-#    * $2: The array index of the current segment.
-#    * $3: Background color.
-#    * $4: Foreground color.
-#    * $5: An identifying icon (must be a key of the icons array).
-#    * $6: 1 to to perform parameter expansion and process substitution.
-#    * $7: If not empty but becomes empty after parameter expansion and process substitution,
-#          the segment isn't rendered.
-#   * $8+: The segment content
+_riff_get_module_text() {
 
-  local bg_color bg fg subsep space icon glyph t pre post name style expand cond content
-  local -i has_icon
+  local module
 
-  if ! _p9k_cache_get "$0" "$1" "$2" "$3" "$4" "$5"; then
+  module="$1"
 
-    _p9k_color $3 $1 BACKGROUND
-    bg_color=$_P9K_RETVAL
-
-    _p9k_background $bg_color
-    bg=$_P9K_RETVAL
-
-    _p9k_color $4 $1 FOREGROUND
-    fg_color=$_P9K_RETVAL
-
-    _p9k_foreground $fg_color
-    fg=$_P9K_RETVAL
-
-    _p9k_get_icon LEFT_SUBSEGMENT_SEPARATOR
-    subsep=$_P9K_RETVAL
-
-    _p9k_escape_rcurly $POWERLEVEL9K_WHITESPACE_BETWEEN_LEFT_SEGMENTS
-    space=$_P9K_RETVAL
-
-    if [[ -n $5 ]]; then
-      _p9k_get_icon $5
-      if [[ -n $_P9K_RETVAL ]]; then
-        glyph=$_P9K_RETVAL
-        _p9k_color $fg_color $1 VISUAL_IDENTIFIER_COLOR
-        _p9k_foreground $_P9K_RETVAL
-        icon=$_P9K_RETVAL$glyph
-        has_icon=1
-      fi
-    fi
-
-    # Segment separator logic:
-    #
-    #   if [[ $_P9K_BG == NONE ]]; then
-    #     1
-    #   elif (( joined )); then
-    #     2
-    #   elif [[ $bg_color == $_P9K_BG ]]; then
-    #     3
-    #   else
-    #     4
-    #   fi
-
-    t=$#_P9K_T
-    _P9K_T+=$bg$POWERLEVEL9K_WHITESPACE_BETWEEN_LEFT_SEGMENTS$icon                         # 1
-    _P9K_T+=$bg$icon                                                                       # 2
-    if [[ -z $fg_color ]]; then
-      _p9k_foreground $DEFAULT_COLOR
-      _P9K_T+=$bg$_P9K_RETVAL$subsep$POWERLEVEL9K_WHITESPACE_BETWEEN_LEFT_SEGMENTS$icon    # 3
-    else
-      _P9K_T+=$bg$fg$subsep$POWERLEVEL9K_WHITESPACE_BETWEEN_LEFT_SEGMENTS$icon             # 3
-    fi
-    _p9k_get_icon LEFT_SEGMENT_SEPARATOR
-    _P9K_T+=$bg$_P9K_RETVAL$POWERLEVEL9K_WHITESPACE_BETWEEN_LEFT_SEGMENTS$icon             # 4
-
-    pre+="\${_P9K_N::=}\${_P9K_F::=}"
-    pre+="\${\${\${_P9K_BG:-0}:#NONE}:-\${_P9K_N::=$((t+1))}}"                        # 1
-    pre+="\${_P9K_N:=\${\${\$((_P9K_I>=$_P9K_LEFT_JOIN[$2])):#0}:+$((t+2))}}"         # 2
-    pre+="\${_P9K_N:=\${\${\$((!\${#\${:-0\$_P9K_BG}:#0$bg_color})):#0}:+$((t+3))}}"  # 3
-    pre+="\${_P9K_N:=\${\${_P9K_F::=%F{\$_P9K_BG\}}+$((t+4))}}}+}"                    # 4
-    pre+="%b\${_P9K_F}\${_P9K_T[\$_P9K_N]}"
-
-    _p9k_escape_rcurly %b$bg$fg
-    post="\${_P9K_C}$_P9K_RETVAL$space\${\${_P9K_I::=$2}+}\${\${_P9K_BG::=$bg_color}+}}"
-
-    _p9k_cache_set $has_icon $_P9K_RETVAL $pre $post
-  fi
-
-  name=$1
-  has_icon=${_P9K_CACHE_VAL[1]}
-  style=${_P9K_CACHE_VAL[2]}
-  expand=$6
-  cond=${7:-1}
-  shift 7
-
-  content="${(j::):-$style${^@}}"
-
-  if (( !(expand) )); then
-    content="\${(Q)\${:-${(qqq)content}}}"
-  fi
-
-  _P9K_PROMPT+="\${\${:-$cond}:+\${\${:-\${_P9K_C::=${content}}${_P9K_CACHE_VAL[3]}"
-
-  if (( has_icon )); then
-    _P9K_PROMPT+='${${(%):-$_P9K_C%1(l. .x)}[-1]%x}'
-  fi
-
-  _P9K_PROMPT+=${_P9K_CACHE_VAL[4]}
+  # if has cache; then
+  #   TODO
+  # else
+  _riff_set_module_text "$module"
+  # fi
 
 }
 
-right_prompt_segment() {
-# The same as left_prompt_segment above but for the right prompt.
-
-  local bg_color bg fg subsep space icon glyph t pre post name style expand cond content
-  local -i has_icon
-
-  if ! _p9k_cache_get "$0" "$1" "$2" "$3" "$4" "$5"; then
-
-    _p9k_color $3 $1 BACKGROUND
-    bg_color=$_P9K_RETVAL
-
-    _p9k_background $bg_color
-    bg=$_P9K_RETVAL
-
-    _p9k_color $4 $1 FOREGROUND
-    fg_color=$_P9K_RETVAL
-
-    _p9k_foreground $fg_color
-    fg=$_P9K_RETVAL
-
-    _p9k_get_icon RIGHT_SUBSEGMENT_SEPARATOR
-    subsep=$_P9K_RETVAL
-
-    if [[ -n $5 ]]; then
-      _p9k_get_icon $5
-      if [[ -n $_P9K_RETVAL ]]; then
-        _p9k_escape_rcurly $_P9K_RETVAL
-        icon=$_P9K_RETVAL
-        _p9k_color $fg_color $1 VISUAL_IDENTIFIER_COLOR
-        _p9k_foreground $_P9K_RETVAL
-        _p9k_escape_rcurly %b$bg$_P9K_RETVAL
-        icon_style=$_P9K_RETVAL
-        has_icon=1
-      fi
-    fi
-
-    # Segment separator logic is the same as in left_prompt_segment except that here #4 and #1 are
-    # identical.
-
-    t=$#_P9K_T
-    _p9k_get_icon RIGHT_SEGMENT_SEPARATOR
-    _P9K_T+="%F{$bg_color}$_P9K_RETVAL$bg$POWERLEVEL9K_WHITESPACE_BETWEEN_RIGHT_SEGMENTS$fg"  # 1
-    _P9K_T+=$fg                                                                               # 2
-    if [[ -z $fg_color ]]; then
-      _p9k_foreground $DEFAULT_COLOR
-      _P9K_T+=$bg$_P9K_RETVAL$subsep$POWERLEVEL9K_WHITESPACE_BETWEEN_RIGHT_SEGMENTS$fg        # 3
-    else
-      _P9K_T+=$bg$fg$subsep$POWERLEVEL9K_WHITESPACE_BETWEEN_RIGHT_SEGMENTS                    # 3
-    fi
-
-    pre+="\${_P9K_N::=}"
-    pre+="\${\${\${_P9K_BG:-0}:#NONE}:-\${_P9K_N::=$((t+1))}}"                        # 1
-    pre+="\${_P9K_N:=\${\${\$((_P9K_I>=$_P9K_RIGHT_JOIN[$2])):#0}:+$((t+2))}}"        # 2
-    pre+="\${_P9K_N:=\${\${\$((!\${#\${:-0\$_P9K_BG}:#0$bg_color})):#0}:+$((t+3))}}"  # 3
-    pre+="\${_P9K_N:=$((t+1))}}+}"                                                    # 4 == 1
-    pre+="\${_P9K_T[\$_P9K_N]}\${_P9K_C}$icon_style"
-
-    _p9k_escape_rcurly $POWERLEVEL9K_WHITESPACE_BETWEEN_RIGHT_SEGMENTS
-    space=$_P9K_RETVAL
-
-    _p9k_escape_rcurly %b$bg$fg
-    post="$icon$_P9K_RETVAL$space\${\${_P9K_I::=$2}+}\${\${_P9K_BG::=$bg_color}+}}"
-
-    _p9k_cache_set $has_icon $_P9K_RETVAL $pre $post
-  fi
-
-  has_icon=${_P9K_CACHE_VAL[1]}
-  style=${_P9K_CACHE_VAL[2]}
-  expand=$6
-  cond=${7:-1}
-  shift 7
-
-  _p9k_escape_rcurly $style
-  content="${(j::):-$_P9K_RETVAL${^@}}"
-
-  if (( !(expand) )); then
-    content="\${(Q)\${:-${(qqq)content}}}"
-  fi
-
-  _P9K_PROMPT+="\${\${:-$cond}:+\${\${:-\${_P9K_C::=${content}}${_P9K_CACHE_VAL[3]}"
-
-  if (( has_icon )); then
-    _P9K_PROMPT+='${${(%):-$_P9K_C%1(l. .x)}[-1]%x}'
-  fi
-
-  _P9K_PROMPT+=${_P9K_CACHE_VAL[4]}
-}
-
-build_left_prompt() {
+_riff_set_prompt(){
 
   local element
-  local -i index=1
 
-  for element in "${POWERLEVEL9K_LEFT_PROMPT_ELEMENTS[@]}"; do
-    # Remove joined information in direct calls
-    element=${element%_joined}
+  for ((element=1; element<=${#RIFF_LEFT_PROMPT_ELEMENTS[@]};element++)); do
 
-    # Check if it is a custom command, otherwise interpet it as
-    # a prompt.
-    if [[ $element == custom_* ]]; then
-      "prompt_custom" "left" "$index" $element[8,-1]
-    else
-      (( $+functions[prompt_$element] )) && "prompt_$element" "left" "$index"
+    _riff_get_module_text "${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
+
+    if ((element > 1)); then
+      PROMPT+="${RIFF_LEFT_SEPARATOR}"
     fi
 
-    ((++index))
+    PROMPT+="${_RIFF_RETURN_MESSAGE}"
+
   done
 
-  _p9k_get_icon LEFT_SEGMENT_END_SEPARATOR
-  _p9k_left_prompt_end_line $_P9K_RETVAL
+  PROMPT+="%f%k "
+
+  for ((element=1; element<=${#RIFF_RIGHT_PROMPT_ELEMENTS[@]};element++)); do
+
+    _riff_get_module_text "${RIFF_RIGHT_PROMPT_ELEMENTS[element]}"
+
+    if ((element > 1)); then
+      RPROMPT+="${RIFF_RIGHT_SEPARATOR}"
+    fi
+
+    RPROMPT+="${_RIFF_RETURN_MESSAGE}"
+
+  done
+
+  RPROMPT+="%f%k"
+
 }
 
-build_right_prompt() {
+_riff_precmd() {
+
+  _RIFF_EXIT_CODE=$?
+  #_RIFF_PIPE_EXIT_CODES=( "$pipestatus[@]" )
+
+  PROMPT=""
+  RPROMPT=""
+
+  _riff_set_prompt
+
+}
+
+_riff_preexec() {
+
+  # Run preexec hooks for modules
+  for element in "${RIFF_LEFT_PROMPT_ELEMENTS[@]}" "${RIFF_RIGHT_PROMPT_ELEMENTS[@]}"; do
+    if typeset -f "_riff_${element}_module_preexec" > /dev/null; then
+      "_riff_${element}_module_preexec";
+    fi
+  done
+
+}
+
+prompt_riff_setup() {
 
   local element
-  local -i index=1
 
-  for element in "${POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS[@]}"; do
-    # Remove joined information in direct calls
-    element=${element%_joined}
+  autoload -U colors && colors
+  autoload -Uz add-zsh-hook
 
-    # Check if it is a custom command, otherwise interpet it as
-    # a prompt.
-    if [[ $element == custom_* ]]; then
-      "prompt_custom" "right" "$index" $element[8,-1]
-    else
-      (( $+functions[prompt_$element] )) && "prompt_$element" "right" "$index"
-    fi
+  zmodload zsh/datetime
+  zmodload zsh/mathfunc
+  zmodload zsh/system
+  zmodload -F zsh/stat b:zstat
 
-    ((++index))
-  done
-}
+  add-zsh-hook precmd _riff_precmd
+  add-zsh-hook preexec _riff_preexec
 
-_p9k_set_prompt() {
+  #_riff_init_icons
 
-  local right
+  # Load enabled modules and run setup hooks
+  for element in "${RIFF_LEFT_PROMPT_ELEMENTS[@]}" "${RIFF_RIGHT_PROMPT_ELEMENTS[@]}"; do
 
-  emulate -L zsh
+    if [[ -f "${_riff_installation_dir}/modules/${element}" ]]; then
 
-  PROMPT=
-  RPROMPT=
+      source "${_riff_installation_dir}/modules/${element}";
 
-  if [[ $POWERLEVEL9K_DISABLE_RPROMPT == true ]]; then
-    _P9K_RPROMPT_DONE=1
-  else
-    _P9K_PROMPT=
-    build_right_prompt
-    right=$_P9K_RIGHT_PREFIX$_P9K_PROMPT$_P9K_RIGHT_SUFFIX
-    if [[ $POWERLEVEL9K_PROMPT_ON_NEWLINE != true || $POWERLEVEL9K_RPROMPT_ON_NEWLINE == true ]]; then
-      RPROMPT=$right
-      _P9K_RPROMPT_DONE=1
-    else
-      unset _P9K_RPROMPT_OVERRIDE
-      PROMPT="\${\${_P9K_RPROMPT::=\${_P9K_RPROMPT_OVERRIDE-$right}}+}"
-      _P9K_RPROMPT_DONE=0
-    fi
-  fi
-
-  _P9K_PROMPT=''
-
-  if build_left_prompt; then
-    PROMPT+=$_P9K_LEFT_PREFIX$_P9K_PROMPT$_P9K_LEFT_SUFFIX
-  else
-    PROMPT+=$_P9K_LEFT_PREFIX$_P9K_PROMPT${_P9K_LEFT_SUFFIX#$'\n'}
-  fi
-}
-
-_p9k_zle_line_finish() {
-
-  [[ -o TRANSIENT_RPROMPT ]] || return
-  _P9K_RPROMPT_OVERRIDE=
-  zle && zle .reset-prompt && zle -R
-
-}
-
-_p9k_do_multiline() {
-
-  if [[ $POWERLEVEL9K_PROMPT_ON_NEWLINE == true ]]; then
-
-    _p9k_get_icon MULTILINE_FIRST_PROMPT_PREFIX
-    _P9K_LEFT_PREFIX+="$_P9K_RETVAL%f%b%k"
-
-    _p9k_get_icon MULTILINE_LAST_PROMPT_PREFIX
-    _P9K_LEFT_SUFFIX+=$'\n'$_P9K_RETVAL
-
-    if [[ $POWERLEVEL9K_RPROMPT_ON_NEWLINE != true ]] && is-at-least 5.3; then
-      autoload -Uz add-zle-hook-widget
-      zle -N _p9k_zle_line_finish
-      add-zle-hook-widget line-finish _p9k_zle_line_finish
-      add-zle-hook-widget -D line-finish user:_zsh_highlight_widget_orig-\*
-      add-zle-hook-widget -D line-finish user:_zsh_autosuggest_bound_\*
-    fi
-
-  else
-    _P9K_LEFT_PREFIX+="%f%b%k"
-  fi
-}
-
-_p9k_check_warnings() {
-
-  # If the terminal `LANG` is set to `C`, this theme will not work at all.
-  if [[ $LANG == "C" && $POWERLEVEL9K_IGNORE_TERM_LANG == false ]]; then
-    print -P "\t%F{red}WARNING!%f Your terminal's 'LANG' is set to 'C', which breaks this theme!"
-    print -P "\t%F{red}WARNING!%f Please set your 'LANG' to a UTF-8 language, like 'en_US.UTF-8'"
-    print -P "\t%F{red}WARNING!%f _before_ loading this theme in your \~\.zshrc. Putting"
-    print -P "\t%F{red}WARNING!%f %F{blue}export LANG=\"en_US.UTF-8\"%f at the top of your \~\/.zshrc is sufficient."
-    print -P 'Set POWERLEVEL9K_IGNORE_TERM_LANG=true to suppress this warning.'
-  fi
-
-  # Display a warning if the terminal does not support 256 colors.
-  if [[ $POWERLEVEL9K_IGNORE_TERM_COLORS == false ]]; then
-    if zmodload zsh/terminfo 2>/dev/null && (( $+terminfo[colors] && $terminfo[colors] < 256 )); then
-      print -P '%F{red}WARNING!%f Your terminal appears to support fewer than 256 colors!'
-      print -P 'If your terminal supports 256 colors, please export the appropriate environment variable.'
-      print -P 'In most terminal emulators, adding %F{blue}export TERM=xterm-256color%f to your %F{yellow}~/.zshrc%f is sufficient.'
-      print -P 'Set %F{blue}POWERLEVEL9K_IGNORE_TERM_COLORS=true%f to suppress this warning.'
-    fi
-  fi
-}
-
-_p9k_do_ruler() {
-
-  local ruler_char sep ruler_len
-
-  if [[ $POWERLEVEL9K_SHOW_RULER == true ]]; then
-
-    _p9k_get_icon RULER_CHAR
-    ruler_char=$_P9K_RETVAL
-
-    _p9k_prompt_length $ruler_char
-
-    if (( _P9K_RETVAL == 1 && $#ruler_char == 1 )); then
-
-      _p9k_color "" prompt_ruler BACKGROUND
-      _p9k_background $_P9K_RETVAL
-      _P9K_LEFT_PREFIX+=$_P9K_RETVAL
-
-      _p9k_color "" prompt_ruler FOREGROUND
-      _p9k_foreground $_P9K_RETVAL
-      _P9K_LEFT_PREFIX+=$_P9K_RETVAL
-
-      if [[ $ruler_char == '.' ]]; then
-        sep=','
-      else
-        sep='.'
+      if typeset -f "_riff_${element}_module_setup" > /dev/null; then
+        "_riff_${element}_module_setup";
       fi
 
-      ruler_len='${$((COLUMNS-_P9K_IND))/#-*/0}'
-      _P9K_LEFT_PREFIX+="%b\${(pl$sep$ruler_len$sep$sep${(q)ruler_char}$sep)}%k%f"
-      _P9K_LEFT_PREFIX+='$_P9K_T[$((3+!_P9K_IND))]'
-
-    else
-      print -P "%F{red}WARNING!%f %BPOWERLEVEL9K_RULER_CHAR%b is not one character long. Ruler won't be rendered."
-      print -P "Either change the value of %BPOWERLEVEL9K_RULER_CHAR%b or set %BPOWERLEVEL9K_SHOW_RULER=false%b to"
-      print -P "disable ruler."
     fi
-  fi
-}
 
-_p9k_do_rprompt_align() {
-
-  _P9K_ALIGNED_RPROMPT='${${:-${_P9K_X::=0}${_P9K_Y::=$((COLUMNS+1))}'
-
-  repeat 10; do
-    _P9K_ALIGNED_RPROMPT+='${_P9K_M::=$(((_P9K_X+_P9K_Y)/2))}'
-    _P9K_ALIGNED_RPROMPT+='${_P9K_XY::=${${(%):-$_P9K_RPROMPT%$_P9K_M(l./$_P9K_M;$_P9K_Y./$_P9K_X;$_P9K_M)}##*/}}'
-    _P9K_ALIGNED_RPROMPT+='${_P9K_X::=${_P9K_XY%;*}}'
-    _P9K_ALIGNED_RPROMPT+='${_P9K_Y::=${_P9K_XY#*;}}'
-  done
-
-  _P9K_ALIGNED_RPROMPT+='${_P9K_X::=$((_P9K_X+2+_P9K_IND))}'
-  _P9K_ALIGNED_RPROMPT+='${_P9K_Y::=$((_P9K_X+31))}}+}'
-
-  repeat 32; do
-    _P9K_ALIGNED_RPROMPT+='%-$_P9K_Y(l.                                .)'
-  done
-
-  repeat 32; do
-    _P9K_ALIGNED_RPROMPT+='%-$_P9K_X(l. .)'
-  done
-
-  _P9K_ALIGNED_RPROMPT+=' $_P9K_RPROMPT'
-  _P9K_ALIGNED_RPROMPT+='$_P9K_T[$((3+!_P9K_IND))]'
-
-}
-
-_p9k_init_prompts(){
-
-  # Assemble left prompt
-  for ((i = 2; i <= $#POWERLEVEL9K_LEFT_PROMPT_ELEMENTS; ++i)); do
-    elem=$POWERLEVEL9K_LEFT_PROMPT_ELEMENTS[i]
-    if [[ $elem == *_joined ]]; then
-      _P9K_LEFT_JOIN+=$_P9K_LEFT_JOIN[((i-1))]
-    else
-      _P9K_LEFT_JOIN+=$i
-    fi
-  done
-
-  _p9k_init_left_prefix;
-
-  # Assemble right prompt
-  for ((i = 2; i <= $#POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS; ++i)); do
-    elem=$POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS[i]
-    if [[ $elem == *_joined ]]; then
-      _P9K_RIGHT_JOIN+=$_P9K_RIGHT_JOIN[((i-1))]
-    else
-      _P9K_RIGHT_JOIN+=$i
-    fi
-  done
-
-  _p9k_do_rprompt_align;
-
-  _P9K_RIGHT_PREFIX+='${${_P9K_BG::=NONE}+}${${_P9K_I::=0}+}'
-  _P9K_RIGHT_SUFFIX+='%f%b%k'
-  _P9K_RIGHT_PREFIX+='%f%b%k'
-
-}
-
-_p9k_init_left_prefix(){
-
-  _P9K_LEFT_PREFIX+='${${_P9K_IND::=${${ZLE_RPROMPT_INDENT:-1}/#-*/0}}+}'
-
-  if [[ $POWERLEVEL9K_PROMPT_ADD_NEWLINE == true ]]; then
-    repeat ${POWERLEVEL9K_PROMPT_ADD_NEWLINE_COUNT:-1} _P9K_LEFT_PREFIX+=$'\n'
-  fi
-
-  _p9k_do_ruler;
-
-  if [[ $ITERM_SHELL_INTEGRATION_INSTALLED == Yes ]]; then
-    _P9K_LEFT_PREFIX+="%{$(iterm2_prompt_mark)%}"
-  fi
-
-  _P9K_LEFT_PREFIX+='${${_P9K_BG::=NONE}+}${${_P9K_I::=0}+}'
-
-  _p9k_do_multiline;
-
-}
-
-_p9k_init() {
-
-  local i elem
-
-  # Return if already initialized
-  (( _P9K_INITIALIZED )) && return
-
-  _p9k_init_icons
-
-  # Load enabled segments
-  for element in "${POWERLEVEL9K_LEFT_PROMPT_ELEMENTS[@]}" "${POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS[@]}"; do
-    if [[ -f "${_p9k_installation_dir}/segments/${element}" ]]; then
-      source "${_p9k_installation_dir}/segments/${element}";
-			if typeset -f _p9k_${element}_segment_setup > /dev/null; then
-				_p9k_${element}_segment_setup;
-			fi
-    fi
-  done
-
-  if [[ $POWERLEVEL9K_COLOR_SCHEME == light ]]; then
-    DEFAULT_COLOR=white
-    DEFAULT_COLOR_INVERTED=black
-  else
-    DEFAULT_COLOR=black
-    DEFAULT_COLOR_INVERTED=white
-  fi
-
-  _p9k_init_prompts;
-
-  if [[ $POWERLEVEL9K_EXPERIMENTAL_TIME_REALTIME == true ]]; then
-    _p9k_init_timer
-  fi
-
-  _p9k_get_icon LEFT_SEGMENT_SEPARATOR
-  _P9K_T=("%f$_P9K_RETVAL" "" $'\n')
-
-  if _p9k_prompt_overflow_bug; then
-    _P9K_T+='%{%G%}'
-  else
-    _P9K_T+=''
-  fi
-
-  _p9k_check_warnings;
-
-  zle -N zle-keymap-select _p9k_zle_keymap_select
-
-  _P9K_INITIALIZED=1
-
-}
-
-powerlevel9k_prepare_prompts() {
-
-  _P9K_EXIT_CODE=$?
-  _P9K_PIPE_EXIT_CODES=( "$pipestatus[@]" )
-
-  unsetopt localoptions
-  setopt nopromptbang prompt{percent,subst}
-
-  _p9k_init
-
-  _P9K_REFRESH_REASON=precmd
-  _p9k_set_prompt
-  _P9K_REFRESH_REASON=''
-
-}
-
-powerlevel9k_preexec() {
-
-  # Run preexec hooks for segments
-  for element in "${POWERLEVEL9K_LEFT_PROMPT_ELEMENTS[@]}" "${POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS[@]}"; do
-    if [[ -f "${_p9k_installation_dir}/segments/${element}" ]]; then
-			if typeset -f _p9k_${element}_segment_preexec > /dev/null; then
-				_p9k_${element}_segment_preexec;
-			fi
-    fi
   done
 
 }
 
-prompt_mattnew_setup() {
-
-  prompt_powerlevel9k_teardown
-
-  add-zsh-hook precmd powerlevel9k_prepare_prompts
-  add-zsh-hook preexec powerlevel9k_preexec
-}
-
-prompt_powerlevel9k_teardown() {
-
-  add-zsh-hook -D precmd powerlevel9k_\*
-  add-zsh-hook -D preexec powerlevel9k_\*
-
-  PROMPT='%m%# '
-  RPROMPT=
-
-}
-
-autoload -U colors && colors
-autoload -Uz add-zsh-hook
-
-zmodload zsh/datetime
-zmodload zsh/mathfunc
-zmodload zsh/system
-zmodload -F zsh/stat b:zstat
-
-prompt_mattnew_setup
+prompt_riff_setup

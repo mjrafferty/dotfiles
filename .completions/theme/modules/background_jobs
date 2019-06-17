@@ -1,0 +1,20 @@
+# vim:ft=bash
+#
+################################################################
+# Segment to indicate background jobs with an icon.
+
+_riff_background_jobs_run() {
+
+  local msg
+
+  if [[ $RIFF_BACKGROUND_JOBS_VERBOSE == true ]]; then
+    if [[ $RIFF_BACKGROUND_JOBS_VERBOSE_ALWAYS == true ]]; then
+      msg='${(%):-%j}'
+    else
+      msg='${${(%):-%j}:#1}'
+    fi
+  fi
+
+  $1_prompt_module $0 $2 "$DEFAULT_COLOR" cyan BACKGROUND_JOBS_ICON 1 '${${(%):-%j}:#0}' "$msg"
+
+}
