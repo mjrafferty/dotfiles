@@ -574,7 +574,9 @@ print_icon() {
 #                 otherwise "print_icon" is used, which takes the users
 #                 overrides into account.
 get_icon_names() {
+
   _riff_init_icons
+
   # Iterate over a ordered list of keys of the icons array
   for key in ${(@kon)icons}; do
     echo -n "RIFF_$key: "
@@ -586,11 +588,16 @@ get_icon_names() {
       echo "$(print_icon "$key")"
     fi
   done
+
 }
 
-# Sets _RIFF_RETVAL to the icon whose name is supplied via $1.
+# Sets _RIFF_RETURN_MESSAGE to the icon whose name is supplied via $1.
 _riff_get_icon() {
+
   local var_name=RIFF_$1
-  _RIFF_RETVAL=${${${(P)var_name}-$icons[$1]}}
-  [[ $_RIFF_RETVAL != $'\b'? ]] || _RIFF_RETVAL="%{$_RIFF_RETVAL%}"  # penance for past sins
+
+  _RIFF_RETURN_MESSAGE=${${${(P)var_name}-$icons[$1]}}
+
+  [[ $_RIFF_RETURN_MESSAGE != $'\b'? ]] || _RIFF_RETURN_MESSAGE="%{$_RIFF_RETURN_MESSAGE%}"  # penance for past sins
+
 }

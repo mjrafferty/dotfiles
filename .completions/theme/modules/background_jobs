@@ -2,6 +2,12 @@
 #
 ################################################################
 # Segment to indicate background jobs with an icon.
+#
+typeset -g RIFF_BACKGROUND_JOBS_FG
+typeset -g RIFF_BACKGROUND_JOBS_BG
+
+RIFF_BACKGROUND_JOBS_FG="white"
+RIFF_BACKGROUND_JOBS_BG="cyan"
 
 _riff_background_jobs_run() {
 
@@ -14,7 +20,8 @@ _riff_background_jobs_run() {
       msg='${${(%):-%j}:#1}'
     fi
   fi
+  _riff_get_icon BACKGROUND_JOBS_ICON
 
-  $1_prompt_module $0 $2 "$DEFAULT_COLOR" cyan BACKGROUND_JOBS_ICON 1 '${${(%):-%j}:#0}' "$msg"
+  _RIFF_RETURN_MESSAGE="${_RIFF_RETURN_MESSAGE} %(1j.%j.)"
 
 }

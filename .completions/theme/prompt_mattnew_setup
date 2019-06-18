@@ -11,13 +11,14 @@ typeset -ga RIFF_RIGHT_PROMPT_ELEMENTS
 RIFF_LEFT_SEPARATOR=" "
 RIFF_LEFT_SEPARATOR=" "
 RIFF_LEFT_PROMPT_ELEMENTS=(user context php_version)
-RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time date)
+RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time date background_jobs)
 
 ## Necessary global variables
 typeset -g _RIFF_EXIT_CODE        # Capture command exit code
 typeset -g _RIFF_RETURN_MESSAGE   # Used as a temporary storage for values to avoid using subshells
 
 source "${_riff_installation_dir}/lib/colors.zsh"
+source "${_riff_installation_dir}/lib/icons.zsh"
 
 _riff_set_module_text() {
 
