@@ -28,6 +28,12 @@ _riff_set_module_text() {
   config="RIFF_${module}"
 
   "_riff_${module}_run"
+
+  if [[ -z "${_RIFF_RETURN_MESSAGE}" ]]; then
+    _RIFF_RETURN_MESSAGE=""
+    return;
+  fi
+
   module_text="${_RIFF_RETURN_MESSAGE}"
 
   _riff_translate_color "${${(P)config}_FG}"
@@ -62,23 +68,30 @@ _riff_get_module_text() {
 
 _riff_set_prompt(){
 
-  local element
+  local element left_length right_length
 
-  for ((element=1; element<=${#RIFF_LEFT_PROMPT_ELEMENTS[@]};element++)); do
+  left_length="${#RIFF_LEFT_PROMPT_ELEMENTS[@]}"
+  right_length="${#RIFF_RIGHT_PROMPT_ELEMENTS[@]}"
+
+  for ((element=1; element<=${left_length};element++)); do
 
     _riff_get_module_text "${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
 
-    if ((element > 1)); then
-      PROMPT+="${RIFF_LEFT_SEPARATOR}"
-    fi
+    if [[ -n "${_RIFF_RETURN_MESSAGE}" ]]; then
 
-    PROMPT+="${_RIFF_RETURN_MESSAGE}"
+      if ((element > 1)); then
+        PROMPT+="${RIFF_LEFT_SEPARATOR}"
+      fi
+
+      PROMPT+="${_RIFF_RETURN_MESSAGE}"
+
+    fi
 
   done
 
   PROMPT+="%f%k "
 
-  for ((element=1; element<=${#RIFF_RIGHT_PROMPT_ELEMENTS[@]};element++)); do
+  for ((element=1; element<=${right_length};element++)); do
 
     _riff_get_module_text "${RIFF_RIGHT_PROMPT_ELEMENTS[element]}"
 

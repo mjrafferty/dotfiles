@@ -12,7 +12,7 @@ _riff_php_version_run() {
 
   setopt extendedglob
 
-  _RIFF_RETURN_MESSAGE=$(php --version)
+  _RIFF_RETURN_MESSAGE=$(php --version 2> /dev/null)
 
   if [[ $_RIFF_RETURN_MESSAGE == (#b)(*$'\n')#(PHP [[:digit:].]##)* ]]; then
     version=$match[2]
