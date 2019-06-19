@@ -23,10 +23,12 @@ source "${_riff_installation_dir}/lib/icons.zsh"
 _riff_set_module_text() {
 
   local module module_text fg_color bg_color transition_color
-  local -u config # Convert module name to upper case when checking config
+  local -u fg_var bg_var # Convert module name to upper case when checking config
 
   module="$1"
-  config="RIFF_${module}"
+
+  fg_var="RIFF_${module}_FG"
+  bg_var="RIFF_${module}_BG"
 
   "_riff_${module}_run"
 
@@ -37,13 +39,13 @@ _riff_set_module_text() {
 
   module_text="${_RIFF_RETURN_MESSAGE}"
 
-  _riff_translate_color "${${(P)config}_FG}"
+  _riff_translate_color "${(P)${fg_var}}"
   fg_color="${_RIFF_RETURN_MESSAGE}"
 
   _riff_foreground "${fg_color}"
   fg_color="${_RIFF_RETURN_MESSAGE}"
 
-  _riff_translate_color "${${(P)config}_BG}"
+  _riff_translate_color "${(P)${bg_var}}"
   bg_color="${_RIFF_RETURN_MESSAGE}"
 
   _riff_foreground "${bg_color}"
@@ -74,6 +76,7 @@ _riff_set_prompt(){
 
   local element left_length right_length module_text
   local -u current_module
+  local -u fg_var bg_var # Convert module name to upper case when checking config
 
   left_length="${#RIFF_LEFT_PROMPT_ELEMENTS[@]}"
   right_length="${#RIFF_RIGHT_PROMPT_ELEMENTS[@]}"
@@ -87,9 +90,12 @@ _riff_set_prompt(){
 
       if ((element > 1)); then
 
-        current_module="RIFF_${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
+        current_module="${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
 
-        _riff_translate_color "${${(P)current_module}_BG}"
+        fg_var="RIFF_${current_module}_FG"
+        bg_var="RIFF_${current_module}_BG"
+
+        _riff_translate_color "${(P)${bg_var}}"
         bg_color="${_RIFF_RETURN_MESSAGE}"
 
         _riff_background "${bg_color}"
