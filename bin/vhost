@@ -60,7 +60,17 @@ main () {
 
     echo;
 
-    read -rp "Choose vhost number:" selection;
+    while (( valid != 1 )); do
+
+      read -rp "Choose vhost number:" selection;
+
+      if [[ "$selection" != [0-9]* ]] || ((selection > ${#vhost[*]} || selection < 0)); then
+        echo "Choose a valid selection."
+      else
+        valid=1;
+      fi
+
+    done
 
     vhost[0]=${vhost[$selection]};
 
