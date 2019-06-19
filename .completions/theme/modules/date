@@ -5,6 +5,9 @@
 typeset -g RIFF_DATE_FORMAT
 typeset -g RIFF_DATE_FG
 typeset -g RIFF_DATE_BG
+
+RIFF_DATE_FG="white"
+RIFF_DATE_BG="black"
 RIFF_DATE_FORMAT="%D{%m-%d-%y}"
 
 _riff_date_run() {

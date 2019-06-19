@@ -9,7 +9,7 @@ typeset -ga RIFF_LEFT_PROMPT_ELEMENTS
 typeset -ga RIFF_RIGHT_PROMPT_ELEMENTS
 
 RIFF_LEFT_SEPARATOR=""
-RIFF_RIGHT_SEPARATOR=""
+RIFF_RIGHT_SEPARATOR=""
 RIFF_LEFT_PROMPT_ELEMENTS=(user context php_version)
 RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time date background_jobs)
 
@@ -22,8 +22,8 @@ source "${_riff_installation_dir}/lib/icons.zsh"
 
 _riff_set_module_text() {
 
-  local module module_text fg_color bg_color transition_color
-  local -u fg_var bg_var # Convert module name to upper case when checking config
+  local module module_text fg_color bg_color transition_fg_color
+  local -u fg_var bg_var # Convert variable names to upper case when checking config
 
   module="$1"
 
@@ -49,12 +49,12 @@ _riff_set_module_text() {
   bg_color="${_RIFF_RETURN_MESSAGE}"
 
   _riff_foreground "${bg_color}"
-  transition_color="${_RIFF_RETURN_MESSAGE}"
+  transition_fg_color="${_RIFF_RETURN_MESSAGE}"
 
   _riff_background "${bg_color}"
   bg_color="${_RIFF_RETURN_MESSAGE}"
 
-  _RIFF_RETURN_MESSAGE="${fg_color}${bg_color} ${module_text} ${transition_color}"
+  _RIFF_RETURN_MESSAGE="${fg_color}${bg_color} ${module_text} ${transition_fg_color}"
 
 }
 
@@ -72,21 +72,19 @@ _riff_get_module_text() {
 
 }
 
-_riff_set_prompt(){
+_riff_set_left_prompt() {
 
-  local element left_length right_length module_text
-  local -u current_module
-  local -u fg_var bg_var # Convert module name to upper case when checking config
+  local element length module_text current_module
+  local -u fg_var bg_var # Convert variable names to upper case when checking config
 
-  left_length="${#RIFF_LEFT_PROMPT_ELEMENTS[@]}"
-  right_length="${#RIFF_RIGHT_PROMPT_ELEMENTS[@]}"
+  length="${#RIFF_LEFT_PROMPT_ELEMENTS[@]}"
 
-  for ((element=1; element<=left_length;element++)); do
+  for ((element=1; element<=length;element++)); do
 
     _riff_get_module_text "${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
     module_text="${_RIFF_RETURN_MESSAGE}"
 
-    if [[ -n "${_RIFF_RETURN_MESSAGE}" ]]; then
+    if [[ -n "${module_text}" ]]; then
 
       if ((element > 1)); then
 
@@ -113,29 +111,34 @@ _riff_set_prompt(){
 
   PROMPT+="%k${RIFF_LEFT_SEPARATOR}%f "
 
-  for ((element=1; element<=right_length;element++)); do
+}
+
+_riff_set_right_prompt(){
+
+  local element length module_text current_module transition_fg_color
+  local -u fg_var bg_var # Convert variable names to upper case when checking config
+
+  length="${#RIFF_RIGHT_PROMPT_ELEMENTS[@]}"
+
+  for ((element=1; element<=length;element++)); do
 
     _riff_get_module_text "${RIFF_RIGHT_PROMPT_ELEMENTS[element]}"
     module_text="${_RIFF_RETURN_MESSAGE}"
 
-    if [[ -n "${_RIFF_RETURN_MESSAGE}" ]]; then
+    if [[ -n "${module_text}" ]]; then
 
-      if ((element > 1)); then
+      current_module="${RIFF_RIGHT_PROMPT_ELEMENTS[element]}"
 
-        current_module="${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
+      fg_var="RIFF_${current_module}_FG"
+      bg_var="RIFF_${current_module}_BG"
 
-        fg_var="RIFF_${current_module}_FG"
-        bg_var="RIFF_${current_module}_BG"
+      _riff_translate_color "${(P)${bg_var}}"
+      transition_fg_color="${_RIFF_RETURN_MESSAGE}"
 
-        _riff_translate_color "${(P)${bg_var}}"
-        bg_color="${_RIFF_RETURN_MESSAGE}"
+      _riff_foreground "${transition_fg_color}"
+      transition_fg_color="${_RIFF_RETURN_MESSAGE}"
 
-        _riff_background "${bg_color}"
-        bg_color="${_RIFF_RETURN_MESSAGE}"
-
-        RPROMPT+="${bg_color}${RIFF_RIGHT_SEPARATOR}"
-
-      fi
+      RPROMPT+="${transition_fg_color}${RIFF_RIGHT_SEPARATOR}"
 
       RPROMPT+="${module_text}"
 
@@ -143,7 +146,13 @@ _riff_set_prompt(){
 
   done
 
-  RPROMPT+="%f%k"
+}
+
+_riff_set_prompts(){
+
+  _riff_set_left_prompt
+
+  _riff_set_right_prompt
 
 }
 
@@ -155,7 +164,7 @@ _riff_precmd() {
   PROMPT=""
   RPROMPT=""
 
-  _riff_set_prompt
+  _riff_set_prompts
 
 }
 
