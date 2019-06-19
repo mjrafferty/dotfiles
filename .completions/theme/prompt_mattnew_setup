@@ -81,7 +81,7 @@ _riff_set_prompt(){
   left_length="${#RIFF_LEFT_PROMPT_ELEMENTS[@]}"
   right_length="${#RIFF_RIGHT_PROMPT_ELEMENTS[@]}"
 
-  for ((element=1; element<=${left_length};element++)); do
+  for ((element=1; element<=left_length;element++)); do
 
     _riff_get_module_text "${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
     module_text="${_RIFF_RETURN_MESSAGE}"
@@ -113,7 +113,7 @@ _riff_set_prompt(){
 
   PROMPT+="%k${RIFF_LEFT_SEPARATOR}%f "
 
-  for ((element=1; element<=${right_length};element++)); do
+  for ((element=1; element<=right_length;element++)); do
 
     _riff_get_module_text "${RIFF_RIGHT_PROMPT_ELEMENTS[element]}"
     module_text="${_RIFF_RETURN_MESSAGE}"
@@ -122,9 +122,12 @@ _riff_set_prompt(){
 
       if ((element > 1)); then
 
-        current_module="RIFF_${RIFF_RIGHT_PROMPT_ELEMENTS[element]}"
+        current_module="${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
 
-        _riff_translate_color "${${(P)current_module}_BG}"
+        fg_var="RIFF_${current_module}_FG"
+        bg_var="RIFF_${current_module}_BG"
+
+        _riff_translate_color "${(P)${bg_var}}"
         bg_color="${_RIFF_RETURN_MESSAGE}"
 
         _riff_background "${bg_color}"
