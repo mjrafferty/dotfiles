@@ -8,8 +8,8 @@ typeset -g  RIFF_RIGHT_SEPARATOR
 typeset -ga RIFF_LEFT_PROMPT_ELEMENTS
 typeset -ga RIFF_RIGHT_PROMPT_ELEMENTS
 
-RIFF_LEFT_SEPARATOR=" "
-RIFF_LEFT_SEPARATOR=" "
+RIFF_LEFT_SEPARATOR=""
+RIFF_RIGHT_SEPARATOR=""
 RIFF_LEFT_PROMPT_ELEMENTS=(user context php_version)
 RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time date background_jobs)
 
@@ -52,7 +52,7 @@ _riff_set_module_text() {
   _riff_background "${bg_color}"
   bg_color="${_RIFF_RETURN_MESSAGE}"
 
-  _RIFF_RETURN_MESSAGE="${fg_color}${bg_color}${module_text}${transition_color}"
+  _RIFF_RETURN_MESSAGE="${fg_color}${bg_color} ${module_text} ${transition_color}"
 
 }
 
@@ -105,7 +105,7 @@ _riff_set_prompt(){
 
   done
 
-  PROMPT+="%f%k "
+  PROMPT+="%k${RIFF_LEFT_SEPARATOR}%f "
 
   for ((element=1; element<=${right_length};element++)); do
 
