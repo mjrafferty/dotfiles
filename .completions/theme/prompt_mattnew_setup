@@ -7,6 +7,9 @@ typeset -g  RIFF_LEFT_SEPARATOR
 typeset -g  RIFF_RIGHT_SEPARATOR
 typeset -ga RIFF_LEFT_PROMPT_ELEMENTS
 typeset -ga RIFF_RIGHT_PROMPT_ELEMENTS
+typeset -g _RIFF_NEWLINE
+_RIFF_NEWLINE='
+'
 
 RIFF_LEFT_SEPARATOR=""
 RIFF_RIGHT_SEPARATOR=""
@@ -99,7 +102,7 @@ _riff_set_left_prompt() {
         _riff_background "${bg_color}"
         bg_color="${_RIFF_RETURN_MESSAGE}"
 
-        PROMPT+="${bg_color}${RIFF_LEFT_SEPARATOR}"
+        PROMPT+="${bg_color}%k${RIFF_LEFT_SEPARATOR}${_RIFF_NEWLINE}"
 
       fi
 
