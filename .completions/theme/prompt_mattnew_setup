@@ -13,12 +13,14 @@ _RIFF_NEWLINE='
 
 RIFF_LEFT_SEPARATOR=""
 RIFF_RIGHT_SEPARATOR=""
-RIFF_LEFT_PROMPT_ELEMENTS=(user context php_version)
-RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time date background_jobs)
+RIFF_LEFT_PROMPT_ELEMENTS=(user newline context php_version)
+RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time date newline background_jobs)
 
 ## Necessary global variables
 typeset -g _RIFF_EXIT_CODE        # Capture command exit code
 typeset -g _RIFF_RETURN_MESSAGE   # Used as a temporary storage for values to avoid using subshells
+typeset -gi _RIFF_CURRENT_RPROMPT
+_RIFF_CURRENT_RPROMPT=1
 
 source "${_riff_installation_dir}/lib/colors.zsh"
 source "${_riff_installation_dir}/lib/icons.zsh"
@@ -77,36 +79,50 @@ _riff_get_module_text() {
 
 _riff_set_left_prompt() {
 
-  local element length module_text current_module
-  local -u fg_var bg_var # Convert variable names to upper case when checking config
+  local element length module_text current_module faux_rprompt
+  local -u bg_var # Convert variable names to upper case when checking config
 
   length="${#RIFF_LEFT_PROMPT_ELEMENTS[@]}"
 
   for ((element=1; element<=length;element++)); do
 
-    _riff_get_module_text "${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
-    module_text="${_RIFF_RETURN_MESSAGE}"
+    current_module="${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
 
-    if [[ -n "${module_text}" ]]; then
+    if [[ "${current_module}" == "newline" ]]; then
 
-      if ((element > 1)); then
+      PROMPT+="${bg_color}%k${RIFF_LEFT_SEPARATOR}"
 
-        current_module="${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
+      _riff_make_rprompt
+      faux_rprompt="${_RIFF_RETURN_MESSAGE}"
 
-        fg_var="RIFF_${current_module}_FG"
-        bg_var="RIFF_${current_module}_BG"
+      fill_line="                                   "
 
-        _riff_translate_color "${(P)${bg_var}}"
-        bg_color="${_RIFF_RETURN_MESSAGE}"
+      PROMPT+="${fill_line}${faux_rprompt}${_RIFF_NEWLINE}"
 
-        _riff_background "${bg_color}"
-        bg_color="${_RIFF_RETURN_MESSAGE}"
+    else
 
-        PROMPT+="${bg_color}%k${RIFF_LEFT_SEPARATOR}${_RIFF_NEWLINE}"
+      _riff_get_module_text "$current_module"
+      module_text="${_RIFF_RETURN_MESSAGE}"
+
+      if [[ -n "${module_text}" ]]; then
+
+        if [[ -n "$PROMPT" ]]; then
+
+          bg_var="RIFF_${current_module}_BG"
+
+          _riff_translate_color "${(P)${bg_var}}"
+          bg_color="${_RIFF_RETURN_MESSAGE}"
+
+          _riff_background "${bg_color}"
+          bg_color="${_RIFF_RETURN_MESSAGE}"
+
+          PROMPT+="${bg_color}${RIFF_LEFT_SEPARATOR}"
+
+        fi
+
+        PROMPT+="${module_text}"
 
       fi
-
-      PROMPT+="${module_text}"
 
     fi
 
@@ -116,38 +132,47 @@ _riff_set_left_prompt() {
 
 }
 
-_riff_set_right_prompt(){
+_riff_make_rprompt(){
 
-  local element length module_text current_module transition_fg_color
-  local -u fg_var bg_var # Convert variable names to upper case when checking config
+  local length module_text current_module transition_fg_color rprompt
+  local -u bg_var # Convert variable names to upper case when checking config
 
   length="${#RIFF_RIGHT_PROMPT_ELEMENTS[@]}"
 
-  for ((element=1; element<=length;element++)); do
 
-    _riff_get_module_text "${RIFF_RIGHT_PROMPT_ELEMENTS[element]}"
-    module_text="${_RIFF_RETURN_MESSAGE}"
+  while ((_RIFF_CURRENT_RPROMPT <= length)); do
 
-    if [[ -n "${module_text}" ]]; then
+    current_module="${RIFF_RIGHT_PROMPT_ELEMENTS[_RIFF_CURRENT_RPROMPT]}"
+    ((_RIFF_CURRENT_RPROMPT++));
 
-      current_module="${RIFF_RIGHT_PROMPT_ELEMENTS[element]}"
+    if [[ "${current_module}" == "newline" ]]; then
+      break;
+    else
 
-      fg_var="RIFF_${current_module}_FG"
-      bg_var="RIFF_${current_module}_BG"
+      _riff_get_module_text "${current_module}"
+      module_text="${_RIFF_RETURN_MESSAGE}"
 
-      _riff_translate_color "${(P)${bg_var}}"
-      transition_fg_color="${_RIFF_RETURN_MESSAGE}"
+      if [[ -n "${module_text}" ]]; then
 
-      _riff_foreground "${transition_fg_color}"
-      transition_fg_color="${_RIFF_RETURN_MESSAGE}"
+        bg_var="RIFF_${current_module}_BG"
 
-      RPROMPT+="${transition_fg_color}${RIFF_RIGHT_SEPARATOR}"
+        _riff_translate_color "${(P)${bg_var}}"
+        transition_fg_color="${_RIFF_RETURN_MESSAGE}"
 
-      RPROMPT+="${module_text}"
+        _riff_foreground "${transition_fg_color}"
+        transition_fg_color="${_RIFF_RETURN_MESSAGE}"
+
+        rprompt+="${transition_fg_color}${RIFF_RIGHT_SEPARATOR}"
+
+        rprompt+="${module_text}"
+
+      fi
 
     fi
 
   done
+
+  _RIFF_RETURN_MESSAGE="${rprompt}"
 
 }
 
@@ -155,7 +180,10 @@ _riff_set_prompts(){
 
   _riff_set_left_prompt
 
-  _riff_set_right_prompt
+  _riff_make_rprompt
+  RPROMPT="${_RIFF_RETURN_MESSAGE}"
+
+  _RIFF_CURRENT_RPROMPT=1
 
 }
 
