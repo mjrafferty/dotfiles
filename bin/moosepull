@@ -231,6 +231,9 @@ _buildQuery () {
       "proftpd_auth"|"proftpd_sftp"|"proftpd_tls"|"proftpd_xfer")
         path=",\"filter\" : { \"term\" : { \"path\" : \"/var/log/${log/_//}.log\" }}";
         ;;
+      "web.all")
+        path=",\"filter\" : { \"regexp\" : { \"path\" : \"/(home/.*/var|var/log/interworx)/.*/logs/.*log\" }}";
+        ;;
       *)
         path=",\"filter\" : { \"regexp\" : { \"path\" : \"/(home/.*/var|var/log/interworx)/${log}/logs/.*log\" }}";
         ;;
@@ -263,7 +266,7 @@ _cleanup () {
 # Main
 main () {
 
-  local cmdline log_host indices logs start_time end_time domains ticket
+  local cmdline log_host indices logs start_time end_time domains ticket message cont
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
@@ -329,6 +332,32 @@ main () {
       exit 0;
     fi
   fi
+
+  for index in "${indices[@]}"; do
+
+    if [[ "$index" == "web"* && -z "${domains[0]}" ]]; then
+
+      message="Request for $index but no --domains specified.\n"
+      message+="Continuing will result in ALL matching domains being output to a single file."
+
+      echo -e "$message";
+
+      read -rp "Continue? (N,y) " cont;
+
+      if [[ "$cont" != "y" ]]; then
+        return;
+      else
+        domains=("web.all")
+      fi
+
+    elif [[ "$index" == "secure" && -z "${logs[0]}" ]]; then
+
+      echo "Request for $index requires --logs be specified."
+      return 1;
+
+    fi
+
+  done
 
   if [[ -z "$ticket" ]]; then
     read -rp "Ticket: " ticket;

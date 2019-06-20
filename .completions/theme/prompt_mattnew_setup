@@ -106,7 +106,7 @@ _riff_set_left_prompt() {
 
       if [[ -n "${module_text}" ]]; then
 
-        if [[ -n "$PROMPT" ]]; then
+        if [[ -n "$PROMPT" && "$PROMPT" != *"${_RIFF_NEWLINE}" ]]; then
 
           bg_var="RIFF_${current_module}_BG"
 
