@@ -350,7 +350,7 @@ main () {
         domains=("web.all")
       fi
 
-    elif [[ "$index" == "secure" && -z "${logs[0]}" ]]; then
+    elif [[ "$index" == "syslog" && -z "${logs[0]}" ]]; then
 
       echo "Request for $index requires --logs be specified."
       return 1;

@@ -20,6 +20,10 @@ RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time date newline background_jobs)
 typeset -g _RIFF_EXIT_CODE        # Capture command exit code
 typeset -g _RIFF_RETURN_MESSAGE   # Used as a temporary storage for values to avoid using subshells
 typeset -gi _RIFF_CURRENT_RPROMPT
+typeset -gi _RIFF_LEFT_TEXT_LENGTH
+typeset -gi _RIFF_RIGHT_TEXT_LENGTH
+typeset -gi _RIFF_LEFT_TEXT_LENGTH
+typeset -gi _RIFF_RIGHT_TEXT_LENGTH
 _RIFF_CURRENT_RPROMPT=1
 
 source "${_riff_installation_dir}/lib/colors.zsh"
