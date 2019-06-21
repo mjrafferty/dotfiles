@@ -7,13 +7,11 @@ typeset -g  RIFF_LEFT_SEPARATOR
 typeset -g  RIFF_RIGHT_SEPARATOR
 typeset -ga RIFF_LEFT_PROMPT_ELEMENTS
 typeset -ga RIFF_RIGHT_PROMPT_ELEMENTS
-typeset -g _RIFF_NEWLINE
-_RIFF_NEWLINE='
-'
-
+typeset -gi RIFF_PROFILER
+RIFF_PROFILER=0
 RIFF_LEFT_SEPARATOR=""
 RIFF_RIGHT_SEPARATOR=""
-RIFF_LEFT_PROMPT_ELEMENTS=(user newline context newline php_version)
+RIFF_LEFT_PROMPT_ELEMENTS=(php_version newline context newline user)
 RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time newline date newline background_jobs)
 
 ## Necessary global variables
@@ -23,9 +21,12 @@ typeset -gi _RIFF_CURRENT_RPROMPT
 typeset -gi _RIFF_LEFT_TEXT_LENGTH
 typeset -gi _RIFF_RIGHT_TEXT_LENGTH
 typeset -gi _RIFF_LAST_TEXT_LENGTH
+typeset -g _RIFF_NEWLINE
 _RIFF_LEFT_TEXT_LENGTH=0;
 _RIFF_RIGHT_TEXT_LENGTH=0;
 _RIFF_CURRENT_RPROMPT=1
+_RIFF_NEWLINE='
+'
 
 source "${_riff_installation_dir}/lib/colors.zsh"
 source "${_riff_installation_dir}/lib/icons.zsh"
@@ -49,8 +50,6 @@ _riff_set_module_text() {
 
   module_text=" ${_RIFF_RETURN_MESSAGE} "
 
-  _RIFF_LAST_TEXT_LENGTH="${#${(%%)module_text}}"
-
   _riff_translate_color "${(P)${fg_var}}"
   fg_color="${_RIFF_RETURN_MESSAGE}"
 
@@ -72,9 +71,13 @@ _riff_set_module_text() {
 
 _riff_get_module_text() {
 
-  local module
+  local module start
 
   module="$1"
+
+  if ((RIFF_PROFILER > 0)); then
+    start=${EPOCHREALTIME}
+  fi
 
   # if has cache; then
   #   TODO
@@ -82,13 +85,18 @@ _riff_get_module_text() {
   _riff_set_module_text "$module"
   # fi
 
+  _RIFF_LAST_TEXT_LENGTH="${#${(%)_RIFF_RETURN_MESSAGE}}"
+
+  if ((RIFF_PROFILER > 0)); then
+    printf "%25s: %f\n" "$module" "$((EPOCHREALTIME-start))"
+  fi
+
 }
 
 _riff_set_left_prompt() {
 
   local element length module_text current_module faux_rprompt columns fill_line
   local -u bg_var # Convert variable names to upper case when checking config
-  (( columns= $COLUMNS - 1));
 
   length="${#RIFF_LEFT_PROMPT_ELEMENTS[@]}"
 
@@ -103,14 +111,13 @@ _riff_set_left_prompt() {
       _riff_make_rprompt
       faux_rprompt="${_RIFF_RETURN_MESSAGE}"
 
-      ((columns-=(_RIFF_LEFT_TEXT_LENGTH+_RIFF_RIGHT_TEXT_LENGTH) ));
-
-      _RIFF_RIGHT_TEXT_LENGTH=0;
+      (( columns = $COLUMNS - 1 - _RIFF_LEFT_TEXT_LENGTH - _RIFF_RIGHT_TEXT_LENGTH ));
 
       fill_line="$(printf "%0${columns}s")"
 
       PROMPT+="${fill_line}${faux_rprompt}${_RIFF_NEWLINE}"
 
+      _RIFF_RIGHT_TEXT_LENGTH=0;
       _RIFF_LEFT_TEXT_LENGTH=0;
 
     else
@@ -148,6 +155,7 @@ _riff_set_left_prompt() {
   PROMPT+="%k${RIFF_LEFT_SEPARATOR}%f "
 
 }
+
 
 _riff_make_rprompt(){
 
@@ -209,6 +217,8 @@ _riff_set_prompts(){
 
 _riff_precmd() {
 
+  local start
+
   _RIFF_EXIT_CODE=$?
   #_RIFF_PIPE_EXIT_CODES=( "$pipestatus[@]" )
 
@@ -216,9 +226,17 @@ _riff_precmd() {
   _RIFF_RIGHT_TEXT_LENGTH=0;
   PROMPT=""
   RPROMPT=""
-  ZLE_RPROMPT_INDENT=0
+  #ZLE_RPROMPT_INDENT=0
+
+  if ((RIFF_PROFILER > 0)); then
+    start="$EPOCHREALTIME"
+  fi
 
   _riff_set_prompts
+
+  if ((RIFF_PROFILER > 0)); then
+    printf "%25s: %f\n" "Total" "$((EPOCHREALTIME-start))"
+  fi
 
 }
 
