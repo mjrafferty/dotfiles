@@ -1,6 +1,10 @@
 # vim:ft=bash
 ################################################################
 # Command number (in local history)
-prompt_history() {
-  "$1_prompt_module" "$0" "$2" "grey50" "$DEFAULT_COLOR" '' 0 '' '%h'
+
+typeset -g RIFF_HISTORY_FG="white"
+typeset -g RIFF_HISTORY_BG="grey50"
+
+_riff_history_run() {
+  _RIFF_RETURN_MESSAGE="%h"
 }

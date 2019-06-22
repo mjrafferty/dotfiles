@@ -9,9 +9,24 @@
 # Individual elements are patterns. They are expanded with the options set
 # by `emulate zsh && setopt extended_glob`.
 
+typeset -g RIFF_DIR_BG="blue"
+typeset -g RIFF_DIR_FG="white"
+typeset -g RIFF_DIR_MAX_LENGTH
+typeset -g RIFF_DIR_PACKAGE_FILES
+typeset -g RIFF_DIR_PATH_ABSOLUTE
+typeset -g RIFF_DIR_PATH_HIGHLIGHT_FOREGROUND
+typeset -g RIFF_DIR_PATH_SEPARATOR="/"
+typeset -g RIFF_DIR_PATH_SEPARATOR_FOREGROUND
+typeset -g RIFF_HOME_FOLDER_ABBREVIATION="~"
+typeset -g RIFF_SHORTEN_DIR_LENGTH
+typeset -g RIFF_SHORTEN_DELIMITER
+typeset -g RIFF_SHORTEN_DELIMITER_LENGTH
+typeset -g RIFF_SHORTEN_FOLDER_MARKER
+typeset -g RIFF_SHORTEN_STRATEGY
+
 _riff_shorten_delim_len() {
-  _RIFF_RETVAL=${RIFF_SHORTEN_DELIMITER_LENGTH:--1}
-  (( _RIFF_RETVAL >= 0 )) || _riff_prompt_length $1
+  _RIFF_RETURN_MESSAGE=${RIFF_SHORTEN_DELIMITER_LENGTH:--1}
+  (( _RIFF_RETURN_MESSAGE >= 0 )) || _riff_prompt_length $1
 }
 
 _riff_truncate_to_unique() {
@@ -20,7 +35,7 @@ _riff_truncate_to_unique() {
   [[ $p == /* ]] && (( ++i ))
   delim=${RIFF_SHORTEN_DELIMITER-'*'}
   _riff_prompt_length $delim
-  local -i real_delim_len=_RIFF_RETVAL
+  local -i real_delim_len=_RIFF_RETURN_MESSAGE
   local -i d=${RIFF_SHORTEN_DELIMITER_LENGTH:--1}
   (( d >= 0 )) || d=real_delim_len
   shortenlen=${RIFF_SHORTEN_DIR_LENGTH:-1}
@@ -60,7 +75,7 @@ _riff_truncate_absolute() {
 
     _riff_shorten_delim_len $delim
 
-    if (( $#p > shortenlen + $_RIFF_RETVAL )); then
+    if (( $#p > shortenlen + $_RIFF_RETURN_MESSAGE )); then
 
       local -i n=shortenlen
       local -i i=$#parts
@@ -143,7 +158,7 @@ _riff_truncated_with_package_name(){
     }
   if (( shortenlen > 0 )); then
     _riff_shorten_delim_len $delim
-    local -i d=_RIFF_RETVAL pref=shortenlen suf=0 i=2
+    local -i d=_RIFF_RETURN_MESSAGE pref=shortenlen suf=0 i=2
     [[ $RIFF_SHORTEN_STRATEGY == truncate_middle ]] && suf=pref
     for (( ; i < $#parts; ++i )); do
       local dir=$parts[i]
@@ -157,16 +172,18 @@ _riff_truncated_with_package_name(){
 
 ################################################################
 # Dir: current working directory
-prompt_dir() {
+_riff_dir_run() {
 
   emulate -L zsh && setopt extended_glob
 
-  local p
-  local func=''
+  local p func state icon last_fg delim sep
   local -a parts
-  local -i fake_first=0
-  local delim=${RIFF_SHORTEN_DELIMITER-$'\u2026'}
-  local -i shortenlen=${RIFF_SHORTEN_DIR_LENGTH:--1}
+  local -i fake_first shortenlen len
+
+  delim=${RIFF_SHORTEN_DELIMITER-$'\u2026'}
+  sep=$RIFF_DIR_PATH_SEPARATOR
+  fake_first=0
+  shortenlen=${RIFF_SHORTEN_DIR_LENGTH:--1}
 
   if [[ $RIFF_DIR_PATH_ABSOLUTE == true ]]; then
     p=$PWD
@@ -209,7 +226,7 @@ prompt_dir() {
     truncate_with_folder_marker) _riff_truncate_with_folder_marker ;;
     *)
       if (( shortenlen > 0 )); then
-        local -i len=$#parts
+        len=$#parts
         [[ -z $parts[1] ]] && (( --len ))
         if (( len > shortenlen )); then
           parts[1,-shortenlen-1]=($'\0')
@@ -218,58 +235,51 @@ prompt_dir() {
     ;;
   esac
 
-  [[ $RIFF_DIR_SHOW_WRITABLE == true && ! -w $PWD ]]
-  local w=$?
-
-  if ! _riff_cache_get $0 $w $fake_first "$delim" "${parts[@]}"; then
-    local state='' icon=''
-    if (( ! w )); then
-      state=NOT_WRITABLE
-      icon=LOCK_ICON
-    else
-      case $PWD in
-        /etc|/etc/*) state=ETC;            icon=ETC_ICON;;
-        ~)           state=HOME;           icon=HOME_ICON;;
-        ~/*)         state=HOME_SUBFOLDER; icon=HOME_SUB_ICON;;
-        *)           state=DEFAULT;        icon=FOLDER_ICON;;
-      esac
-    fi
-
-    local style=%b
-    _riff_color blue $0_$state BACKGROUND
-    _riff_background $_RIFF_RETVAL
-    style+=$_RIFF_RETVAL
-
-    _riff_color "$DEFAULT_COLOR" "$0_$state" FOREGROUND
-    _riff_foreground $_RIFF_RETVAL
-    style+=$_RIFF_RETVAL
-
-    parts=("${(@)parts//\%/%%}")
-    [[ $fake_first == 0 && $parts[1] == '~' ]] && parts[1]=$RIFF_HOME_FOLDER_ABBREVIATION$style
-    [[ $RIFF_DIR_OMIT_FIRST_CHARACTER == true && $#parts > 1 && -n $parts[2] ]] && parts[1]=()
-
-    local last_fg=
-    [[ $RIFF_DIR_PATH_HIGHLIGHT_BOLD == true ]] && last_fg+=%B
-    if [[ -n $RIFF_DIR_PATH_HIGHLIGHT_FOREGROUND ]]; then
-      _riff_translate_color $RIFF_DIR_PATH_HIGHLIGHT_FOREGROUND
-      _riff_foreground $_RIFF_RETVAL
-      last_fg+=$_RIFF_RETVAL
-    fi
-    parts[-1]=$last_fg${parts[-1]//$'\0'/$'\0'$last_fg}$style
-    parts=("${(@)parts//$'\0'/$delim$style}")
-
-    local sep=$RIFF_DIR_PATH_SEPARATOR$style
-
-    if [[ -n $RIFF_DIR_PATH_SEPARATOR_FOREGROUND ]]; then
-      _riff_translate_color $RIFF_DIR_PATH_SEPARATOR_FOREGROUND
-      _riff_foreground $_RIFF_RETVAL
-      sep=$_RIFF_RETVAL$sep
-    fi
-
-    _riff_cache_set "$0_$state" "$2" blue "$DEFAULT_COLOR" "$icon" 0 "" "${(pj.$sep.)parts}"
+  if [[ $RIFF_DIR_SHOW_WRITABLE == true && ! -w $PWD ]]; then
+    state=NOT_WRITABLE
+    icon=LOCK_ICON
+  else
+    case $PWD in
+      /etc|/etc/*) state=ETC;            icon=ETC_ICON;;
+      ~)           state=HOME;           icon=HOME_ICON;;
+      ~/*)         state=HOME_SUBFOLDER; icon=HOME_SUB_ICON;;
+      *)           state=DEFAULT;        icon=FOLDER_ICON;;
+    esac
   fi
 
-  "$1_prompt_module" "$_RIFF_CACHE_VAL[@]"
+  parts=("${(@)parts//\%/%%}")
+
+  if [[ $fake_first == 0 && $parts[1] == '~' ]]; then
+    parts[1]=$RIFF_HOME_FOLDER_ABBREVIATION
+  fi
+
+  if [[ $RIFF_DIR_OMIT_FIRST_CHARACTER == true && $#parts > 1 && -n $parts[2] ]]; then
+    parts[1]=()
+  fi
+
+
+  if [[ $RIFF_DIR_PATH_HIGHLIGHT_BOLD == true ]]; then
+    last_fg+=%B
+  fi
+
+  if [[ -n $RIFF_DIR_PATH_HIGHLIGHT_FOREGROUND ]]; then
+    _riff_translate_color $RIFF_DIR_PATH_HIGHLIGHT_FOREGROUND
+    _riff_foreground $_RIFF_RETURN_MESSAGE
+    last_fg+=$_RIFF_RETURN_MESSAGE
+  fi
+
+  parts[-1]=$last_fg${parts[-1]//$'\0'/$'\0'$last_fg}
+
+  parts=("${(@)parts//$'\0'/$delim}")
+
+
+  if [[ -n $RIFF_DIR_PATH_SEPARATOR_FOREGROUND ]]; then
+    _riff_translate_color $RIFF_DIR_PATH_SEPARATOR_FOREGROUND
+    _riff_foreground $_RIFF_RETURN_MESSAGE
+    sep=$_RIFF_RETURN_MESSAGE$sep
+  fi
+
+  _RIFF_RETURN_MESSAGE="${(pj.$sep.)parts}"
 
 }
 

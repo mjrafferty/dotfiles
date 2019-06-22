@@ -25,7 +25,7 @@ _riff_prompt_length() {
 
   fi
 
-  _RIFF_RETVAL=$x
+  _RIFF_RETURN_MESSAGE=$x
 }
 
 _riff_human_readable_bytes() {
@@ -39,7 +39,8 @@ _riff_human_readable_bytes() {
     (( n /= 1024 ))
   done
 
-  _RIFF_RETVAL=$n$suf
+  _RIFF_RETURN_MESSAGE=$n$suf
+
 }
 
 _riff_parse_ip() {
@@ -86,7 +87,7 @@ _riff_parse_ip() {
         interfaceStates=(${(s:,:)match[1]})
 
         if (( ${interfaceStates[(I)UP]} )); then
-          _RIFF_RETVAL=$ipFound
+          _RIFF_RETURN_MESSAGE=$ipFound
           return
         fi
 
@@ -103,7 +104,7 @@ _riff_parse_ip() {
 
     for interface in "${(@)interfaces}"; do
       if [[ "$interface" =~ $pattern ]]; then
-        _RIFF_RETVAL=$match[1]
+        _RIFF_RETURN_MESSAGE=$match[1]
         return
       fi
     done
@@ -141,31 +142,31 @@ build_test_stats() {
 
 _riff_read_file() {
 
-  _RIFF_RETVAL=''
+  _RIFF_RETURN_MESSAGE=''
 
   if [[ -n $1 ]]; then
-    read -r _RIFF_RETVAL <$1
+    read -r _RIFF_RETURN_MESSAGE <$1
   fi
 
-  [[ -n $_RIFF_RETVAL ]]
+  [[ -n $_RIFF_RETURN_MESSAGE ]]
 
 }
 
 _riff_escape_rcurly() {
-  _RIFF_RETVAL=${${1//\\/\\\\}//\}/\\\}}
+  _RIFF_RETURN_MESSAGE=${${1//\\/\\\\}//\}/\\\}}
 }
 
 # Returns 1 if the cursor is at the very end of the screen.
 _riff_left_prompt_end_line() {
 
   _riff_get_icon LEFT_SEGMENT_SEPARATOR
-  _riff_escape_rcurly $_RIFF_RETVAL
+  _riff_escape_rcurly $_RIFF_RETURN_MESSAGE
 
   _RIFF_PROMPT+="%k%b"
   _RIFF_PROMPT+="\${_RIFF_N::=}"
   _RIFF_PROMPT+="\${\${\${_RIFF_BG:#NONE}:-\${_RIFF_N:=1}}+}"
   _RIFF_PROMPT+="\${\${_RIFF_N:=2}+}"
-  _RIFF_PROMPT+="\${\${_RIFF_T[2]::=%F{\$_RIFF_BG\}$_RIFF_RETVAL}+}"
+  _RIFF_PROMPT+="\${\${_RIFF_T[2]::=%F{\$_RIFF_BG\}$_RIFF_RETURN_MESSAGE}+}"
   _RIFF_PROMPT+="\${_RIFF_T[\$_RIFF_N]}"
   _RIFF_PROMPT+="%f$1%f%k%b"
 
