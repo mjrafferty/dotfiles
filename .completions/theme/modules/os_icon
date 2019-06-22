@@ -2,16 +2,20 @@
 ################################################################
 # Segment to print a little OS icon
 
-typeset  -g _PK9_OS_ICON
+typeset -g _RIFF_OS_ICON
+typeset -g RIFF_OS_ICON_FG
+typeset -g RIFF_OS_ICON_BG
+RIFF_OS_ICON_FG="white"
+RIFF_OS_ICON_BG="black"
 
-prompt_os_icon() {
-  "$1_prompt_module" "$0" "$2" "black" "white" '' 0 '' "$_PK9_OS_ICON"
+_riff_os_icon_run() {
+  _RIFF_RETURN_MESSAGE="$_RIFF_OS_ICON"
 }
 
 _riff_set_os() {
 
   _riff_get_icon $1
-  _PK9_OS_ICON=$_RIFF_RETVAL
+  _RIFF_OS_ICON=$_RIFF_RETURN_MESSAGE
 }
 
 _riff_os_icon_module_setup() {
