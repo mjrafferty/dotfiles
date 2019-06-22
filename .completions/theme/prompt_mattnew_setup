@@ -11,8 +11,8 @@ typeset -gi RIFF_PROFILER
 RIFF_PROFILER=0
 RIFF_LEFT_SEPARATOR=""
 RIFF_RIGHT_SEPARATOR=""
-RIFF_LEFT_PROMPT_ELEMENTS=(php_version newline context newline user)
-RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time newline date newline background_jobs)
+RIFF_LEFT_PROMPT_ELEMENTS=(php_version context user ruler )
+RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time date background_jobs)
 
 ## Necessary global variables
 typeset -Ag _RIFF_CACHE
@@ -113,17 +113,27 @@ _riff_set_left_prompt() {
 
     current_module="${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
 
-    if [[ "${current_module}" == "newline" ]]; then
+    if [[ "${current_module}" == "newline" || "${current_module}" == "ruler" ]]; then
 
-      PROMPT+="${bg_color}%k${RIFF_LEFT_SEPARATOR}"
+      columns="$COLUMNS"
+
+      if [[ -n "$PROMPT" && "$PROMPT" != *"${_RIFF_NEWLINE}" ]]; then
+        PROMPT+="${bg_color}%k${RIFF_LEFT_SEPARATOR}%f"
+        ((columns--));
+      else
+        PROMPT+="%f%k"
+      fi
 
       _riff_make_rprompt
       faux_rprompt="${_RIFF_RETURN_MESSAGE}"
 
-      (( columns = $COLUMNS - 1 - _RIFF_LEFT_TEXT_LENGTH - _RIFF_RIGHT_TEXT_LENGTH ));
+      (( columns = $columns - _RIFF_LEFT_TEXT_LENGTH - _RIFF_RIGHT_TEXT_LENGTH ));
 
-			fill_char=" "
-      fill_line="${(l.${columns}.. .)}"
+      if [[ "${current_module}" == "newline" ]]; then
+        fill_line="${(l.${columns}.. .)}"
+      else
+        fill_line="${(l.${columns}..─.)}"
+      fi
 
       PROMPT+="${fill_line}${faux_rprompt}${_RIFF_NEWLINE}"
 
@@ -162,7 +172,12 @@ _riff_set_left_prompt() {
 
   done
 
-  PROMPT+="%k${RIFF_LEFT_SEPARATOR}%f "
+
+  if [[ -n "$PROMPT" && "$PROMPT" != *"${_RIFF_NEWLINE}" ]]; then
+    PROMPT+="${bg_color}%k${RIFF_LEFT_SEPARATOR}%f"
+  else
+    PROMPT+="%f%k"
+  fi
 
 }
 
