@@ -166,7 +166,6 @@ _riff_add_newline() {
   _riff_make_rprompt
   faux_rprompt="${_RIFF_RETURN_MESSAGE}"
 
-  ## TODO this equals 6 for some reason
   if [[ "$RIFF_LINE_LINKS" == "true" ]]; then
     if (( _RIFF_LEFT_TEXT_LENGTH > 0 )); then
       ((_RIFF_LINES_META[line_index]+=1));
@@ -245,6 +244,8 @@ _riff_set_left_prompt() {
     fi
 
   done
+
+  _RIFF_LINES_META=();
 
 }
 
