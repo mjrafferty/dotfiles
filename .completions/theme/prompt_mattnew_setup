@@ -3,19 +3,22 @@
 _riff_installation_dir="$HOME/.completions/theme"
 
 ## Configurables
-typeset -g  RIFF_LEFT_SEPARATOR
-typeset -g  RIFF_RIGHT_SEPARATOR
+typeset -g  RIFF_LEFT_SEPARATOR=""
+typeset -g  RIFF_RIGHT_SEPARATOR=""
 typeset -ga RIFF_LEFT_PROMPT_ELEMENTS
 typeset -ga RIFF_RIGHT_PROMPT_ELEMENTS
-typeset -gi RIFF_PROFILER
+typeset -gi RIFF_PROFILER=0
 typeset -g  RIFF_PROMPT_END
-typeset -g  RIFF_TOP_LINE_START
-RIFF_TOP_LINE_START="╭─"
-RIFF_PROMPT_END="╰─ "
-RIFF_PROFILER=0
-RIFF_LEFT_SEPARATOR=""
-RIFF_RIGHT_SEPARATOR=""
-RIFF_LEFT_PROMPT_ELEMENTS=(root_indicator dir php_version context user ruler )
+typeset -g  RIFF_LINE_LINKS="true"
+typeset -g  RIFF_TL_LINK="╭"
+typeset -g  RIFF_BL_LINK="╰"
+typeset -g  RIFF_TR_LINK="╮"
+typeset -g  RIFF_BR_LINK="╯"
+typeset -g  RIFF_ML_LINK="├"
+typeset -g  RIFF_MR_LINK="┤"
+typeset -g  RIFF_NL_LINK="│"
+
+RIFF_LEFT_PROMPT_ELEMENTS=(root_indicator dir ruler php_version context user newline )
 RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time history date background_jobs)
 
 ## Necessary global variables
@@ -23,15 +26,11 @@ typeset -Ag _RIFF_CACHE
 typeset -g  _RIFF_EXIT_CODE        # Capture command exit code
 typeset -g  _RIFF_RETURN_MESSAGE   # Used as a temporary storage for values to avoid using subshells
 typeset -gi _RIFF_BREAK_CACHE_COUNTER
-typeset -gi _RIFF_CURRENT_RPROMPT
-typeset -gi _RIFF_LEFT_TEXT_LENGTH
-typeset -gi _RIFF_RIGHT_TEXT_LENGTH
-typeset -gi _RIFF_LAST_TEXT_LENGTH
-typeset -g  _RIFF_NEWLINE
-_RIFF_LEFT_TEXT_LENGTH=0;
-_RIFF_RIGHT_TEXT_LENGTH=0;
-_RIFF_CURRENT_RPROMPT=1
-_RIFF_NEWLINE='
+typeset -gi _RIFF_CURRENT_RPROMPT=1
+typeset -gi _RIFF_LEFT_TEXT_LENGTH=0
+typeset -gi _RIFF_RIGHT_TEXT_LENGTH=0
+typeset -gi _RIFF_LAST_TEXT_LENGTH=0
+typeset -g  _RIFF_NEWLINE='
 '
 
 source "${_riff_installation_dir}/lib/colors.zsh"
@@ -106,12 +105,86 @@ _riff_get_module_text() {
 
 }
 
+# Separator logic
+_riff_add_separator() {
+
+  local prompt_side current_module transition_bg_color transition_fg_color
+  local -u bg_var
+
+  prompt_side="$1"
+  current_module="$2"
+
+  bg_var="RIFF_${current_module}_BG"
+
+  if [[ "$prompt_side" == "left" ]]; then
+
+    if (( _RIFF_LEFT_TEXT_LENGTH > 0 )); then
+
+      if [[ "$current_module" == "newline" ]]; then
+        transition_bg_color="%k"
+      else
+
+        _riff_translate_color "${(P)${bg_var}}"
+        transition_bg_color="${_RIFF_RETURN_MESSAGE}"
+
+        _riff_background "${transition_bg_color}"
+        transition_bg_color="${_RIFF_RETURN_MESSAGE}"
+      fi
+
+      _RIFF_RETURN_MESSAGE="${transition_bg_color}${RIFF_LEFT_SEPARATOR}%f"
+      ((_RIFF_LEFT_TEXT_LENGTH+=${#RIFF_LEFT_SEPARATOR}));
+
+    else
+      _RIFF_RETURN_MESSAGE="%f%k"
+    fi
+
+  else
+
+    _riff_translate_color "${(P)${bg_var}}"
+    transition_fg_color="${_RIFF_RETURN_MESSAGE}"
+
+    _riff_foreground "${transition_fg_color}"
+    transition_fg_color="${_RIFF_RETURN_MESSAGE}"
+
+    _RIFF_RETURN_MESSAGE="${transition_fg_color}${RIFF_RIGHT_SEPARATOR}"
+    ((_RIFF_RIGHT_TEXT_LENGTH+=${#RIFF_RIGHT_SEPARATOR}));
+  fi
+
+}
+
+_riff_add_newline() {
+
+  local current_module faux_rprompt columns fill_line
+  current_module="$1"
+
+  _riff_add_separator "left" "newline"
+  prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}"
+
+  _riff_make_rprompt
+  faux_rprompt="${_RIFF_RETURN_MESSAGE}"
+
+  (( columns = $COLUMNS - _RIFF_LEFT_TEXT_LENGTH - _RIFF_RIGHT_TEXT_LENGTH ));
+
+  if [[ "${current_module}" == "newline" ]]; then
+    fill_line="${(l.${columns}.. .)}"
+  else
+    fill_line="${(l.${columns}..─.)}"
+  fi
+
+  _RIFF_RETURN_MESSAGE="${fill_line}${faux_rprompt}%f%k"
+
+  _RIFF_RIGHT_TEXT_LENGTH=0;
+  _RIFF_LEFT_TEXT_LENGTH=0;
+}
+
 ## Assemble left prompt
 _riff_set_left_prompt() {
 
-  local element length module_text current_module faux_rprompt columns fill_line
-  local -u bg_var # Convert variable names to upper case when checking config
+  local element length module_text current_module
+  local -i line_index
+  local -a prompt_lines
 
+  line_index=1;
   length="${#RIFF_LEFT_PROMPT_ELEMENTS[@]}"
 
   for ((element=1; element<=length;element++)); do
@@ -120,35 +193,11 @@ _riff_set_left_prompt() {
 
     if [[ "${current_module}" == "newline" || "${current_module}" == "ruler" ]]; then
 
-      columns="$COLUMNS"
+      _riff_add_newline "${current_module}"
 
-      ## TODO if first line; then
-      PROMPT="${RIFF_TOP_LINE_START}${PROMPT}"
-      ((columns = columns - ${#RIFF_TOP_LINE_START}));
-      ## fi
+      prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}"
 
-      if [[ -n "$PROMPT" && "$PROMPT" != *"${_RIFF_NEWLINE}" ]]; then
-        PROMPT+="${bg_color}%k${RIFF_LEFT_SEPARATOR}%f"
-        ((columns--));
-      else
-        PROMPT+="%f%k"
-      fi
-
-      _riff_make_rprompt
-      faux_rprompt="${_RIFF_RETURN_MESSAGE}"
-
-      (( columns = $columns - _RIFF_LEFT_TEXT_LENGTH - _RIFF_RIGHT_TEXT_LENGTH ));
-
-      if [[ "${current_module}" == "newline" ]]; then
-        fill_line="${(l.${columns}.. .)}"
-      else
-        fill_line="${(l.${columns}..─.)}"
-      fi
-
-      PROMPT+="${fill_line}${faux_rprompt}${_RIFF_NEWLINE}"
-
-      _RIFF_RIGHT_TEXT_LENGTH=0;
-      _RIFF_LEFT_TEXT_LENGTH=0;
+      ((line_index++));
 
     else
 
@@ -157,23 +206,10 @@ _riff_set_left_prompt() {
 
       if [[ -n "${module_text}" ]]; then
 
-        if [[ -n "$PROMPT" && "$PROMPT" != *"${_RIFF_NEWLINE}" ]]; then
+        _riff_add_separator "left" "$current_module"
+        prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}"
 
-          bg_var="RIFF_${current_module}_BG"
-
-          _riff_translate_color "${(P)${bg_var}}"
-          bg_color="${_RIFF_RETURN_MESSAGE}"
-
-          _riff_background "${bg_color}"
-          bg_color="${_RIFF_RETURN_MESSAGE}"
-
-          PROMPT+="${bg_color}${RIFF_LEFT_SEPARATOR}"
-
-          ((_RIFF_LEFT_TEXT_LENGTH++));
-
-        fi
-
-        PROMPT+="${module_text}"
+        prompt_lines[line_index]+="${module_text}"
         ((_RIFF_LEFT_TEXT_LENGTH+=_RIFF_LAST_TEXT_LENGTH));
 
       fi
@@ -182,12 +218,18 @@ _riff_set_left_prompt() {
 
   done
 
+  _riff_add_separator "left" "newline"
+  prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}"
 
-  if [[ -n "$PROMPT" && "$PROMPT" != *"${_RIFF_NEWLINE}" ]]; then
-    PROMPT+="${bg_color}%k${RIFF_LEFT_SEPARATOR}%f"
-  else
-    PROMPT+="%f%k${RIFF_PROMPT_END}"
-  fi
+  for ((line=1;line<=line_index;line++)); do
+
+    PROMPT+="${prompt_lines[line]}"
+
+    if ((line < line_index)); then
+      PROMPT+="${_RIFF_NEWLINE}"
+    fi
+
+  done
 
 }
 
@@ -195,10 +237,8 @@ _riff_set_left_prompt() {
 _riff_make_rprompt(){
 
   local length module_text current_module transition_fg_color rprompt
-  local -u bg_var # Convert variable names to upper case when checking config
 
   length="${#RIFF_RIGHT_PROMPT_ELEMENTS[@]}"
-
 
   while ((_RIFF_CURRENT_RPROMPT <= length)); do
 
@@ -214,17 +254,8 @@ _riff_make_rprompt(){
 
       if [[ -n "${module_text}" ]]; then
 
-        bg_var="RIFF_${current_module}_BG"
-
-        _riff_translate_color "${(P)${bg_var}}"
-        transition_fg_color="${_RIFF_RETURN_MESSAGE}"
-
-        _riff_foreground "${transition_fg_color}"
-        transition_fg_color="${_RIFF_RETURN_MESSAGE}"
-
-        rprompt+="${transition_fg_color}${RIFF_RIGHT_SEPARATOR}"
-
-        ((_RIFF_RIGHT_TEXT_LENGTH++));
+        _riff_add_separator "right" "${current_module}"
+        rprompt+="${_RIFF_RETURN_MESSAGE}"
 
         rprompt+="${module_text}"
         ((_RIFF_RIGHT_TEXT_LENGTH+=_RIFF_LAST_TEXT_LENGTH));
