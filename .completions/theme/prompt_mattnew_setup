@@ -26,6 +26,7 @@ typeset -Ag _RIFF_CACHE
 typeset -g  _RIFF_EXIT_CODE        # Capture command exit code
 typeset -g  _RIFF_RETURN_MESSAGE   # Used as a temporary storage for values to avoid using subshells
 typeset -gi _RIFF_BREAK_CACHE_COUNTER
+typeset -ga _RIFF_LINES_META
 typeset -gi _RIFF_CURRENT_RPROMPT=1
 typeset -gi _RIFF_LEFT_TEXT_LENGTH=0
 typeset -gi _RIFF_RIGHT_TEXT_LENGTH=0
@@ -154,14 +155,28 @@ _riff_add_separator() {
 
 _riff_add_newline() {
 
-  local current_module faux_rprompt columns fill_line
+  local current_module faux_rprompt columns fill_line line_index
   current_module="$1"
+
+  line_index="$2"
 
   _riff_add_separator "left" "newline"
   prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}"
 
   _riff_make_rprompt
   faux_rprompt="${_RIFF_RETURN_MESSAGE}"
+
+  ## TODO this equals 6 for some reason
+  if [[ "$RIFF_LINE_LINKS" == "true" ]]; then
+    if (( _RIFF_LEFT_TEXT_LENGTH > 0 )); then
+      ((_RIFF_LINES_META[line_index]+=1));
+      ((_RIFF_LEFT_TEXT_LENGTH+1));
+    fi
+    if (( _RIFF_RIGHT_TEXT_LENGTH > 0 )); then
+      ((_RIFF_LINES_META[line_index]+=2));
+      ((_RIFF_RIGHT_TEXT_LENGTH+1));
+    fi
+  fi
 
   (( columns = $COLUMNS - _RIFF_LEFT_TEXT_LENGTH - _RIFF_RIGHT_TEXT_LENGTH ));
 
@@ -193,7 +208,7 @@ _riff_set_left_prompt() {
 
     if [[ "${current_module}" == "newline" || "${current_module}" == "ruler" ]]; then
 
-      _riff_add_newline "${current_module}"
+      _riff_add_newline "${current_module}" "${line_index}"
 
       prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}"
 
@@ -236,7 +251,7 @@ _riff_set_left_prompt() {
 ## Assemble a right prompt line
 _riff_make_rprompt(){
 
-  local length module_text current_module transition_fg_color rprompt
+  local length module_text current_module rprompt
 
   length="${#RIFF_RIGHT_PROMPT_ELEMENTS[@]}"
 
