@@ -3,36 +3,35 @@
 _riff_installation_dir="$HOME/.completions/theme"
 
 ## Configurables
-typeset -g  RIFF_LEFT_SEPARATOR=""
-typeset -g  RIFF_RIGHT_SEPARATOR=""
 typeset -ga RIFF_LEFT_PROMPT_ELEMENTS
 typeset -ga RIFF_RIGHT_PROMPT_ELEMENTS
 typeset -gi RIFF_PROFILER=0
-typeset -g  RIFF_PROMPT_END
+typeset -g  RIFF_LEFT_SEPARATOR=""
+typeset -g  RIFF_RIGHT_SEPARATOR=""
+typeset -g  RIFF_PROMPT_END=" "
 typeset -g  RIFF_LINE_LINKS="true"
-typeset -g  RIFF_TL_LINK="╭"
-typeset -g  RIFF_BL_LINK="╰"
-typeset -g  RIFF_TR_LINK="╮"
-typeset -g  RIFF_BR_LINK="╯"
-typeset -g  RIFF_ML_LINK="├"
-typeset -g  RIFF_MR_LINK="┤"
+typeset -g  RIFF_TL_LINK="╭─"
+typeset -g  RIFF_BL_LINK="╰─"
+typeset -g  RIFF_TR_LINK="─╮"
+typeset -g  RIFF_BR_LINK="─╯"
+typeset -g  RIFF_ML_LINK="├─"
+typeset -g  RIFF_MR_LINK="─┤"
 typeset -g  RIFF_NL_LINK="│"
 
-RIFF_LEFT_PROMPT_ELEMENTS=(root_indicator php_version dir ruler context user newline )
-RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time history date background_jobs)
+RIFF_LEFT_PROMPT_ELEMENTS=(newline root_indicator php_version dir context user ruler )
+RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time history newline date background_jobs)
 
 ## Necessary global variables
-typeset -g _RIFF_PROFILER_SEP=0
-typeset -g _RIFF_PROFILER_NL=0
-typeset -Ag _RIFF_CACHE
-typeset -g  _RIFF_EXIT_CODE        # Capture command exit code
-typeset -g  _RIFF_RETURN_MESSAGE   # Used as a temporary storage for values to avoid using subshells
-typeset -gi _RIFF_BREAK_CACHE_COUNTER
+typeset -gA _RIFF_CACHE
 typeset -ga _RIFF_LINES_META
+typeset -ga _RIFF_PROMPT_LINES
+typeset -gi _RIFF_BREAK_CACHE_COUNTER
 typeset -gi _RIFF_CURRENT_RPROMPT=1
 typeset -gi _RIFF_LEFT_TEXT_LENGTH=0
 typeset -gi _RIFF_RIGHT_TEXT_LENGTH=0
 typeset -gi _RIFF_LAST_TEXT_LENGTH=0
+typeset -g  _RIFF_EXIT_CODE        # Capture command exit code
+typeset -g  _RIFF_RETURN_MESSAGE   # Used as a temporary storage for values to avoid using subshells
 typeset -g  _RIFF_NEWLINE='
 '
 
@@ -59,9 +58,15 @@ _riff_set_module_text() {
 
   if ((_RIFF_LAST_TEXT_LENGTH == 0)); then
     _RIFF_RETURN_MESSAGE=""
+    if [[ -n "$cache_key" ]]; then
+      _RIFF_CACHE["${module}-${cache_key}"]="${_RIFF_LAST_TEXT_LENGTH}|${_RIFF_RETURN_MESSAGE}"
+    fi
     return;
   fi
 
+  ## TODO padding
+  ## TODO icons?
+  ## TODO rework colors
   module_text=" ${_RIFF_RETURN_MESSAGE} "
   ((_RIFF_LAST_TEXT_LENGTH+=2));
 
@@ -120,19 +125,14 @@ _riff_get_module_text() {
 
 }
 
-# Separator logic
+## Separator logic
 _riff_add_separator() {
 
   local prompt_side current_module transition_bg_color transition_fg_color
-  local start
   local -u bg_var
 
   prompt_side="$1"
   current_module="$2"
-
-  if ((RIFF_PROFILER > 0)); then
-    start="$EPOCHREALTIME"
-  fi
 
   bg_var="RIFF_${current_module}_BG"
 
@@ -161,38 +161,30 @@ _riff_add_separator() {
     *);;
   esac
 
-  if ((RIFF_PROFILER > 0)); then
-    ((_RIFF_PROFILER_SEP+=($EPOCHREALTIME-start)));
-  fi
-
 }
 
+## Advance prompt to next line
 _riff_add_newline() {
 
   local current_module faux_rprompt columns fill_line line_index
-  local start
 
   current_module="$1"
   line_index="$2"
 
   _riff_add_separator "left" "newline"
-  prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}"
+  _RIFF_PROMPT_LINES[line_index]+="${_RIFF_RETURN_MESSAGE}"
 
   _riff_make_rprompt
   faux_rprompt="${_RIFF_RETURN_MESSAGE}"
 
-  if ((RIFF_PROFILER > 0)); then
-    start="$EPOCHREALTIME"
-  fi
-
   if [[ "$RIFF_LINE_LINKS" == "true" ]]; then
     if (( _RIFF_LEFT_TEXT_LENGTH > 0 )); then
       ((_RIFF_LINES_META[line_index]+=1));
-      ((_RIFF_LEFT_TEXT_LENGTH+1));
+      ((_RIFF_LEFT_TEXT_LENGTH+=2));
     fi
     if (( _RIFF_RIGHT_TEXT_LENGTH > 0 )); then
       ((_RIFF_LINES_META[line_index]+=2));
-      ((_RIFF_RIGHT_TEXT_LENGTH+1));
+      ((_RIFF_RIGHT_TEXT_LENGTH+=2));
     fi
   fi
 
@@ -209,10 +201,42 @@ _riff_add_newline() {
   _RIFF_RIGHT_TEXT_LENGTH=0;
   _RIFF_LEFT_TEXT_LENGTH=0;
 
-  if ((RIFF_PROFILER > 0)); then
-    ((_RIFF_PROFILER_NL+=($EPOCHREALTIME-start)));
-  fi
+}
 
+_riff_add_joins() {
+
+  local line line_index
+
+  line_index="$1";
+
+  for ((line=1;line<=line_index;line++)); do
+
+    case "${_RIFF_LINES_META[line]}" in
+      3)
+        case "$line" in
+          "$line_index") _RIFF_PROMPT_LINES[line]="${RIFF_BL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}" ;;
+          1) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}" ;;
+          *) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}" ;;
+        esac
+        ;;
+      2)
+        case "$line" in
+          "$line_index") _RIFF_PROMPT_LINES[line]="${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}" ;;
+          1) _RIFF_PROMPT_LINES[line]="${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}" ;;
+          *) _RIFF_PROMPT_LINES[line]="${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}" ;;
+        esac
+        ;;
+      1)
+        case "$line" in
+          "$line_index") _RIFF_PROMPT_LINES[line]="${RIFF_BL_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
+          1) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
+          *) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
+        esac
+        ;;
+      0);;
+    esac
+
+  done
 }
 
 ## Assemble left prompt
@@ -220,7 +244,6 @@ _riff_set_left_prompt() {
 
   local element length module_text current_module
   local -i line_index
-  local -a prompt_lines
 
   line_index=1;
   length="${#RIFF_LEFT_PROMPT_ELEMENTS[@]}"
@@ -232,8 +255,9 @@ _riff_set_left_prompt() {
     case "${current_module}" in
       "newline"|"ruler")
         _riff_add_newline "${current_module}" "${line_index}"
-        prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}"
+        _RIFF_PROMPT_LINES[line_index]+="${_RIFF_RETURN_MESSAGE}"
         ((line_index++));
+        _RIFF_LINES_META[line_index]=0;
         ;;
       *)
         _riff_get_module_text "$current_module"
@@ -241,7 +265,7 @@ _riff_set_left_prompt() {
 
         if [[ -n "${module_text}" ]]; then
           _riff_add_separator "left" "$current_module"
-          prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}${module_text}"
+          _RIFF_PROMPT_LINES[line_index]+="${_RIFF_RETURN_MESSAGE}${module_text}"
           ((_RIFF_LEFT_TEXT_LENGTH+=_RIFF_LAST_TEXT_LENGTH));
         fi
         ;;
@@ -250,11 +274,17 @@ _riff_set_left_prompt() {
   done
 
   _riff_add_separator "left" "newline"
-  prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}"
+  _RIFF_PROMPT_LINES[line_index]+="${_RIFF_RETURN_MESSAGE}"
+
+  ((_RIFF_LINES_META[line_index]=1));
+
+  if [[ "$RIFF_LINE_LINKS" == "true" ]]; then
+    _riff_add_joins "$line_index"
+  fi
 
   for ((line=1;line<=line_index;line++)); do
 
-    PROMPT+="${prompt_lines[line]}"
+    PROMPT+="${_RIFF_PROMPT_LINES[line]}"
 
     if ((line < line_index)); then
       PROMPT+="${_RIFF_NEWLINE}"
@@ -262,7 +292,10 @@ _riff_set_left_prompt() {
 
   done
 
-  _RIFF_LINES_META=();
+  PROMPT+="$RIFF_PROMPT_END"
+
+  _RIFF_LINES_META=()
+  _RIFF_PROMPT_LINES=()
 
 }
 
@@ -337,11 +370,7 @@ _riff_precmd() {
   _riff_set_prompts
 
   if ((RIFF_PROFILER > 0)); then
-    printf "%25s: %f\n" "Newlines" "$_RIFF_PROFILER_NL"
-    printf "%25s: %f\n" "Separators" "$_RIFF_PROFILER_SEP"
     printf "%25s: %f\n" "Total" "$((EPOCHREALTIME-start))"
-    _RIFF_PROFILER_NL=0;
-    _RIFF_PROFILER_SEP=0;
   fi
 
 }
