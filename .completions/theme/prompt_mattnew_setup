@@ -18,10 +18,12 @@ typeset -g  RIFF_ML_LINK="├"
 typeset -g  RIFF_MR_LINK="┤"
 typeset -g  RIFF_NL_LINK="│"
 
-RIFF_LEFT_PROMPT_ELEMENTS=(root_indicator dir ruler php_version context user newline )
+RIFF_LEFT_PROMPT_ELEMENTS=(root_indicator php_version dir ruler context user newline )
 RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time history date background_jobs)
 
 ## Necessary global variables
+typeset -g _RIFF_PROFILER_SEP=0
+typeset -g _RIFF_PROFILER_NL=0
 typeset -Ag _RIFF_CACHE
 typeset -g  _RIFF_EXIT_CODE        # Capture command exit code
 typeset -g  _RIFF_RETURN_MESSAGE   # Used as a temporary storage for values to avoid using subshells
@@ -42,10 +44,11 @@ source "${_riff_installation_dir}/lib/utilities.zsh"
 # Must set _RIFF_RETURN_MESSAGE and _RIFF_LEFT_TEXT_LENGTH
 _riff_set_module_text() {
 
-  local module module_text fg_color bg_color transition_fg_color
+  local module module_text fg_color bg_color transition_fg_color cache_key
   local -u fg_var bg_var # Convert variable names to upper case when checking config
 
   module="$1"
+  cache_key="$2"
 
   fg_var="RIFF_${module}_FG"
   bg_var="RIFF_${module}_BG"
@@ -79,6 +82,10 @@ _riff_set_module_text() {
 
   _RIFF_RETURN_MESSAGE="${fg_color}${bg_color}${module_text}${transition_fg_color}"
 
+  if [[ -n "$cache_key" ]]; then
+    _RIFF_CACHE["${module}-${cache_key}"]="${_RIFF_LAST_TEXT_LENGTH}|${_RIFF_RETURN_MESSAGE}"
+  fi
+
 }
 
 ## Retrieve text from prompt module.
@@ -86,7 +93,7 @@ _riff_set_module_text() {
 # using date from cache, or pass to _riff_set_module_text
 _riff_get_module_text() {
 
-  local module start
+  local module start cache_key cache
 
   module="$1"
 
@@ -94,11 +101,18 @@ _riff_get_module_text() {
     start=${EPOCHREALTIME}
   fi
 
-  # if has cache; then
-  #   TODO
-  # else
-  _riff_set_module_text "$module"
-  # fi
+  if typeset -f "_riff_${module}_cache_key" > /dev/null; then
+    "_riff_${module}_cache_key";
+    cache_key="${_RIFF_RETURN_MESSAGE}"
+    cache="${_RIFF_CACHE["${module}-${cache_key}"]}"
+  fi
+
+  if [[ -n "$cache" ]]; then
+    _RIFF_LAST_TEXT_LENGTH="${cache%%|*}"
+    _RIFF_RETURN_MESSAGE="${cache##*|}"
+  else
+    _riff_set_module_text "$module" "$cache_key"
+  fi
 
   if ((RIFF_PROFILER > 0)); then
     printf "%25s: %f\n" "$module" "$((EPOCHREALTIME-start))"
@@ -110,45 +124,45 @@ _riff_get_module_text() {
 _riff_add_separator() {
 
   local prompt_side current_module transition_bg_color transition_fg_color
+  local start
   local -u bg_var
 
   prompt_side="$1"
   current_module="$2"
 
+  if ((RIFF_PROFILER > 0)); then
+    start="$EPOCHREALTIME"
+  fi
+
   bg_var="RIFF_${current_module}_BG"
 
-  if [[ "$prompt_side" == "left" ]]; then
+  case "$prompt_side" in
+    "left")
+      if (( _RIFF_LEFT_TEXT_LENGTH > 0 )); then
 
-    if (( _RIFF_LEFT_TEXT_LENGTH > 0 )); then
+        if [[ "$current_module" == "newline" ]]; then
+          transition_bg_color="%k"
+        else
+          transition_bg_color="%K{${__RIFF_COLORS[${(P)${bg_var}}]}}"
+        fi
 
-      if [[ "$current_module" == "newline" ]]; then
-        transition_bg_color="%k"
+        _RIFF_RETURN_MESSAGE="${transition_bg_color}${RIFF_LEFT_SEPARATOR}%f"
+        ((_RIFF_LEFT_TEXT_LENGTH+=${#RIFF_LEFT_SEPARATOR}));
+
       else
+        _RIFF_RETURN_MESSAGE="%f%k"
+        fi
+      ;;
+    "right")
+      transition_fg_color="%F{${__RIFF_COLORS[${(P)${bg_var}}]}}"
+      _RIFF_RETURN_MESSAGE="${transition_fg_color}${RIFF_RIGHT_SEPARATOR}"
+      ((_RIFF_RIGHT_TEXT_LENGTH+=${#RIFF_RIGHT_SEPARATOR}));
+      ;;
+    *);;
+  esac
 
-        _riff_translate_color "${(P)${bg_var}}"
-        transition_bg_color="${_RIFF_RETURN_MESSAGE}"
-
-        _riff_background "${transition_bg_color}"
-        transition_bg_color="${_RIFF_RETURN_MESSAGE}"
-      fi
-
-      _RIFF_RETURN_MESSAGE="${transition_bg_color}${RIFF_LEFT_SEPARATOR}%f"
-      ((_RIFF_LEFT_TEXT_LENGTH+=${#RIFF_LEFT_SEPARATOR}));
-
-    else
-      _RIFF_RETURN_MESSAGE="%f%k"
-    fi
-
-  else
-
-    _riff_translate_color "${(P)${bg_var}}"
-    transition_fg_color="${_RIFF_RETURN_MESSAGE}"
-
-    _riff_foreground "${transition_fg_color}"
-    transition_fg_color="${_RIFF_RETURN_MESSAGE}"
-
-    _RIFF_RETURN_MESSAGE="${transition_fg_color}${RIFF_RIGHT_SEPARATOR}"
-    ((_RIFF_RIGHT_TEXT_LENGTH+=${#RIFF_RIGHT_SEPARATOR}));
+  if ((RIFF_PROFILER > 0)); then
+    ((_RIFF_PROFILER_SEP+=($EPOCHREALTIME-start)));
   fi
 
 }
@@ -156,8 +170,9 @@ _riff_add_separator() {
 _riff_add_newline() {
 
   local current_module faux_rprompt columns fill_line line_index
-  current_module="$1"
+  local start
 
+  current_module="$1"
   line_index="$2"
 
   _riff_add_separator "left" "newline"
@@ -165,6 +180,10 @@ _riff_add_newline() {
 
   _riff_make_rprompt
   faux_rprompt="${_RIFF_RETURN_MESSAGE}"
+
+  if ((RIFF_PROFILER > 0)); then
+    start="$EPOCHREALTIME"
+  fi
 
   if [[ "$RIFF_LINE_LINKS" == "true" ]]; then
     if (( _RIFF_LEFT_TEXT_LENGTH > 0 )); then
@@ -189,6 +208,11 @@ _riff_add_newline() {
 
   _RIFF_RIGHT_TEXT_LENGTH=0;
   _RIFF_LEFT_TEXT_LENGTH=0;
+
+  if ((RIFF_PROFILER > 0)); then
+    ((_RIFF_PROFILER_NL+=($EPOCHREALTIME-start)));
+  fi
+
 }
 
 ## Assemble left prompt
@@ -205,30 +229,23 @@ _riff_set_left_prompt() {
 
     current_module="${RIFF_LEFT_PROMPT_ELEMENTS[element]}"
 
-    if [[ "${current_module}" == "newline" || "${current_module}" == "ruler" ]]; then
-
-      _riff_add_newline "${current_module}" "${line_index}"
-
-      prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}"
-
-      ((line_index++));
-
-    else
-
-      _riff_get_module_text "$current_module"
-      module_text="${_RIFF_RETURN_MESSAGE}"
-
-      if [[ -n "${module_text}" ]]; then
-
-        _riff_add_separator "left" "$current_module"
+    case "${current_module}" in
+      "newline"|"ruler")
+        _riff_add_newline "${current_module}" "${line_index}"
         prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}"
+        ((line_index++));
+        ;;
+      *)
+        _riff_get_module_text "$current_module"
+        module_text="${_RIFF_RETURN_MESSAGE}"
 
-        prompt_lines[line_index]+="${module_text}"
-        ((_RIFF_LEFT_TEXT_LENGTH+=_RIFF_LAST_TEXT_LENGTH));
-
-      fi
-
-    fi
+        if [[ -n "${module_text}" ]]; then
+          _riff_add_separator "left" "$current_module"
+          prompt_lines[line_index]+="${_RIFF_RETURN_MESSAGE}${module_text}"
+          ((_RIFF_LEFT_TEXT_LENGTH+=_RIFF_LAST_TEXT_LENGTH));
+        fi
+        ;;
+    esac
 
   done
 
@@ -261,24 +278,21 @@ _riff_make_rprompt(){
     current_module="${RIFF_RIGHT_PROMPT_ELEMENTS[_RIFF_CURRENT_RPROMPT]}"
     ((_RIFF_CURRENT_RPROMPT++));
 
-    if [[ "${current_module}" == "newline" ]]; then
-      break;
-    else
+    case "${current_module}" in
+      "newline")
+        break;
+        ;;
+      *)
+        _riff_get_module_text "${current_module}"
+        module_text="${_RIFF_RETURN_MESSAGE}"
 
-      _riff_get_module_text "${current_module}"
-      module_text="${_RIFF_RETURN_MESSAGE}"
-
-      if [[ -n "${module_text}" ]]; then
-
-        _riff_add_separator "right" "${current_module}"
-        rprompt+="${_RIFF_RETURN_MESSAGE}"
-
-        rprompt+="${module_text}"
-        ((_RIFF_RIGHT_TEXT_LENGTH+=_RIFF_LAST_TEXT_LENGTH));
-
-      fi
-
-    fi
+        if [[ -n "${module_text}" ]]; then
+          _riff_add_separator "right" "${current_module}"
+          rprompt+="${_RIFF_RETURN_MESSAGE}${module_text}"
+          ((_RIFF_RIGHT_TEXT_LENGTH+=_RIFF_LAST_TEXT_LENGTH));
+        fi
+        ;;
+    esac
 
   done
 
@@ -323,7 +337,11 @@ _riff_precmd() {
   _riff_set_prompts
 
   if ((RIFF_PROFILER > 0)); then
+    printf "%25s: %f\n" "Newlines" "$_RIFF_PROFILER_NL"
+    printf "%25s: %f\n" "Separators" "$_RIFF_PROFILER_SEP"
     printf "%25s: %f\n" "Total" "$((EPOCHREALTIME-start))"
+    _RIFF_PROFILER_NL=0;
+    _RIFF_PROFILER_SEP=0;
   fi
 
 }

@@ -5,6 +5,10 @@
 typeset -g RIFF_PHP_VERSION_FG="grey93"
 typeset -g RIFF_PHP_VERSION_BG="fuchsia"
 
+_riff_php_version_cache_key() {
+  _RIFF_RETURN_MESSAGE="1"
+}
+
 _riff_php_version_run() {
 
   local -a match
