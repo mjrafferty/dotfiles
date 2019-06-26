@@ -16,10 +16,12 @@ typeset -g  RIFF_TR_LINK="─╮"
 typeset -g  RIFF_BR_LINK="─╯"
 typeset -g  RIFF_ML_LINK="├─"
 typeset -g  RIFF_MR_LINK="─┤"
-typeset -g  RIFF_NL_LINK="│"
+typeset -g  RIFF_SL_LINK="│ "
+typeset -g  RIFF_SR_LINK=" │"
+typeset -g  RIFF_NL_LINK="  "
 
-RIFF_LEFT_PROMPT_ELEMENTS=(newline root_indicator php_version dir context user ruler )
-RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time history newline date background_jobs)
+RIFF_LEFT_PROMPT_ELEMENTS=(newline root_indicator context dir ruler )
+RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time background_jobs newline php_version)
 
 ## Necessary global variables
 typeset -gA _RIFF_CACHE
@@ -180,13 +182,13 @@ _riff_add_newline() {
   if [[ "$RIFF_LINE_LINKS" == "true" ]]; then
     if (( _RIFF_LEFT_TEXT_LENGTH > 0 )); then
       ((_RIFF_LINES_META[line_index]+=1));
-      ((_RIFF_LEFT_TEXT_LENGTH+=2));
     fi
     if (( _RIFF_RIGHT_TEXT_LENGTH > 0 )); then
       ((_RIFF_LINES_META[line_index]+=2));
-      ((_RIFF_RIGHT_TEXT_LENGTH+=2));
     fi
+    ((_RIFF_LEFT_TEXT_LENGTH+=4)); # Hardcoded width for line links. TODO
   fi
+
 
   (( columns = $COLUMNS - _RIFF_LEFT_TEXT_LENGTH - _RIFF_RIGHT_TEXT_LENGTH ));
 
@@ -203,40 +205,203 @@ _riff_add_newline() {
 
 }
 
-_riff_add_joins() {
+# Logic for adding link lines. Don't look it's ugly
+_riff_add_links() {
 
-  local line line_index
+  local line line_index start
 
   line_index="$1";
+
+  if (( RIFF_PROFILER > 0 )); then
+    start="$EPOCHREALTIME"
+  fi
 
   for ((line=1;line<=line_index;line++)); do
 
     case "${_RIFF_LINES_META[line]}" in
       3)
         case "$line" in
-          "$line_index") _RIFF_PROMPT_LINES[line]="${RIFF_BL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}" ;;
-          1) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}" ;;
-          *) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}" ;;
+          "$line_index")
+            _RIFF_PROMPT_LINES[line]="${RIFF_BL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}" ;;
+          1)
+            _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}" ;;
+          *)
+            case "${_RIFF_LINES_META[line-1]}" in
+              3)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
+                esac
+                ;;
+              2)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
+                esac
+                ;;
+              1)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                esac
+                ;;
+              0)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}";;
+                esac
+                ;;
+            esac
+            ;;
         esac
         ;;
       2)
         case "$line" in
-          "$line_index") _RIFF_PROMPT_LINES[line]="${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}" ;;
-          1) _RIFF_PROMPT_LINES[line]="${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}" ;;
-          *) _RIFF_PROMPT_LINES[line]="${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}" ;;
+          "$line_index")
+            _RIFF_PROMPT_LINES[line]="${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}" ;;
+          1)
+            _RIFF_PROMPT_LINES[line]="${RIFF_NL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}" ;;
+          *)
+            case "${_RIFF_LINES_META[line-1]}" in
+              3)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                esac
+                ;;
+              2)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_NL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                esac
+                ;;
+              1)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                esac
+                ;;
+              0)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                esac
+                ;;
+            esac
+            ;;
         esac
         ;;
       1)
         case "$line" in
-          "$line_index") _RIFF_PROMPT_LINES[line]="${RIFF_BL_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
-          1) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
-          *) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
+          "$line_index")
+            _RIFF_PROMPT_LINES[line]="${RIFF_BL_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
+          1)
+            _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
+          *)
+            case "${_RIFF_LINES_META[line-1]}" in
+              3)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                esac
+                ;;
+              2)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                esac
+                ;;
+              1)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
+                esac
+                ;;
+              0)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
+                esac
+                ;;
+            esac
+            ;;
         esac
         ;;
-      0);;
+      0)
+        case "$line" in
+          "$line_index")
+            _RIFF_PROMPT_LINES[line]="${RIFF_BL_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
+          1)
+            _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
+          *)
+            case "${_RIFF_LINES_META[line-1]}" in
+              3)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                esac
+                ;;
+              2)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                esac
+                ;;
+              1)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                esac
+                ;;
+              0)
+                case "${_RIFF_LINES_META[line+1]}" in
+                  3) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                  2) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                  1) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                  0) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
+                esac
+                ;;
+            esac
+            ;;
+        esac
     esac
 
   done
+
+  if (( RIFF_PROFILER > 0 )); then
+    printf "%25s: %f\n" "line links" "$((EPOCHREALTIME-start))"
+  fi
+
 }
 
 ## Assemble left prompt
@@ -279,7 +444,7 @@ _riff_set_left_prompt() {
   ((_RIFF_LINES_META[line_index]=1));
 
   if [[ "$RIFF_LINE_LINKS" == "true" ]]; then
-    _riff_add_joins "$line_index"
+    _riff_add_links "$line_index"
   fi
 
   for ((line=1;line<=line_index;line++)); do
@@ -370,7 +535,7 @@ _riff_precmd() {
   _riff_set_prompts
 
   if ((RIFF_PROFILER > 0)); then
-    printf "%25s: %f\n" "Total" "$((EPOCHREALTIME-start))"
+    printf "%25s: %f\n" "total" "$((EPOCHREALTIME-start))"
   fi
 
 }
