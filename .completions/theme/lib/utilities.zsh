@@ -73,6 +73,7 @@ _riff_parse_ip() {
 
     newline=$'\n'
 
+    echo "${relevantInterfaces[*]}"
     for interfaceName in $relevantInterfaces; do
 
       interface="$(/sbin/ifconfig $interfaceName 2>/dev/null)" || continue

@@ -11,6 +11,10 @@ typeset -g RIFF_PUBLIC_IP_VPN_INTERFACE
 typeset -gF _RIFF_PUBLIC_IP_TIMESTAMP
 typeset -g  _RIFF_PUBLIC_IP
 
+_riff_public_ip_cache_key() {
+  _RIFF_RETURN_MESSAGE="1"
+}
+
 _riff_public_ip_run() {
 
   local method ip icon

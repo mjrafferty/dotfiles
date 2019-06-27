@@ -1,7 +1,5 @@
 # vim:ft=bash
 
-_riff_installation_dir="$HOME/.completions/theme"
-
 ## Configurables
 typeset -ga RIFF_LEFT_PROMPT_ELEMENTS
 typeset -ga RIFF_RIGHT_PROMPT_ELEMENTS
@@ -10,20 +8,12 @@ typeset -g  RIFF_LEFT_SEPARATOR=""
 typeset -g  RIFF_RIGHT_SEPARATOR=""
 typeset -g  RIFF_PROMPT_END=" "
 typeset -g  RIFF_LINE_LINKS="true"
-typeset -g  RIFF_TL_LINK="╭─"
-typeset -g  RIFF_BL_LINK="╰─"
-typeset -g  RIFF_TR_LINK="─╮"
-typeset -g  RIFF_BR_LINK="─╯"
-typeset -g  RIFF_ML_LINK="├─"
-typeset -g  RIFF_MR_LINK="─┤"
-typeset -g  RIFF_SL_LINK="│ "
-typeset -g  RIFF_SR_LINK=" │"
-typeset -g  RIFF_NL_LINK="  "
 
-RIFF_LEFT_PROMPT_ELEMENTS=(newline root_indicator context dir ruler )
+RIFF_LEFT_PROMPT_ELEMENTS=(ip public_ip newline root_indicator context dir ruler )
 RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time background_jobs newline php_version)
 
 ## Necessary global variables
+typeset -g  _RIFF_INSTALL_DIR="${0:a:h}"
 typeset -gA _RIFF_CACHE
 typeset -ga _RIFF_LINES_META
 typeset -ga _RIFF_PROMPT_LINES
@@ -37,9 +27,10 @@ typeset -g  _RIFF_RETURN_MESSAGE   # Used as a temporary storage for values to a
 typeset -g  _RIFF_NEWLINE='
 '
 
-source "${_riff_installation_dir}/lib/colors.zsh"
-source "${_riff_installation_dir}/lib/icons.zsh"
-source "${_riff_installation_dir}/lib/utilities.zsh"
+source "${_RIFF_INSTALL_DIR}/lib/colors.zsh"
+source "${_RIFF_INSTALL_DIR}/lib/icons.zsh"
+source "${_RIFF_INSTALL_DIR}/lib/utilities.zsh"
+source "${_RIFF_INSTALL_DIR}/lib/link_lines.zsh"
 
 ## Call module to generate prompt text
 # Must set _RIFF_RETURN_MESSAGE and _RIFF_LEFT_TEXT_LENGTH
@@ -190,7 +181,10 @@ _riff_add_newline() {
   fi
 
 
-  (( columns = $COLUMNS - _RIFF_LEFT_TEXT_LENGTH - _RIFF_RIGHT_TEXT_LENGTH ));
+  (( columns = $COLUMNS - 1 - _RIFF_LEFT_TEXT_LENGTH - _RIFF_RIGHT_TEXT_LENGTH ));
+
+    #PR_FILLBAR="\${(l.(($TERMWIDTH - ($promptsize + $pwdsize)))..${PR_HBAR}.)}"
+    #'${(e)PR_FILLBAR}'
 
   if [[ "${current_module}" == "newline" ]]; then
     fill_line="${(l.${columns}.. .)}"
@@ -202,205 +196,6 @@ _riff_add_newline() {
 
   _RIFF_RIGHT_TEXT_LENGTH=0;
   _RIFF_LEFT_TEXT_LENGTH=0;
-
-}
-
-# Logic for adding link lines. Don't look it's ugly
-_riff_add_links() {
-
-  local line line_index start
-
-  line_index="$1";
-
-  if (( RIFF_PROFILER > 0 )); then
-    start="$EPOCHREALTIME"
-  fi
-
-  for ((line=1;line<=line_index;line++)); do
-
-    case "${_RIFF_LINES_META[line]}" in
-      3)
-        case "$line" in
-          "$line_index")
-            _RIFF_PROMPT_LINES[line]="${RIFF_BL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}" ;;
-          1)
-            _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}" ;;
-          *)
-            case "${_RIFF_LINES_META[line-1]}" in
-              3)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
-                esac
-                ;;
-              2)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
-                esac
-                ;;
-              1)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                esac
-                ;;
-              0)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}";;
-                esac
-                ;;
-            esac
-            ;;
-        esac
-        ;;
-      2)
-        case "$line" in
-          "$line_index")
-            _RIFF_PROMPT_LINES[line]="${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}" ;;
-          1)
-            _RIFF_PROMPT_LINES[line]="${RIFF_NL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_TR_LINK}" ;;
-          *)
-            case "${_RIFF_LINES_META[line-1]}" in
-              3)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                esac
-                ;;
-              2)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_NL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                esac
-                ;;
-              1)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                esac
-                ;;
-              0)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                esac
-                ;;
-            esac
-            ;;
-        esac
-        ;;
-      1)
-        case "$line" in
-          "$line_index")
-            _RIFF_PROMPT_LINES[line]="${RIFF_BL_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
-          1)
-            _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
-          *)
-            case "${_RIFF_LINES_META[line-1]}" in
-              3)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                esac
-                ;;
-              2)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                esac
-                ;;
-              1)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_MR_LINK}";;
-                esac
-                ;;
-              0)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_ML_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_BR_LINK}";;
-                esac
-                ;;
-            esac
-            ;;
-        esac
-        ;;
-      0)
-        case "$line" in
-          "$line_index")
-            _RIFF_PROMPT_LINES[line]="${RIFF_BL_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
-          1)
-            _RIFF_PROMPT_LINES[line]="${RIFF_TL_LINK}${_RIFF_PROMPT_LINES[line]}" ;;
-          *)
-            case "${_RIFF_LINES_META[line-1]}" in
-              3)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                esac
-                ;;
-              2)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                esac
-                ;;
-              1)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                esac
-                ;;
-              0)
-                case "${_RIFF_LINES_META[line+1]}" in
-                  3) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                  2) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                  1) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                  0) _RIFF_PROMPT_LINES[line]="${RIFF_SL_LINK}${_RIFF_PROMPT_LINES[line]}${RIFF_SR_LINK}";;
-                esac
-                ;;
-            esac
-            ;;
-        esac
-    esac
-
-  done
-
-  if (( RIFF_PROFILER > 0 )); then
-    printf "%25s: %f\n" "line links" "$((EPOCHREALTIME-start))"
-  fi
 
 }
 
@@ -575,9 +370,9 @@ prompt_riff_setup() {
   # Load enabled modules and run setup hooks
   for element in "${RIFF_LEFT_PROMPT_ELEMENTS[@]}" "${RIFF_RIGHT_PROMPT_ELEMENTS[@]}"; do
 
-    if [[ -f "${_riff_installation_dir}/modules/${element}" ]]; then
+    if [[ -f "${_RIFF_INSTALL_DIR}/modules/${element}" ]]; then
 
-      source "${_riff_installation_dir}/modules/${element}";
+      source "${_RIFF_INSTALL_DIR}/modules/${element}";
 
       if typeset -f "_riff_${element}_module_setup" > /dev/null; then
         "_riff_${element}_module_setup";
