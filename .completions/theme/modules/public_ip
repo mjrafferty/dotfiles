@@ -4,9 +4,10 @@
 
 typeset -g RIFF_PUBLIC_IP_FG="white"
 typeset -g RIFF_PUBLIC_IP_BG="black"
-typeset -g RIFF_PUBLIC_IP_METHODS=(curl)
+typeset -ga RIFF_PUBLIC_IP_METHODS
 typeset -g RIFF_PUBLIC_IP_HOST="ipv4.nexcess.net"
 typeset -g RIFF_PUBLIC_IP_VPN_INTERFACE
+RIFF_PUBLIC_IP_METHODS=(curl)
 
 typeset -gF _RIFF_PUBLIC_IP_TIMESTAMP
 typeset -g  _RIFF_PUBLIC_IP
