@@ -13,7 +13,7 @@ RIFF_LEFT_PROMPT_ELEMENTS=(ip public_ip newline root_indicator context dir ruler
 RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time background_jobs newline php_version)
 
 ## Necessary global variables
-typeset -g  _RIFF_INSTALL_DIR="${0:a:h}"
+typeset -g  _RIFF_INSTALL_DIR="${HOME}/.completions/theme"
 typeset -gA _RIFF_CACHE
 typeset -ga _RIFF_LINES_META
 typeset -ga _RIFF_PROMPT_LINES
@@ -47,10 +47,10 @@ _riff_set_module_text() {
 
   "_riff_${module}_run"
 
-  _RIFF_LAST_TEXT_LENGTH="${#${(%)_RIFF_RETURN_MESSAGE}}"
 
-  if ((_RIFF_LAST_TEXT_LENGTH == 0)); then
+  if (( ${#_RIFF_RETURN_MESSAGE} == 0 )); then
     _RIFF_RETURN_MESSAGE=""
+    _RIFF_LAST_TEXT_LENGTH="0"
     if [[ -n "$cache_key" ]]; then
       _RIFF_CACHE["${module}-${cache_key}"]="${_RIFF_LAST_TEXT_LENGTH}|${_RIFF_RETURN_MESSAGE}"
     fi
@@ -61,7 +61,7 @@ _riff_set_module_text() {
   ## TODO icons?
   ## TODO rework colors
   module_text=" ${_RIFF_RETURN_MESSAGE} "
-  ((_RIFF_LAST_TEXT_LENGTH+=2));
+  _RIFF_LAST_TEXT_LENGTH="${#${(%)module_text}}"
 
   _riff_translate_color "${(P)${fg_var}}"
   fg_color="${_RIFF_RETURN_MESSAGE}"
@@ -159,7 +159,7 @@ _riff_add_separator() {
 ## Advance prompt to next line
 _riff_add_newline() {
 
-  local current_module faux_rprompt columns fill_line line_index
+  local current_module faux_rprompt line_index
 
   current_module="$1"
   line_index="$2"
@@ -180,19 +180,13 @@ _riff_add_newline() {
     ((_RIFF_LEFT_TEXT_LENGTH+=4)); # Hardcoded width for line links. TODO
   fi
 
-
-  (( columns = $COLUMNS - 1 - _RIFF_LEFT_TEXT_LENGTH - _RIFF_RIGHT_TEXT_LENGTH ));
-
-    #PR_FILLBAR="\${(l.(($TERMWIDTH - ($promptsize + $pwdsize)))..${PR_HBAR}.)}"
-    #'${(e)PR_FILLBAR}'
-
   if [[ "${current_module}" == "newline" ]]; then
-    fill_line="${(l.${columns}.. .)}"
+    _RIFF_RETURN_MESSAGE='${(el.(($COLUMNS - 1 - '"$_RIFF_LEFT_TEXT_LENGTH"' - '"$_RIFF_RIGHT_TEXT_LENGTH"')).. .)}'
   else
-    fill_line="${(l.${columns}..─.)}"
+    _RIFF_RETURN_MESSAGE='${(el.(($COLUMNS - 1 - '"$_RIFF_LEFT_TEXT_LENGTH"' - '"$_RIFF_RIGHT_TEXT_LENGTH"'))..─.)}'
   fi
 
-  _RIFF_RETURN_MESSAGE="${fill_line}${faux_rprompt}%f%k"
+  _RIFF_RETURN_MESSAGE+="${faux_rprompt}%f%k"
 
   _RIFF_RIGHT_TEXT_LENGTH=0;
   _RIFF_LEFT_TEXT_LENGTH=0;
@@ -308,14 +302,15 @@ _riff_precmd() {
 
   local start
 
+  setopt prompt_subst
+
   _RIFF_EXIT_CODE=$?
-  #_RIFF_PIPE_EXIT_CODES=( "$pipestatus[@]" )
+  _RIFF_PIPE_EXIT_CODES=( "$pipestatus[@]" )
 
   _RIFF_LEFT_TEXT_LENGTH=0;
   _RIFF_RIGHT_TEXT_LENGTH=0;
   PROMPT=""
   RPROMPT=""
-  #ZLE_RPROMPT_INDENT=0
 
   # Forcefully refresh cache by pressing enter a few times
   if ((_RIFF_BREAK_CACHE_COUNTER++ >= 2)); then
