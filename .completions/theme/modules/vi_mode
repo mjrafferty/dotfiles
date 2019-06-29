@@ -7,41 +7,45 @@
 
 typeset  -gi  _RIFF_REGION_ACTIVE
 
-prompt_vi_mode() {
+_riff_vi_mode_run() {
 
-  _RIFF_REGION_ACTIVE=0
+  #_RIFF_REGION_ACTIVE=0
 
-  $1_prompt_module $0_NORMAL $2 "$DEFAULT_COLOR" white '' 0 '${$((!${#${:-$KEYMAP$_RIFF_REGION_ACTIVE}:#vicmd0})):#0}' "$RIFF_VI_COMMAND_MODE_STRING"
-  $1_prompt_module $0_VISUAL $2 "$DEFAULT_COLOR" white '' 0 '${$((!${#${:-$KEYMAP$_RIFF_REGION_ACTIVE}:#vicmd1})):#0}' "$RIFF_VI_VISUAL_MODE_STRING"
+  #$1_prompt_module $0_NORMAL $2 "$DEFAULT_COLOR" white '' 0 '${$((!${#${:-$KEYMAP$_RIFF_REGION_ACTIVE}:#vicmd0})):#0}' "$RIFF_VI_COMMAND_MODE_STRING"
+  #$1_prompt_module $0_VISUAL $2 "$DEFAULT_COLOR" white '' 0 '${$((!${#${:-$KEYMAP$_RIFF_REGION_ACTIVE}:#vicmd1})):#0}' "$RIFF_VI_VISUAL_MODE_STRING"
 
-  if [[ -n $RIFF_VI_INSERT_MODE_STRING ]]; then
-    $1_prompt_module $0_INSERT $2 "$DEFAULT_COLOR" blue '' 0 '${${KEYMAP:-0}:#vicmd}' "$RIFF_VI_INSERT_MODE_STRING"
-  fi
+  #if [[ -n $RIFF_VI_INSERT_MODE_STRING ]]; then
+    #$1_prompt_module $0_INSERT $2 "$DEFAULT_COLOR" blue '' 0 '${${KEYMAP:-0}:#vicmd}' "$RIFF_VI_INSERT_MODE_STRING"
+  #fi
+
+  _RIFF_RETURN_MESSAGE="\${_RIFF_REGION_ACTIVE}"
 
 }
 
  _riff_zle_line_pre_redraw() {
 
-  if [[ $KEYMAP == vicmd ]] && [[ ${REGION_ACTIVE:-0} != $_RIFF_REGION_ACTIVE ]]; then
+   _RIFF_REGION_ACTIVE="${KEYMAP}"
 
-    _RIFF_REGION_ACTIVE=${REGION_ACTIVE:-0}
+  #if [[ $KEYMAP == vicmd ]] && [[ ${REGION_ACTIVE:-0} != $_RIFF_REGION_ACTIVE ]]; then
+
+    #_RIFF_REGION_ACTIVE=${REGION_ACTIVE:-0}
 
     zle
     zle .reset-prompt
     zle -R
 
-  fi
+  #fi
 }
 
-_riff_vcs_module_setup(){
+_riff_vi_mode_module_setup(){
 
-  if (( $+RIFF_VI_VISUAL_MODE_STRING )); then
+  #if (( $+RIFF_VI_VISUAL_MODE_STRING )); then
 
     autoload -Uz add-zle-hook-widget
     zle -N _riff_zle_line_pre_redraw
 
-    #add-zle-hook-widget line-pre-redraw _riff_zle_line_pre_redraw
+    add-zle-hook-widget line-pre-redraw _riff_zle_line_pre_redraw
 
-  fi
+  #fi
 
 }
