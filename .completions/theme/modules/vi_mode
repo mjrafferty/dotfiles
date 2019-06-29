@@ -5,47 +5,47 @@
 # VISUAL mode is shown as NORMAL unless RIFF_VI_VISUAL_MODE_STRING is explicitly set.
 # Your ZSH version must be >= 5.3 if you set this parameter.
 
-typeset  -gi  _RIFF_REGION_ACTIVE
+typeset -g _RIFF_VI_MODE
+typeset -g RIFF_VI_MODE_FG="white"
+typeset -g RIFF_VI_MODE_BG="grey30"
 
 _riff_vi_mode_run() {
 
-  #_RIFF_REGION_ACTIVE=0
+	_RIFF_VI_MODE="     INSERT     "
 
-  #$1_prompt_module $0_NORMAL $2 "$DEFAULT_COLOR" white '' 0 '${$((!${#${:-$KEYMAP$_RIFF_REGION_ACTIVE}:#vicmd0})):#0}' "$RIFF_VI_COMMAND_MODE_STRING"
-  #$1_prompt_module $0_VISUAL $2 "$DEFAULT_COLOR" white '' 0 '${$((!${#${:-$KEYMAP$_RIFF_REGION_ACTIVE}:#vicmd1})):#0}' "$RIFF_VI_VISUAL_MODE_STRING"
-
-  #if [[ -n $RIFF_VI_INSERT_MODE_STRING ]]; then
-    #$1_prompt_module $0_INSERT $2 "$DEFAULT_COLOR" blue '' 0 '${${KEYMAP:-0}:#vicmd}' "$RIFF_VI_INSERT_MODE_STRING"
-  #fi
-
-  _RIFF_RETURN_MESSAGE="\${_RIFF_REGION_ACTIVE}"
+  _RIFF_RETURN_MESSAGE='${_RIFF_VI_MODE}'
 
 }
 
- _riff_zle_line_pre_redraw() {
+ _riff_vi_mode_change() {
 
-   _RIFF_REGION_ACTIVE="${KEYMAP}"
+	local last_mode="$_RIFF_VI_MODE"
 
-  #if [[ $KEYMAP == vicmd ]] && [[ ${REGION_ACTIVE:-0} != $_RIFF_REGION_ACTIVE ]]; then
+  case "$KEYMAP" in
+    "vicmd")
+      if ((REGION_ACTIVE == 1)); then
+        _RIFF_VI_MODE="     VISUAL     "
+      else
+        _RIFF_VI_MODE="     NORMAL     "
+      fi
+      ;;
+    "main")
+      _RIFF_VI_MODE="     INSERT     "
+      ;;
+    *);;
+  esac
 
-    #_RIFF_REGION_ACTIVE=${REGION_ACTIVE:-0}
+	if [[ "$_RIFF_VI_MODE" != "$last_mode" ]]; then
+		zle reset-prompt
+	fi
 
-    zle
-    zle .reset-prompt
-    zle -R
-
-  #fi
 }
 
 _riff_vi_mode_module_setup(){
 
-  #if (( $+RIFF_VI_VISUAL_MODE_STRING )); then
+  autoload -Uz add-zle-hook-widget
+  zle -N _riff_vi_mode_change
 
-    autoload -Uz add-zle-hook-widget
-    zle -N _riff_zle_line_pre_redraw
-
-    add-zle-hook-widget line-pre-redraw _riff_zle_line_pre_redraw
-
-  #fi
+  add-zle-hook-widget line-pre-redraw _riff_vi_mode_change
 
 }
