@@ -5,6 +5,8 @@
 #
 # old options, retro compatibility
 
+typeset -g RIFF_STATUS_FG="white"
+typeset -g RIFF_STATUS_BG="green"
 typeset -g RIFF_STATUS_HIDE_SIGNAME="false"
 typeset -g RIFF_STATUS_SHOW_PIPESTATUS="true"
 typeset -g RIFF_STATUS_CROSS="false"
@@ -29,6 +31,8 @@ _riff_status_run() {
     local ec_text
     local ec_sum
     local ec
+
+    RIFF_STATUS_BG="green"
 
     if [[ $RIFF_STATUS_SHOW_PIPESTATUS == true ]]; then
 
@@ -62,6 +66,7 @@ _riff_status_run() {
 
     if (( ec_sum > 0 )); then
 
+      RIFF_STATUS_BG="red"
       if [[ "$RIFF_STATUS_VERBOSE" == true ]]; then
         #_RIFF_CACHE_VAL=("$0_ERROR" "$2" red yellow1 CARRIAGE_RETURN_ICON 0 '' "$ec_text")
         _RIFF_RETURN_MESSAGE="$ec_text"

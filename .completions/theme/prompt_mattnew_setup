@@ -9,8 +9,8 @@ typeset -g  RIFF_RIGHT_SEPARATOR=""
 typeset -g  RIFF_PROMPT_END=" "
 typeset -g  RIFF_LINE_LINKS="true"
 
-RIFF_LEFT_PROMPT_ELEMENTS=(ip public_ip newline root_indicator context dir vi_mode ruler )
-RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time background_jobs newline status php_version)
+RIFF_LEFT_PROMPT_ELEMENTS=(public_ip newline root_indicator context dir vi_mode ruler )
+RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time background_jobs newline status newline php_version)
 
 ## Necessary global variables
 typeset -g  _RIFF_INSTALL_DIR="${HOME}/.completions/theme"
@@ -293,6 +293,11 @@ _riff_set_prompts(){
 
   _riff_make_rprompt
   RPROMPT="${_RIFF_RETURN_MESSAGE}"
+
+  if [[ "$RIFF_LINE_LINKS" == "true"  ]]; then
+    RPROMPT+="%k%F{${__RIFF_COLORS[${RIFF_LINK_COLOR}]}}${RIFF_BR_LINK}%f"
+  fi
+
 
   _RIFF_CURRENT_RPROMPT=1
 
