@@ -5,8 +5,12 @@
 #
 # old options, retro compatibility
 
-typeset -gi _RIFF_EXIT_CODE
-typeset -ga _RIFF_PIPE_EXIT_CODES
+typeset -g RIFF_STATUS_HIDE_SIGNAME="false"
+typeset -g RIFF_STATUS_SHOW_PIPESTATUS="true"
+typeset -g RIFF_STATUS_CROSS="false"
+typeset -g RIFF_STATUS_VERBOSE="true"
+typeset -g RIFF_STATUS_OK="true"
+typeset -g RIFF_STATUS_OK_IN_NON_VERBOSE="true"
 
 exit_code_or_status() {
 
@@ -27,6 +31,7 @@ _riff_status_run() {
     local ec
 
     if [[ $RIFF_STATUS_SHOW_PIPESTATUS == true ]]; then
+
       if (( $#_RIFF_PIPE_EXIT_CODES > 1 )); then
         ec_sum=${_RIFF_PIPE_EXIT_CODES[1]}
         exit_code_or_status "${_RIFF_PIPE_EXIT_CODES[1]}"
@@ -35,31 +40,45 @@ _riff_status_run() {
         ec_sum=${_RIFF_EXIT_CODE}
         exit_code_or_status "${_RIFF_EXIT_CODE}"
       fi
+
       ec_text=$_RIFF_RETURN_MESSAGE
+
       for ec in "${(@)_RIFF_PIPE_EXIT_CODES[2,-1]}"; do
         (( ec_sum += ec ))
         exit_code_or_status "$ec"
         ec_text+="|$_RIFF_RETURN_MESSAGE"
       done
+
     else
+
       ec_sum=${_RIFF_EXIT_CODE}
       # We use _RIFF_EXIT_CODE instead of the right-most _RIFF_PIPE_EXIT_CODES item because
       # PIPE_FAIL may be set.
       exit_code_or_status "${_RIFF_EXIT_CODE}"
       ec_text=$_RIFF_RETURN_MESSAGE
+
     fi
+
 
     if (( ec_sum > 0 )); then
-      if [[ "$RIFF_STATUS_CROSS" == false && "$RIFF_STATUS_VERBOSE" == true ]]; then
-        _RIFF_CACHE_VAL=("$0_ERROR" "$2" red yellow1 CARRIAGE_RETURN_ICON 0 '' "$ec_text")
+
+      if [[ "$RIFF_STATUS_VERBOSE" == true ]]; then
+        #_RIFF_CACHE_VAL=("$0_ERROR" "$2" red yellow1 CARRIAGE_RETURN_ICON 0 '' "$ec_text")
+        _RIFF_RETURN_MESSAGE="$ec_text"
       else
-        _RIFF_CACHE_VAL=("$0_ERROR" "$2" "$DEFAULT_COLOR" red FAIL_ICON 0 '' '')
+        #_RIFF_CACHE_VAL=("$0_ERROR" "$2" "$DEFAULT_COLOR" red FAIL_ICON 0 '' '')
+        _RIFF_RETURN_MESSAGE="BAD"
       fi
+
     elif [[ "$RIFF_STATUS_OK" == true ]] && [[ "$RIFF_STATUS_VERBOSE" == true || "$RIFF_STATUS_OK_IN_NON_VERBOSE" == true ]]; then
-      _RIFF_CACHE_VAL=("$0_OK" "$2" "$DEFAULT_COLOR" green OK_ICON 0 '' '')
+
+      #_RIFF_CACHE_VAL=("$0_OK" "$2" "$DEFAULT_COLOR" green OK_ICON 0 '' '')
+      _RIFF_RETURN_MESSAGE="OK"
+
     else
-      return
+
+      _RIFF_RETURN_MESSAGE=""
+
     fi
 
-  _RIFF_RETURN_MESSAGE="${(@)_RIFF_CACHE_VAL}"
 }

@@ -10,7 +10,7 @@ typeset -g  RIFF_PROMPT_END=" "
 typeset -g  RIFF_LINE_LINKS="true"
 
 RIFF_LEFT_PROMPT_ELEMENTS=(ip public_ip newline root_indicator context dir vi_mode ruler )
-RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time background_jobs newline php_version)
+RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time background_jobs newline status php_version)
 
 ## Necessary global variables
 typeset -g  _RIFF_INSTALL_DIR="${HOME}/.completions/theme"
@@ -300,12 +300,12 @@ _riff_set_prompts(){
 
 _riff_precmd() {
 
+  _RIFF_EXIT_CODE=$?
+  _RIFF_PIPE_EXIT_CODES=( "$pipestatus[@]" )
+
   local start
 
   setopt prompt_subst
-
-  _RIFF_EXIT_CODE=$?
-  _RIFF_PIPE_EXIT_CODES=( "$pipestatus[@]" )
 
   _RIFF_LEFT_TEXT_LENGTH=0;
   _RIFF_RIGHT_TEXT_LENGTH=0;
