@@ -1,43 +1,49 @@
+# vim:ft=bash
+
+typeset -g  RIFF_GAME_BG="darkblue"
+
 typeset -gi _RIFF_GAME_CASH=1000
+typeset -g  _RIFF_BOLD="$(tput bold)"
+typeset -g  _RIFF_NOBOLD="$(tput sgr0)"
+
+typeset -ag _RIFF_GAME_SYMBOLS
+
+_RIFF_GAME_SYMBOLS=(
+  "%F{1}🍒%F{7}"
+  "%F{10}🍏%F{7}"
+  "%F{9}🍓%F{7}"
+  "%F{92}🍇%F{7}"
+  "%F{162}🍉%F{7}"
+  "%F{11}⭐%F{7}"
+  "%F{11}🌟%F{7}"
+  "%F{10}💵%F{7}"
+  )
 
 _riff_game_run (){
 
-  local red green yellow grape strawberry mellon reset win winst
-  local -i ns1 ns2 ns3
-  local -a symbols
+  local slots
+  local win=0
+  local winst=""
 
-  red="%F{1}"
-  green="%F{10}"
-  yellow="%F{11}"
-  grape="%F{92}"
-  strawberry="%F{9}"
-  mellon="%F{162}"
-  reset="%F{7}"
-
-  symbol[1]="$red🍒$reset"
-  symbol[2]="$green🍏$reset"
-  symbol[3]="$strawberry🍓$reset"
-  symbol[4]="$grape🍇$reset"
-  symbol[5]="$mellon🍉$reset"
-
-  n1=$((RANDOM%5 + 1))
-  n2=$((RANDOM%5 + 1))
-  n3=$((RANDOM%5 + 1))
-
-  win=0
-  winst=""
+  ((n1 = RANDOM % 5 + 1))
+  ((n2 = RANDOM % 5 + 1))
+  ((n3 = RANDOM % 5 + 1))
 
   if (((n1==n2) || (n1==n3) || (n2==n3))); then
-    win=10;
-    winst=" $yellow⭐$reset"
+
+    if (((n1==n2) && (n1==n3))); then
+      ((win=100*(n1)));
+      winst=" ${_RIFF_GAME_SYMBOLS[7]} ${win} ${_RIFF_GAME_SYMBOLS[7]} "
+    else
+      win=10;
+      winst="${_RIFF_GAME_SYMBOLS[6]}"
+    fi
+
   fi
 
-  if (((n1==n2) && (n1==n3))); then
-    win=$((100*(n1)));
-    winst=" $yellow🌟 $win 🌟$reset"
-  fi
+  ((_RIFF_GAME_CASH+=(win-10)))
 
-  _RIFF_GAME_CASH=$((_RIFF_GAME_CASH+win-10))
-  _RIFF_RETURN_MESSAGE="$(tput bold)[${symbol[n1]}|$(tput bold)${symbol[n2]}|$(tput bold)${symbol[n3]}]$winst $green💵$reset:$yellow$_RIFF_GAME_CASH%f"
+  slots="[${_RIFF_GAME_SYMBOLS[n1]}|${_RIFF_GAME_SYMBOLS[n2]}|${_RIFF_GAME_SYMBOLS[n3]}]"
+  _RIFF_RETURN_MESSAGE="${_RIFF_BOLD}${slots}${winst}${_RIFF_GAME_SYMBOLS[8]}:${_RIFF_GAME_CASH}${_RIFF_NOBOLD}"
 
 }
