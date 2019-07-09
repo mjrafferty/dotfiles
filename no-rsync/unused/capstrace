@@ -9,7 +9,7 @@ readonly RUNNING_AS_HOME="$(/bin/find /home/{,nexcess.net/}"${RUNNING_AS}" -mind
 
 # Configurable Variables
 readonly TMP_EXT=".nexcess.bak"
-readonly OUTPUT_DIR="${RUNNING_AS_HOME}/nex_strace"
+OUTPUT_DIR="${RUNNING_AS_HOME}/nex_strace"
 readonly TEMP_DIR="/dev/shm"
 readonly PIPE_PREFIX="${TEMP_DIR}/nexcess_strace_pipe-"
 readonly DEFAULT_IP="${MY_IP:-192.240.191.2}"
@@ -42,6 +42,7 @@ PIPE_NAME=""
 REMOVE_PIPE=""
 FILES=()
 FILES_USED=()
+CLI_RUN=""
 
 
 # Print usage
@@ -49,9 +50,30 @@ _usage() {
 
   "$CAT" <<- EOF
 
-  Captures strace and php GLOBALS variable information of one or matching
-  requests to a website. Outputs data to $OUTPUT_DIR. Can also be run on each
-  node of a cluster without conflict.
+  Strace wrapper aimed at simplifying strace capturing for php requests. Captures
+  strace and php GLOBALS variable information of matching requests to a website and
+  outputs data to $OUTPUT_DIR. It can be safely run on each node of a cluster without
+  conflict. Unless overriden with the -i flag, this will only capture requests from
+  the Nexcess office IP. For remote employees, the value of \$MY_IP environment variable,
+  if you have it set, will also override this.
+
+  Simplest invocation from docroot:
+
+    capstrace index.php
+
+  In this form, no other arguments should be used and there is no filtering of requests aside
+  from the IP filtering described above.
+
+  Advanced usage example:
+
+    capstrace -f index.php,admin/index.php -i all -u api/soapy -q run=5 -d 6
+
+  This monitors requests hitting either index.php or admin/index.php. Due to the usage of
+  -i all means that it will capture matching requests from any IP. Due to the -u and -q flags,
+  this will only capture requests with "api/soapy" in the request URI, and with a query string
+  matching "run=5". This will also run as a background process to capture all matching requests
+  for the next 6 hours by usage of the -d flag. If you wish to stop this prematurely, capstrace -k
+  will stop the background process.
 
   Usage:
 
@@ -79,6 +101,12 @@ _usage() {
                                    hours specified.
 
   -k|--kill                        Manually kill daemonized capstrace instance.
+
+  -c|--cli                         Ignore file extensions and request filtering
+                                   to allow for easy strace capture of cli scripts.
+
+
+  -o|--output DIRECTORY            Manually specify an output directory.
 
 EOF
 
@@ -115,6 +143,12 @@ _cmdline() {
       "--kill"|"-k")
         args="${args}-k "
         ;;
+      "--cli"|"-c")
+        args="${args}-c "
+        ;;
+      "--output"|"-o")
+        args="${args}-o "
+        ;;
       *)
         args="${args}${x} ";
         ;;
@@ -140,22 +174,26 @@ _addCode () {
 
   "$CP" -a "$file""$TMP_EXT" "$file";
 
-  if [[ "$uri" == "NULL" ]]; then
-    uri_string="";
-  else
-    uri_string=" and (strlen(strstr(\$_SERVER[\"REQUEST_URI\"],\"$uri\"))>0)";
-  fi
+  if [[ -z "$CLI_RUN" ]]; then
+    if [[ "$uri" == "NULL" ]]; then
+      uri_string="";
+    else
+      uri_string=" and (strlen(strstr(\$_SERVER[\"REQUEST_URI\"],\"$uri\"))>0)";
+    fi
 
-  if [[ "$query" == "NULL" ]]; then
-    query_string="";
-  else
-    query_string=" and (strlen(strstr(\$_SERVER[\"QUERY_STRING\"],\"$query\"))>0)";
-  fi
+    if [[ "$query" == "NULL" ]]; then
+      query_string="";
+    else
+      query_string=" and (strlen(strstr(\$_SERVER[\"QUERY_STRING\"],\"$query\"))>0)";
+    fi
 
-  if [[ "$address" == "all" ]]; then
+    if [[ "$address" == "all" ]]; then
+      address_string="1";
+    else
+      address_string="\$_SERVER[\"REMOTE_ADDR\"] == \"$address\" || (strlen(strstr(\$_SERVER[\"HTTP_X_FORWARDED_FOR\"],\"$address\"))>0)";
+    fi
+  else
     address_string="1";
-  else
-    address_string="\$_SERVER[\"REMOTE_ADDR\"] == \"$address\" || (strlen(strstr(\$_SERVER[\"HTTP_X_FORWARDED_FOR\"],\"$address\"))>0)";
   fi
 
   "$CAT" << EOF > "$file"
@@ -183,7 +221,11 @@ _strace () {
 
   output="${OUTPUT_DIR}/$("$DATE" "+%F-%T")-$pid-strace";
 
-  "$STRACE" "$STRACE_FLAGS" -o "$output" -p"$pid" &
+  if [[ -n "$daemon_time" ]]; then
+    "$STRACE" "$STRACE_FLAGS" -o "$output" -p"$pid" &> /dev/null &
+  else
+    "$STRACE" "$STRACE_FLAGS" -o "$output" -p"$pid" &
+  fi
 
   str_pid="$!"
 
@@ -275,16 +317,27 @@ _setup() {
   query="$3"
 
   # Create output directory if necessary and restrict perms
-  [[ -d $OUTPUT_DIR ]] || "$MKDIR" "${OUTPUT_DIR}";
+  [[ -d $OUTPUT_DIR ]] || "$MKDIR" -p "${OUTPUT_DIR}";
   "$CHMOD" 700 "${OUTPUT_DIR}"
   "$CHOWN" "${RUNNING_AS}." "${OUTPUT_DIR}"
 
   # Add the needed code to any files that don't currently have it
   for x in ${FILES[*]}; do
 
-    if [[ -L "$x" ]]; then
-      echo "$x is a symbolic link";
+    if [[ ! -f "$x" ]]; then
+      echo "$x is not a regular file, skipping.";
       continue;
+    fi
+
+    if [[ -z "${CLI_RUN}" && ! "$x" == *.php ]]; then
+      echo "$x missing .php extension, skipping.";
+      continue;
+    fi
+
+    if [[ -z "$PIPE_NAME" ]]; then
+      # Check if we already have a pipe id in the file ( Mainly for clusters )
+      PIPE_NAME=$("$GREP" -Po "${PIPE_PREFIX}[^\"]*" "${x}") \
+        || PIPE_NAME="${PIPE_PREFIX}$(uuidgen)"
     fi
 
     if ! "$GREP" -Fq "${PIPE_NAME}" "$x"; then
@@ -293,6 +346,10 @@ _setup() {
     fi
 
   done
+
+  if [[ -z ${FILES_USED[0]} ]]; then
+    echo "No files modified."
+  fi
 
   # Create pipe if not already present
   if [[ ! -e "$PIPE_NAME" ]]; then
@@ -309,7 +366,7 @@ _cleanUp() {
   # Clean up the stuff we touched
   for x in ${FILES_USED[*]}; do
 
-    if [[ ! -L "$x" && -e "${x}${TMP_EXT}" ]]; then
+    if [[ -f "$x" && -e "${x}${TMP_EXT}" ]]; then
       "$MV" -f "$x"{"$TMP_EXT",}
     fi
 
@@ -332,7 +389,7 @@ main () {
   local address uri query daemon_time x;
 
   # Parse command line options
-  while getopts "hf:i:u:q:d:k" OPTION $(_cmdline); do
+  while getopts "hf:i:u:q:d:kco:" OPTION $(_cmdline); do
 
     case $OPTION in
       h)
@@ -362,11 +419,22 @@ main () {
         query="$OPTARG";
         ;;
       d)
-        daemon_time="$(( $(echo "$OPTARG" | "$GREP" -Po '\d*') * 3600 ))";
+        if [[ "$OPTARG" == [0-9]* ]]; then
+          daemon_time="$(( $(echo "$OPTARG" | "$GREP" -Po '\d*') * 3600 ))";
+        else
+          echo "Invalid daemon time.";
+          exit 4;
+        fi
         ;;
       k)
         "$PKILL" capstrace -P 1
         exit;
+        ;;
+      c)
+        CLI_RUN="true";
+        ;;
+      o)
+        OUTPUT_DIR="$OPTARG"
         ;;
       *);;
     esac
@@ -382,10 +450,6 @@ main () {
       return 1;
     fi
   fi
-
-  # Check if we already have a pipe id in the file ( Mainly for clusters )
-  PIPE_NAME=$("$GREP" -Po "${PIPE_PREFIX}[^\"]*" "${FILES[0]}") \
-    || PIPE_NAME="${PIPE_PREFIX}$(uuidgen)"
 
   trap "_cleanUp" EXIT;
 
