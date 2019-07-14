@@ -11,18 +11,19 @@
 
 typeset -g RIFF_DIR_BG="blue"
 typeset -g RIFF_DIR_FG="white"
-typeset -g RIFF_DIR_MAX_LENGTH
+typeset -g RIFF_DIR_MAX_LENGTH=10
 typeset -g RIFF_DIR_PACKAGE_FILES
-typeset -g RIFF_DIR_PATH_ABSOLUTE
-typeset -g RIFF_DIR_PATH_HIGHLIGHT_FOREGROUND
+typeset -g RIFF_DIR_PATH_ABSOLUTE=true
+typeset -g RIFF_DIR_PATH_HIGHLIGHT_BOLD=true
+typeset -g RIFF_DIR_PATH_HIGHLIGHT_FOREGROUND="red"
 typeset -g RIFF_DIR_PATH_SEPARATOR="/"
 typeset -g RIFF_DIR_PATH_SEPARATOR_FOREGROUND
 typeset -g RIFF_HOME_FOLDER_ABBREVIATION="~"
-typeset -g RIFF_SHORTEN_DIR_LENGTH
+typeset -g RIFF_SHORTEN_DIR_LENGTH=30
 typeset -g RIFF_SHORTEN_DELIMITER
 typeset -g RIFF_SHORTEN_DELIMITER_LENGTH
 typeset -g RIFF_SHORTEN_FOLDER_MARKER
-typeset -g RIFF_SHORTEN_STRATEGY
+typeset -g RIFF_SHORTEN_STRATEGY="truncate_to_unique"
 
 _riff_shorten_delim_len() {
   _RIFF_RETURN_MESSAGE=${RIFF_SHORTEN_DELIMITER_LENGTH:--1}
@@ -30,6 +31,9 @@ _riff_shorten_delim_len() {
 }
 
 _riff_truncate_to_unique() {
+
+  local shortenlen=${RIFF_SHORTEN_DIR_LENGTH:--1}
+  local delim=${RIFF_SHORTEN_DELIMITER-$'\u2026'}
 
   local -i i=2 n=1
   [[ $p == /* ]] && (( ++i ))
@@ -69,7 +73,11 @@ _riff_truncate_to_unique() {
 
 }
 
+# Dir text will be the last $RIFF_SHORTEN_DIR_LENGTH characters of path
 _riff_truncate_absolute() {
+
+  local shortenlen=${RIFF_SHORTEN_DIR_LENGTH:--1}
+  local delim=${RIFF_SHORTEN_DELIMITER-$'\u2026'}
 
   if (( shortenlen > 0 && $#p > shortenlen )); then
 
@@ -120,6 +128,8 @@ _riff_truncate_with_folder_marker(){
 
 _riff_truncate_to_first_and_last(){
 
+  local shortenlen=${RIFF_SHORTEN_DIR_LENGTH:--1}
+
   if (( shortenlen > 0 )); then
     local -i i=$(( shortenlen + 1 ))
     [[ $p == /* ]] && (( ++i ))
@@ -131,6 +141,9 @@ _riff_truncate_to_first_and_last(){
 }
 
 _riff_truncated_with_package_name(){
+
+  local shortenlen=${RIFF_SHORTEN_DIR_LENGTH:--1}
+  local delim=${RIFF_SHORTEN_DELIMITER-$'\u2026'}
 
   () {
   [[ $RIFF_SHORTEN_STRATEGY == truncate_with_package_name &&
@@ -183,7 +196,6 @@ _riff_dir_run() {
   delim=${RIFF_SHORTEN_DELIMITER-$'\u2026'}
   sep=$RIFF_DIR_PATH_SEPARATOR
   fake_first=0
-  shortenlen=${RIFF_SHORTEN_DIR_LENGTH:--1}
 
   if [[ $RIFF_DIR_PATH_ABSOLUTE == true ]]; then
     p=$PWD
@@ -215,16 +227,23 @@ _riff_dir_run() {
   fi
 
   case $RIFF_SHORTEN_STRATEGY in
-    truncate_absolute|truncate_absolute_chars) _riff_truncate_absolute ;;
-    truncate_with_package_name|truncate_middle|truncate_from_right) _riff_truncated_with_package_name ;;
+    truncate_absolute) _riff_truncate_absolute ;;
+    truncate_with_package_name|truncate_middle) _riff_truncated_with_package_name ;;
     truncate_to_last)
       fake_first=$(($#parts > 1))
       parts[1,-2]=()
-    ;;
-    truncate_to_first_and_last) _riff_truncate_to_first_and_last ;;
-    truncate_to_unique) _riff_truncate_to_unique ;;
-    truncate_with_folder_marker) _riff_truncate_with_folder_marker ;;
+      ;;
+    truncate_to_first_and_last)
+      _riff_truncate_to_first_and_last
+      ;;
+    truncate_to_unique)
+      _riff_truncate_to_unique
+      ;;
+    truncate_with_folder_marker)
+      _riff_truncate_with_folder_marker
+      ;;
     *)
+      shortenlen=${RIFF_SHORTEN_DIR_LENGTH:--1}
       if (( shortenlen > 0 )); then
         len=$#parts
         [[ -z $parts[1] ]] && (( --len ))
@@ -232,7 +251,7 @@ _riff_dir_run() {
           parts[1,-shortenlen-1]=($'\0')
         fi
       fi
-    ;;
+      ;;
   esac
 
   if [[ $RIFF_DIR_SHOW_WRITABLE == true && ! -w $PWD ]]; then
@@ -268,7 +287,7 @@ _riff_dir_run() {
     last_fg+=$_RIFF_RETURN_MESSAGE
   fi
 
-  parts[-1]=$last_fg${parts[-1]//$'\0'/$'\0'$last_fg}
+  parts[-1]=$last_fg${parts[-1]//$'\0'/$'\0'$last_fg}%b
 
   parts=("${(@)parts//$'\0'/$delim}")
 
@@ -276,7 +295,7 @@ _riff_dir_run() {
   if [[ -n $RIFF_DIR_PATH_SEPARATOR_FOREGROUND ]]; then
     _riff_translate_color $RIFF_DIR_PATH_SEPARATOR_FOREGROUND
     _riff_foreground $_RIFF_RETURN_MESSAGE
-    sep=$_RIFF_RETURN_MESSAGE$sep
+    sep="$_RIFF_RETURN_MESSAGE$sep%f"
   fi
 
   _RIFF_RETURN_MESSAGE="${(pj.$sep.)parts}"

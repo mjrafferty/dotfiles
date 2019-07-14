@@ -5,10 +5,8 @@
 # VISUAL mode is shown as NORMAL unless RIFF_VI_VISUAL_MODE_STRING is explicitly set.
 # Your ZSH version must be >= 5.3 if you set this parameter.
 
-typeset -g _RIFF_VI_MODE
 typeset -g RIFF_VI_MODE_FG="white"
 typeset -g RIFF_VI_MODE_BG="grey30"
-typeset -gi _RIFF_VI_MODE_LENGTH=6
 
 _riff_vi_mode_run() {
 

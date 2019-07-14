@@ -67,8 +67,6 @@ _riff_set_module_text() {
 
 	if [[ -n "${(P)${length}}" ]]; then
 		(( _RIFF_LAST_TEXT_LENGTH = ${(P)${length}} + 2));
-	else
-		_RIFF_LAST_TEXT_LENGTH="${#${(%)module_text}}"
 	fi
 
   _riff_translate_color "${(P)${fg_var}}"
