@@ -37,13 +37,14 @@ source "${_RIFF_INSTALL_DIR}/lib/link_lines.zsh"
 _riff_set_module_text() {
 
   local module module_text fg_color bg_color transition_fg_color cache_key
-  local -u fg_var bg_var # Convert variable names to upper case when checking config
+  local -u fg_var bg_var length # Convert variable names to upper case when checking config
 
   module="$1"
   cache_key="$2"
 
   fg_var="RIFF_${module}_FG"
   bg_var="RIFF_${module}_BG"
+  length="_RIFF_${module}_LENGTH"
 
   "_riff_${module}_run"
 
@@ -61,7 +62,14 @@ _riff_set_module_text() {
   ## TODO icons?
   ## TODO rework colors
   module_text=" ${_RIFF_RETURN_MESSAGE} "
-  _RIFF_LAST_TEXT_LENGTH="${#${(%)module_text}}"
+  local zero='%([BSUbfksu]|([FK]|){*})'
+	_RIFF_LAST_TEXT_LENGTH=${#${(S%%)module_text//$~zero/}}
+
+	if [[ -n "${(P)${length}}" ]]; then
+		(( _RIFF_LAST_TEXT_LENGTH = ${(P)${length}} + 2));
+	else
+		_RIFF_LAST_TEXT_LENGTH="${#${(%)module_text}}"
+	fi
 
   _riff_translate_color "${(P)${fg_var}}"
   fg_color="${_RIFF_RETURN_MESSAGE}"

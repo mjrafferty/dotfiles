@@ -8,10 +8,11 @@
 typeset -g _RIFF_VI_MODE
 typeset -g RIFF_VI_MODE_FG="white"
 typeset -g RIFF_VI_MODE_BG="grey30"
+typeset -gi _RIFF_VI_MODE_LENGTH=6
 
 _riff_vi_mode_run() {
 
-	_RIFF_VI_MODE="     INSERT     "
+	_RIFF_VI_MODE="INSERT"
 
   _RIFF_RETURN_MESSAGE='${_RIFF_VI_MODE}'
 
@@ -24,13 +25,13 @@ _riff_vi_mode_run() {
   case "$KEYMAP" in
     "vicmd")
       if ((REGION_ACTIVE == 1)); then
-        _RIFF_VI_MODE="     VISUAL     "
+        _RIFF_VI_MODE="VISUAL"
       else
-        _RIFF_VI_MODE="     NORMAL     "
+        _RIFF_VI_MODE="NORMAL"
       fi
       ;;
     "main")
-      _RIFF_VI_MODE="     INSERT     "
+      _RIFF_VI_MODE="INSERT"
       ;;
     *);;
   esac

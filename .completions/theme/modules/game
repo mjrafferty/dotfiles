@@ -3,8 +3,7 @@
 typeset -g  RIFF_GAME_BG="darkblue"
 
 typeset -gi _RIFF_GAME_CASH=1000
-typeset -g  _RIFF_BOLD="$(tput bold)"
-typeset -g  _RIFF_NOBOLD="$(tput sgr0)"
+typeset -gi  _RIFF_GAME_LENGTH=0
 
 typeset -ag _RIFF_GAME_SYMBOLS
 
@@ -24,6 +23,7 @@ _riff_game_run (){
   local slots
   local win=0
   local winst=""
+  local -i length=0
 
   ((n1 = RANDOM % 5 + 1))
   ((n2 = RANDOM % 5 + 1))
@@ -34,16 +34,21 @@ _riff_game_run (){
     if (((n1==n2) && (n1==n3))); then
       ((win=100*(n1)));
       winst=" ${_RIFF_GAME_SYMBOLS[7]} ${win} ${_RIFF_GAME_SYMBOLS[7]} "
+      ((length+=11));
     else
       win=10;
       winst="${_RIFF_GAME_SYMBOLS[6]}"
+      ((length+=2));
     fi
 
   fi
 
   ((_RIFF_GAME_CASH+=(win-10)))
+  ((length+=${#_RIFF_GAME_CASH}));
 
   slots="[${_RIFF_GAME_SYMBOLS[n1]}|${_RIFF_GAME_SYMBOLS[n2]}|${_RIFF_GAME_SYMBOLS[n3]}]"
-  _RIFF_RETURN_MESSAGE="${_RIFF_BOLD}${slots}${winst}${_RIFF_GAME_SYMBOLS[8]}:${_RIFF_GAME_CASH}${_RIFF_NOBOLD}"
+  _RIFF_RETURN_MESSAGE="%B${slots}${winst}${_RIFF_GAME_SYMBOLS[8]}:${_RIFF_GAME_CASH}%b"
+  ((length+=13));
+  ((_RIFF_GAME_LENGTH=length));
 
 }
