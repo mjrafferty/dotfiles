@@ -3,14 +3,10 @@
 ################################################################
 # Segment to indicate background jobs with an icon.
 #
-typeset -g RIFF_BACKGROUND_JOBS_FG
-typeset -g RIFF_BACKGROUND_JOBS_BG
+typeset -g RIFF_BACKGROUND_JOBS_FG="white"
+typeset -g RIFF_BACKGROUND_JOBS_BG="cyan"
 typeset -g RIFF_BACKGROUND_JOBS_VERBOSE="true"
 typeset -g RIFF_BACKGROUND_JOBS_VERBOSE_ALWAYS="true"
-
-
-RIFF_BACKGROUND_JOBS_FG="white"
-RIFF_BACKGROUND_JOBS_BG="cyan"
 
 _riff_background_jobs_run() {
 
@@ -23,7 +19,6 @@ _riff_background_jobs_run() {
       msg='${${(%):-%j}:#1}'
     fi
   fi
-  #_riff_get_icon BACKGROUND_JOBS_ICON
 
   _RIFF_RETURN_MESSAGE="${(e)msg}"
 

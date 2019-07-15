@@ -25,6 +25,10 @@ typeset -g RIFF_SHORTEN_DELIMITER_LENGTH
 typeset -g RIFF_SHORTEN_FOLDER_MARKER
 typeset -g RIFF_SHORTEN_STRATEGY="truncate_to_unique"
 
+_riff_dir_cache_key() {
+  _RIFF_RETURN_MESSAGE="$PWD"
+}
+
 _riff_shorten_delim_len() {
   _RIFF_RETURN_MESSAGE=${RIFF_SHORTEN_DELIMITER_LENGTH:--1}
   (( _RIFF_RETURN_MESSAGE >= 0 )) || _riff_prompt_length $1
