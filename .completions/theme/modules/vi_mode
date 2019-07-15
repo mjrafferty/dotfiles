@@ -8,6 +8,10 @@
 typeset -g RIFF_VI_MODE_FG="white"
 typeset -g RIFF_VI_MODE_BG="grey30"
 
+_riff_vi_mode_cache_key() {
+  _RIFF_RETURN_MESSAGE="1"
+}
+
 _riff_vi_mode_run() {
 
 	_RIFF_VI_MODE="INSERT"

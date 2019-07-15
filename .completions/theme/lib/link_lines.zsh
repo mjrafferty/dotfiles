@@ -47,8 +47,8 @@ _riff_add_links() {
                 case "${_RIFF_LINES_META[line+1]}" in
                   3) _RIFF_PROMPT_LINES[line]="${ml}${_RIFF_PROMPT_LINES[line]}${mr}";;
                   2) _RIFF_PROMPT_LINES[line]="${ml}${_RIFF_PROMPT_LINES[line]}${mr}";;
-                  1) _RIFF_PROMPT_LINES[line]="${ml}${_RIFF_PROMPT_LINES[line]}${mr}";;
-                  0) _RIFF_PROMPT_LINES[line]="${ml}${_RIFF_PROMPT_LINES[line]}${mr}";;
+                  1) _RIFF_PROMPT_LINES[line]="${ml}${_RIFF_PROMPT_LINES[line]}${br}";;
+                  0) _RIFF_PROMPT_LINES[line]="${ml}${_RIFF_PROMPT_LINES[line]}${br}";;
                 esac
                 ;;
               2)
