@@ -8,6 +8,7 @@ typeset -g  RIFF_LEFT_SEPARATOR=""
 typeset -g  RIFF_RIGHT_SEPARATOR=""
 typeset -g  RIFF_PROMPT_END=" "
 typeset -g  RIFF_LINE_LINKS="true"
+typeset -g 	RIFF_BUFFER_NAME
 
 RIFF_LEFT_PROMPT_ELEMENTS=(public_ip newline root_indicator context dir vi_mode ruler )
 RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time background_jobs game newline status php_version)
@@ -31,6 +32,14 @@ source "${_RIFF_INSTALL_DIR}/lib/colors.zsh"
 source "${_RIFF_INSTALL_DIR}/lib/icons.zsh"
 source "${_RIFF_INSTALL_DIR}/lib/utilities.zsh"
 source "${_RIFF_INSTALL_DIR}/lib/link_lines.zsh"
+
+
+## Buffered command output example ##
+#mkfifo ${_RIFF_BUFFER_NAME}
+#exec {_RIFF_BUFFER_FD}<>
+#echo "foo" >&${_RIFF_BUFFER_FD}
+#read test <&${_RIFF_BUFFER_FD}
+#exec {_RIFF_BUFFER_FD}>&-
 
 ## Call module to generate prompt text
 # Must set _RIFF_RETURN_MESSAGE and _RIFF_LEFT_TEXT_LENGTH
