@@ -28,8 +28,8 @@ fi
 
 ##### Environment Variables #####
 export LANG="en_US.UTF-8"
-export PAGER="/usr/bin/less -inSFr"
-export MANPAGER="/usr/bin/less -inSFr"
+export PAGER="/usr/bin/less -inSFXR"
+export MANPAGER="/usr/bin/less -inSFXR"
 export EDITOR="vim"
 export VISUAL="vim"
 export HISTFILE="$HOME/.zsh_history"
