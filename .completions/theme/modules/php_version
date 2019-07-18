@@ -13,10 +13,13 @@ _riff_php_version_run() {
 
   local -a match
   local version
+  local dump
 
   setopt extendedglob
 
-  _RIFF_RETURN_MESSAGE=$(php --version 2> /dev/null)
+  php --version 2> /dev/null >&${_RIFF_BUFFER_FD}
+
+  read -r -t _RIFF_RETURN_MESSAGE <&${_RIFF_BUFFER_FD}
 
   if [[ $_RIFF_RETURN_MESSAGE == (#b)(*$'\n')#(PHP [[:digit:].]##)* ]]; then
     version=$match[2]

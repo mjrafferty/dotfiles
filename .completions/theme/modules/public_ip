@@ -30,18 +30,21 @@ _riff_public_ip_run() {
       case $method in
         'dig')
           if (( $+commands[dig] )); then
-            _RIFF_PUBLIC_IP="$(command dig +time=1 +tries=1 +short myip.opendns.com @resolver1.opendns.com 2> /dev/null)"
+            command dig +time=1 +tries=1 +short myip.opendns.com @resolver1.opendns.com 2> /dev/null >&${_RIFF_BUFFER_FD}
+            read -r -t _RIFF_PUBLIC_IP <&${_RIFF_BUFFER_FD}
             [[ $_RIFF_PUBLIC_IP == ';'* ]] && _RIFF_PUBLIC_IP=''
           fi
         ;;
         'curl')
           if (( $+commands[curl] )); then
-            _RIFF_PUBLIC_IP="$(command curl --max-time 10 -w '\n' "$RIFF_PUBLIC_IP_HOST" 2> /dev/null)"
+            command curl --max-time 10 -w '\n' "$RIFF_PUBLIC_IP_HOST" 2> /dev/null >&${_RIFF_BUFFER_FD}
+            read -r -t _RIFF_PUBLIC_IP <&${_RIFF_BUFFER_FD}
           fi
         ;;
         'wget')
           if (( $+commands[wget] )); then
-            _RIFF_PUBLIC_IP="$(wget -T 10 -qO- "$RIFF_PUBLIC_IP_HOST" 2> /dev/null)"
+            command wget -T 10 -qO- "$RIFF_PUBLIC_IP_HOST" 2> /dev/null >&${_RIFF_BUFFER_FD}
+            read -r -t _RIFF_PUBLIC_IP <&${_RIFF_BUFFER_FD}
           fi
         ;;
       esac
