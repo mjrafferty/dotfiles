@@ -209,3 +209,4 @@
 [submodule ".theme"]
 	path = .theme
 	url = git@github.com:mjrafferty/apollo-zsh-theme
+	branch = master
