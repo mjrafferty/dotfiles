@@ -2,13 +2,9 @@
 ################################################################
 # Display the duration the command needed to run.
 
-typeset -gi RIFF_COMMAND_EXECUTION_TIME_PRECISION
-typeset -g RIFF_COMMAND_EXECUTION_TIME_FG
-typeset -g RIFF_COMMAND_EXECUTION_TIME_BG
-
-RIFF_COMMAND_EXECUTION_TIME_FG="white"
-RIFF_COMMAND_EXECUTION_TIME_BG="navy"
-RIFF_COMMAND_EXECUTION_TIME_PRECISION=2
+typeset -gi RIFF_COMMAND_EXECUTION_TIME_PRECISION=2
+typeset -g  RIFF_COMMAND_EXECUTION_TIME_FG="white"
+typeset -g  RIFF_COMMAND_EXECUTION_TIME_BG="navy"
 
 typeset -gF _RIFF_COMMAND_DURATION
 typeset -gF _RIFF_TIMER_START

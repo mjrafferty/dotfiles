@@ -1,6 +1,7 @@
 # vim:ft=bash
 
 typeset -g  RIFF_GAME_BG="darkblue"
+typeset -g  RIFF_GAME_FG="white"
 
 typeset -gi _RIFF_GAME_CASH=1000
 typeset -gi  _RIFF_GAME_LENGTH=0

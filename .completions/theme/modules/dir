@@ -13,7 +13,7 @@ typeset -g RIFF_DIR_BG="blue"
 typeset -g RIFF_DIR_FG="white"
 typeset -g RIFF_DIR_MAX_LENGTH=10
 typeset -g RIFF_DIR_PACKAGE_FILES
-typeset -g RIFF_DIR_PATH_ABSOLUTE=true
+typeset -g RIFF_DIR_PATH_ABSOLUTE=false
 typeset -g RIFF_DIR_PATH_HIGHLIGHT_BOLD=true
 typeset -g RIFF_DIR_PATH_HIGHLIGHT_FOREGROUND="red"
 typeset -g RIFF_DIR_PATH_SEPARATOR="/"

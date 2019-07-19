@@ -116,31 +116,6 @@ _riff_parse_ip() {
 
 }
 
-# Show a ratio of tests vs code
-build_test_stats() {
-
-  local code_amount tests_amount headline
-  local -F 2 ratio
-
-  code_amount="$4"
-  tests_amount="$5"
-  headline="$6"
-
-  if (( code_amount <= 0 )); then
-    return
-  fi
-
- ratio=$(( 100. * tests_amount / code_amount ))
-
-  if (( ratio >= 75 )); then
-    "$1_prompt_module" "${2}_GOOD" "$3" "cyan" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
-  elif (( ratio >= 50 )); then
-    "$1_prompt_module" "$2_AVG" "$3" "yellow" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
-  else
-    "$1_prompt_module" "$2_BAD" "$3" "red" "$DEFAULT_COLOR" "$6" 0 '' "$headline: $ratio%%"
-  fi
-}
-
 _riff_read_file() {
 
   _RIFF_RETURN_MESSAGE=''
@@ -180,25 +155,4 @@ _riff_left_prompt_end_line() {
 
 _riff_zle_keymap_select() {
   zle && zle .reset-prompt && zle -R
-}
-
-_riff_prompt_overflow_bug() {
-# Does ZSH have a certain off-by-one bug that triggers when PROMPT overflows to a new line?
-#
-# Bug: https://github.com/zsh-users/zsh/commit/d8d9fee137a5aa2cf9bf8314b06895bfc2a05518.
-# ZSH_PATCHLEVEL=zsh-5.4.2-159-gd8d9fee13. Released in 5.5.
-#
-# Fix: https://github.com/zsh-users/zsh/commit/64d13738357c9b9c212adbe17f271716abbcf6ea.
-# ZSH_PATCHLEVEL=zsh-5.7.1-50-g64d137383.
-#
-# Test: PROMPT="${(pl:$((COLUMNS))::-:)}<%1(l.%2(l.FAIL.PASS).FAIL)> " zsh -dfis <<<exit
-# Workaround: PROMPT="${(pl:$((COLUMNS))::-:)}%{%G%}<%1(l.%2(l.FAIL.PASS).FAIL)> " zsh -dfis <<<exit
-  if [[ $ZSH_PATCHLEVEL =~ '^zsh-5\.4\.2-([0-9]+)-' ]]; then
-    return $(( match[1] < 159 ))
-  elif [[ $ZSH_PATCHLEVEL =~ '^zsh-5\.7\.1-([0-9]+)-' ]]; then
-    return $(( match[1] >= 50 ));
-  fi
-
-  is-at-least 5.5 && ! is-at-least 5.7.2
-
 }
