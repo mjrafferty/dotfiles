@@ -206,3 +206,6 @@
 	path = .vim/bundle/indentLine
 	url = https://github.com/Yggdroot/indentLine
 	branch = master
+[submodule ".theme"]
+	path = .theme
+	url = git@github.com:mjrafferty/apollo-zsh-theme
