@@ -93,4 +93,4 @@ setopt nullglob
 
 
 #### load prompt theme
-source "$HOME/.completions/theme/prompt_mattnew_setup"
+source "$HOME/.completions/theme/prompt_riff_setup"
