@@ -9,7 +9,7 @@ typeset -g  RIFF_RIGHT_SEPARATOR=""
 typeset -g  RIFF_PROMPT_END=" "
 typeset -g  RIFF_LINE_LINKS="true"
 
-RIFF_LEFT_PROMPT_ELEMENTS=(public_ip newline root_indicator context dir vi_mode ruler )
+RIFF_LEFT_PROMPT_ELEMENTS=(public_ip virtualenv newline root_indicator context dir vi_mode ruler )
 RIFF_RIGHT_PROMPT_ELEMENTS=(command_execution_time background_jobs game newline status php_version)
 
 ## Necessary global variables
@@ -49,7 +49,7 @@ _riff_set_module_text() {
   bg_var="RIFF_${module}_BG"
   length="_RIFF_${module}_LENGTH"
 
-  "_riff_${module}_run"
+  "_riff_${module}_run" >&${_RIFF_BUFFER_FD}
 
   # Flush any remaining data in buffer
   while read -t dump <&${_RIFF_BUFFER_FD}; do  done

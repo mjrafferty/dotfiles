@@ -17,7 +17,7 @@ _riff_php_version_run() {
 
   setopt extendedglob
 
-  php --version 2> /dev/null >&${_RIFF_BUFFER_FD}
+  php --version 2> /dev/null
 
   read -r -t _RIFF_RETURN_MESSAGE <&${_RIFF_BUFFER_FD}
 

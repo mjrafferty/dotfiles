@@ -10,6 +10,10 @@ typeset -g RIFF_CONTEXT_BG="navy"
 typeset -g RIFF_CONTEXT_ALWAYS_SHOW_USER="false"
 typeset -g RIFF_CONTEXT_ALWAYS_SHOW="false"
 
+_riff_context_cache_key() {
+  _RIFF_RETURN_MESSAGE="1"
+}
+
 _riff_context_run() {
 
   local content user
