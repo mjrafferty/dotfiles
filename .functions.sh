@@ -413,7 +413,7 @@ u () {
 
   local user home;
 
-  user="$(pwd | "$GREP" -Po "home/\K[^/]*")"
+  user="$(pwd | "$GREP" -Po "/((chroot/)?home/|local/)\K[^/]*")";
   home="$(mktemp -d)"
 
 	chmod 711 "$HOME"
@@ -425,6 +425,10 @@ u () {
 			$SETFACL -R -m u:"$user":rX "$x" 2> /dev/null
 			ln -s "$x" "${home}/${x##*/}"
 		done
+
+  if [[ -e "/home/${user}/.composer" ]]; then
+    ln -s "/home/${user}/.composer" "${home}/.composer"
+  fi
 
   $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,.zsh-histdb,clients,.vimfiles} 2> /dev/null
 
