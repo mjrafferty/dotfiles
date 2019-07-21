@@ -1,6 +1,5 @@
-#DO_PROMPT_GAME=1;
 #HISTDB_ENABLE_LOG=1;
-source ~/.dotfiles/.commonrc
+source "${HOME}/.zsh/main.zsh"
 
 # Find orphan files not owned by any package
 alias orphanfiles="find / \( \
@@ -24,7 +23,6 @@ alias orphanfiles="find / \( \
 
 export SSH_ASKPASS=/usr/bin/ksshaskpass
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
-
 
 
 organize_pictures() {

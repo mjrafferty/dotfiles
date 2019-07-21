@@ -7,8 +7,8 @@ if type tmux &> /dev/null && [[  -z $TMUX && -n $SSH_TTY ]]; then
   exit;
 fi
 
-[ -r "${HOME}/.zsh/env.sh" ] \
-  && source "${HOME}/.zsh/env.sh"
+[ -r "${HOME}/.zsh/env.zsh" ] \
+  && source "${HOME}/.zsh/env.zsh"
 
 setopt autocd
 setopt auto_pushd
@@ -25,7 +25,6 @@ setopt appendhistory
 setopt hist_ignore_dups
 setopt hist_fcntl_lock
 setopt hist_verify
-setopt menu_complete
 unsetopt beep
 
 bindkey -v
@@ -60,11 +59,11 @@ bindkey -M vicmd 'j' history-substring-search-down
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets line)
 ZSH_HIGHLIGHT_STYLES[line]='bold'
 
-[ -r "${HOME}/.zsh/alias.sh" ] \
-  && source "${HOME}/.zsh/alias.sh"
+[ -r "${HOME}/.zsh/alias.zsh" ] \
+  && source "${HOME}/.zsh/alias.zsh"
 
-[ -r "${HOME}/.zsh/functions.sh" ] \
-  && source "${HOME}/.zsh/functions.sh"
+[ -r "${HOME}/.zsh/functions.zsh" ] \
+  && source "${HOME}/.zsh/functions.zsh"
 
 fpath=($HOME/.zsh/completions $fpath)
 
