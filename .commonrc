@@ -10,28 +10,6 @@ fi
 [ -r "${HOME}/.zsh/env.sh" ] \
   && source "${HOME}/.zsh/env.sh"
 
-##### Completions Options #####
-zstyle ':completion:*' completer _expand _complete _ignored _match _correct _approximate _prefix
-zstyle ':completion:*' group-name ''
-zstyle ':completion:*' insert-unambiguous true
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
-zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'r:|[._-]=** r:|=**' 'l:|=* r:|=*'
-zstyle ':completion:*' max-errors 2 numeric
-zstyle ':completion:*' menu select=1
-zstyle ':completion:*' original true
-zstyle ':completion:*' prompt '%e errors. Did you mean:'
-zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
-zstyle ':completion:*' verbose true
-
-setopt complete_aliases
-setopt complete_in_word
-setopt auto_param_slash
-setopt auto_name_dirs
-setopt auto_list
-setopt rec_exact
-setopt list_types
-
 setopt autocd
 setopt auto_pushd
 setopt cdable_vars
@@ -67,8 +45,14 @@ bindkey -v
 [ -r "${HOME}/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh" ] \
   && source "$HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh"
 
-autoload -Uz compinit
-compinit
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+bindkey -M vicmd 'k' history-substring-search-up
+bindkey -M vicmd 'j' history-substring-search-down
+
+[ -r "${HOME}/.zsh/completion.zsh" ] \
+  && source "$HOME/.zsh/completion.zsh"
 
 [ -r "${HOME}/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ] \
   && source "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
