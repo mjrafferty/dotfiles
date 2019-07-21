@@ -7,93 +7,43 @@ if type tmux &> /dev/null && [[  -z $TMUX && -n $SSH_TTY ]]; then
   exit;
 fi
 
-unsetopt nocaseglob;
+#unsetopt nocaseglob;
 
-fpath=($HOME/.completions $fpath)
-fpath=($HOME/.completions/theme $fpath)
+[ -r "${HOME}/.zsh/env.sh" ] \
+  && source "${HOME}/.zsh/env.sh"
 
-# Source zsh-histdb
+[ -r "${HOME}/.zsh/alias.sh" ] \
+  && source "${HOME}/.zsh/alias.sh"
 
+[ -r "${HOME}/.zsh/functions.sh" ] \
+  && source "${HOME}/.zsh/functions.sh"
 
-##### Environment Variables #####
-export LANG="en_US.UTF-8"
-export PAGER="/usr/bin/less -inSFXR"
-export MANPAGER="/usr/bin/less -inSFXR"
-export EDITOR="vim"
-export VISUAL="vim"
-export HISTFILE="$HOME/.zsh_history"
+[ -r "${HOME}/.zsh/zsh-histdb/sqlite-history.zsh" ] \
+  && source "$HOME/.zsh/zsh-histdb/sqlite-history.zsh"
 
-if [[ -n $TMUX ]]; then
-  TERM="screen-256color"
-else
-  TERM="xterm-256color"
-fi
+[ -r "${HOME}/.zsh/apollo-zsh-theme/prompt_apollo_setup" ] \
+  && source "$HOME/.zsh/apollo-zsh-theme/prompt_apollo_setup"
 
-if [[ -x "/usr/bin/konsole" ]]; then
-  TERMINAL="/usr/bin/konsole";
-fi
+[ -r "${HOME}/.zsh/zsh-completions/zsh-completions.plugin.zsh" ] \
+  && source "$HOME/.zsh/zsh-completions/zsh-completions.plugin.zsh"
 
-#ZSH_HIGHLIGHT_STYLES[line]='bold'
+[ -r "${HOME}/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
+  && source "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
-export PATH="$PATH:$HOME/bin"
+[ -r "${HOME}/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ] \
+  && source "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
-##### Aliases #####
-alias r="/usr/bin/sudo HOME=$HOME /bin/zsh"
-
-alias rm='rm --preserve-root'
-alias chown='chown --preserve-root'
-alias chmod='chmod --preserve-root'
-alias chgrp='chgrp --preserve-root'
-
-alias ls='ls -F --color=auto'
-alias less='less -i -n -S -F'
-
-alias poweroff='systemctl poweroff'
-alias reboot='systemctl reboot'
-
-alias mountro="mount -o ro,remount /usr && mount -o ro,remount /boot && mount -o ro,remount /"
-alias mountrw="mount -o rw,remount /usr; mount -o rw,remount /boot; mount -o rw,remount /"
-
-if [[ -x "/usr/bin/colordiff" ]]; then
-  alias diff="/usr/bin/colordiff"
-fi
-
-alias login='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@mellon-login01.us-midwest-1.nexcess.net'
-
-alias dotpush="cd ~/dotfiles && git add . && git commit -a -m updates && git push && cd -"
-
-alias connections="lsof -nu apache -ad0-9999 | grep -Po 'TCP ([0-9]{1,3}\\.){3}[0-9]{1,3}:[a-z,0-9]*->\\K([0-9]{1,3}\\.){3}[0-9]{1,3}' | sort | uniq -c | sort -hr"
-alias sshsync="rsync -p -v --progress -e ssh -a -u -z"
-alias grepphp="grep -Phiav '\] \"\S* (.*(/static/|(\.(otf|txt|jpeg|ico|svg|jpg|css|js|gif|png|woff|ttf))).*\" (200|304) |\" 403 )'"
-
-alias disks="df -h | grep -v tmpfs | grep -Ev '^(dev|run)'"
-
-
-##### Functions #####
-[ -r ~/.functions.sh ] && source ~/.functions.sh
-
+[ -r "${HOME}/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh" ] \
+  && source "$HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh"
 
 ##### Completions Options #####
 zstyle ':completion:*' completer _expand _complete _ignored _match _correct _approximate _prefix _fasd_zsh_word_complete_trigger
 zstyle ':completion:*' max-errors 2 numeric
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
+autoload -Uz compinit
+compinit
+
+fpath=($HOME/.zsh/completions $fpath)
+
 setopt nullglob
-
-[[ -e "${HOME}/.zsh/zsh-histdb/sqlite-history.zsh" ]] \
-  && source "$HOME/.zsh/zsh-histdb/sqlite-history.zsh"
-
-[[ -e "${HOME}/.zsh/apollo-zsh-theme/prompt_apollo_setup" ]] \
-  && source "$HOME/.zsh/apollo-zsh-theme/prompt_apollo_setup"
-
-[[ -e "${HOME}/.zsh/zsh-completions/zsh-completions.plugin.zsh" ]] \
-  && source "$HOME/.zsh/zsh-completions/zsh-completions.plugin.zsh"
-
-[[ -e "${HOME}/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]\
-  && source "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh"
-
-[[ -e "${HOME}/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh" ]] \
-  && source "$HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh"
-
-[[ -e "${HOME}/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] \
-  && source "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
