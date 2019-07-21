@@ -1,0 +1,152 @@
+#compdef nkmagento
+
+_admin_users () {
+  magdb -u 2> /dev/null \
+    | sed -n 's/.*username: \(.*\)/\1/p';
+}
+
+_indexers () {
+  magdb -X info \
+    | grep -Eo "^[a-z,[:punct:]]*"
+}
+
+_packages () {
+  curl http://pubfiles.nexcess.net/magento/ce-packages/ 2> /dev/null \
+    | sed -n 's/.*magento-\(.*\).tar.gz.*/\1/p'
+}
+
+_nkmagento() {
+  local curcontext="$curcontext" state
+  local -a mainopts
+
+  mainopts=(
+  'info:Display info about a Magento site'
+  'install:Install Magento'
+  'repair:Repair Magento'
+  'copy:Copy Magento'
+  'link:Create a Magento storefront'
+  'dbrepair:Run the Magento DB Repair tool'
+  'backup:Create a Magento backup'
+  'crondump:Dump the Magento internal cron status'
+  );
+
+  _arguments -C \
+    '1: :->command'\
+    '*: :->args'
+
+  if [[ "$state" == "args" ]]; then
+    case "${words[2]}" in
+      "info")
+        _arguments \
+          '*:Path to the Magento site:_path_files -/'
+        ;;
+
+      "install")
+        _arguments \
+          '(-E --enterprise)'{-E,--enterprise}'[Install Magento EE]' \
+          '(-l --admin-location)'{-l,--admin-location}'[Backend URL token (default: username_admin)]:Backend URL token (default\: username_admin): ' \
+          '--admin-pass[Specify the Magento admin password (default: randomly generated password)]:Specify the Magento admin password (default\: randomly generated password): ' \
+          '--admin-user[Specify the Magento admin username (default: admin)]:Specify the Magento admin username (default\: admin): ' \
+          '--admin-email[Specify the Magento admin email address (default: email of sitworx user)]:Specify the Magento admin email address (default\: email of sitworx user): ' \
+          '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
+          '(-D --only-database)'{-D,--only-database}'[When used with -a, only the database is automatically created (not the user)]' \
+          '(-p --package)'{-p,--package}'[URL, file path, or version number of Magento to install]:URL, file path, or version number of Magento to install:($(_packages))' \
+          '(-b --base-url)'{-b,--base-url}'[Specify the Magento base URL (default: auto-detected)]:Specify the Magento base URL (default\: auto-detected): ' \
+          '(-s --secure-base-url)'{-s,--secure-base-url}'[Specify the Magento secure base URL]:Specify the Magento secure base URL: ' \
+          '(-d --install-sample-data)'{-d,--install-sample-data}'[Install the Magento sample data]' \
+          '--database-host[Database host]:Database host: ' \
+          '(-N --database-name)'{-N,--database-name}'[Database name. Default value: magento]:Database name. Default value\: magento: ' \
+          '(-P --database-pass)'{-P,--database-pass}'[Database password]:Database password: ' \
+          '(-U --database-user)'{-U,--database-user}'[Database username. Default value: magento]:Database username. Default value\: magento: ' \
+          '--database-port[Database port. Default value: 3306]: ' \
+          '(-m --use-memcache)'{-m,--use-memcache}'[Create and use private memcache instances (requires root)]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume yes at prompts]' \
+          '*:Path to install Magento to:_path_files -/'
+        ;;
+
+      "repair")
+        _arguments \
+          '(-p --set-permissions)'{-p,--set-permissions}'[Set file and directory permissions]' \
+          '(-o --set-ownership)'{-o,--set-ownership}'[Set file and directory ownership (requires root access)]' \
+          '(-c --clear-cache)'{-c,--clear-cache}'[Clear pear, image, and web cache]' \
+          '--clear-sessions[Clear the saved sessions]' \
+          '(-C --set-cache-method)'{-C,--set-cache-method}'[Set the Magento caching method]:Cache Storage Method:(file files apc memcached memcache redis)' \
+          '(-S --set-session-storage)'{-S,--set-session-storage}'[Set the session storage location]:Session Storage Method:(files file db memcache memcached redis)' \
+          '(-e --install-extension)'{-e,--install-extension}'[Install a Magento connect extension via key]:Install a Magento connect extension via key: ' \
+          '(-b --set-base-url)'{-b,--set-base-url}'[Set Magento’s base URL]:Set Magento’s base URL: ' \
+          '(-B --set-secure-base-url)'{-B,--set-secure-base-url}'[Set Magento’s secure base URL]:Set Magento’s secure base URL: ' \
+          '(-r --reset-admin-pass)'{-r,--reset-admin-pass}'[Reset a Magento admin user’s password (default: "admin" user and random password)]:Admin username:($(_admin_users)):New password: ' \
+          '(-i --reindex)'{-i,--reindex}'[Comma separated list of indexes to re-index or special word "all"]:Comma separated list of indexes to re-index or special word "all":($(_indexers))' \
+          '--cdn-base-url[Base URL for the CDN (ex: http://cdn.example.com/), use "reset" to reset to default values (no CDN)]:Base URL for the CDN (ex: http://cdn.example.com/), use "reset" to reset to default values (no CDN): ' \
+          '--secure-cdn-base-url[Like --cdn-base-url but for secure CDN base URLs, use "reset" to reset to default values (no CDN)]:Like --cdn-base-url but for secure CDN base URLs, use "reset" to reset to default values (no CDN): ' \
+          '(-L --toggle-logging)'{-L,--toggle-logging}'[Toggle Magento’s internal logging function on or off]' \
+          '(-l --log-rotation)'{-l,--log-rotation}'[Set the number of days to keep Magento database logs]:Set the number of days to keep Magento database logs: ' \
+          '--toggle-log-rotation[Toggle log rotation of Magento’s log files]' \
+          '(-R --set-return-path)'{-R,--set-return-path}'[Set the return-path email address for Magento emails]:Set the return-path email address for Magento emails: ' \
+          '--reset-db-pass[Reset the database user’s password to something random, update the local.xml, and clear the site cache]' \
+          '*:Path to Magento:_path_files -/'
+        ;;
+
+      "copy")
+        _arguments \
+          '(-x --exclude-dirs)'{-x,--exclude-dirs}'[Comma-separated list of directories (relative to source path) to exclude from the copy]:Comma-separated list of directories (relative to source path) to exclude from the copy: ' \
+          '(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
+          '(-N --new-database-name)'{-N,--new-database-name}'[Name of the new database (default: src db name + _copy)]' \
+          '(-U --new-database-user)'{-U,--new-database-user}'[Name of the new database user (default: src db user)]:Name of the new database user (default\: src db user): ' \
+          '(-P --new-database-pass)'{-P,--new-database-pass}'[New database user password (default: src db pass)]:New database user password (default\: src db pass): ' \
+          '(-b --new-base-url)'{-b,--new-base-url}'[The base URL for the new copy (default: auto-detect)]:The base URL for the new copy (default\: auto-detect): ' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume "YES" at prompts]' \
+          ':Source File Path:_path_files -/' \
+          ':Source File Path:_path_files -/' \
+          ':Destination File Path:_path_files -/'
+        ;;
+
+      "link")
+        _arguments \
+          ':New Storefront Path:_path_files -/'  \
+          ':New Storefront Path:_path_files -/'  \
+          ':Existing Magento Path:_path_files -/' \
+          ':New Storefront Store Code:_path_files -/'
+        ;;
+
+      "dbrepair")
+        _arguments \
+          '--setup-only[Only setup up the repair, don’t actually run it]' \
+          '(-b --backup)'{-b,--backup}'[Create a backup of the live database before running repair]' \
+          '(-r --restore-on-error)'{-r,--restore-on-error}'[Restore from backup on error during repair (implies -b)]' \
+          '(-y --assume-yes)'{-y,--assume-yes}'[Assume "YES" at prompts]' \
+          '(-c --change-log)'{-c,--change-log}'[Store list of database changes made to this file]:Store list of database changes made to this file:_path_files' \
+          '*:Path to the Magento site to repair:_path_files -/'
+        ;;
+
+      "backup")
+        _arguments \
+          '(-o --output)'{-o,--output}'[Name of the file for the backup output]:Name of the file for the backup output:_path_files' \
+          '(-d --database-only)'{-d,--database-only}'[Only backup the database (overrides -f)]' \
+          '(-f --files-only)'{-f,--files-only}'[Only backup the files]' \
+          '(-F --force)'{-f,--force}'[Overwrite the output file if it already exists]' \
+          '*:Path to the Magento site to repair:_path_files -/'
+        ;;
+
+      "crondump")
+        _arguments \
+          '(-s --start-time)'{-s,--start-time}'[Start time for the dump]:Start time for the dump: ' \
+          '(-e --end-time)'{-e,--end-time}'[End point for the dump]:End point for the dump: ' \
+          '(-f --format)'{-f,--format}'[Output format Default value: table]:Output format Default value\: table:(csv table)' \
+          '(-d --delimiter)'{-d,--delimiter}'[Field delimiter for CSV output format Default value: ,]:Field delimiter for CSV output format Default value\: ,: ' \
+          '(-H --hide-header)'{-H,--hide-header}'[Hide the header at the top of csv and tsv formats and the column header  for  the  table format]' \
+          '(-R --repeat-header)'{-R,--repeat-header}'[Repeat the column header every X rows in table format (default: 0)]:Repeat the column header every X rows in table format (default\: 0): ' \
+          '*:Path to the Magento site:_path_files -/'
+        ;;
+
+      "*")
+        ;;
+    esac
+  else
+    _describe -t commands " Sub commands " mainopts
+  fi
+}
+
+_nkmagento "$@"
+
+compdef _nkmagento nkmagento

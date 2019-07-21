@@ -1,0 +1,66 @@
+#compdef nkredis
+
+_nkredis() {
+  local curcontext="$curcontext" state
+  local -a mainopts
+
+  mainopts=(
+  'create:Create a new redis-multi instance.'
+  'modify:Modify an existing redis-multi instance'
+  'remove:Remove a redis-multi instance'
+  'list:List existing redis-multi instances'
+  'info:Display info about a particular redis-multi instance'
+  )
+  _arguments -C \
+    '1: :->command'\
+    '*: :->args'
+
+  if [[ "$state" == "args" ]]; then
+    case "${words[2]}" in
+      "create")
+        _arguments \
+          '(-i --ip-address)'{-i,--ip-address}'[IP  address  to  listen  on  for  TCP connections (default: 127.0.0.1) Default value: 127.0.0.1]' \
+          '(-p --port)'{-p,--port}'[Port to listen on for TCP connections (default: 6379) Default value: 6379]' \
+          '(-s --socket)'{-s,--socket}'[Listen on a UNIX socket, overrides TCP options]' \
+          '(-u --username)'{-u,--username}'[User to run instance as (default: redis) Default value: redis]' \
+          '(-I --instance-id)'{-I,--instance-id}'[Unique string identifying this redis instance]' \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "modify")
+        _arguments \
+          '(-i --ip-address)'{-i,--ip-address}'[(non-public) IP address to listen on for TCP connections]' \
+          '(-p --port)'{-p,--port}'[Port to listen on for TCP connections]' \
+          '(-s --socket)'{-s,--socket}'[Listen on a UNIX socket, overrides TCP options]' \
+          '(-m --mem-limit)'{-m,--mem-limit}'[Max memory for instance to use (in MB)]' \
+          '(-S --no-restart)'{-S,--no-restart}'[Don’t automatically restart the instance after making changes]' \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "remove")
+        _arguments \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "list")
+        _arguments \
+          '(-p --parsable)'{-p,--parsable}'[Display output in a format more suitable for scripting]' \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "info")
+        _arguments \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "*")
+        ;;
+    esac
+  else
+    _describe -t commands " Sub commands " mainopts
+  fi
+}
+
+_nkredis "$@"
+
+compdef _nkredis nkredis

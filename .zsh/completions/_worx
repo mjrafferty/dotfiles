@@ -1,0 +1,92 @@
+#compdef worx
+
+_worx() {
+	local curcontext="$curcontext" state
+	local -a mainopts
+
+	mainopts=(
+	'help:Displays help for a command'
+	'list:Lists commands'
+	'admin\:account:Enable/Disable a SiteWorx account.'
+	'admin\:backups:Enable/Disable backups menu.'
+	'admin\:firewall:Lists whitelisted IPs in the firewall. Use flags to add an IP instead.'
+	'admin\:letsencrypt:Enable/Disable the Lets Encrypt plugin.'
+	'admin\:localdelivery:List local delivery status, or enable/disable it for a domain.'
+	'admin\:quota:Lists (or sets) disk quota for a Siteworx account.'
+	'admin\:spamassassin:Enable/Disable SpamAssassin, set spam score.'
+	'backup\:create:Create backups using Interworx utilities. Useful for migrating clients between servers. All backups include an Interworx structure backup.'
+	'backup\:restore:Fully restore a cancelled account or import an Interworx-generated backup.'
+	'dns\:3rdparty:mail:Generates and prints/adds a set of Office365 or Google Apps mail DNS records for a given domain.'
+	'dns\:add:Add A, AAAA, MX, CNAME, TXT, and SPF records to an existing DNS Zone on a SiteWorx account'
+	'dns\:list:List the DNS records for a domain'
+	'domains\:add:Adds secondary, sub, and pointer domains to an existing account'
+	'domains\:delete:Removes secondary, sub, and pointer domains from an account'
+	'domains\:list:Lists domains under an account.'
+	'email\:add:Adds email boxes, groups, aliases, and autoresponders to an account.'
+	'email\:delete:Deletes email boxes, groups, aliases, and autoresponders from an account.'
+	'email\:edit:Chnages details of email boxes, groups, aliases, and autoresponders on an account.'
+	'email\:list:Lists email inboxes, groups, aliases and autoresponders and any details about them. Pass only the UNIX username of an account to view all domains.'
+	'ftp\:add:Adds an FTP user to a Siteworx account'
+	'ftp\:delete:Deletes an FTP user from a Siteworx account'
+	'ftp\:edit:Edits information about an FTP user.'
+	'ftp\:list:Lists all FTP accounts and details about them.'
+	'mail\:clean:Finds and deletes mail older than the specified number of days.'
+	'mysql\:add:Add databases and/or users under an account.'
+	'mysql\:delete:Delete databases and/or users under an account.'
+	'mysql\:list:Lists databases and/or users under an account.'
+	'mysql\:permissions:Grant MySQL users permission to a database.'
+	'ssl\:add:Add private keys, CSRs, chain certificates, and SSL certificates. You will be prompted to input the certificate information after issuing the command.'
+	'ssl\:backup:Backup the relevant ssl/ directory to your home directory.'
+	'ssl\:delete:Remove private keys, CSRs, chain certificates, and SSL certificates'
+	'ssl\:generate:Generate private keys, CSRs, and SSL certificates.'
+	'ssl\:list:List private keys, CSRs, chain certificates, and SSL certificates'
+	'user\:add:Adds additional SiteWorx user to an existing account'
+	'user\:delete:Delete SiteWorx user from an existing account'
+	'user\:edit:Edits SiteWorx user'
+	'user\:list:Lists the current SiteWorx users.'
+	)
+
+	_arguments -C \
+		'1: :->command'\
+		'*: :->args'
+
+	if [[ "$state" == "args" ]]; then
+		case "${words[2]}" in
+			"info")
+				_arguments \
+					'-S[Path to the system directory]' \
+					'-I[EE site ID Default value: 1]' \
+					'*:ExpressionEngine Directory:_path_files -/'
+				;;
+
+			"install")
+				_arguments \
+					'--admin-password[Specify an initial password for the admin user]' \
+					'--admin-username[Specify the username for the default admin user]' \
+					'(-e --admin-email)'{-e,--admin-email}'[Admin user’s email address]' \
+					'(-y --assume-yes)'{-y,--assume-yes}'[Assume yes at all prompts]' \
+					'(-a --auto-create-database)'{-a,--auto-create-database}'[Automatically create the database and user]' \
+					'(-b --base-url)'{-b,--base-url}'[Base URL to use for ExpressionEngine]' \
+					'(-c --system-url)'{-c,--system-url}'[URL to use for ExpressionEngine control Panel]' \
+					'(-l --license-key)'{-l,--license-key}'[ExpressionEngine license key]' \
+					'(-L --site-label)'{-L,--site-label}'[Initial title for the ExpressionEngine instance]' \
+					'(-p --package)'{-p,--package}'[ExpressionEngine version to install, defaults to "latest]' \
+					'(-P --system-path)'{-P,--system-path}'[Path for the ExpressionEngine system directory]' \
+					'--database-host[Database host]' \
+					'(-N --database-name)'{-N,--database-name}'[Database name]' \
+					'--database-pass[Database password]' \
+					'(-U --database-user)'{-U,--database-user}'[Database username]' \
+					'*:ExpressionEngine Directory:_path_files -/'
+				;;
+
+			"*")
+				;;
+		esac
+	else
+		_describe -t commands " Sub commands " mainopts
+	fi
+}
+
+_worx "$@"
+
+compdef _worx worx

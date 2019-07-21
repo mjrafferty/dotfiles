@@ -1,0 +1,59 @@
+#compdef nkhttpd
+
+_nkhttpd() {
+  local curcontext="$curcontext" state
+  local -a mainopts
+
+  mainopts=(
+  'addRule:Add a mod_security rule exception'
+  'addRepo:Add a Subversion repo to a virtualhost'
+  'phpini:Setup a php.ini file for a specific user'
+  'cgiRun:Test run a CGI script through php-cgi'
+  )
+  _arguments -C \
+    '1: :->command'\
+    '*: :->args'
+
+  if [[ "$state" == "args" ]]; then
+    case "${words[2]}" in
+      "addRule")
+        _arguments \
+          '(-t --ticket-id)'{-t,--ticket-id}'[Ticket ID requesting this rule (added as comment)]' \
+          '*:Magento Directory:_path_files'
+        ;;
+
+      "addRepo")
+        _arguments \
+          '(-u --user-name)'{-u,--user-name}'[Initial svn user’s name (default: admin) Default value: admin]' \
+          '(-p --user-pass)'{-p,--user-pass}'[Initial svn user’s password (default: random password)]' \
+          '*:Magento Directory:_path_files'
+        ;;
+
+      "phpini")
+        _arguments \
+          '*:Magento Directory:_path_files'
+        ;;
+
+      "cgiRun")
+        _arguments \
+          '(-c --cookie)'{-c,--cookie}'[Set a cookie]' \
+          '(-d --domain)'{-d,--domain}'[Domain used in the request]' \
+          '(-H --header)'{-H,--header}'[Add an arbitrary header to the request. Can be given multiple times.]' \
+          '(-P --post-data)'{-P,--post-data}'[Simulate a POST request and send data. Can be given multiple times.]' \
+          '(-Q --query-data)'{-Q,--query-data}'[Add  query  data  to  the  end of the URL (after the ?). Can be given multiple times.]' \
+          '(-U --user)'{-U,--user}'[User to run script as]' \
+          '(-s --strace)'{-s,--strace}'[Run through strace]' \
+          '*:Magento Directory:_path_files'
+        ;;
+
+      "*")
+        ;;
+    esac
+  else
+    _describe -t commands " Sub commands " mainopts
+  fi
+}
+
+_nkhttpd "$@"
+
+compdef _nkhttpd nkhttpd

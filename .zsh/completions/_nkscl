@@ -1,0 +1,40 @@
+#compdef nkscl
+
+_nkscl() {
+  local curcontext="$curcontext" state
+  local -a mainopts
+
+  mainopts=(
+  'info:Display SCL settings for a user'
+  'update:Change a user to a different SCL settings for a user'
+  )
+  _arguments -C \
+    '1: :->command'\
+    '*: :->args'
+
+  if [[ "$state" == "args" ]]; then
+    case "${words[2]}" in
+      "info")
+        _arguments \
+          '(-u --user)'{-u,--user}'[Username]' \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "update")
+        _arguments \
+          '(-u --user)'{-u,--user}'[Username]' \
+          '(-v --version)'{-v,--version}'[Version]' \
+          '*:Magento Directory:_path_files -/'
+        ;;
+
+      "*")
+        ;;
+    esac
+  else
+    _describe -t commands " Sub commands " mainopts
+  fi
+}
+
+_nkscl "$@"
+
+compdef _nkscl nkscl
