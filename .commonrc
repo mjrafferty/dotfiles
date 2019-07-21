@@ -12,18 +12,7 @@ unsetopt nocaseglob;
 fpath=($HOME/.completions $fpath)
 fpath=($HOME/.completions/theme $fpath)
 
-# Source Prezto.
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
-  unalias find;
-  unalias grep;
-fi
-
 # Source zsh-histdb
-if [[ -e "${HOME}/.zsh-histdb" ]]; then
-  source $HOME/.zsh-histdb/sqlite-history.zsh
-fi
-
 
 
 ##### Environment Variables #####
@@ -44,7 +33,7 @@ if [[ -x "/usr/bin/konsole" ]]; then
   TERMINAL="/usr/bin/konsole";
 fi
 
-ZSH_HIGHLIGHT_STYLES[line]='bold'
+#ZSH_HIGHLIGHT_STYLES[line]='bold'
 
 export PATH="$PATH:$HOME/bin"
 
@@ -91,6 +80,20 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:
 
 setopt nullglob
 
+[[ -e "${HOME}/.zsh/zsh-histdb/sqlite-history.zsh" ]] \
+  && source "$HOME/.zsh/zsh-histdb/sqlite-history.zsh"
 
-#### load prompt theme
-source "$HOME/.theme/prompt_apollo_setup"
+[[ -e "${HOME}/.zsh/apollo-zsh-theme/prompt_apollo_setup" ]] \
+  && source "$HOME/.zsh/apollo-zsh-theme/prompt_apollo_setup"
+
+[[ -e "${HOME}/.zsh/zsh-completions/zsh-completions.plugin.zsh" ]] \
+  && source "$HOME/.zsh/zsh-completions/zsh-completions.plugin.zsh"
+
+[[ -e "${HOME}/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]\
+  && source "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh"
+
+[[ -e "${HOME}/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh" ]] \
+  && source "$HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh"
+
+[[ -e "${HOME}/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]] \
+  && source "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
