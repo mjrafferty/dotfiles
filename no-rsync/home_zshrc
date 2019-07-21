@@ -5,8 +5,8 @@ export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 
 FIND="/usr/bin/find"
 
-#DO_PROMPT_GAME=1
-source ~/.dotfiles/.commonrc
+[ -r "${HOME}/.zsh/main.zsh" ] \
+  && source "${HOME}/.zsh/main.zsh";
 
 PATH="$HOME/.local/bin:$PATH"
 

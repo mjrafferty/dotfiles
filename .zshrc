@@ -169,21 +169,17 @@ _logout () {
       -path "./.bash_profile" -o \
       -path "./bin" -o \
       -path "./clients" -o \
-      -path "./.commonrc" -o \
-      -path "./.completions" -o \
-      -path "./.functions.sh" -o \
       -path "./.mytop" -o \
       -path "./*history" -o \
       -path "./.zsh-hist*" -o \
       -path "./SNAPS*" -o \
       -path "./.ssh" -o \
       -path "./.zlogin*" -o \
-      -path "./.zpr*" -o \
       -path "./.vim*" -o \
-      -path "./.zshrc" \
+      -path "./.zsh*" \
       \) -prune -o -exec rm -rf {} + 2> /dev/null;
 
-      rm "${HOME}/.zsh-history${LOGIN_ID}.db" "${HOME}/.environment${LOGIN_ID}.sh"
+      rm "${HOME}/.zsh-history${LOGIN_ID}.db"
 
   fi
 
@@ -197,7 +193,8 @@ main() {
 
   _rootOrSudo;
 
-  [ -r ~/.commonrc ] && source ~/.commonrc;
+  [ -r "${HOME}/.zsh/main.zsh" ] \
+    && source "${HOME}/.zsh/main.zsh"
 
   _meOrClient;
 

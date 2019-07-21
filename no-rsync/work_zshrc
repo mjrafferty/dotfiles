@@ -1,22 +1,21 @@
 #! /bin/zsh
 
-[ -r "${HOME}/.iterm2_shell_integration.zsh" ] && source "${HOME}/.iterm2_shell_integration.zsh"
+[ -r "${HOME}/.iterm2_shell_integration.zsh" ] \
+  && source "${HOME}/.iterm2_shell_integration.zsh"
 
 readonly SED='/usr/local/bin/sed'
 readonly GREP='/usr/local/bin/grep'
 readonly FIND='/usr/local/bin/find'
 readonly READLINK='/usr/bin/readlink'
 
-[ -r ~/.dotfiles/.commonrc ] && source ~/.dotfiles/.commonrc;
+[ -r "${HOME}/.zsh/main.zsh" ] \
+  && source "${HOME}/.zsh/main.zsh";
 
 alias rm='rm -r'
 unalias chown;
 unalias chmod;
 
-export PATH="$PATH:/Users/mattrafferty/.local/bin"
-
-alias sshhome="ssh -p 8076 matt@mattrafferty.asuscomm.com -t ssh matt@192.168.1.210"
-alias sshpi="ssh -p 8076 matt@mattrafferty.asuscomm.com"
+export PATH="$PATH:${HOME}/.local/bin"
 
 export nex_user_shell="zsh";
 
