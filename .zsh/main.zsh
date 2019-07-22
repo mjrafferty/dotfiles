@@ -10,24 +10,21 @@ fi
 [ -r "${HOME}/.zsh/env.zsh" ] \
   && source "${HOME}/.zsh/env.zsh"
 
+## cd options ##
 setopt autocd
 setopt auto_pushd
 setopt cdable_vars
 setopt chase_dots
 setopt chase_links
 
-setopt multibyte
 setopt extendedglob
 setopt nomatch
-setopt notify
 
 setopt appendhistory
 setopt hist_ignore_dups
 setopt hist_fcntl_lock
 setopt hist_verify
 unsetopt beep
-
-bindkey -v
 
 [ -r "${HOME}/.zsh/zsh-histdb/sqlite-history.zsh" ] \
   && source "$HOME/.zsh/zsh-histdb/sqlite-history.zsh"
@@ -41,23 +38,29 @@ bindkey -v
 [ -r "${HOME}/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
   && source "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
-[ -r "${HOME}/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh" ] \
-  && source "$HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh"
+if [ -r "${HOME}/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh" ]; then
 
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
+  source "$HOME/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh"
 
-bindkey -M vicmd 'k' history-substring-search-up
-bindkey -M vicmd 'j' history-substring-search-down
+  bindkey '^[[A' history-substring-search-up
+  bindkey '^[[B' history-substring-search-down
+
+  bindkey -M vicmd 'k' history-substring-search-up
+  bindkey -M vicmd 'j' history-substring-search-down
+
+fi
 
 [ -r "${HOME}/.zsh/completion.zsh" ] \
   && source "$HOME/.zsh/completion.zsh"
 
-[ -r "${HOME}/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ] \
-  && source "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+if [ -r "${HOME}/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
 
-ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets line)
-ZSH_HIGHLIGHT_STYLES[line]='bold'
+  source "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+
+  ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets line)
+  ZSH_HIGHLIGHT_STYLES[line]='bold'
+
+fi
 
 [ -r "${HOME}/.zsh/alias.zsh" ] \
   && source "${HOME}/.zsh/alias.zsh"
