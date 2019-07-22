@@ -163,20 +163,15 @@ zstyle ':completion:*:(ssh|scp|rsync):*:hosts-host' ignored-patterns '*(.|:)*' l
 zstyle ':completion:*:(ssh|scp|rsync):*:hosts-domain' ignored-patterns '<->.<->.<->.<->' '^[-[:alnum:]]##(.[-[:alnum:]]##)##' '*@*'
 zstyle ':completion:*:(ssh|scp|rsync):*:hosts-ipaddr' ignored-patterns '^(<->.<->.<->.<->|(|::)([[:xdigit:].]##:(#c,2))##(|%*))' '127.0.0.<->' '255.255.255.255' '::1' 'fe80::*'
 
-# Displays an indicator when completing.
-function expand-or-complete-with-indicator {
+## Completion waiting dots
+expand-or-complete-with-dots() {
+	# toggle line-wrapping off and back on again
+	[[ -n "$terminfo[rmam]" && -n "$terminfo[smam]" ]] && echoti rmam
+	print -Pn "%{%F{red}...%f%}"
+	[[ -n "$terminfo[rmam]" && -n "$terminfo[smam]" ]] && echoti smam
 
-  local indicator="..."
-
-  # This is included to work around a bug in zsh which shows up when interacting
-  # with multi-line prompts.
-  if [[ -z "$indicator" ]]; then
-    zle expand-or-complete
-    return
-  fi
-
-  print -Pn "$indicator"
-  zle expand-or-complete
-  zle redisplay
+	zle expand-or-complete
+	zle redisplay
 }
-zle -N expand-or-complete-with-indicator
+zle -N expand-or-complete-with-dots
+bindkey "^I" expand-or-complete-with-dots
