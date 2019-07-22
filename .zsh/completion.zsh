@@ -162,3 +162,21 @@ zstyle ':completion:*:ssh:*' group-order users hosts-domain hosts-host users hos
 zstyle ':completion:*:(ssh|scp|rsync):*:hosts-host' ignored-patterns '*(.|:)*' loopback ip6-loopback localhost ip6-localhost broadcasthost
 zstyle ':completion:*:(ssh|scp|rsync):*:hosts-domain' ignored-patterns '<->.<->.<->.<->' '^[-[:alnum:]]##(.[-[:alnum:]]##)##' '*@*'
 zstyle ':completion:*:(ssh|scp|rsync):*:hosts-ipaddr' ignored-patterns '^(<->.<->.<->.<->|(|::)([[:xdigit:].]##:(#c,2))##(|%*))' '127.0.0.<->' '255.255.255.255' '::1' 'fe80::*'
+
+# Displays an indicator when completing.
+function expand-or-complete-with-indicator {
+
+  local indicator="..."
+
+  # This is included to work around a bug in zsh which shows up when interacting
+  # with multi-line prompts.
+  if [[ -z "$indicator" ]]; then
+    zle expand-or-complete
+    return
+  fi
+
+  print -Pn "$indicator"
+  zle expand-or-complete
+  zle redisplay
+}
+zle -N expand-or-complete-with-indicator
