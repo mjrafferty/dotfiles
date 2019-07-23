@@ -1,5 +1,5 @@
 #HISTDB_ENABLE_LOG=1;
-source "${HOME}/.zsh/main.zsh"
+#source "${HOME}/.zsh/main.zsh"
 
 # Find orphan files not owned by any package
 alias orphanfiles="find / \( \
@@ -64,3 +64,17 @@ if [ -e /usr/share/fzf/completion.zsh ]; then
   source /usr/share/fzf/completion.zsh
 fi
 
+
+source ~/.zplugin/bin/zplugin.zsh
+
+#zplugin ice wait'!0' atload'_apollo_precmd'
+zplugin load mjrafferty/apollo-zsh-theme
+zplugin ice silent wait
+zplugin load zsh-users/zsh-autosuggestions
+zplugin ice silent wait
+zplugin load zdharma/fast-syntax-highlighting
+zplugin ice silent wait
+zplugin load zdharma/history-search-multi-word
+
+zplugin ice from"gh-r" as"program"
+zplugin load junegunn/fzf-bin
