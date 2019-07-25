@@ -1,7 +1,7 @@
 
 
 ##### Aliases #####
-alias r="/usr/bin/sudo HOME=$HOME /bin/zsh"
+alias r="/usr/bin/sudo HOME=$HOME $SHELL"
 
 alias rm='rm --preserve-root'
 alias chown='chown --preserve-root'
@@ -21,7 +21,7 @@ alias rsync='noglob rsync'
 alias scp='noglob scp'
 
 alias ls='ls -F --color=auto'
-alias less='less -i -n -S -F'
+alias less='less -inSFR'
 
 alias poweroff='systemctl poweroff'
 alias reboot='systemctl reboot'
@@ -78,4 +78,3 @@ alias sa='alias | grep -i'
 alias o=xdg-open
 alias pbc=pbcopy
 alias pbp=pbpaste
-
