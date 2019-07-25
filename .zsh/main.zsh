@@ -26,17 +26,17 @@ setopt hist_fcntl_lock
 setopt hist_verify
 unsetopt beep
 
-[ -r "${HOME}/.zsh/zsh-histdb/sqlite-history.zsh" ] \
-  && source "$HOME/.zsh/zsh-histdb/sqlite-history.zsh"
+#[ -r "${HOME}/.zsh/zsh-histdb/sqlite-history.zsh" ] \
+  #&& source "$HOME/.zsh/zsh-histdb/sqlite-history.zsh"
 
 [ -r "${HOME}/.zsh/apollo-zsh-theme/prompt_apollo_setup" ] \
   && source "$HOME/.zsh/apollo-zsh-theme/prompt_apollo_setup"
 
-[ -r "${HOME}/.zsh/zsh-completions/zsh-completions.plugin.zsh" ] \
+[ -r "${HOME}/.zsh/zsh-completionsu[]/zsh-completions.plugin.zsh" ] \
   && source "$HOME/.zsh/zsh-completions/zsh-completions.plugin.zsh"
 
-[ -r "${HOME}/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
-  && source "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh"
+#[ -r "${HOME}/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
+  #&& source "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 if [ -r "${HOME}/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh" ]; then
 

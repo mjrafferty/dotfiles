@@ -179,7 +179,7 @@ _logout () {
       -path "./.zsh*" \
       \) -prune -o -exec rm -rf {} + 2> /dev/null;
 
-      rm "${HOME}/.zsh-history${LOGIN_ID}.db"
+      #rm "${HOME}/.zsh-history${LOGIN_ID}.db"
 
   fi
 
