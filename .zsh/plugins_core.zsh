@@ -27,7 +27,7 @@ zplugin ice lucid wait"0c" atload'bindkey "$terminfo[kcuu1]" history-substring-s
 zplugin load zsh-users/zsh-history-substring-search
 
 # ZSH Syntax highlighting
-zplugin ice lucid wait'0d' atload"ZPLGM[COMPINIT_OPTS]=\"-C-i\" zpcompinit; zpcdreplay"
+zplugin ice lucid wait'0d' atload"ZPLGM[COMPINIT_OPTS]=\"-C -i\" zpcompinit; zpcdreplay"
 zplugin load zdharma/fast-syntax-highlighting
 
 # ZSH Autosuggestions
