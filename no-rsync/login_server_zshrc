@@ -45,8 +45,6 @@ if [[ ! -e "${HOME}/.zplugin/bin/zplugin.zsh" ]]; then
 fi
 
 source ~/.zplugin/bin/zplugin.zsh
-#autoload -Uz _zplugin
-#(( ${+_comps} )) && _comps[zplugin]=_zplugin
 
 #if [[ ! -e "${HOME}/.zplugin/bin/zmodules/Src/zdharma/zplugin.so" ]]; then
 	#zplugin module build
