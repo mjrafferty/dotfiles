@@ -42,10 +42,11 @@ alias grepphp="grep -Phiav '\] \"\S* (.*(/static/|(\.(otf|txt|jpeg|ico|svg|jpg|c
 alias disks="df -h | grep -v tmpfs | grep -Ev '^(dev|run)'"
 alias sftp='noglob sftp'
 
-alias  ...='../..'
-alias  ....='../../..'
-alias  .....='../../../..'
-alias  ......='../../../../..'
+alias  ..='cd ..'
+alias  ...='cd ../..'
+alias  ....='cd ../../..'
+alias  .....='cd ../../../..'
+alias  ......='cd ../../../../..'
 
 alias 1='cd +1'
 alias 2='cd +2'
