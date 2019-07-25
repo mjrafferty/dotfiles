@@ -1,10 +1,7 @@
-if [[ ! -e "${HOME}/.zplugin/bin/zplugin.zsh" ]]; then
-  rm -r "${HOME}/.zplugin" 2> /dev/null
-  mkdir "${HOME}/.zplugin"
-  git clone https://github.com/zdharma/zplugin.git ~/.zplugin/bin
-fi
+declare -A ZPLGM
+ZPLGM[HOME_DIR]="${HOME}/.zsh/zplugin"
 
-source ~/.zplugin/bin/zplugin.zsh
+source "${ZPLGM[HOME_DIR]}/bin/zplugin.zsh"
 
 #if [[ ! -e "${HOME}/.zplugin/bin/zmodules/Src/zdharma/zplugin.so" ]]; then
 	#zplugin module build

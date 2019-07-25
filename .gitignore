@@ -1,2 +1,4 @@
 .zsh-history.db
 .environment.sh
+.zsh/zplugin/*
+.vim/bundle/*
