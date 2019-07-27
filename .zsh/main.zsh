@@ -44,3 +44,4 @@ setopt nullglob
 
 ## Vi key bindings
 bindkey -v
+export KEYTIMEOUT=1
