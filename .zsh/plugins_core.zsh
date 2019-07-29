@@ -17,7 +17,7 @@ zplugin ice lucid wait"0c" blockf atpull'zplugin creinstall -q .'
 zplugin load zsh-users/zsh-completions
 
 # ZSH history substring search
-zplugin ice lucid wait"0c" atload'bindkey "$terminfo[kcuu1]" history-substring-search-up; bindkey "$terminfo[kcud1]" history-substring-search-down'
+zplugin ice lucid wait"0c" atload'bindkey "^[[A" history-substring-search-up; bindkey "^[[B" history-substring-search-down'
 zplugin load zsh-users/zsh-history-substring-search
 
 # ZSH Syntax highlighting

@@ -75,8 +75,8 @@
 #zplugin ice wait'1' atload'zinc_optional_depenency_loaded'
 #zplugin load romkatv/gitstatus
 
-#zplugin ice lucid wait"0c"
-#zplugin load romkatv/zsh-prompt-benchmark
+zplugin ice lucid wait"0c"
+zplugin load romkatv/zsh-prompt-benchmark
 
 # Shell interpreter
 #zplugin ice lucid wait"0c" from"gh-r" as"program" mv"shfmt* -> shfmt"
