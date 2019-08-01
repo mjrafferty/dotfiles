@@ -497,7 +497,7 @@ sup_stracecalls () {
 
   echo;
   (printf "syscall\ttime\tquantity\n%s\t%s\t%s\n" "----------" "----------" "----------"
-  sup_catlogs "$@" \
+  cat "$@" \
     | __straceCallsAwk  \
     | sort -k2nr) \
     | head -n30 \

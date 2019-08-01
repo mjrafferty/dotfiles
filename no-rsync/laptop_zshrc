@@ -1,4 +1,6 @@
 source "${HOME}/.zsh/main.zsh"
+source "${HOME}/.zsh/plugins_secondary.zsh"
+source "${HOME}/.zsh/plugins_optional.zsh"
 
 # Find orphan files not owned by any package
 alias orphanfiles="find / \( \
