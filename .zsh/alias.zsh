@@ -64,7 +64,7 @@ alias la='ll -A'
 alias lc='lt -c'
 alias lk='ll -Sr'
 alias ll='ls -lh'
-alias lm='la | "$PAGER"'
+alias lm="la | $PAGER"
 alias lr='ll -R'
 alias ls='ls -F --color=auto'
 alias lt='ll -tr'

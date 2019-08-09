@@ -9,7 +9,6 @@ HISTFILE="${HOME}/.zsh_history"
 SAVEHIST="10000"
 HISTSIZE="10000"
 
-
 if [[ -n $TMUX ]]; then
   TERM="screen-256color"
 else
