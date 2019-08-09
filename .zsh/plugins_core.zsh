@@ -5,7 +5,7 @@ ZPLGM[HOME_DIR]="${HOME}/.zsh/zplugin"
 source "${ZPLGM[HOME_DIR]}/bin/zplugin.zsh"
 
 # ZSH theme
-zplugin ice nocompletions lucid compile'{modules/*,functions/*}'
+zplugin ice lucid
 zplugin load mjrafferty/apollo-zsh-theme
 
 # LS colors

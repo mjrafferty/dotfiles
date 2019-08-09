@@ -203,6 +203,8 @@ main() {
   # Expand PATH
   export PATH="${PATH}:/var/qmail/bin:/usr/local/bin:/usr/local/interworx/bin"
 
+  fpath=($HOME/.zsh/completions $fpath)
+
   autoload -Uz add-zsh-hook
   add-zsh-hook zshexit _logout;
 

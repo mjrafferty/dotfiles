@@ -38,9 +38,7 @@ setopt hist_fcntl_lock
 setopt hist_verify
 unsetopt beep
 
-#fpath=($HOME/.zsh/completions $fpath)
-
-setopt nullglob
+#setopt nullglob
 
 ## Vi key bindings
 bindkey -v

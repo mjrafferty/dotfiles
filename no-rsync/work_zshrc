@@ -8,25 +8,14 @@ readonly GREP='/usr/local/bin/grep'
 readonly FIND='/usr/local/bin/find'
 readonly READLINK='/usr/bin/readlink'
 
-export TERM="screen-256color"
-
-[ -r "${HOME}/.zsh/env.zsh" ] \
-  && source "${HOME}/.zsh/env.zsh";
-[ -r "${HOME}/.zsh/alias.zsh" ] \
-  && source "${HOME}/.zsh/alias.zsh";
-[ -r "${HOME}/.zsh/plugins_core.zsh" ] \
-  && source "${HOME}/.zsh/plugins_core.zsh";
-
-#[ -r "${HOME}/.zsh/main.zsh" ] \
-  #&& source "${HOME}/.zsh/main.zsh";
-
-alias rm='rm -r'
-
-export PATH="$PATH:${HOME}/.local/bin"
+[ -r "${HOME}/.zsh/main.zsh" ] \
+  && source "${HOME}/.zsh/main.zsh";
 
 export nex_user_shell="zsh";
 
 update_brew () {
+
+  local f bin
 
   brew update;
   brew upgrade;
@@ -55,10 +44,5 @@ update_brew () {
 		ln -s "$f" "/usr/local/bin/${bin}";
 
 	done
-}
 
-if [[ ! -e "${HOME}/.zplugin/bin/zplugin.zsh" ]]; then
-  rm -r "${HOME}/.zplugin" 2> /dev/null
-  mkdir "${HOME}/.zplugin"
-  git clone https://github.com/zdharma/zplugin.git ~/.zplugin/bin
-fi
+}
