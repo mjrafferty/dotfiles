@@ -7,6 +7,7 @@ if type tmux &> /dev/null && [[  -z $TMUX && -n $SSH_TTY ]]; then
   exit;
 fi
 
+autoload -Uz is-at-least
 if is-at-least 5.1; then
 
 [ -r "${HOME}/.zsh/plugins_core.zsh" ] \
