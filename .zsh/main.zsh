@@ -30,6 +30,9 @@ else
 	[ -r "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ] \
 		&& source "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
 
+  fpath+=($HOME/.zsh/completions)
+  autoload -Uz compinit && compinit -C -i
+
 	[ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
 		&& source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh"
 
