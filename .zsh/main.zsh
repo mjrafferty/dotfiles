@@ -7,6 +7,12 @@ if type tmux &> /dev/null && [[  -z $TMUX && -n $SSH_TTY ]]; then
   exit;
 fi
 
+## Vi key bindings
+bindkey -v
+export KEYTIMEOUT=1
+
+fpath+=($HOME/.zsh/completions)
+
 autoload -Uz is-at-least
 if is-at-least 5.1; then
 
@@ -30,7 +36,6 @@ else
 	[ -r "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ] \
 		&& source "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
 
-  fpath+=($HOME/.zsh/completions)
   autoload -Uz compinit && compinit -C -i
 
 	[ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
@@ -55,7 +60,6 @@ setopt autocd
 setopt auto_pushd
 setopt cdable_vars
 setopt chase_dots
-setopt chase_links
 
 setopt extendedglob
 setopt nomatch
@@ -67,7 +71,3 @@ setopt hist_verify
 unsetopt beep
 
 #setopt nullglob
-
-## Vi key bindings
-bindkey -v
-export KEYTIMEOUT=1
