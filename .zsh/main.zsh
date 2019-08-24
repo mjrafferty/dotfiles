@@ -7,8 +7,32 @@ if type tmux &> /dev/null && [[  -z $TMUX && -n $SSH_TTY ]]; then
   exit;
 fi
 
+if is-at-least 5.1; then
+
 [ -r "${HOME}/.zsh/plugins_core.zsh" ] \
   && source "${HOME}/.zsh/plugins_core.zsh"
+
+else
+
+	[ -r "${HOME}/.zsh/zplugin/plugins/mjrafferty---apollo-zsh-theme/apollo-zsh-theme.zsh" ] \
+		&& source "${HOME}/.zsh/zplugin/plugins/mjrafferty---apollo-zsh-theme/apollo-zsh-theme.zsh"
+
+	[ -r "${HOME}/.zsh/zplugin/plugins/trapd00r---LS_COLORS/c.zsh" ] \
+		&& source "${HOME}/.zsh/zplugin/plugins/trapd00r---LS_COLORS/c.zsh"
+
+	[ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-completions/zsh-completions.plugin.zsh" ] \
+		&& source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-completions/zsh-completions.plugin.zsh"
+
+	[ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.plugin.zsh" ] \
+		&& source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.zsh"
+
+	[ -r "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ] \
+		&& source "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
+
+	[ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
+		&& source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh"
+
+fi
 
 [ -r "${HOME}/.zsh/env.zsh" ] \
   && source "${HOME}/.zsh/env.zsh"
