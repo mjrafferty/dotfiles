@@ -4,7 +4,7 @@
 if type tmux &> /dev/null && [[  -z $TMUX && -n $SSH_TTY ]]; then
   (tmux has-session -t "${HOME/*\//}" &> /dev/null && tmux attach -t "${HOME/*\//}") \
     || tmux new-session -s "${HOME/*\//}"
-  exit;
+      exit;
 fi
 
 ## Vi key bindings
@@ -16,32 +16,32 @@ fpath+=($HOME/.zsh/completions)
 autoload -Uz is-at-least
 if is-at-least 5.1; then
 
-[ -r "${HOME}/.zsh/plugins_core.zsh" ] \
-  && source "${HOME}/.zsh/plugins_core.zsh"
+  [ -r "${HOME}/.zsh/plugins_core.zsh" ] \
+    && source "${HOME}/.zsh/plugins_core.zsh"
 
 else
 
-	[ -r "${HOME}/.zsh/zplugin/plugins/mjrafferty---apollo-zsh-theme/apollo-zsh-theme.zsh" ] \
-		&& source "${HOME}/.zsh/zplugin/plugins/mjrafferty---apollo-zsh-theme/apollo-zsh-theme.zsh"
+  [ -r "${HOME}/.zsh/zplugin/plugins/mjrafferty---apollo-zsh-theme/apollo-zsh-theme.zsh" ] \
+    && source "${HOME}/.zsh/zplugin/plugins/mjrafferty---apollo-zsh-theme/apollo-zsh-theme.zsh"
 
-	[ -r "${HOME}/.zsh/zplugin/plugins/trapd00r---LS_COLORS/c.zsh" ] \
-		&& source "${HOME}/.zsh/zplugin/plugins/trapd00r---LS_COLORS/c.zsh"
+  [ -r "${HOME}/.zsh/zplugin/plugins/trapd00r---LS_COLORS/c.zsh" ] \
+    && source "${HOME}/.zsh/zplugin/plugins/trapd00r---LS_COLORS/c.zsh"
 
-	[ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-completions/zsh-completions.plugin.zsh" ] \
-		&& source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-completions/zsh-completions.plugin.zsh"
+  [ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-completions/zsh-completions.plugin.zsh" ] \
+    && source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-completions/zsh-completions.plugin.zsh"
 
-	[ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.plugin.zsh" ] \
-		&& source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.zsh"
+  [ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.plugin.zsh" ] \
+    && source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.zsh"
 
-	bindkey "^[[A" history-substring-search-up; bindkey "^[[B" history-substring-search-down
+  bindkey "^[[A" history-substring-search-up; bindkey "^[[B" history-substring-search-down
 
-	[ -r "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ] \
-		&& source "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
+  [ -r "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ] \
+    && source "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
 
   autoload -Uz compinit && compinit -C -i
 
-	[ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
-		&& source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh"
+  [ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
+    && source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 fi
 
