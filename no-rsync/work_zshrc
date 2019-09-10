@@ -33,7 +33,7 @@ update_brew () {
 
 	done
 
-	for f in $(find /usr/local/Cellar/{grep,gnu-sed,gawk,coreutils}/*/bin/g*); do
+	for f in $(find /usr/local/Cellar/{grep,gnu-sed,gawk,coreutils,findutils}/*/bin/g*); do
 
 		bin="${f##*/g}";
 
