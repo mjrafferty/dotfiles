@@ -75,7 +75,7 @@ setopt hist_fcntl_lock
 setopt hist_reduce_blanks
 setopt hist_save_no_dups
 setopt hist_verify
-setopt inc_append_history_time
+setopt inc_append_history
 
 ## Input/Output Options ##
 setopt clobber
