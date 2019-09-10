@@ -63,13 +63,16 @@ setopt auto_pushd
 setopt cdable_vars
 setopt chase_dots
 
-setopt extendedglob
-setopt nomatch
+setopt extended_glob
+setopt no_match
 
-setopt appendhistory
+setopt append_history
 setopt hist_ignore_dups
 setopt hist_fcntl_lock
+setopt hist_reduce_blanks
+setopt hist_save_no_dups
 setopt hist_verify
+setopt inc_append_history
 unsetopt beep
 
 setopt nullglob
