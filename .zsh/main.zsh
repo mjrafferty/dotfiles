@@ -65,13 +65,24 @@ setopt cdable_vars
 setopt chase_dots
 
 setopt extended_glob
-setopt no_match
+setopt null_glob
 
+## History Options ##
 setopt append_history
+setopt extended_history
 setopt hist_ignore_dups
 setopt hist_fcntl_lock
 setopt hist_reduce_blanks
 setopt hist_save_no_dups
 setopt hist_verify
-setopt inc_append_history
+setopt inc_append_history_time
+
+## Input/Output Options ##
+setopt clobber
+setopt correct
+setopt correct_all
+setopt hash_cmds
+setopt hash_dirs
+setopt short_loops
+
 unsetopt beep
