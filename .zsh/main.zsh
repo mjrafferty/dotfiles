@@ -33,7 +33,8 @@ else
   [ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.plugin.zsh" ] \
     && source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.zsh"
 
-  bindkey "^[[A" history-substring-search-up; bindkey "^[[B" history-substring-search-down
+  bindkey "^[[A" history-substring-search-up
+  bindkey "^[[B" history-substring-search-down
 
   [ -r "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ] \
     && source "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
@@ -74,5 +75,3 @@ setopt hist_save_no_dups
 setopt hist_verify
 setopt inc_append_history
 unsetopt beep
-
-setopt nullglob
