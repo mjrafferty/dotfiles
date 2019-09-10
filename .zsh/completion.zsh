@@ -1,10 +1,4 @@
-#
-# Sets completion options.
-#
-# Authors:
-#   Robby Russell <robby@planetargon.com>
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
-#
+# vim:ft=zsh
 
 # Return if requirements are not found.
 if [[ "$TERM" == 'dumb' ]]; then
@@ -15,28 +9,25 @@ fi
 # Options
 #
 
-
-setopt complete_aliases
+setopt always_to_end       # move cursor to the end of a completed word.
+setopt auto_list           # automatically list choices on ambiguous completion.
+setopt auto_menu
 setopt auto_name_dirs
-setopt list_types
+setopt auto_param_slash    # if completed parameter is a directory, add a trailing slash.
+setopt auto_remove_slash
+setopt complete_aliases
+setopt complete_in_word    # complete from both ends of a word.
 setopt glob_complete
 setopt hash_list_all
-setopt menu_complete
-
-setopt COMPLETE_IN_WORD    # Complete from both ends of a word.
-setopt ALWAYS_TO_END       # Move cursor to the end of a completed word.
-setopt PATH_DIRS           # Perform path search even on command names with slashes.
-setopt AUTO_LIST           # Automatically list choices on ambiguous completion.
 setopt list_ambiguous
 setopt list_packed
-setopt AUTO_PARAM_SLASH    # If completed parameter is a directory, add a trailing slash.
-setopt EXTENDED_GLOB       # Needed for file modification glob modifiers with compinit
-unsetopt FLOW_CONTROL      # Disable start/stop characters in shell editor.
+setopt list_types
 
 #
 # Styles
 #
 
+# :completion:function:completer:command:argument:tag
 # Use caching to make completion for commands such as dpkg and apt usable.
 zstyle ':completion::complete:*' use-cache on
 zstyle ':completion::complete:*' cache-path "${ZDOTDIR:-$HOME}/.zcompcache"
