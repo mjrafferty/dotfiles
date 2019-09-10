@@ -8,6 +8,12 @@ FIND="/usr/bin/find"
 [ -r "${HOME}/.zsh/main.zsh" ] \
   && source "${HOME}/.zsh/main.zsh";
 
+[ -r "${HOME}/.zsh/plugins_secondary.zsh" ] \
+  && source "${HOME}/.zsh/plugins_secondary.zsh";
+
+[ -r "${HOME}/.zsh/plugins_optional.zsh" ] \
+  && source "${HOME}/.zsh/plugins_optional.zsh";
+
 PATH="$HOME/.local/bin:$PATH"
 
 orphaned_files () {
