@@ -26,14 +26,13 @@ setopt list_types
 #
 # Styles
 #
-
-# :completion:function:completer:command:argument:tag
 # Use caching to make completion for commands such as dpkg and apt usable.
 zstyle ':completion::complete:*' use-cache on
 zstyle ':completion::complete:*' cache-path "${ZDOTDIR:-$HOME}/.zcompcache"
 
-zstyle ':completion:*' completer _expand _complete _ignored _match _correct _approximate _prefix
-zstyle ':completion:*' group-name ''
+zstyle ':completion:*' completer _expand _complete _match _approximate
+zstyle ':completion:*' expand prefix suffix		# If matches share a common prefix, insert it. Same with common suffix
+zstyle ':completion:*' file-list list=20 insert=10 		# Long file listing similar to ls -l
 zstyle ':completion:*' insert-unambiguous true
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
@@ -43,6 +42,7 @@ zstyle ':completion:*' menu select=1
 zstyle ':completion:*' original true
 zstyle ':completion:*' prompt '%e errors. Did you mean:'
 zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
+zstyle ':completion:*' show-ambiguity '38;5;220;1'
 
 # Group matches and describe.
 zstyle ':completion:*:*:*:*:*' menu select
@@ -59,9 +59,7 @@ zstyle ':completion:*' group-name ''
 zstyle ':completion:*' verbose yes
 
 # Fuzzy match mistyped completions.
-#zstyle ':completion:*' completer _complete _match _approximate
 zstyle ':completion:*:match:*' original only
-#zstyle ':completion:*:approximate:*' max-errors 1 numeric
 
 # Increase the number of errors based on the length of the typed word. But make
 # sure to cap (at 7) the max-errors to avoid hanging.
