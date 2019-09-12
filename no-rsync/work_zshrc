@@ -11,6 +11,12 @@ readonly READLINK='/usr/bin/readlink'
 [ -r "${HOME}/.zsh/main.zsh" ] \
   && source "${HOME}/.zsh/main.zsh";
 
+[ -r "${HOME}/.zsh/plugins_secondary.zsh" ] \
+  && source "${HOME}/.zsh/plugins_secondary.zsh";
+
+[ -r "${HOME}/.zsh/plugins_optional.zsh" ] \
+  && source "${HOME}/.zsh/plugins_optional.zsh";
+
 export nex_user_shell="zsh";
 
 update_brew () {
