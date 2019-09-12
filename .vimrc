@@ -18,14 +18,18 @@ Plugin 'Raimondi/delimitMate'
 Plugin 'weynhamz/vim-plugin-minibufexpl'
 Plugin 'scrooloose/nerdtree'
 Plugin 'scrooloose/nerdcommenter'
-Plugin 'Valloric/YouCompleteMe'
+if ( v:version > 704 || (v:version == 704 && has( 'patch1578'  )))
+  Plugin 'Valloric/YouCompleteMe'
+endif
 Plugin 'Chiel92/vim-autoformat'
 Plugin 'terryma/vim-multiple-cursors'
 Plugin 'majutsushi/tagbar'
 Plugin 'tpope/vim-surround'
 Plugin 'easymotion/vim-easymotion'
 Plugin 'mbbill/undotree'
-Plugin 'ludovicchabant/vim-gutentags'
+if ( v:version >= 800 )
+  Plugin 'ludovicchabant/vim-gutentags'
+endif
 Plugin 'xolox/vim-misc'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'tpope/vim-fugitive'
