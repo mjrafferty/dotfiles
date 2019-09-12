@@ -11,7 +11,7 @@ fi
 bindkey -v
 export KEYTIMEOUT=1
 
-fpath+=($HOME/.zsh/completions)
+fpath=($HOME/.zsh/completions $fpath)
 
 autoload -Uz is-at-least
 if is-at-least 5.1; then
