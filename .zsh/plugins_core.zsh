@@ -27,4 +27,5 @@ zplugin light zdharma/fast-syntax-highlighting
 zplugin ice lucid wait'0e' atload:'_zsh_autosuggest_start' compile'{src/*.zsh,src/strategies/*}'
 zplugin light zsh-users/zsh-autosuggestions
 
+ZSH_AUTOSUGGEST_MANUAL_REBIND="true"
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
