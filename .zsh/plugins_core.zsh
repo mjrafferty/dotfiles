@@ -12,20 +12,22 @@ zplugin ice lucid atclone"dircolors -b LS_COLORS > c.zsh" atpull'%atclone' pick"
 zplugin light trapd00r/LS_COLORS
 
 # ZSH completions
-zplugin ice lucid wait'0c' blockf atpull'zplugin creinstall -q .'
+zplugin ice lucid wait'0b' blockf atpull'zplugin creinstall -q .'
 zplugin light zsh-users/zsh-completions
 
+# ZSH Autosuggestions
+zplugin ice lucid wait'0c' atload'_zsh_autosuggest_start' compile'{src/*.zsh,src/strategies/*}'
+zplugin light zsh-users/zsh-autosuggestions
+
 # ZSH history substring search
-zplugin ice lucid wait'0c' atload'bindkey "^[[A" history-substring-search-up; bindkey "^[[B" history-substring-search-down'
+zplugin ice lucid wait'0d' atload'bindkey "^[[A" history-substring-search-up; bindkey "^[[B" history-substring-search-down'
 zplugin light zsh-users/zsh-history-substring-search
 
 # ZSH Syntax highlighting
-zplugin ice lucid wait'0d' atload"ZPLGM[COMPINIT_OPTS]=\"-C -i\" zpcompinit; zpcdreplay"
+zplugin ice lucid wait'0e' atload"ZPLGM[COMPINIT_OPTS]=\"-C -i\" zpcompinit; zpcdreplay"
 zplugin light zdharma/fast-syntax-highlighting
-
-# ZSH Autosuggestions
-zplugin ice lucid wait'0e' atload:'_zsh_autosuggest_start' compile'{src/*.zsh,src/strategies/*}'
-zplugin light zsh-users/zsh-autosuggestions
 
 ZSH_AUTOSUGGEST_MANUAL_REBIND="true"
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
+ZSH_AUTOSUGGEST_USE_ASYNC="true"
+ZSH_AUTOSUGGEST_STRATEGY=(history match_prev_cmd )
