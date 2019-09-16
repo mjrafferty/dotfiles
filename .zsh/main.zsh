@@ -30,6 +30,14 @@ else
   [ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-completions/zsh-completions.plugin.zsh" ] \
     && source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-completions/zsh-completions.plugin.zsh"
 
+  [ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
+    && source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh"
+
+  ZSH_AUTOSUGGEST_MANUAL_REBIND="true"
+  ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
+  ZSH_AUTOSUGGEST_USE_ASYNC="true"
+  ZSH_AUTOSUGGEST_STRATEGY=(history match_prev_cmd )
+
   [ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.plugin.zsh" ] \
     && source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.zsh"
 
@@ -40,9 +48,6 @@ else
     && source "${HOME}/.zsh/zplugin/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
 
   autoload -Uz compinit && compinit -C -i
-
-  [ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
-    && source "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 fi
 
