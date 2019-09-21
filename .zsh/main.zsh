@@ -24,6 +24,9 @@ else
   [ -r "${HOME}/.zsh/zplugin/plugins/mjrafferty---apollo-zsh-theme/apollo-zsh-theme.zsh" ] \
     && source "${HOME}/.zsh/zplugin/plugins/mjrafferty---apollo-zsh-theme/apollo-zsh-theme.zsh"
 
+  [ -r "${HOME}/.zsh/zplugin/plugins/mjrafferty---zsh-histdb/sqlite-history.zsh" ] \
+    && source "${HOME}/.zsh/zplugin/plugins/mjrafferty---zsh-histdb/sqlite-history.zsh"
+
   [ -r "${HOME}/.zsh/zplugin/plugins/trapd00r---LS_COLORS/c.zsh" ] \
     && source "${HOME}/.zsh/zplugin/plugins/trapd00r---LS_COLORS/c.zsh"
 
@@ -35,7 +38,7 @@ else
 
   ZSH_AUTOSUGGEST_MANUAL_REBIND="true"
   ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
-  ZSH_AUTOSUGGEST_USE_ASYNC="true"
+  #ZSH_AUTOSUGGEST_USE_ASYNC="true"
   ZSH_AUTOSUGGEST_STRATEGY=(history match_prev_cmd )
 
   [ -r "${HOME}/.zsh/zplugin/plugins/zsh-users---zsh-history-substring-search/zsh-history-substring-search.plugin.zsh" ] \
