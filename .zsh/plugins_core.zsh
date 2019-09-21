@@ -7,6 +7,9 @@ source "${ZPLGM[HOME_DIR]}/bin/zplugin.zsh"
 zplugin ice lucid
 zplugin light mjrafferty/apollo-zsh-theme
 
+zplugin ice wait'0c' lucid pick'sqlite-history.zsh'
+zplugin light mjrafferty/zsh-histdb
+
 # LS colors
 zplugin ice lucid atclone"dircolors -b LS_COLORS > c.zsh" atpull'%atclone' pick"c.zsh"
 zplugin light trapd00r/LS_COLORS
@@ -30,4 +33,4 @@ zplugin light zdharma/fast-syntax-highlighting
 ZSH_AUTOSUGGEST_MANUAL_REBIND="true"
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 ZSH_AUTOSUGGEST_USE_ASYNC="true"
-ZSH_AUTOSUGGEST_STRATEGY=(history match_prev_cmd )
+ZSH_AUTOSUGGEST_STRATEGY=( history match_prev_cmd )

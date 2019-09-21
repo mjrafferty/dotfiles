@@ -2,6 +2,8 @@ source "${HOME}/.zsh/main.zsh"
 source "${HOME}/.zsh/plugins_secondary.zsh"
 source "${HOME}/.zsh/plugins_optional.zsh"
 
+#source "${HOME}/zsh-histdb/sqlite-history.zsh"
+
 # Find orphan files not owned by any package
 alias orphanfiles="find / \( \
   -path /boot -o \
