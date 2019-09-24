@@ -426,6 +426,10 @@ u () {
 			ln -s "$x" "${home}/${x##*/}"
 		done
 
+    if [[ -n "${__HISTDB_INPUT_PIPE}" ]]; then
+      $SETFACL -m u:"$user":rw "${__HISTDB_INPUT_PIPE}"
+    fi
+
   if [[ -e "/home/${user}/.composer" ]]; then
     ln -s "/home/${user}/.composer" "${home}/.composer"
   fi
