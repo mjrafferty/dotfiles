@@ -159,6 +159,9 @@ _mainRsync() {
     --exclude '.bash_history' \
     --exclude 'clients' \
     --exclude '.git' \
+    --exclude '*.png' \
+    --exclude '*.jpg' \
+    --exclude '*.gif' \
     --exclude '.mysql_history' \
     --exclude '.mytop' \
     --exclude 'no-rsync' \
@@ -167,7 +170,6 @@ _mainRsync() {
     --exclude '.ssh' \
     --exclude '.vim' \
     --exclude '.vimfiles' \
-    --exclude '.zsh-histdb/.*' \
     --exclude '.zsh_history' \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
     ~/dotfiles/ \
@@ -179,6 +181,10 @@ _asyncRsync() {
 
   # Run this asynchronously since it won't be needed right away
   "$RSYNC" --compress --quiet --links --force --delete --chmod=o-rwx -rpt \
+    --exclude '.git' \
+    --exclude '*.png' \
+    --exclude '*.jpg' \
+    --exclude '*.gif' \
     --exclude 'bundle/vim-autoformat/samples' \
     --exclude 'bundle/YouCompleteMe' \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
