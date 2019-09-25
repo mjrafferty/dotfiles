@@ -155,6 +155,7 @@ let g:ale_open_list = 1
 let g:ale_lint_delay = 5000
 let g:ale_sh_shellcheck_options = '-s bash'
 let g:ale_linters_sh_shellcheck_exclusions = "SC2016"
+let g:ale_yaml_yamllint_options='-d "{extends: relaxed, rules: {line-length: {max: 120}}}"'
 
 " YouCompleteMe plugin settings
 let g:ycm_always_populate_location_list = 1
