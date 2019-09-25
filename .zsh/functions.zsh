@@ -426,15 +426,15 @@ u () {
 			ln -s "$x" "${home}/${x##*/}"
 		done
 
-    if [[ -n "${__HISTDB_INPUT_PIPE}" ]]; then
-      $SETFACL -m u:"$user":rw "${__HISTDB_INPUT_PIPE}"
+    if [[ -n "${__ZHIST_INPUT_PIPE}" ]]; then
+      $SETFACL -m u:"$user":rw "${__ZHIST_INPUT_PIPE}"
     fi
 
   if [[ -e "/home/${user}/.composer" ]]; then
     ln -s "/home/${user}/.composer" "${home}/.composer"
   fi
 
-  $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,.zsh-histdb,clients,.vimfiles} 2> /dev/null
+  $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,clients,.vimfiles} 2> /dev/null
 
   # Switch user
   $SUDO HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
