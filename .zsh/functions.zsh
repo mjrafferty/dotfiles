@@ -411,7 +411,7 @@ dashes () {
 ## Switch to a user
 u () {
 
-  local user home;
+  local user home path;
 
   user="$(pwd | "$GREP" -Po "/((chroot/)?home/|local/)\K[^/]*")";
   home="$(mktemp -d)"
@@ -421,9 +421,9 @@ u () {
 
   # Give permissions on my home dir to new user
 	find "$HOME" -mindepth 1 -maxdepth 1 ! -name .ssh \
-		| while read -r x; do
-			$SETFACL -R -m u:"$user":rX "$x" 2> /dev/null
-			ln -s "$x" "${home}/${x##*/}"
+		| while read -r path; do
+			$SETFACL -R -m u:"$user":rX "$path" 2> /dev/null
+			ln -s "$path" "${home}/${path##*/}"
 		done
 
     if [[ -n "${__ZHIST_INPUT_PIPE}" ]]; then
