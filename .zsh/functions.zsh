@@ -434,7 +434,7 @@ u () {
     ln -s "/home/${user}/.composer" "${home}/.composer"
   fi
 
-  $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,clients,.vimfiles} 2> /dev/null
+  $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,"${__ZHIST_DIR}",clients,.vimfiles} 2> /dev/null
 
   # Switch user
   $SUDO HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
