@@ -24,8 +24,8 @@ else
   [ -r "${HOME}/.zsh/zplugin/plugins/mjrafferty---apollo-zsh-theme/apollo-zsh-theme.zsh" ] \
     && source "${HOME}/.zsh/zplugin/plugins/mjrafferty---apollo-zsh-theme/apollo-zsh-theme.zsh"
 
-  [ -r "${HOME}/.zsh/zplugin/plugins/mjrafferty---zsh-histdb/sqlite-history.zsh" ] \
-    && source "${HOME}/.zsh/zplugin/plugins/mjrafferty---zsh-histdb/sqlite-history.zsh"
+  [ -r "${HOME}/.zsh/zplugin/plugins/mjrafferty---zhist/zhist.zsh" ] \
+    && source "${HOME}/.zsh/zplugin/plugins/mjrafferty---zhist/zhist.zsh"
 
   [ -r "${HOME}/.zsh/zplugin/plugins/trapd00r---LS_COLORS/c.zsh" ] \
     && source "${HOME}/.zsh/zplugin/plugins/trapd00r---LS_COLORS/c.zsh"

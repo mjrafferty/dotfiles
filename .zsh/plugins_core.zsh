@@ -7,8 +7,8 @@ source "${ZPLGM[HOME_DIR]}/bin/zplugin.zsh"
 zplugin ice lucid
 zplugin light mjrafferty/apollo-zsh-theme
 
-zplugin ice wait'0c' lucid pick'sqlite-history.zsh'
-zplugin light mjrafferty/zsh-histdb
+zplugin ice wait'0c' lucid
+zplugin light mjrafferty/zhist
 
 # LS colors
 zplugin ice lucid atclone"dircolors -b LS_COLORS > c.zsh" atpull'%atclone' pick"c.zsh"
