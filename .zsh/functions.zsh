@@ -411,7 +411,7 @@ dashes () {
 ## Switch to a user
 u () {
 
-  local user home;
+  local user home item;
 
   user="$(pwd | "$GREP" -Po "/((chroot/)?home/|local/)\K[^/]*")";
   home="$(mktemp -d)"
@@ -421,20 +421,20 @@ u () {
 
   # Give permissions on my home dir to new user
 	find "$HOME" -mindepth 1 -maxdepth 1 ! -name .ssh \
-		| while read -r x; do
-			$SETFACL -R -m u:"$user":rX "$x" 2> /dev/null
-			ln -s "$x" "${home}/${x##*/}"
+		| while read -r item; do
+			$SETFACL -R -m u:"$user":rX "$item" 2> /dev/null
+			ln -s "$item" "${home}/${item##*/}"
 		done
 
-    if [[ -n "${__HISTDB_INPUT_PIPE}" ]]; then
-      $SETFACL -m u:"$user":rw "${__HISTDB_INPUT_PIPE}"
+    if [[ -n "${__ZHIST_INPUT_PIPE}" ]]; then
+      $SETFACL -m u:"$user":rw "${__ZHIST_INPUT_PIPE}"
     fi
 
   if [[ -e "/home/${user}/.composer" ]]; then
     ln -s "/home/${user}/.composer" "${home}/.composer"
   fi
 
-  $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,.zsh-histdb,clients,.vimfiles} 2> /dev/null
+  $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,"${__ZHIST_DIR}",clients,.vimfiles} 2> /dev/null
 
   # Switch user
   $SUDO HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
