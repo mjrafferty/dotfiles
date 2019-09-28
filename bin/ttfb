@@ -15,7 +15,12 @@ EOF
 }
 
 _timetofirstbyte () {
-  "$CURL" -c ~/.ttfb.cookies --insecure -A "TTFB test" -H "Accept-Encoding: gzip" -Lso /dev/null -w "HTTP: %{http_code} Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total}\n" "$1";
+  "$CURL" -c ~/.ttfb.cookies \
+    --insecure \
+    -A "TTFB test" \
+    -H "Accept-Encoding: gzip" \
+    -Lso /dev/null \
+    -w "HTTP: %{http_code} Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} Speed: %{speed_download}b/s Size: %{size_download}b\n" "$1";
 }
 
 
@@ -26,7 +31,7 @@ main () {
     return 0;
   fi
 
-  printf "\n%s\n\n" "$(_timetofirstbyte "${ARGA[0]}")";
+  printf "%s\n" "$(_timetofirstbyte "${ARGA[0]}")";
 
 }
 
