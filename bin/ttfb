@@ -6,6 +6,8 @@ readonly ARGA=("$@")
 readonly CAT='/bin/cat'
 readonly CURL='/usr/bin/curl'
 
+COOKIE_FILE="${HOME}/.ttfb.cookies"
+
 _usage() {
   "$CAT" <<- EOF
 
@@ -15,12 +17,15 @@ EOF
 }
 
 _timetofirstbyte () {
-  "$CURL" -c ~/.ttfb.cookies \
-    --insecure \
-    -A "TTFB test" \
-    -H "Accept-Encoding: gzip" \
-    -Lso /dev/null \
-    -w "HTTP: %{http_code} Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} Speed: %{speed_download}b/s Size: %{size_download}b\n" "$1";
+  "$CURL" --insecure \
+    --cookie "${COOKIE_FILE}" \
+    --cookie-jar "${COOKIE_FILE}" \
+    --user-agent "TTFB test" \
+    --header "Accept-Encoding: gzip,deflate,br" \
+    --location \
+    --silent \
+    --output /dev/null \
+    --write-out "HTTP: %{http_code} Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} Speed: %{speed_download} b/s Size: %{size_download} b\n" "$1";
 }
 
 
