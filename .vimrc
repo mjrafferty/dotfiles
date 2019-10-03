@@ -38,7 +38,6 @@ Plugin 'junegunn/rainbow_parentheses.vim'
 Plugin 'morhetz/gruvbox'
 Plugin 'sheerun/vim-polyglot'
 Plugin 'junegunn/fzf.vim'
-Plugin 'Yggdroot/indentLine'
 Plugin 'pearofducks/ansible-vim'
 call vundle#end()                       " required
 
