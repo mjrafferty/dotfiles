@@ -1,0 +1,138 @@
+#! /bin/env bash
+
+# ============
+# Bash configuration
+# -e exit on first error
+# -u error is variable unset
+# -x display commands for debugging
+#set -ezx
+set +m
+
+# Script Arguments
+readonly ARGA=("$@")
+
+# Configurable Variables
+
+# Alias executables to prevent PATH issues
+
+# Necessary Global Variables
+REDISMEM_TMPDIR="$(mktemp -d)"
+REDISMEM_INPUT="${REDISMEM_TMPDIR}/input.fifo"
+REDISMEM_OUTPUT_FD=""
+REDISMEM_OUTPUT="${REDISMEM_TMPDIR}/output.fifo"
+REDISCLI_PID=""
+
+# Print usage
+_usage() {
+
+  cat <<- EOF
+  This is the usage
+EOF
+
+}
+
+# Convert long command line options into short ones for getopts
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--"*)
+        echo "$x is not a supported option." >&2
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+  done
+
+  echo "${args}";
+
+}
+
+_cleanup () {
+
+  exec {REDISMEM_INPUT_FD}>&-
+  exec {REDISMEM_OUTPUT_FD}>&-
+
+  kill "${REDISCLI_PID}" &> /dev/null
+
+  rm "$REDISMEM_INPUT"
+  rm "$REDISMEM_OUTPUT"
+
+  rm -r "$REDISMEM_TMPDIR"
+
+}
+
+_start_rediscli() {
+
+  mkfifo "${REDISMEM_INPUT}"
+  mkfifo "${REDISMEM_OUTPUT}"
+
+  redis-cli -s /var/run/redis-multi/mjraffer.mage2.mjrafferty.org_cache.sock  < "${REDISMEM_INPUT}" > "${REDISMEM_OUTPUT}" &
+
+  REDISCLI_PID="$!"
+
+  exec {REDISMEM_INPUT_FD}<> "${REDISMEM_INPUT}"
+  exec {REDISMEM_OUTPUT_FD}<> "${REDISMEM_OUTPUT}"
+
+
+}
+
+# Main
+main () {
+
+  local cmdline key keys;
+  local init_read=0;
+  declare -A keysizes
+
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts ":h" OPTION "${cmdline[@]}"; do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      "?")
+        echo "-${OPTARG} is not a supported option." >&2
+        ;;
+      *);;
+    esac
+  done
+
+  _start_rediscli
+
+  echo 'keys *' >&"${REDISMEM_INPUT_FD}"
+
+  # Wait for redis to return data
+  while ! read -t 0; do sleep 0.1; done <&"${REDISMEM_OUTPUT_FD}"
+
+  while read -t 0 ; do
+    read -r key
+    keys+=($key);
+  done <&"${REDISMEM_OUTPUT_FD}"
+
+
+  for key in "${keys[@]}"; do
+    echo "dump $key" >&"${REDISMEM_INPUT_FD}"
+    read -r keysizes[$key] <&"${REDISMEM_OUTPUT_FD}"
+    keysizes[$key]=${#keysizes[$key]}
+  done
+
+
+  for key in "${!keysizes[@]}"; do
+    echo "${keysizes[$key]} $key";
+  done | sort -nr | head
+
+  _cleanup
+
+}
+
+main;
