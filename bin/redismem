@@ -89,15 +89,15 @@ function _parseCmdLine ()
 
 function formatBytes($bytes, $precision = 2) {
 
-    $units = array('B', 'KiB', 'MiB', 'GiB');
+  $units = array('B', 'KiB', 'MiB', 'GiB');
 
-    $bytes = max($bytes, 0);
-    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-    $pow = min($pow, count($units) - 1);
+  $bytes = max($bytes, 0);
+  $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+  $pow = min($pow, count($units) - 1);
 
-    $bytes /= (1 << (10 * $pow));
+  $bytes /= (1 << (10 * $pow));
 
-    return round($bytes, $precision) . ' ' . $units[$pow];
+  return round($bytes, $precision) . ' ' . $units[$pow];
 }
 
 function printResults(array $output) {
@@ -115,21 +115,21 @@ function main ()
 
   $redis = new Redis();
 
-  if ( strlen($config['socket']) > 1 ) {
+  if ( strlen($config['socket']) > 0 ) {
     $redis->connect($config['socket']);
-  } elseif (strlen($config['host']) > 1 && strlen($config['port']) > 1 ) {
+  } elseif (strlen($config['host']) > 0 && strlen($config['port']) > 0 ) {
     $redis->connect($config['host'], $config['port']);
   } else {
     help();
   }
 
-  if ( strlen($config['database']) > 1 ) {
-		$redis->select($config['database']);
+  if ( strlen($config['database']) > 0 ) {
+    $redis->select($config['database']);
   }
 
   $keys=$redis->keys('*');
 
-  $keysizes['init'] = 1;
+  $keysizes['init'] = 0;
 
   foreach ($keys as $key) {
 
@@ -145,7 +145,13 @@ function main ()
 
   arsort($keysizes);
 
-  printResults(array_slice($keysizes,0,10));
+  if ( strlen($config['number']) > 0 ) {
+    $num = $config['number'];
+  } else {
+    $num = 10;
+  }
+
+  printResults(array_slice($keysizes,0,$num));
 
 }
 
