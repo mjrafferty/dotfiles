@@ -1,138 +1,131 @@
-#! /bin/env bash
+#! /bin/env php
+<?php
 
-# ============
-# Bash configuration
-# -e exit on first error
-# -u error is variable unset
-# -x display commands for debugging
-#set -ezx
-set +m
+function help ()
+{
 
-# Script Arguments
-readonly ARGA=("$@")
+  $help = <<<HELP
+  Calculate highest redis memory usage by key prefix.
 
-# Configurable Variables
+    -s | --socket
+    -H | --host
+    -p | --port
+    -d | --database
+    -n | --number
 
-# Alias executables to prevent PATH issues
 
-# Necessary Global Variables
-REDISMEM_TMPDIR="$(mktemp -d)"
-REDISMEM_INPUT="${REDISMEM_TMPDIR}/input.fifo"
-REDISMEM_OUTPUT_FD=""
-REDISMEM_OUTPUT="${REDISMEM_TMPDIR}/output.fifo"
-REDISCLI_PID=""
+HELP;
 
-# Print usage
-_usage() {
-
-  cat <<- EOF
-  This is the usage
-EOF
+  die($help);
 
 }
 
-# Convert long command line options into short ones for getopts
-_cmdline() {
+function _parseCmdLine ()
+{
 
-  local x;
+  $config = array(
+    'socket' => "",
+    'host' => "",
+    'port' => "",
+    'database' => ""
+  );
 
-  for x in ${ARGA[*]}; do
+  $shortopts  = "s:H:p:d:n:h";
 
-    case "$x" in
-      "--help"|"-h")
-        args="${args}-h "
-        ;;
-      "--"*)
-        echo "$x is not a supported option." >&2
-        ;;
-      *)
-        args="${args}${x} "
-        ;;
-    esac
-  done
+  $longopts  = array(
+    "socket:",
+    "host:",
+    "port:",
+    "databae:",
+    "number:",
+    "help"
+  );
 
-  echo "${args}";
+  $cmdline = getopt($shortopts,$longopts);
 
-}
+  foreach ($cmdline as $opt => $value) {
 
-_cleanup () {
+    switch ($opt) {
 
-  exec {REDISMEM_INPUT_FD}>&-
-  exec {REDISMEM_OUTPUT_FD}>&-
+    case "s":
+    case "socket":
+      $config["socket"] = $value;
+      break;
 
-  kill "${REDISCLI_PID}" &> /dev/null
+    case "H":
+    case "host":
+      $config["host"] = $value;
+      break;
 
-  rm "$REDISMEM_INPUT"
-  rm "$REDISMEM_OUTPUT"
+    case "p":
+    case "port":
+      $config["port"] = $value;
+      break;
 
-  rm -r "$REDISMEM_TMPDIR"
+    case "d":
+    case "database":
+      $config["database"] = $value;
+      break;
 
-}
+    case "n":
+    case "number":
+      $config["number"] = $value;
+      break;
 
-_start_rediscli() {
+    case "h":
+    case "help":
+      help();
+      break;
 
-  mkfifo "${REDISMEM_INPUT}"
-  mkfifo "${REDISMEM_OUTPUT}"
+    default:
+      break;
 
-  redis-cli -s /var/run/redis-multi/mjraffer.mage2.mjrafferty.org_cache.sock  < "${REDISMEM_INPUT}" > "${REDISMEM_OUTPUT}" &
+    }
+  }
 
-  REDISCLI_PID="$!"
-
-  exec {REDISMEM_INPUT_FD}<> "${REDISMEM_INPUT}"
-  exec {REDISMEM_OUTPUT_FD}<> "${REDISMEM_OUTPUT}"
-
-
-}
-
-# Main
-main () {
-
-  local cmdline key keys;
-  local init_read=0;
-  declare -A keysizes
-
-  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
-
-  while getopts ":h" OPTION "${cmdline[@]}"; do
-
-    case $OPTION in
-      h)
-        _usage;
-        exit 0;
-        ;;
-      "?")
-        echo "-${OPTARG} is not a supported option." >&2
-        ;;
-      *);;
-    esac
-  done
-
-  _start_rediscli
-
-  echo 'keys *' >&"${REDISMEM_INPUT_FD}"
-
-  # Wait for redis to return data
-  while ! read -t 0; do sleep 0.1; done <&"${REDISMEM_OUTPUT_FD}"
-
-  while read -t 0 ; do
-    read -r key
-    keys+=($key);
-  done <&"${REDISMEM_OUTPUT_FD}"
-
-
-  for key in "${keys[@]}"; do
-    echo "dump $key" >&"${REDISMEM_INPUT_FD}"
-    read -r keysizes[$key] <&"${REDISMEM_OUTPUT_FD}"
-    keysizes[$key]=${#keysizes[$key]}
-  done
-
-
-  for key in "${!keysizes[@]}"; do
-    echo "${keysizes[$key]} $key";
-  done | sort -nr | head
-
-  _cleanup
+  return $config;
 
 }
 
-main;
+function main ()
+{
+
+  $config = _parseCmdLine();
+
+  if ( strlen($config['socket']) > 1 ) {
+    $redis->connect($config['socket']);
+  } elseif (strlen($config['host']) > 1 && strlen($config['port']) > 1 ) {
+    $redis->connect($config['host'], $config['port']);
+  } else {
+    help();
+  }
+
+  if ( strlen($config['database']) > 1 ) {
+		$redis->select($config['database']);
+  }
+
+  $keys=$redis->keys('*');
+
+  $keysizes['init'] = 1;
+
+  foreach ($keys as $key) {
+
+    $short_key = preg_replace('/_[A-Z,0-9]{20,}$/','',$key);
+
+    if (array_key_exists($short_key,$keysizes)) {
+      $keysizes[$short_key] += strlen($redis->dump($key));
+    } else {
+      $keysizes[$short_key] = strlen($redis->dump($key));
+    }
+
+  }
+
+  arsort($keysizes);
+
+  $output = array_slice($keysizes,0,10);
+
+  echo print_r($output,true);
+
+}
+
+main();
