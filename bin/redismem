@@ -92,6 +92,8 @@ function main ()
 
   $config = _parseCmdLine();
 
+  $redis = new Redis();
+
   if ( strlen($config['socket']) > 1 ) {
     $redis->connect($config['socket']);
   } elseif (strlen($config['host']) > 1 && strlen($config['port']) > 1 ) {
