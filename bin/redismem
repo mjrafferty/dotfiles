@@ -87,6 +87,29 @@ function _parseCmdLine ()
 
 }
 
+function formatBytes($bytes, $precision = 2) {
+
+    $units = array('B', 'KiB', 'MiB', 'GiB');
+
+    $bytes = max($bytes, 0);
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+    $pow = min($pow, count($units) - 1);
+
+    // Uncomment one of the following alternatives
+    // $bytes /= pow(1024, $pow);
+    // $bytes /= (1 << (10 * $pow));
+
+    return round($bytes, $precision) . ' ' . $units[$pow];
+}
+
+function printResults(array $output) {
+
+  foreach ($output as $key => $size) {
+    printf("%s\t%s\n", formatBytes($size), $key);
+  }
+
+}
+
 function main ()
 {
 
@@ -124,9 +147,7 @@ function main ()
 
   arsort($keysizes);
 
-  $output = array_slice($keysizes,0,10);
-
-  echo print_r($output,true);
+  printResults(array_slice($keysizes,0,10));
 
 }
 
