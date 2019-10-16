@@ -35,7 +35,7 @@ fi
 
 alias login='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@mellon-login01.us-midwest-1.nexcess.net'
 
-alias connections="lsof -nu apache -ad0-9999 | grep -Po 'TCP ([0-9]{1,3}\\.){3}[0-9]{1,3}:[a-z,0-9]*->\\K([0-9]{1,3}\\.){3}[0-9]{1,3}' | sort | uniq -c | sort -hr"
+alias connections="netstat -an | grep -Po '([0-9]{1,3}\.){3}[0-9]{1,3}(?=:\d+\s+[A-Z,_]+\s*$)' | sort | uniq -c | sort -hr"
 alias sshsync="rsync -p -v --progress -e ssh -a -u -z"
 alias grepphp="grep -Phiav '\] \"\S* (.*(/static/|(\.(otf|txt|jpeg|ico|svg|jpg|css|js|gif|png|woff|ttf))).*\" (200|304) |\" 403 )'"
 
