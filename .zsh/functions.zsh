@@ -530,7 +530,7 @@ nw () {
 		return 1
 	fi
 
-	myself="${myself/nex/}"
+	myself="${myself/nex/}@nexcess.net"
 	pw=$(mkpasswd -l 20 -s 0)
 
 	sudo nodeworx -u -n --controller Users --action edit --user="${myself}" --password="${pw}" --confirm_password="${pw}" > /dev/null 2>&1
