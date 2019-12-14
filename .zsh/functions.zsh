@@ -51,7 +51,7 @@ bumpquota(){
   if [[ -z "$*" || $1 == "*-h" ]]; then
     echo -e "\n Usage: bumpquota <username> <newquota>\n  Note: <username> can be '.' to get user from PWD\n";
     return 0;
-  elif [[ $1 == "^[a-z].*$" ]]; then
+  elif [[ $1 == ^[a-z,0-9]*$ ]]; then
     U=$1;
     shift;
   elif [[ $1 == '.' ]]; then
@@ -524,11 +524,6 @@ nw () {
 
 	local myself pw
 	myself="${SUDO_USER:-$USER}"
-
-	if [ -z "$myself" ]; then
-		echo "Unable to grant nodeworx access. Please contact sysops."
-		return 1
-	fi
 
 	myself="${myself/nex/}@nexcess.net"
 	pw=$(mkpasswd -l 20 -s 0)
