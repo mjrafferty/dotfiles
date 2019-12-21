@@ -51,16 +51,16 @@ bumpquota(){
   if [[ -z "$*" || $1 == "*-h" ]]; then
     echo -e "\n Usage: bumpquota <username> <newquota>\n  Note: <username> can be '.' to get user from PWD\n";
     return 0;
-  elif [[ $1 == ^[a-z,0-9]*$ ]]; then
-    U=$1;
+  elif [[ "$1" == [a-z,0-9]* ]]; then
+    U="$1";
     shift;
-  elif [[ $1 == '.' ]]; then
-    U=$($GETUSR);
+  elif [[ "$1" == '.' ]]; then
+    U="$($GETUSR)";
     shift;
   fi
 
-  newQuota=$1;
-  primaryDomain=$(~iworx/bin/listaccounts.pex | $GREP "$U" | $AWK '{print $2}')
+  newQuota="$1";
+  primaryDomain="$(~iworx/bin/listaccounts.pex | $GREP "$U" | $AWK '{print $2}')"
 
   $NODEWORX -u -n -c Siteworx -a edit --domain "$primaryDomain" --OPT_STORAGE "$newQuota" \
     && echo -e "\nDisk Quota for $U has been set to $newQuota MB\n";
