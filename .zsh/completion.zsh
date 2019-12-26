@@ -34,7 +34,6 @@ zstyle ':completion:*' completer _expand _complete _match _approximate
 zstyle ':completion:*' expand prefix suffix		# If matches share a common prefix, insert it. Same with common suffix
 #zstyle ':completion:*' file-list list=20 insert=10 		# Long file listing similar to ls -l
 zstyle ':completion:*' insert-unambiguous true
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'r:|[._-]=** r:|=**' 'l:|=* r:|=*'
 zstyle ':completion:*' max-errors 2 numeric
