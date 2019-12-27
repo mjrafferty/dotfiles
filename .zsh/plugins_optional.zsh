@@ -11,8 +11,8 @@ zplugin light jhawthorn/fzy
 zplugin ice lucid wait'0c' atload"bindkey '\ec' fzy-cd-widget; bindkey '^T'  fzy-file-widget"
 zplugin light aperezdc/zsh-fzy
 
-zplugin ice lucid wait'0a'
-zplugin light mafredri/zsh-async
+#zplugin ice lucid wait'0a'
+#zplugin light mafredri/zsh-async
 
 # Ctrl-P search and edit file
 zplugin ice lucid wait'0d' atload"bindkey '^T'  fzy-file-widget"
@@ -34,8 +34,8 @@ zplugin snippet OMZ::plugins/git-extras
 zplugin ice lucid wait'0c' svn
 zplugin snippet OMZ::plugins/extract
 
-zplugin ice lucid wait'0c' svn
-zplugin snippet OMZ::plugins/aws
+#zplugin ice lucid wait'0c' svn
+#zplugin snippet OMZ::plugins/aws
 
 # Interactive git ignore creation
 zplugin ice lucid wait'0c'  has'git' pick'init.zsh' atload'alias gi="git-ignore"' blockf
@@ -47,10 +47,6 @@ zplugin light donnemartin/haxor-news
 # Fancy diff
 zplugin ice lucid wait'0c' as"program" pick"bin/git-dsf"
 zplugin light zdharma/zsh-diff-so-fancy
-
-# Alias reminder
-zplugin ice lucid wait "0c" pick"you-should-use.plugin.zsh"
-zplugin light MichaelAquilina/zsh-you-should-use
 
 # Add command-line online translator
 zplugin ice lucid wait'0c' if'[[ -n "$commands[gawk]" ]]'
