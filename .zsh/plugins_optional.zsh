@@ -11,8 +11,9 @@ zplugin light jhawthorn/fzy
 zplugin ice lucid wait'0c' atload"bindkey '\ec' fzy-cd-widget; bindkey '^T'  fzy-file-widget"
 zplugin light aperezdc/zsh-fzy
 
-#zplugin ice lucid wait'0a'
-#zplugin light mafredri/zsh-async
+# Required by fuzzy-search-and-edit below
+zplugin ice lucid wait'0a'
+zplugin light mafredri/zsh-async
 
 # Ctrl-P search and edit file
 zplugin ice lucid wait'0d' atload"bindkey '^T'  fzy-file-widget"

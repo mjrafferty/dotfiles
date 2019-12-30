@@ -35,7 +35,7 @@ update_brew () {
 			rm -f "/usr/local/bin/${bin}";
 		fi
 
-		ln -s "$f" "/usr/local/bin/${bin}";
+		ln -sf "$f" "/usr/local/bin/${bin}";
 
 	done
 
@@ -47,7 +47,7 @@ update_brew () {
 			rm -f "/usr/local/bin/${bin}";
 		fi
 
-		ln -s "$f" "/usr/local/bin/${bin}";
+		ln -sf "$f" "/usr/local/bin/${bin}";
 
 	done
 

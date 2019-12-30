@@ -451,17 +451,17 @@ u () {
 ## Find broken symbolic links
 brokenlinks () {
 
-  local tifs x path link dir;
+  local tifs x check_path link dir;
 
-  path="$1"
+  check_path="$1"
 
-  [[ -z "$path" ]] && path="$PWD"
+  [[ -z "$check_path" ]] && check_path="$PWD"
 
   tifs="$IFS";
   IFS="
 "
 
-	for x in $("$FIND" "$path" -type l); do
+	for x in $("$FIND" "$check_path" -type l); do
 
     link="$("$READLINK" "$x")" 2> /dev/null
 
