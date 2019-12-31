@@ -3,8 +3,12 @@ declare -A ZPLGM
 ZPLGM[HOME_DIR]="${HOME}/.zsh/zplugin"
 source "${ZPLGM[HOME_DIR]}/bin/zplugin.zsh"
 
-# ZSH theme
+# Required by fuzzy-search-and-edit below
 zplugin ice lucid
+zplugin light mafredri/zsh-async
+
+# ZSH theme
+zplugin ice lucid atinit'fpath+=($PWD/functions.zwc $PWD/functions $PWD/modules.zwc $PWD/modules)'
 zplugin light mjrafferty/apollo-zsh-theme
 
 zplugin ice wait'0c' lucid
