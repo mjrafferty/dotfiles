@@ -1,7 +1,7 @@
 # Load zplugin
-declare -A ZPLGM
-ZPLGM[HOME_DIR]="${HOME}/.zsh/zplugin"
-source "${ZPLGM[HOME_DIR]}/bin/zplugin.zsh"
+declare -A ZINIT
+ZINIT[HOME_DIR]="${HOME}/.zsh/zplugin"
+source "${ZINIT[HOME_DIR]}/bin/zplugin.zsh"
 
 # Required by fuzzy-search-and-edit below
 zplugin ice lucid
@@ -31,7 +31,7 @@ zplugin ice lucid wait'0d' atload'bindkey "^[[A" history-substring-search-up; bi
 zplugin light zsh-users/zsh-history-substring-search
 
 # ZSH Syntax highlighting
-zplugin ice lucid wait'0e' atload"ZPLGM[COMPINIT_OPTS]=\"-C -i\" zpcompinit; zpcdreplay"
+zplugin ice lucid wait'0e' atload"ZINIT[COMPINIT_OPTS]=\"-C -i\" zpcompinit; zpcdreplay"
 zplugin light zdharma/fast-syntax-highlighting
 
 ZSH_AUTOSUGGEST_MANUAL_REBIND="true"

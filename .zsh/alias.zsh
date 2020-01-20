@@ -15,6 +15,7 @@ alias ln='nocorrect ln'
 alias mkdir='nocorrect mkdir -p'
 alias mv='nocorrect mv'
 alias mysql='nocorrect mysql'
+alias sudo='nocorrect sudo'
 
 alias locate='noglob locate'
 alias rsync='noglob rsync'
