@@ -540,7 +540,9 @@ _password () {
   _connect <<- EOF
 
   UPDATE ${PREFIX}users
-  SET user_pass = MD5("$password")
+  SET
+  user_pass = MD5("$password"),
+  user_activation_key=""
   WHERE ${PREFIX}users.user_login = "$username";
 
 EOF
