@@ -8,7 +8,7 @@ zplugin ice lucid
 zplugin light mafredri/zsh-async
 
 # ZSH theme
-zplugin ice lucid atinit'fpath+=($PWD/functions.zwc $PWD/functions $PWD/modules.zwc $PWD/modules)'
+zplugin ice lucid atinit'fpath+=(${XDG_DATA_HOME:-${HOME}/.local/share}/apollo/ $PWD/modules.zwc $PWD/modules)'
 zplugin light mjrafferty/apollo-zsh-theme
 
 zplugin ice wait'0c' lucid
