@@ -519,23 +519,3 @@ geoip () {
 	curl -s "https://www.maxmind.com/geoip/v2.1/city/${1}?use-downloadable-db=1&demo=1" \
 		| jq '.traits.isp,.city.names.en,.country.names.en,.country.iso_code'
 }
-
-nw () {
-
-	local myself pw
-	myself="${SUDO_USER:-$USER}"
-
-	myself="${myself/nex/}@nexcess.net"
-	pw=$(mkpasswd -l 20 -s 0)
-
-	sudo nodeworx -u -n --controller Users --action edit --user="${myself}" --password="${pw}" --confirm_password="${pw}" > /dev/null 2>&1
-
-	if [ $? -ne 0 ]; then
-		echo "Unable to grant nodeworx access."
-		return 1
-	fi
-
-	echo "URL: https://${HOSTNAME}:2443/nodeworx/?email=${myself}"
-	echo "Password: ${pw}"
-
-}
