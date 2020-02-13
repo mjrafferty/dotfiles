@@ -520,26 +520,6 @@ geoip () {
 		| jq '.traits.isp,.city.names.en,.country.names.en,.country.iso_code'
 }
 
-nw () {
-
-	local myself pw
-	myself="${SUDO_USER:-$USER}"
-
-	myself="${myself/nex/}@nexcess.net"
-	pw=$(mkpasswd -l 20 -s 0)
-
-	sudo nodeworx -u -n --controller Users --action edit --user="${myself}" --password="${pw}" --confirm_password="${pw}" > /dev/null 2>&1
-
-	if [ $? -ne 0 ]; then
-		echo "Unable to grant nodeworx access."
-		return 1
-	fi
-
-	echo "URL: https://${HOSTNAME}:2443/nodeworx/?email=${myself}"
-	echo "Password: ${pw}"
-
-}
-
 urldecode() {
    perl -pe 's/\+/ /g; s/%([0-9a-f]{2})/chr(hex($1))/eig'
 }
