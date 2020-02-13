@@ -523,3 +523,7 @@ geoip () {
 urldecode() {
    perl -pe 's/\+/ /g; s/%([0-9a-f]{2})/chr(hex($1))/eig'
 }
+
+urlencode() {
+  perl -pe 's/([^^\nA-Za-z0-9\-_.!~*'\''()])/ sprintf "%%%02x", ord $1 /eg;'
+}
