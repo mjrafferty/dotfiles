@@ -1,4 +1,4 @@
-[[ $SSH_CLIENT =~ "192.168.1.102" ]] && TMUX="NO THANKS";
+#[[ $SSH_CLIENT =~ "192.168.1.102" ]] && TMUX="NO THANKS";
 
 export SSH_ASKPASS=/usr/bin/ksshaskpass
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
@@ -29,6 +29,8 @@ orphaned_files () {
     -o -path /run \
     -o -path /sys \
     -o -path /tmp \
+    -o -path /opt/wine \
+    -o -path /opt/Windows_Users \
     -o -path /usr/lib64/clang \
     -o -path /usr/lib64/dracut \
     -o -path /usr/lib64/gcc \
@@ -43,7 +45,6 @@ orphaned_files () {
     -o -path /var/db \
     -o -path /var/log \
     -o -path /var/lib/sddm/.cache \
-    -o -path /var/lib/sddm/.nv/GLCache \
     -o -path /var/tmp/portage \) \
     -prune -o -type f -print0 \
     | xargs -0 qfile -o 2>&1 \
@@ -51,5 +52,5 @@ orphaned_files () {
 
 }
 
-alias checksums="equery check --only-failures '*'"
+alias checksums="equery --no-pipe check --only-failures '*'"
 alias mountrw="mount -o rw,remount /usr; mount -o rw,remount /boot/efi; mount -o rw,remount /;mount -o rw,remount /opt"

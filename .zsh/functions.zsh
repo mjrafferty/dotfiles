@@ -539,3 +539,7 @@ nw () {
 	echo "Password: ${pw}"
 
 }
+
+urldecode() {
+   perl -pe 's/\+/ /g; s/%([0-9a-f]{2})/chr(hex($1))/eig'
+}
