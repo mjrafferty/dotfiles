@@ -525,5 +525,5 @@ urldecode() {
 }
 
 urlencode() {
-  perl -pe 's/([^^\nA-Za-z0-9\-_.!~*'\''()])/ sprintf "%%%02x", ord $1 /eg;'
+  perl -pe 's/([^\n0-9a-zA-Z$-_.+!*'\''\(\),])/ sprintf "%%%02x", ord $1 /eg;'
 }
