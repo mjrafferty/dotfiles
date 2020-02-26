@@ -135,12 +135,27 @@ function main ()
 
     $short_key = preg_replace('/_[A-Z,0-9]{20,}$/','',$key);
 
-    if (array_key_exists($short_key,$keysizes)) {
-      $keysizes[$short_key] += strlen($redis->dump($key));
-    } else {
-      $keysizes[$short_key] = strlen($redis->dump($key));
-    }
+    $hash_keys = $redis->hKeys($key);
 
+    if (is_array($hash_keys)) {
+
+      foreach ($hash_keys as $hkey) {
+        if (array_key_exists($short_key,$keysizes)) {
+          $keysizes[$short_key] += strlen($redis->hGet($key, $hkey));
+        } else {
+          $keysizes[$short_key] = strlen($redis->hGet($key, $hkey));
+        }
+      }
+
+    } else {
+
+      if (array_key_exists($short_key,$keysizes)) {
+        $keysizes[$short_key] += strlen($redis->get($key));
+      } else {
+        $keysizes[$short_key] = strlen($redis->get($key));
+      }
+
+    }
   }
 
   arsort($keysizes);
