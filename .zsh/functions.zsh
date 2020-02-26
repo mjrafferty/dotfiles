@@ -519,3 +519,11 @@ geoip () {
 	curl -s "https://www.maxmind.com/geoip/v2.1/city/${1}?use-downloadable-db=1&demo=1" \
 		| jq '.traits.isp,.city.names.en,.country.names.en,.country.iso_code'
 }
+
+urldecode() {
+   perl -pe 's/\+/ /g; s/%([0-9a-f]{2})/chr(hex($1))/eig'
+}
+
+urlencode() {
+  perl -pe 's/([^\n0-9a-zA-Z$-_.+!*'\''\(\),])/ sprintf "%%%02x", ord $1 /eg;'
+}
