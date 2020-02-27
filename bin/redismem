@@ -100,10 +100,10 @@ function formatBytes($bytes, $precision = 2) {
   return round($bytes, $precision) . ' ' . $units[$pow];
 }
 
-function printResults(array $output) {
+function printResults(array $output, array $count) {
 
   foreach ($output as $key => $size) {
-    printf("%s\t%s\n", formatBytes($size), $key);
+    printf("%s\t%s\t%s\n", formatBytes($size), $key, $count[$key]);
   }
 
 }
@@ -129,13 +129,20 @@ function main ()
 
   $keys=$redis->keys('*');
 
-  $keysizes['init'] = 0;
+  $keysizes = array();
+  $key_count = array();
 
   foreach ($keys as $key) {
 
-    $short_key = preg_replace('/_[A-Z,0-9]{20,}$/','',$key);
+    $short_key = preg_replace('/_([a-z,A-Z,0-9]){20,}(_.*)?$/','_{hash_value}\2',$key);
 
     $hash_keys = $redis->hKeys($key);
+
+    if (array_key_exists($short_key,$key_count)) {
+      $key_count[$short_key]+=1;
+    } else {
+      $key_count[$short_key]=1;
+    }
 
     if (is_array($hash_keys)) {
 
@@ -166,7 +173,7 @@ function main ()
     $num = 10;
   }
 
-  printResults(array_slice($keysizes,0,$num));
+  printResults(array_slice($keysizes,0,$num),array_slice($key_count,0,$num));
 
 }
 
