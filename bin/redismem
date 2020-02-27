@@ -102,8 +102,9 @@ function formatBytes($bytes, $precision = 2) {
 
 function printResults(array $output, array $count) {
 
+  printf("%10s\t%s\t%s\n","Size","Count","Key");
   foreach ($output as $key => $size) {
-    printf("%s\t%s\t%s\n", formatBytes($size), $key, $count[$key]);
+    printf("%10s\t%s\t%s\n", formatBytes($size),$count[$key],$key);
   }
 
 }
@@ -173,7 +174,7 @@ function main ()
     $num = 10;
   }
 
-  printResults(array_slice($keysizes,0,$num),array_slice($key_count,0,$num));
+  printResults(array_slice($keysizes,0,$num),$key_count);
 
 }
 
