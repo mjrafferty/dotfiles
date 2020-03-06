@@ -2,3 +2,4 @@
 .environment.sh
 .zsh/zplugin/*
 .vim/bundle/*
+.vim/plugins/*

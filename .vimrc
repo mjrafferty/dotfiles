@@ -6,36 +6,40 @@ set nocompatible
 "     Begin Plugin load     "
 """""""""""""""""""""""""""""
 
-call plug#begin('~/.vim/plugged')
-Plug 'VundleVim/Vundle.vim'
-Plug 'SirVer/ultisnips'
-Plug 'honza/vim-snippets'
-Plug 'w0rp/ale'
+call plug#begin('~/.vim/plugins')
+Plug 'Chiel92/vim-autoformat'
 Plug 'Raimondi/delimitMate'
-Plug 'weynhamz/vim-plugin-minibufexpl'
-Plug 'scrooloose/nerdtree'
-Plug 'scrooloose/nerdcommenter'
+Plug 'SirVer/ultisnips'
 if ( v:version > 704 || (v:version == 704 && has( 'patch1578'  )))
   Plug 'Valloric/YouCompleteMe'
 endif
-Plug 'Chiel92/vim-autoformat'
-Plug 'terryma/vim-multiple-cursors'
-Plug 'majutsushi/tagbar'
-Plug 'tpope/vim-surround'
+Plug 'airblade/vim-gitgutter'
+Plug 'andymass/vim-matchup'
 Plug 'easymotion/vim-easymotion'
-Plug 'mbbill/undotree'
+Plug 'editorconfig/editorconfig-vim'
+Plug 'honza/vim-snippets'
+Plug 'itchyny/lightline.vim'
+Plug 'junegunn/goyo.vim'
+Plug 'junegunn/fzf.vim'
+Plug 'junegunn/indentLine'
+Plug 'junegunn/rainbow_parentheses.vim'
 if ( v:version >= 800 )
   Plug 'ludovicchabant/vim-gutentags'
 endif
-Plug 'xolox/vim-misc'
-Plug 'airblade/vim-gitgutter'
-Plug 'tpope/vim-fugitive'
-Plug 'itchyny/lightline.vim'
-Plug 'junegunn/rainbow_parentheses.vim'
+Plug 'majutsushi/tagbar'
+Plug 'mbbill/undotree'
+Plug 'mileszs/ack.vim'
 Plug 'morhetz/gruvbox'
-Plug 'sheerun/vim-polyglot'
-Plug 'junegunn/fzf.vim'
 Plug 'pearofducks/ansible-vim'
+Plug 'scrooloose/nerdcommenter'
+Plug 'scrooloose/nerdtree'
+Plug 'sheerun/vim-polyglot'
+Plug 'terryma/vim-multiple-cursors'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-surround'
+Plug 'w0rp/ale'
+Plug 'weynhamz/vim-plugin-minibufexpl'
+Plug 'xolox/vim-misc'
 call plug#end()
 
 "-------------------------
@@ -59,6 +63,7 @@ set hlsearch
 set ignorecase                          " Do case insensitive matching
 set incsearch                           " do incremental searching
 set laststatus=2
+set linebreak
 set nowrap                              " Do not wrap code
 set number                              " add line numbers
 set relativenumber                      " add relative line numbers
@@ -71,7 +76,6 @@ set smartindent
 set smarttab
 set wildmenu
 set wildmode=full
-set linebreak
 
 " Default regxp engine makes syntax highlighting  super slow for some reason
 set regexpengine=1
