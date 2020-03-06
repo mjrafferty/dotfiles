@@ -2,7 +2,3 @@
 	path = .zsh/zplugin/bin
 	url = https://github.com/zdharma/zplugin.git
 	branch = master
-[submodule ".vim/bundle/Vundle.vim"]
-	path = .vim/bundle/Vundle.vim
-	url = https://github.com/VundleVim/Vundle.vim
-	branch = master

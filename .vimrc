@@ -6,40 +6,37 @@ set nocompatible
 "     Begin Plugin load     "
 """""""""""""""""""""""""""""
 
-" set the runtime path to include Vundle and initialize
-filetype off                            " required
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
-Plugin 'VundleVim/Vundle.vim'
-Plugin 'SirVer/ultisnips'
-Plugin 'honza/vim-snippets'
-Plugin 'w0rp/ale'
-Plugin 'Raimondi/delimitMate'
-Plugin 'weynhamz/vim-plugin-minibufexpl'
-Plugin 'scrooloose/nerdtree'
-Plugin 'scrooloose/nerdcommenter'
+call plug#begin('~/.vim/plugged')
+Plug 'VundleVim/Vundle.vim'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+Plug 'w0rp/ale'
+Plug 'Raimondi/delimitMate'
+Plug 'weynhamz/vim-plugin-minibufexpl'
+Plug 'scrooloose/nerdtree'
+Plug 'scrooloose/nerdcommenter'
 if ( v:version > 704 || (v:version == 704 && has( 'patch1578'  )))
-  Plugin 'Valloric/YouCompleteMe'
+  Plug 'Valloric/YouCompleteMe'
 endif
-Plugin 'Chiel92/vim-autoformat'
-Plugin 'terryma/vim-multiple-cursors'
-Plugin 'majutsushi/tagbar'
-Plugin 'tpope/vim-surround'
-Plugin 'easymotion/vim-easymotion'
-Plugin 'mbbill/undotree'
+Plug 'Chiel92/vim-autoformat'
+Plug 'terryma/vim-multiple-cursors'
+Plug 'majutsushi/tagbar'
+Plug 'tpope/vim-surround'
+Plug 'easymotion/vim-easymotion'
+Plug 'mbbill/undotree'
 if ( v:version >= 800 )
-  Plugin 'ludovicchabant/vim-gutentags'
+  Plug 'ludovicchabant/vim-gutentags'
 endif
-Plugin 'xolox/vim-misc'
-Plugin 'airblade/vim-gitgutter'
-Plugin 'tpope/vim-fugitive'
-Plugin 'itchyny/lightline.vim'
-Plugin 'junegunn/rainbow_parentheses.vim'
-Plugin 'morhetz/gruvbox'
-Plugin 'sheerun/vim-polyglot'
-Plugin 'junegunn/fzf.vim'
-Plugin 'pearofducks/ansible-vim'
-call vundle#end()                       " required
+Plug 'xolox/vim-misc'
+Plug 'airblade/vim-gitgutter'
+Plug 'tpope/vim-fugitive'
+Plug 'itchyny/lightline.vim'
+Plug 'junegunn/rainbow_parentheses.vim'
+Plug 'morhetz/gruvbox'
+Plug 'sheerun/vim-polyglot'
+Plug 'junegunn/fzf.vim'
+Plug 'pearofducks/ansible-vim'
+call plug#end()
 
 "-------------------------
 "----- End Plugin load ---
@@ -74,6 +71,7 @@ set smartindent
 set smarttab
 set wildmenu
 set wildmode=full
+set linebreak
 
 " Default regxp engine makes syntax highlighting  super slow for some reason
 set regexpengine=1
@@ -237,9 +235,6 @@ au InsertEnter *
       \ exec "inoremap <silent> " . g:UltiSnipsExpandTrigger . " <C-R>=g:UltiSnips_Complete()<cr>"
 au InsertEnter *
       \ exec "inoremap <silent> " . g:UltiSnipsJumpBackwardTrigger . " <C-R>=g:UltiSnips_Reverse()<cr>"
-
-" Remove trailing whitespace on save
-au BufWritePre * :%s/\s\+$//e
 
 au FileType c,cpp,java set mps+==:;
 
