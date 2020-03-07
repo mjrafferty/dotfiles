@@ -1,7 +1,3 @@
-" Use Vim settings, rather than Vi settings (much better!).
-" This must be first, because it changes other options as a side effect.
-set nocompatible
-
 """""""""""""""""""""""""""""
 "     Begin Plugin load     "
 """""""""""""""""""""""""""""
@@ -19,10 +15,11 @@ Plug 'easymotion/vim-easymotion'
 Plug 'editorconfig/editorconfig-vim'
 Plug 'honza/vim-snippets'
 Plug 'itchyny/lightline.vim'
-Plug 'junegunn/goyo.vim'
 Plug 'junegunn/fzf.vim'
+Plug 'junegunn/goyo.vim'
 Plug 'junegunn/indentLine'
 Plug 'junegunn/rainbow_parentheses.vim'
+Plug 'junegunn/vim-easy-align'
 if ( v:version >= 800 )
   Plug 'ludovicchabant/vim-gutentags'
 endif
@@ -51,28 +48,28 @@ call plug#end()
 """""""""""""""""""""""""""""
 
 " Misc settings
-set autowrite                           " Automatically save before commands like :next and :make
-set backspace=2                         " Controls backspace behavior
+set autowrite                      " Automatically save before commands like :next and :make
+set autoindent
+set backspace=2                    " Controls backspace behavior
 set clipboard=autoselect
 set colorcolumn=120
-set cursorline                          " underlines current line
+set cursorline                     " underlines current line
 set gdefault
 set hidden
-set history=50                          " keep 50 lines of command line history
+set history=50                     " keep 50 lines of command line history
 set hlsearch
-set ignorecase                          " Do case insensitive matching
-set incsearch                           " do incremental searching
+set ignorecase                     " Do case insensitive matching
+set incsearch                      " do incremental searching
 set laststatus=2
 set linebreak
-set nowrap                              " Do not wrap code
-set number                              " add line numbers
-set relativenumber                      " add relative line numbers
-set ruler                               " show the cursor position all the time
-set scrolloff=3                         " keeps cursor away from top and bottom edges
-set showcmd                             " display incomplete commands
-set showmatch                           " Show matching brackets.
-set smartcase                           " Do smart case matching
-set smartindent
+set nowrap                         " Do not wrap code
+set number                         " add line numbers
+set relativenumber                 " add relative line numbers
+set ruler                          " show the cursor position all the time
+set scrolloff=3                    " keeps cursor away from top and bottom edges
+set showcmd                        " display incomplete commands
+set showmatch                      " Show matching brackets.
+set smartcase                      " Do smart case matching
 set smarttab
 set wildmenu
 set wildmode=full
@@ -83,11 +80,11 @@ set lazyredraw
 
 " Undo settings
 set undofile
-set undolevels=1000                     " How many undos
-set undoreload=10000                    " number of lines to save for undo "
+set undolevels=1000                " How many undos
+set undoreload=10000               " number of lines to save for undo "
 
 " Vim file locations
-set undodir=$HOME/.vimfiles/undo//      " where to save undo histories
+set undodir=$HOME/.vimfiles/undo// " where to save undo histories
 set backupdir=$HOME/.vimfiles/backup//
 set directory=$HOME/.vimfiles/swp//
 
@@ -199,7 +196,7 @@ highlight TagbarHighlight ctermbg=DarkGray
 """""""""""""""""""""""""""""
 
 " Balances tab key functionality between plugins
-function! g:UltiSnips_Complete()
+function! g:UltiSnips_Complete() abort
   call UltiSnips#ExpandSnippet()
   if g:ulti_expand_res == 0
     if pumvisible()
@@ -218,7 +215,7 @@ function! g:UltiSnips_Complete()
 endfunction
 
 " Same as above but for Shift-Tab
-function! g:UltiSnips_Reverse()
+function! g:UltiSnips_Reverse() abort
   call UltiSnips#JumpBackwards()
   if g:ulti_jump_backwards_res == 0
     return "\<C-P>"
@@ -235,28 +232,42 @@ endfunction
 """""""""""""""""""""""""
 
 " Calls Tab key functions when Tab or Shift-Tab is pressed
-au InsertEnter *
-      \ exec "inoremap <silent> " . g:UltiSnipsExpandTrigger . " <C-R>=g:UltiSnips_Complete()<cr>"
-au InsertEnter *
-      \ exec "inoremap <silent> " . g:UltiSnipsJumpBackwardTrigger . " <C-R>=g:UltiSnips_Reverse()<cr>"
+augroup tabs
+  autocmd!
+  autocmd InsertEnter *
+        \ exec "inoremap <silent> " . g:UltiSnipsExpandTrigger . " <C-R>=g:UltiSnips_Complete()<cr>"
+  autocmd InsertEnter *
+        \ exec "inoremap <silent> " . g:UltiSnipsJumpBackwardTrigger . " <C-R>=g:UltiSnips_Reverse()<cr>"
+augroup END
 
-au FileType c,cpp,java set mps+==:;
-
-" NERDTree plugin settings
 " Closes Vim if NerdTree plugin is the only remaining buffer open
-au bufenter *
-      \ if winnr("$") == 1 && (exists("b:NERDTree") && b:NERDTree.isTabTree()) |
-      \   q |
-      \ endif
+augroup nerdtree
+  autocmd!
+  autocmd bufenter *
+        \ if winnr("$") == 1 && (exists("b:NERDTree") && b:NERDTree.isTabTree()) |
+        \   q |
+        \ endif
+augroup END
 
 " When editing a file, always jump to the last known cursor position.
-au BufReadPost *
-      \ if line("'\"") > 1 && line("'\"") <= line("$") |
-      \   exe "normal! g`\"" |
-      \ endif
+augroup cursorpos
+  autocmd!
+  autocmd BufReadPost *
+        \ if line("'\"") > 1 && line("'\"") <= line("$") |
+        \   exe "normal! g`\"" |
+        \ endif
+augroup END
+
+augroup matchpairs
+  autocmd!
+  autocmd FileType c,cpp,java set matchpairs+==:;
+augroup END
 
 " Automatically open tagbar for supported files
-"au VimEnter * nested :call tagbar#autoopen(1)
+augroup tagbar
+  autocmd!
+  autocmd VimEnter * nested :call tagbar#autoopen(1)
+augroup END
 
 "-------------------------
 "----- End Autocmds ------
