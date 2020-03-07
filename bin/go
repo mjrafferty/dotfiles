@@ -357,7 +357,8 @@ _didWeFindIt() {
   rdns="$2";
 
   # If host or reverse dns indicate nexcess, it should be a good destination
-  if [[ "$host" == "nexcess" || "$host" == "future host" ||  "$rdns" == "nexcess" || "$host" == "nxcli" || "$rdns" == "nxcli" ]]; then
+  if [[ "$host" == "nexcess" || "$host" == "future host" ||  "$rdns" == "nexcess" || "$host" == "nxcli" \
+    || "$rdns" == "nxcli" || "$host" == "liquid web" || "$host" == "liquidweb" || "$rdns" == "liquidweb" ]]; then
 
     DESTINATION="${DOMAIN}";
 
@@ -442,8 +443,8 @@ main () {
 
     ip_addr="$("$DIG" +short "$DOMAIN" | "$SORT" | "$HEAD" -n1)";
     whoisinfo="$("$WHOIS" "$ip_addr")";
-    host=$(echo "$whoisinfo"  | "$GREP" -m1 -ioE "nexcess|sucuri|cloudflare|future host|nxcli" | "$TR" '[:upper:]' '[:lower:]');
-    rdns="$("$DIG" +short -x "$ip_addr" | "$GREP" -o -e "nexcess" -e "nxcli")";
+    host=$(echo "$whoisinfo"  | "$GREP" -m1 -ioE "nexcess|sucuri|cloudflare|future host|nxcli|liquidweb|liquid web" | "$TR" '[:upper:]' '[:lower:]');
+    rdns="$("$DIG" +short -x "$ip_addr" | "$GREP" -o -e "nexcess" -e "nxcli" -e 'liquidweb')";
 
     _didWeFindIt "$host" "$rdns";
 
