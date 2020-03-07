@@ -3,7 +3,7 @@
 """""""""""""""""""""""""""""
 
 call plug#begin('~/.vim/plugins')
-Plug 'Chiel92/vim-autoformat'
+Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }
 Plug 'Raimondi/delimitMate'
 Plug 'SirVer/ultisnips'
 if ( v:version > 704 || (v:version == 704 && has( 'patch1578'  )))
@@ -16,14 +16,14 @@ Plug 'editorconfig/editorconfig-vim'
 Plug 'honza/vim-snippets'
 Plug 'itchyny/lightline.vim'
 Plug 'junegunn/fzf.vim'
-Plug 'junegunn/goyo.vim'
-Plug 'junegunn/indentLine'
+Plug 'junegunn/goyo.vim', { 'for': 'markdown' }
+Plug 'thaerkh/vim-indentguides'
 Plug 'junegunn/rainbow_parentheses.vim'
 Plug 'junegunn/vim-easy-align'
-if ( v:version >= 800 )
+if ( v:version >= 800 && executable('ctags'))
   Plug 'ludovicchabant/vim-gutentags'
+  Plug 'majutsushi/tagbar'
 endif
-Plug 'majutsushi/tagbar'
 Plug 'mbbill/undotree'
 Plug 'mileszs/ack.vim'
 Plug 'morhetz/gruvbox'
@@ -52,8 +52,7 @@ set autowrite                      " Automatically save before commands like :ne
 set autoindent
 set backspace=2                    " Controls backspace behavior
 set clipboard=autoselect
-set colorcolumn=120
-set cursorline                     " underlines current line
+set conceallevel=3
 set gdefault
 set hidden
 set history=50                     " keep 50 lines of command line history
@@ -62,6 +61,7 @@ set ignorecase                     " Do case insensitive matching
 set incsearch                      " do incremental searching
 set laststatus=2
 set linebreak
+set listchars=""
 set nowrap                         " Do not wrap code
 set number                         " add line numbers
 set relativenumber                 " add relative line numbers
@@ -264,10 +264,12 @@ augroup matchpairs
 augroup END
 
 " Automatically open tagbar for supported files
-augroup tagbar
-  autocmd!
-  autocmd VimEnter * nested :call tagbar#autoopen(1)
-augroup END
+if ( v:version >= 800 && executable('ctags'))
+  augroup tagbar
+    autocmd!
+    autocmd VimEnter * nested :call tagbar#autoopen(1)
+  augroup END
+endif
 
 "-------------------------
 "----- End Autocmds ------
