@@ -36,7 +36,6 @@ Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-surround'
 Plug 'w0rp/ale'
 Plug 'weynhamz/vim-plugin-minibufexpl'
-Plug 'xolox/vim-misc'
 call plug#end()
 
 "-------------------------

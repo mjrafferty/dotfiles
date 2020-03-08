@@ -1,7 +1,6 @@
 #! /usr/bin/env bash
 
 # Script Arguments
-readonly ARGS="$*"
 readonly ARGA=("$@")
 
 # Configurable Variables
@@ -12,7 +11,6 @@ DEFAULTS_FILE="$HOME/.mag2db_defaults"
 readonly AWK='/bin/awk'
 readonly CAT='/bin/cat'
 readonly CHMOD='/bin/chmod'
-readonly COLUMN='/usr/bin/column'
 readonly CUT='/bin/cut'
 readonly FOLD='/usr/bin/fold'
 readonly GREP='/bin/grep'
@@ -305,7 +303,7 @@ _whereBuilder() {
       else
         read -rp "${tc}${where}"$'\n\n'"Value: " value;
         if [[ "${operators[operator]}" =~ "IN" ]]; then
-					value="$(echo "${value}" | sed -e "s/[\,, ,\",']*\([^\,, ,\",']*\)[\,, ,\",']*/,'\1'/g" -e 's/^,//')"
+          value="$(echo "${value}" | sed -e "s/[\,, ,\",']*\([^\,, ,\",']*\)[\,, ,\",']*/,'\1'/g" -e 's/^,//')"
           where+=" (${value})";
         else
           where+=" \"${value}\"";
@@ -765,10 +763,10 @@ _products () {
     KEY (product_id)
   )
   SELECT
-		product_id,
-		GROUP_CONCAT(category_id) as categories
-	FROM ${PREFIX}catalog_category_product
-	GROUP BY product_id;
+    product_id,
+    GROUP_CONCAT(category_id) as categories
+  FROM ${PREFIX}catalog_category_product
+  GROUP BY product_id;
 
   CREATE TEMPORARY TABLE PROD (
     KEY (entity_id)
@@ -788,7 +786,7 @@ _products () {
     type_id,    attribute_set_name,
     url_key,    status,
     price,      special_price,
-		categories,
+    categories,
     visibility, size,
     weight,     color,
     image,      small_image,
@@ -796,7 +794,7 @@ _products () {
     created_at, updated_at
   FROM PROD
   LEFT JOIN PROD_ATTS ON PROD.entity_id=PROD_ATTS.entity_id
-	LEFT JOIN PROD_CATS ON PROD.entity_id=PROD_CATS.product_id
+  LEFT JOIN PROD_CATS ON PROD.entity_id=PROD_CATS.product_id
   $(_whereBuilder "${columns[@]}" "${attributes[@]}")
   GROUP BY PROD_ATTS.store_id,PROD.entity_id
   ORDER BY PROD_ATTS.store_id,PROD.entity_id${QUERY_TERM}
