@@ -339,11 +339,10 @@ _getCache() {
 # For logging into IP's or abbreviated domains in nexcess.net,nextmp.net,us-midwest-1.nexcess.net i.e. sip1-208
 _abbrevDest() {
 
-  ip_addr="$1";
   # If domain contains no periods or looks to be an IP address, assume it is a valid destination
   if [[ "$DOMAIN" != *.* || "$DOMAIN" =~ $IP_REGEX ]]; then
 
-    DESTINATION="${ip_addr}";
+    DESTINATION="${DOMAIN}";
 
   fi
 
@@ -437,7 +436,7 @@ main () {
   fi
 
   # If destination was not in cache, see if it is an abbreviated domain
-  [[ -z "$DESTINATION" ]] && _abbrevDest "$ip_addr";
+  [[ -z "$DESTINATION" ]] && _abbrevDest
 
 
   # If domain is not an abbreviation or found in cache, see if it resolves to nexcess
