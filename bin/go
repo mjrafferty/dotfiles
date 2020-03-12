@@ -342,7 +342,7 @@ _abbrevDest() {
   # If domain contains no periods or looks to be an IP address, assume it is a valid destination
   if [[ "$DOMAIN" != *.* || "$DOMAIN" =~ $IP_REGEX ]]; then
 
-    DESTINATION="${DOMAIN}"
+    DESTINATION="${DOMAIN}";
 
   fi
 
@@ -351,16 +351,17 @@ _abbrevDest() {
 # Checks if domain resolves to a usable destination
 _didWeFindIt() {
 
-  local host rdns;
+  local host rdns ipaddr;
 
   host="$1";
   rdns="$2";
+  ip_addr="$3";
 
   # If host or reverse dns indicate nexcess, it should be a good destination
   if [[ "$host" == "nexcess" || "$host" == "future host" ||  "$rdns" == "nexcess" || "$host" == "nxcli" \
     || "$rdns" == "nxcli" || "$host" == "liquid web" || "$host" == "liquidweb" || "$rdns" == "liquidweb" ]]; then
 
-    DESTINATION="${DOMAIN}";
+    DESTINATION="${ip_addr}";
 
   fi
 
@@ -435,7 +436,7 @@ main () {
   fi
 
   # If destination was not in cache, see if it is an abbreviated domain
-  [[ -z "$DESTINATION" ]] && _abbrevDest;
+  [[ -z "$DESTINATION" ]] && _abbrevDest
 
 
   # If domain is not an abbreviation or found in cache, see if it resolves to nexcess
@@ -446,7 +447,7 @@ main () {
     host=$(echo "$whoisinfo"  | "$GREP" -m1 -ioE "nexcess|sucuri|cloudflare|future host|nxcli|liquidweb|liquid web" | "$TR" '[:upper:]' '[:lower:]');
     rdns="$("$DIG" +short -x "$ip_addr" | "$GREP" -o -e "nexcess" -e "nxcli" -e 'liquidweb')";
 
-    _didWeFindIt "$host" "$rdns";
+    _didWeFindIt "$host" "$rdns" "$ip_addr";
 
   fi
 
