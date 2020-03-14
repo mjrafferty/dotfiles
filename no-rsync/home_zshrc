@@ -1,3 +1,5 @@
+# vim:ft=zsh
+
 #[[ $SSH_CLIENT =~ "192.168.1.102" ]] && TMUX="NO THANKS";
 
 export SSH_ASKPASS=/usr/bin/ksshaskpass
@@ -8,11 +10,11 @@ FIND="/usr/bin/find"
 [ -r "${HOME}/.zsh/main.zsh" ] \
   && source "${HOME}/.zsh/main.zsh";
 
-[ -r "${HOME}/.zsh/plugins_secondary.zsh" ] \
-  && source "${HOME}/.zsh/plugins_secondary.zsh";
+[ -r "${HOME}/.zsh/zinit_optional.zsh" ] \
+  && source "${HOME}/.zsh/zinit_optional.zsh";
 
-[ -r "${HOME}/.zsh/plugins_optional.zsh" ] \
-  && source "${HOME}/.zsh/plugins_optional.zsh";
+[ -r "${HOME}/.zsh/zinit_programs.zsh" ] \
+  && source "${HOME}/.zsh/zinit_programs.zsh";
 
 PATH="$HOME/.local/bin:$PATH"
 

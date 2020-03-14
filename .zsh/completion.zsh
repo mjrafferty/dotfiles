@@ -31,8 +31,8 @@ zstyle ':completion::complete:*' use-cache on
 zstyle ':completion::complete:*' cache-path "${ZDOTDIR:-$HOME}/.zcompcache"
 
 zstyle ':completion:*' completer _expand _complete _match _approximate
-zstyle ':completion:*' expand prefix suffix		# If matches share a common prefix, insert it. Same with common suffix
-#zstyle ':completion:*' file-list list=20 insert=10 		# Long file listing similar to ls -l
+zstyle ':completion:*' expand prefix suffix   # If matches share a common prefix, insert it. Same with common suffix
+#zstyle ':completion:*' file-list list=20 insert=10     # Long file listing similar to ls -l
 zstyle ':completion:*' insert-unambiguous true
 zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'r:|[._-]=** r:|=**' 'l:|=* r:|=*'
@@ -91,10 +91,10 @@ zstyle ':completion::*:(-command-|export):*' fake-parameters ${${${_comps[(I)-va
 zstyle -a ':prezto:module:completion:*:hosts' etc-host-ignores '_etc_host_ignores'
 
 zstyle -e ':completion:*:hosts' hosts 'reply=(
-  ${=${=${=${${(f)"$(cat {/etc/ssh/ssh_,~/.ssh/}known_hosts(|2)(N) 2> /dev/null)"}%%[#| ]*}//\]:[0-9]*/ }//,/ }//\[/ }
-  ${=${(f)"$(cat /etc/hosts(|)(N) <<(ypcat hosts 2> /dev/null))"}%%(\#${_etc_host_ignores:+|${(j:|:)~_etc_host_ignores}})*}
+${=${=${=${${(f)"$(cat {/etc/ssh/ssh_,~/.ssh/}known_hosts(|2)(N) 2> /dev/null)"}%%[#| ]*}//\]:[0-9]*/ }//,/ }//\[/ }
+${=${(f)"$(cat /etc/hosts(|)(N) <<(ypcat hosts 2> /dev/null))"}%%(\#${_etc_host_ignores:+|${(j:|:)~_etc_host_ignores}})*}
   ${=${${${${(@M)${(f)"$(cat ~/.ssh/config 2> /dev/null)"}:#Host *}#Host }:#*\**}:#*\?*}}
-)'
+  )'
 
 # Don't complete uninteresting users...
 zstyle ':completion:*:*:*:users' ignored-patterns \
@@ -140,13 +140,17 @@ zstyle ':completion:*:(ssh|scp|rsync):*:hosts-ipaddr' ignored-patterns '^(<->.<-
 
 ## Completion waiting dots
 expand-or-complete-with-dots() {
-	# toggle line-wrapping off and back on again
-	[[ -n "$terminfo[rmam]" && -n "$terminfo[smam]" ]] && echoti rmam
-	print -Pn "%{%F{red}...%f%}"
-	[[ -n "$terminfo[rmam]" && -n "$terminfo[smam]" ]] && echoti smam
 
-	zle expand-or-complete
-	zle redisplay
+  [[ -n "$terminfo[rmam]" && -n "$terminfo[smam]" ]] \
+    && echoti rmam
+
+  print -Pn "%{%F{red}...%f%}"
+
+  [[ -n "$terminfo[rmam]" && -n "$terminfo[smam]" ]] \
+    && echoti smam
+
+  zle expand-or-complete
+  zle redisplay
 }
 zle -N expand-or-complete-with-dots
 bindkey "^I" expand-or-complete-with-dots

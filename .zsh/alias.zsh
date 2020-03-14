@@ -1,13 +1,14 @@
+# vim:ft=zsh
 
-
-##### Aliases #####
 alias r="/usr/bin/sudo HOME=$HOME $SHELL"
 
+## preserve-root ##
 alias rm='rm --preserve-root'
 alias chown='chown --preserve-root'
 alias chmod='chmod --preserve-root'
 alias chgrp='chgrp --preserve-root'
 
+## nocorrect ##
 alias cd='nocorrect cd'
 alias cp='nocorrect cp'
 alias ebuild='nocorrect ebuild'
@@ -17,9 +18,11 @@ alias mv='nocorrect mv'
 alias mysql='nocorrect mysql'
 alias sudo='nocorrect sudo'
 
+## noglob ##
 alias locate='noglob locate'
 alias rsync='noglob rsync'
 alias scp='noglob scp'
+alias sftp='noglob sftp'
 
 alias ls='ls -F --color=auto'
 alias less='less -inSFR'
@@ -41,7 +44,6 @@ alias sshsync="rsync -p -v --progress -e ssh -a -u -z"
 alias grepphp="grep -Phiav '\] \"\S* (.*(/static/|(\.(otf|txt|jpeg|ico|svg|jpg|css|js|gif|png|woff|ttf))).*\" (200|304) |\" 403 )'"
 
 alias disks="df -h | grep -v tmpfs | grep -Ev '^(dev|run)'"
-alias sftp='noglob sftp'
 
 alias  ..='cd ..'
 alias  ...='cd ../..'

@@ -1,6 +1,8 @@
+# vim:ft=zsh
+
 source "${HOME}/.zsh/main.zsh"
-source "${HOME}/.zsh/plugins_secondary.zsh"
-source "${HOME}/.zsh/plugins_optional.zsh"
+source "${HOME}/.zsh/zinit_optional.zsh"
+source "${HOME}/.zsh/zinit_programs.zsh"
 
 #source "${HOME}/zsh-histdb/sqlite-history.zsh"
 

@@ -527,3 +527,36 @@ urldecode() {
 urlencode() {
   perl -pe 's/([^\n0-9a-zA-Z$-_.+!*'\''\(\),])/ sprintf "%%%02x", ord $1 /eg;'
 }
+
+weather() {
+ # https://github.com/chubin/wttr.in
+ curl wttr.in/$1 
+}
+
+cheat() {
+  # https://github.com/chubin/cheat.sh
+  curl cht.sh/$1
+}
+
+bitcoin() {
+  # https://github.com/chubin/rate.sx
+  curl rate.sx/$1
+}
+
+wolfram_alpha() {
+
+  # https://github.com/dmi3/bin/blob/master/wa
+
+  APPID=$(cat ~/git/stuff/keys/wolfram_alpha) # Get one at https://products.wolframalpha.com/api/
+  VIEWER="kitty +kitten icat"                 # Use `VIEWER="display"` from imagemagick if terminal does not support images
+  BG="transparent"                            # Transparent background
+  FG="white"                                  # Match color to your terminal
+
+  RESPONSE=$(curl -s "https://api.wolframalpha.com/v1/result?appid=$APPID&units=metric&" --data-urlencode "i=$*" | tee /dev/tty)
+
+# Remove next if you are fine with text only api, and don't want to see any images
+  test "No short answer available" = "$RESPONSE" \
+    && echo ", downloading full answer..." \
+    && curl -s "https://api.wolframalpha.com/v1/simple?appid=$APPID&units=metric&foreground=$FG&background=$BG" --data-urlencode "i=$*" \
+    | $VIEWER || exit 0
+}
