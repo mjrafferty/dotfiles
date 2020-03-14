@@ -1,8 +1,6 @@
 #! /usr/bin/env bash
 
 ## List Users, or Reset passwords for FTP/"$SITEWORX"/Reseller/"$NODEWORX"
-readonly ARGS="$*"
-readonly ARGA=("$@")
 
 readonly AWK='/bin/awk'
 readonly CAT='/bin/cat'

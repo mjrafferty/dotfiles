@@ -1,20 +1,13 @@
 #! /bin/bash
 
-readonly ARGS="$*"
-readonly ARGA=("$@")
-
 readonly AWK='/bin/awk'
-readonly CAT='/bin/cat'
 readonly DATE='/bin/date'
-readonly DF='/bin/df'
 readonly FIND='/bin/find'
 readonly GREP='/bin/grep'
 readonly HEAD='/usr/bin/head'
 readonly MAIL='/bin/mail'
-readonly MYSQL='/usr/bin/mysql'
 readonly PS='/bin/ps'
 readonly SED='/bin/sed'
-readonly SLEEP='/bin/sleep'
 readonly SORT='/bin/sort'
 readonly TR='/usr/bin/tr'
 readonly WC='/usr/bin/wc'
@@ -81,8 +74,8 @@ _maxphpprocs () {
     | "$AWK" '/^php-fpm: pool/ && $NF != "www"{  a[$NF] += 1 } END {for(i in a){ printf "%-10s %d\n",i,a[i] } }' \
     | "$SORT" -k2nr);
 
-  numprocs=($(echo "$phprocs" | "$AWK" '{print $2}'));
-  users=($(echo "$phprocs" | "$AWK" '{print $1}'));
+  mapfile -t numprocs < <(echo "$phprocs" | "$AWK" '{print $2}' | tr ' ' '\n');
+  mapfile -t users < <(echo "$phprocs" | "$AWK" '{print $1}' | tr ' ' '\n');
 
   for ((x=0;x<"${#users[@]}";x++)); do
 
@@ -164,6 +157,7 @@ main () {
 
   for x in ${func_list[*]}; do
 
+    #shellcheck disable=SC2207
     message+=($($x));
 
   done

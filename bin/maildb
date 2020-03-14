@@ -1,7 +1,6 @@
 #! /usr/bin/env bash
 
 # Script Arguments
-readonly ARGS="$*"
 readonly ARGA=("$@")
 
 # Configurable Variables
@@ -94,7 +93,7 @@ drop database ${DBNAME};
 drop user '${DBUSER}'@'localhost';
 EOF
 
-	$RM "$OPTIONS_FILE";
+  $RM "$OPTIONS_FILE";
 
   printf "Done\n";
 
@@ -198,7 +197,7 @@ _insertData () {
     $CAT "$x";
     $RM "$x";
   done \
-		| $MYSQL --defaults-extra-file="$OPTIONS_FILE" --defaults-group-suffix="_maildb"
+    | $MYSQL --defaults-extra-file="$OPTIONS_FILE" --defaults-group-suffix="_maildb"
 
   printf "Done\n\n"
 
@@ -239,7 +238,7 @@ main () {
 
   trap "_cleanUp" EXIT;
 
-	_makeOptionsFile;
+  _makeOptionsFile;
 
   _createDb;
 
@@ -247,7 +246,7 @@ main () {
 
   _insertData;
 
-	$MYSQL --defaults-extra-file="$OPTIONS_FILE" --defaults-group-suffix="_maildb"
+  $MYSQL --defaults-extra-file="$OPTIONS_FILE" --defaults-group-suffix="_maildb"
 
 }
 

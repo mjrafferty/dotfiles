@@ -1,7 +1,6 @@
 #! /usr/bin/env bash
 
 # Script Arguments
-readonly ARGS="$*"
 readonly ARGA=("$@")
 
 # Alias executables to prevent PATH issues

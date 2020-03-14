@@ -1,7 +1,6 @@
 #! /usr/bin/env bash
 
 # Script Arguments
-readonly ARGS="$*"
 readonly ARGA=("$@")
 
 # Configurable Variables
@@ -72,7 +71,7 @@ _compressFiles() {
 
   printf "Compressing files..."
 
-  "$TAR" -cf - "${FILES[@]}" 2> /dev/null | pigz > "${FILES[0]}${ARCHIVE_SUFFIX}"
+  "$TAR" -cf - "${FILES[@]}" 2> /dev/null | "$GZIP" > "${FILES[0]}${ARCHIVE_SUFFIX}"
 
   printf "Done\n"
 
@@ -127,14 +126,14 @@ _findDir() {
 
   local longest_common_path word_array cd_dir y;
 
-  word_array=($(echo "${FILES[0]}" | "$SED" 's/\//& /g'))
+  mapfile -t word_array < <(echo "${FILES[0]}" | "$SED" 's/\//& /g' | tr ' ' '\n')
   longest_common_path="${#word_array[@]}";
 
   for ((y=1; y<${#FILES[@]};y++)); do
 
     local word_array2 long;
 
-    word_array2=($(echo "${FILES[y]}" | "$SED" 's/\//& /g'))
+    mapfile -t word_array2< <(echo "${FILES[y]}" | "$SED" 's/\//& /g' | tr ' ' '\n')
 
     for((long=0;long < longest_common_path;long++)); do
 

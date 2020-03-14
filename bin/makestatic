@@ -1,7 +1,6 @@
 #! /usr/bin/env bash
 
 # Script Arguments
-readonly ARGS="$*"
 readonly ARGA=("$@")
 
 # Configurable Variables
@@ -69,7 +68,9 @@ _getusr() {
 # Create static page
 _makeStatic() {
 
+  # shellcheck disable=SC2001
   domain="$(echo "${1}" | sed 's_\(https\?://\?[^/]*\).*_\1_')";
+  # shellcheck disable=SC2001
   uri="$(echo "${1}" | sed 's_\(https\?://\)\?[^/]*\(.*\)_\2_')";
 
   tmpfile=$(mktemp);
@@ -77,7 +78,7 @@ _makeStatic() {
 
   if [[ "${code}" == "200" ]]; then
 
-    if [[ "$uri" == *\/ ]]; then
+    if [[ "$uri" == */ ]]; then
 
       mkdir -p "${STATIC_CACHE_DIR}${uri}"
       mv "${tmpfile}" "${STATIC_CACHE_DIR}${uri}index.static"
@@ -102,9 +103,10 @@ _makeStatic() {
 # Delete static page
 _deleteStatic() {
 
+  # shellcheck disable=SC2001
   uri="$(echo "${1}" | sed 's_\(https\?://\)\?[^/]*\(.*\)_\2_')";
 
-  if [[ "$uri" == *\/ ]]; then
+  if [[ "$uri" == */ ]]; then
 
     rm "${STATIC_CACHE_DIR}${uri}index.static" 2> /dev/null
 
@@ -132,7 +134,7 @@ EOF
 # Show rewrites that should be added to .htaccess file to enable usage of static files.
 _printRewrites() {
 
-	echo "Add this to top of .htaccess";
+  echo "Add this to top of .htaccess";
 cat <<- EOF
 
 ## Nexcess static page cache ##
@@ -243,7 +245,7 @@ main () {
     rm "${URL_LIST}"
   fi
 
-	[[ "${arg}" == 0 ]] && _printRewrites;
+  [[ "${arg}" == 0 ]] && _printRewrites;
 
 }
 

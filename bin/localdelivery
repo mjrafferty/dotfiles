@@ -2,7 +2,6 @@
 
 ## Check/Enable/Disable Local Delivery for domain(s)
 
-readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly AWK='/bin/awk'

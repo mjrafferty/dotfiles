@@ -8,7 +8,6 @@ readonly COLUMN='/usr/bin/column'
 readonly GREP='/bin/grep'
 readonly SED='/bin/sed'
 readonly TR='/usr/bin/tr'
-readonly NANO='/bin/nano'
 
 _usage() {
   "$CAT" <<- EOF

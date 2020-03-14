@@ -1,24 +1,23 @@
 #! /usr/bin/env bash
 
 readonly ARGS="$*"
-readonly ARGA=("$@")
 
 readonly AWK='/bin/awk'
 
 _usage() {
-	cat <<- EOF
+  cat <<-EOF
     This is the usage
 	EOF
 }
 
-main () {
+main() {
   if [[ "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
+    _usage
+    return 0
   fi
 
-  ~iworx/bin/listaccounts.pex \
-    | "$AWK" '{print $1}';
+  ~iworx/bin/listaccounts.pex |
+    "$AWK" '{print $1}'
 }
 
-main;
+main

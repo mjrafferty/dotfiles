@@ -1,6 +1,5 @@
 #! /usr/bin/env bash
 
-readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly AWK='/bin/awk'
@@ -95,10 +94,10 @@ _cmdline() {
 
 }
 
-# Connect to "$MYSQL"
+# Connect to mysql
 _m () {
 
-	mysql --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root "$@"
+  "$MYSQL" --defaults-extra-file=/root/.my.cnf --defaults-group-suffix=_root "$@"
 
 }
 
@@ -201,8 +200,8 @@ _maxphpprocs () {
     | "$AWK" '/^php-fpm: pool/ && $NF != "www"{  a[$NF] += 1 } END {for(i in a){ printf "%-10s %d\n",i,a[i] } }' \
     | "$SORT" -k2nr);
 
-  numprocs=($(echo "$phprocs" | "$AWK" '{print $2}'));
-  users=($(echo "$phprocs" | "$AWK" '{print $1}'));
+  mapfile -t numprocs < <(echo "$phprocs" | "$AWK" '{print $2}' | tr ' ' '\n');
+  mapfile -t users < <(echo "$phprocs" | "$AWK" '{print $1}' | tr ' ' '\n');
 
   for ((x=0;x<"${#users[@]}";x++)); do
 

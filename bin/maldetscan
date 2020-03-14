@@ -1,6 +1,5 @@
 #! /usr/bin/env bash
 
-readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly AWK='/bin/awk'
@@ -262,6 +261,7 @@ _watchScan() {
       while read -r line; do
 
         if [[ "$line" =~ "$currentfile"$ ]]; then
+          # shellcheck disable=SC2206
           scan_status=($line);
 
           scan_percentage="$((100 * scan_status[1]/TOTALS[1]))"

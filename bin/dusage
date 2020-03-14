@@ -1,7 +1,6 @@
 #! /usr/bin/env bash
 
 # Script Arguments
-readonly ARGS="$*"
 readonly ARGA=("$@")
 
 # Alias executables to prevent PATH issues
@@ -12,12 +11,10 @@ readonly DU='/usr/bin/du'
 readonly FIND='/usr/bin/find'
 readonly GREP='/bin/grep'
 readonly HEAD='/usr/bin/head'
-readonly LESS='/usr/bin/less'
 readonly LSOF='/usr/sbin/lsof'
 readonly MKTEMP='/bin/mktemp'
 readonly RM='/bin/rm'
 readonly SORT='/bin/sort'
-readonly TOUCH='/bin/touch'
 
 # Necessary Global Variables
 USER=""

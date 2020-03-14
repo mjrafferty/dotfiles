@@ -1,7 +1,6 @@
 #! /usr/bin/env bash
 
 # Script Arguments
-readonly ARGS="$*"
 readonly ARGA=("$@")
 
 # Configurable Variables
@@ -13,7 +12,6 @@ readonly FIND="/bin/find"
 readonly GREP="/bin/grep"
 readonly TAI64NLOCAL="/usr/bin/tai64nlocal"
 readonly TAIL="/usr/bin/tail"
-readonly ZLESS="/usr/bin/zless"
 
 [[ -z "$PAGER" ]] && PAGER="/usr/bin/less"
 

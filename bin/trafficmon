@@ -1,11 +1,7 @@
 #! /usr/bin/env bash
 
 # Script Arguments
-readonly ARGS="$*"
 readonly ARGA=("$@")
-
-readonly RUNNING_AS="${SUDO_USER:-$USER}";
-readonly RUNNING_AS_HOME="$(/bin/find /home/{,nexcess.net/}"${RUNNING_AS}" -mindepth 0 -maxdepth 0 -type d 2> /dev/null)"
 
 # Configurable Variables
 readonly IPTABLES_LOG_FILE="/var/log/messages"
@@ -17,7 +13,6 @@ readonly DATE='/bin/date'
 readonly GREP='/bin/grep'
 readonly KILL='/bin/kill'
 readonly LSOF='/usr/sbin/lsof'
-readonly MKDIR='/bin/mkdir'
 readonly PKILL='/usr/bin/pkill'
 readonly PS='/bin/ps'
 readonly SLEEP='/bin/sleep'
@@ -93,13 +88,13 @@ _capture () {
 
 _monitor () {
 
-	local port
+  local port
 
-	"$TAIL" -fn0 "${IPTABLES_LOG_FILE}" \
-		| "$GREP" --line-buffered -Po 'PROTO=\w+ SPT=\K\d+' \
-		| while read -r port;  do
-			_capture "$port";
-		done
+  "$TAIL" -fn0 "${IPTABLES_LOG_FILE}" \
+    | "$GREP" --line-buffered -Po 'PROTO=\w+ SPT=\K\d+' \
+    | while read -r port;  do
+      _capture "$port";
+    done
 
 }
 

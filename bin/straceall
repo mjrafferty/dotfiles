@@ -1,6 +1,5 @@
 #! /usr/bin/env bash
 
-readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly OUTPUT_DIR="$HOME/straceall"
@@ -63,10 +62,10 @@ main () {
         exit 0;
         ;;
       u)
-				user="$OPTARG"
+        user="$OPTARG"
         ;;
       p)
-				process_name="$OPTARG"
+        process_name="$OPTARG"
         ;;
       "?")
         echo "-${OPTARG} is not a supported option." >&2

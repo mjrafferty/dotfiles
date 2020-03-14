@@ -1,6 +1,5 @@
 #! /usr/bin/env bash
 
-readonly ARGS="$*"
 readonly ARGA=("$@")
 
 readonly SED='/bin/sed'

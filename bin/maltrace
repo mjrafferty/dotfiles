@@ -25,12 +25,6 @@ readonly TRAFFIC_LOG="${OUTPUT_DIR}/traffic.log"
 readonly PROCESS_LOG="${OUTPUT_DIR}/process.log"
 readonly MAIN_IP="$(ifconfig | "$GREP" -Po 'inet addr:\K\S+' | "$HEAD" -n1)"
 
-if [[ -e /usr/bin/pigz ]]; then
-  readonly GZIP='/usr/bin/pigz';
-else
-  readonly GZIP='/bin/gzip';
-fi
-
 # Necessary Global Variables
 MONITOR_PID=""
 
