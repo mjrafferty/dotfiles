@@ -1,3 +1,5 @@
+# vim:ft=zsh
+
 zload   MichaelAquilina/zsh-you-should-use  '0c'  pick"you-should-use.plugin.zsh"
 zload   RobSis/zsh-completion-generator     '0b'  '[[ -n ${ZLAST_COMMANDS[(r)gcom*]}  ]]' atload'gcomp(){ \gencomp $1 && zinit creinstall -q RobSis/zsh-completion-generator; }' pick'zsh-completion-generator.plugin.zsh'
 zload   ael-code/zsh-colored-man-pages      '0c'

@@ -1,3 +1,5 @@
+# vim:ft=zsh
+
 ##### Environment Variables #####
 export LANG="en_US.UTF-8"
 export PAGER="less -inSFR"

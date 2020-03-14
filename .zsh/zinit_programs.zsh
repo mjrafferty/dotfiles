@@ -1,3 +1,5 @@
+# vim:ft=zsh
+
 zload  2mol/pboy                            '0c'  as"program" from"gh-r"
 zload  AlDanial/cloc                        '0c'  as"program" from"gh-r" if'[[ -z "$commands[cloc]" ]]' bpick"*pl" mv"cloc-* -> cloc";
 zload  BurntSushi/ripgrep                   '0c'  as"program" from"gh-r" mv"ripgrep-* -> ripgrep" pick"ripgrep/rg"
@@ -26,7 +28,6 @@ zload  mptre/yank                           '0c'  as"program" pick"yank" make
 zload  mvdan/sh                             '0c'  as"program" from"gh-r" mv"shfmt* -> shfmt"
 zload  ogham/exa                            '0c'  as"program" from"gh-r" mv"exa-* -> exa"
 zload  rupa/v                               '0c'  as"program" pick"v"
-unset AWK
 zload  saitoha/libsixel                     '0c'  as"program" atclone"./configure" make pick"converters/img2sixel"
 zload  sharkdp/bat                          '0c'  as"program" from"gh-r" mv"bat-* -> bat" pick"bat/bat"
 zload  sharkdp/fd                           '0c'  as"program" from"gh-r" mv"fd-* -> fd" pick"fd/fd"

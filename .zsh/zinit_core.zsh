@@ -1,4 +1,6 @@
-# Load zinit
+# vim:ft=zsh
+
+## Load zinit ##
 declare -A ZINIT
 ZINIT[HOME_DIR]="${HOME}/.zsh/zinit"
 ZPFX="${HOME}/.zsh/zinit/polaris"

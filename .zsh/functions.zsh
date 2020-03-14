@@ -1,4 +1,4 @@
-#! /bin/bash
+# vim:ft=zsh
 
 [[  -z  $AWK         ]]  &&  export readonly  AWK='/bin/awk'
 [[  -z  $CHECKQUOTA  ]]  &&  export readonly  CHECKQUOTA="$HOME/bin/checkquota"
@@ -165,31 +165,31 @@ blacklistcheck () {
 
   if [[ -z $ip ]]; then
     ip="$(ifconfig | grep -Po '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n1)"
-	fi
+  fi
 
-	echo '++++++++++++++++++++++++++++';
-	echo "$ip";
-	echo 'PHONE: 866-639-2377';
-	$NSLOOKUP "$ip" \
-		| $GREP addr;
-	echo 'http://multirbl.valli.org/lookup/'"$ip"'.html';
-	echo 'http://www.senderbase.org/lookup/ip/?search_string='"$ip";
-	echo 'https://www.senderscore.org/lookup.php?lookup='"$ip";
-	echo '++++++++++++++++++++++++++++';
-	for x in hotmail.com yahoo.com aol.com earthlink.net verizon.net att.net sbcglobal.net comcast.net xmission.com cloudmark.com cox.net charter.net mac.me; do
-		echo;
-		echo $x;
-		echo '--------------------';
-		$SWAKS -q TO -t postmaster@$x -li "$ip" \
-			| $GREP -iE 'block|rdns|550|521|554';
-	done ;
-	echo;
-	echo 'gmail.com';
-	echo '-----------------------';
-	$SWAKS -4 -t iflcars.com@gmail.com -li "$ip"  \
-		| $GREP -iE 'block|rdns|550|521|554';
-	echo;
-	echo;
+  echo '++++++++++++++++++++++++++++';
+  echo "$ip";
+  echo 'PHONE: 866-639-2377';
+  $NSLOOKUP "$ip" \
+    | $GREP addr;
+  echo 'http://multirbl.valli.org/lookup/'"$ip"'.html';
+  echo 'http://www.senderbase.org/lookup/ip/?search_string='"$ip";
+  echo 'https://www.senderscore.org/lookup.php?lookup='"$ip";
+  echo '++++++++++++++++++++++++++++';
+  for x in hotmail.com yahoo.com aol.com earthlink.net verizon.net att.net sbcglobal.net comcast.net xmission.com cloudmark.com cox.net charter.net mac.me; do
+    echo;
+    echo $x;
+    echo '--------------------';
+    $SWAKS -q TO -t postmaster@$x -li "$ip" \
+      | $GREP -iE 'block|rdns|550|521|554';
+  done ;
+  echo;
+  echo 'gmail.com';
+  echo '-----------------------';
+  $SWAKS -4 -t iflcars.com@gmail.com -li "$ip"  \
+    | $GREP -iE 'block|rdns|550|521|554';
+  echo;
+  echo;
 
 }
 
@@ -229,12 +229,12 @@ srvstatus(){
   # shellcheck disable=SC2207
   servicelist=($($CHKCONFIG --list | $AWK '/3:on/ {print $1}' | sort));
 
-  printf "\n%-18s %s\n%-18s %s\n" " Service" " Status" "$(dashes 18)" "$(dashes 55)";
+    printf "\n%-18s %s\n%-18s %s\n" " Service" " Status" "$(dashes 18)" "$(dashes 55)";
 
-  for x in ${servicelist[*]}; do
-    printf "%-18s %s\n" " $x" " $(service "$x" status 2> /dev/null | $HEAD -1)";
-  done;
-  echo
+    for x in ${servicelist[*]}; do
+      printf "%-18s %s\n" " $x" " $(service "$x" status 2> /dev/null | $HEAD -1)";
+    done;
+    echo
 }
 
 ## Lookup the DNS Nameservers on the host
@@ -254,9 +254,9 @@ maldetstat () {
   local files;
   # shellcheck disable=SC2207
   files=($($AWK '{print $3}' /usr/local/maldetect/sess/session.hits."$1"));
-  for (( x=ARRAY_START; x<${#files[@]}+ARRAY_START; x++ )); do
-    $STATT "${files[$x]}";
-  done
+    for (( x=ARRAY_START; x<${#files[@]}+ARRAY_START; x++ )); do
+      $STATT "${files[$x]}";
+    done
 }
 
 # Check for duplicate files
@@ -416,25 +416,25 @@ u () {
   user="$(pwd | "$GREP" -Po "/((chroot/)?home/|local/)\K[^/]*")";
   home="$(mktemp -d)"
 
-	chmod 711 "$HOME"
+  chmod 711 "$HOME"
   $SETFACL -m u:"$user":rwX "$home"
 
   # Give permissions on my home dir to new user
-	find "$HOME" -mindepth 1 -maxdepth 1 ! -name .ssh \
-		| while read -r item; do
-			$SETFACL -R -m u:"$user":rX "$item" 2> /dev/null
-			ln -s "$item" "${home}/${item##*/}"
-		done
+  find "$HOME" -mindepth 1 -maxdepth 1 ! -name .ssh \
+    | while read -r item; do
+      $SETFACL -R -m u:"$user":rX "$item" 2> /dev/null
+      ln -s "$item" "${home}/${item##*/}"
+    done
 
     if [[ -n "${__ZHIST_INPUT_PIPE}" ]]; then
       $SETFACL -m u:"$user":rw "${__ZHIST_INPUT_PIPE}"
     fi
 
-  if [[ -e "/home/${user}/.composer" ]]; then
-    ln -s "/home/${user}/.composer" "${home}/.composer"
-  fi
+    if [[ -e "/home/${user}/.composer" ]]; then
+      ln -s "/home/${user}/.composer" "${home}/.composer"
+    fi
 
-  $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,"${__ZHIST_DIR}",clients,.vimfiles} 2> /dev/null
+    $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,"${__ZHIST_DIR}",clients,.vimfiles} 2> /dev/null
 
   # Switch user
   $SUDO HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
@@ -444,7 +444,7 @@ u () {
 
   # Revoke the permissions given to that user
   $SETFACL -R -x u:"$user" ~/
-	chmod 700 "$HOME"
+  chmod 700 "$HOME"
 
 }
 
@@ -458,10 +458,10 @@ brokenlinks () {
   [[ -z "$check_path" ]] && check_path="$PWD"
 
   tifs="$IFS";
-  IFS="
+IFS="
 "
 
-	for x in $("$FIND" "$check_path" -type l); do
+  for x in $("$FIND" "$check_path" -type l); do
 
     link="$("$READLINK" "$x")" 2> /dev/null
 
@@ -483,7 +483,7 @@ brokenlinks () {
 
     fi
 
-	done
+  done
 
   IFS="$tifs";
 
@@ -510,18 +510,18 @@ phpunserialize () {
 shareFile() {
 
   { printf "HTTP/1.0 200 OK\nContent-Length: %s\r\n\r\n" "$(wc -c "$1")"; cat "$1"; } \
-		| nc -l -p 8000
+    | nc -l -p 8000
 
 }
 
 # Geoip lookup
 geoip () {
-	curl -s "https://www.maxmind.com/geoip/v2.1/city/${1}?use-downloadable-db=1&demo=1" \
-		| jq '.traits.isp,.city.names.en,.country.names.en,.country.iso_code'
-}
+  curl -s "https://www.maxmind.com/geoip/v2.1/city/${1}?use-downloadable-db=1&demo=1" \
+    | jq '.traits.isp,.city.names.en,.country.names.en,.country.iso_code'
+  }
 
 urldecode() {
-   perl -pe 's/\+/ /g; s/%([0-9a-f]{2})/chr(hex($1))/eig'
+  perl -pe 's/\+/ /g; s/%([0-9a-f]{2})/chr(hex($1))/eig'
 }
 
 urlencode() {
@@ -529,8 +529,8 @@ urlencode() {
 }
 
 weather() {
- # https://github.com/chubin/wttr.in
- curl wttr.in/$1 
+  # https://github.com/chubin/wttr.in
+  curl wttr.in/$1
 }
 
 cheat() {
@@ -555,8 +555,8 @@ wolfram_alpha() {
   RESPONSE=$(curl -s "https://api.wolframalpha.com/v1/result?appid=$APPID&units=metric&" --data-urlencode "i=$*" | tee /dev/tty)
 
 # Remove next if you are fine with text only api, and don't want to see any images
-  test "No short answer available" = "$RESPONSE" \
-    && echo ", downloading full answer..." \
-    && curl -s "https://api.wolframalpha.com/v1/simple?appid=$APPID&units=metric&foreground=$FG&background=$BG" --data-urlencode "i=$*" \
-    | $VIEWER || exit 0
+test "No short answer available" = "$RESPONSE" \
+  && echo ", downloading full answer..." \
+  && curl -s "https://api.wolframalpha.com/v1/simple?appid=$APPID&units=metric&foreground=$FG&background=$BG" --data-urlencode "i=$*" \
+  | $VIEWER || exit 0
 }
