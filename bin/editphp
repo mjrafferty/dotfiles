@@ -81,7 +81,7 @@ main () {
 
   done
 
-  [[ -n "$user" ]] || user="$(pwd | "$GREP" -Po "home/\K[^\/]*")";
+  [[ -n "$user" ]] || user="$(pwd | "$GREP" -Po "/(chroot/)?(home|local|data)/\K[^/]*")";
 
   conf_file="$("$FIND" {/etc/opt/remi/php*,{/opt/nexcess/php*/root,}/etc}/php-fpm.d/ -name "${user}.conf" ! -empty 2> /dev/null | "$HEAD" -n1)";
 

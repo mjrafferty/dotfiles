@@ -413,7 +413,7 @@ u () {
 
   local user home item;
 
-  user="$(pwd | "$GREP" -Po "/((chroot/)?home/|local/)\K[^/]*")";
+  user="$(pwd | "$GREP" -Po "/(chroot/)?(home|local|data)/\K[^/]*")";
   home="$(mktemp -d)"
 
   chmod 711 "$HOME"
