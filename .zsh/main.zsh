@@ -3,6 +3,13 @@
 [ -r "${HOME}/.zsh/tmux.zsh" ] \
   && source "${HOME}/.zsh/tmux.zsh"
 
+{
+  zcompdump="${ZDOTDIR:-$HOME}/.zcompdump"
+  if [[ -s "$zcompdump" && (! -s "${zcompdump}.zwc" || "$zcompdump" -nt "${zcompdump}.zwc") ]]; then
+    zcompile "$zcompdump"
+  fi
+} &!
+
 ## Vi key bindings
 bindkey -v
 export KEYTIMEOUT=1
