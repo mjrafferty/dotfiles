@@ -200,8 +200,10 @@ _maxphpprocs () {
     | "$AWK" '/^php-fpm: pool/ && $NF != "www"{  a[$NF] += 1 } END {for(i in a){ printf "%-10s %d\n",i,a[i] } }' \
     | "$SORT" -k2nr);
 
-  mapfile -t numprocs < <(echo "$phprocs" | "$AWK" '{procs[$2]=""} END {for(count in procs){ print count }}');
-  mapfile -t users < <(echo "$phprocs" | "$AWK" '{users[$1]=""} END {for(user in users){ print user}}');
+  [[ -z "$phprocs" ]] && return
+
+  mapfile -t numprocs < <(echo "$phprocs" | "$AWK" '{print $2}');
+  mapfile -t users < <(echo "$phprocs" | "$AWK" '{print $1}');
 
   for ((x=0;x<"${#users[@]}";x++)); do
 
