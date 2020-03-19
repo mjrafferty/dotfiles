@@ -125,7 +125,7 @@ _httpd () {
   local configured_httpd running_httpd;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_httpd < <("$FIND" /etc/systemd -name 'httpd.service' );
+    mapfile -t configured_httpd < <("$FIND" /etc/systemd/system/*/ -name 'httpd.service' );
   else
     mapfile -t configured_httpd < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*httpd' );
   fi
