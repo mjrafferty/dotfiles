@@ -5,7 +5,11 @@
 call plug#begin('~/.vim/plugins')
 Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }
 Plug 'Raimondi/delimitMate'
-Plug 'SirVer/ultisnips'
+if (has('python3'))
+  Plug 'SirVer/ultisnips'
+else
+  Plug 'SirVer/ultisnips', { 'tag': '3.2' }
+endif
 if ( v:version > 704 || (v:version == 704 && has( 'patch1578'  )))
   Plug 'Valloric/YouCompleteMe'
 endif

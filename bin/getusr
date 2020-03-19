@@ -5,7 +5,7 @@ readonly GREP='/bin/grep'
 main () {
 
   pwd \
-    | "$GREP" -Po "/((chroot/)?home/|local/)\K[^/]*"
+    | "$GREP" -Po "/(chroot/)?(home|local|data)/\K[^/]*"
 
 }
 
