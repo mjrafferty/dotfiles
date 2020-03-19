@@ -530,17 +530,17 @@ urlencode() {
 
 weather() {
   # https://github.com/chubin/wttr.in
-  curl wttr.in/$1
+  curl -s wttr.in/$1
 }
 
-cheat() {
+cht() {
   # https://github.com/chubin/cheat.sh
-  curl cht.sh/$1
+  curl -s cht.sh/$1
 }
 
 bitcoin() {
   # https://github.com/chubin/rate.sx
-  curl rate.sx/$1
+  curl -s rate.sx/$1
 }
 
 wolfram_alpha() {

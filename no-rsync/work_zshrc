@@ -19,8 +19,6 @@ readonly READLINK='/usr/bin/readlink'
 
 zpcompinit; zpcdreplay
 
-export nex_user_shell="zsh";
-
 update_brew () {
 
   local f bin
@@ -29,7 +27,7 @@ update_brew () {
   brew upgrade;
   brew cleanup;
 
-  for f in $(find /usr/local/Cellar/*/*/bin/*); do
+  for f in $(find /usr/local/opt/*/bin/*); do
 
     bin="${f##*/}";
 
@@ -41,7 +39,7 @@ update_brew () {
 
   done
 
-  for f in $(find /usr/local/Cellar/{grep,gnu-sed,gawk,coreutils,findutils}/*/bin/g*); do
+  for f in $(find /usr/local/opt/{grep,gnu-sed,gawk,coreutils,findutils}/bin/g*); do
 
     bin="${f##*/g}";
 
