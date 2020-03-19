@@ -17,6 +17,8 @@ readonly READLINK='/usr/bin/readlink'
 [ -r "${HOME}/.zsh/zinit_programs.zsh" ] \
   && source "${HOME}/.zsh/zinit_programs.zsh";
 
+zpcompinit; zpcdreplay
+
 export nex_user_shell="zsh";
 
 update_brew () {
