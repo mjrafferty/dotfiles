@@ -1,7 +1,7 @@
 # vim:ft=zsh
 
 #[ -r "${HOME}/.iterm2_shell_integration.zsh" ] \
-#&& source "${HOME}/.iterm2_shell_integration.zsh"
+  #&& source "${HOME}/.iterm2_shell_integration.zsh"
 
 readonly SED='/usr/local/bin/sed'
 readonly GREP='/usr/local/bin/grep'
@@ -16,8 +16,6 @@ readonly READLINK='/usr/bin/readlink'
 
 [ -r "${HOME}/.zsh/zinit_programs.zsh" ] \
   && source "${HOME}/.zsh/zinit_programs.zsh";
-
-zpcompinit; zpcdreplay
 
 update_brew () {
 
