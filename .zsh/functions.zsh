@@ -560,3 +560,30 @@ test "No short answer available" = "$RESPONSE" \
   && curl -s "https://api.wolframalpha.com/v1/simple?appid=$APPID&units=metric&foreground=$FG&background=$BG" --data-urlencode "i=$*" \
   | $VIEWER || exit 0
 }
+
+unicode_chart() {
+
+  local x y a
+
+  for ((y=0;y<=65535;y++)); do
+    for x in 0 1 2 3 4 5 6 7; do
+      a=$(([##16]y))
+      a="${(l:4::0:)a}"
+      printf "%-10s %-10b" "\\u$a" "\\u$a "
+      ((y++))
+    done
+    ((y--))
+    echo
+  done
+
+  for ((y=65536;y<=1114109;y++)); do
+    for x in 0 1 2 3 4 5 6 7; do
+      a=$(([##16]y))
+      printf "%-10s %-10b" "\\U$a" "\\U$a "
+      ((y++))
+    done
+    ((y--))
+    echo
+  done
+
+}
