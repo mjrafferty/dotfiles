@@ -10,6 +10,7 @@ case "$HOST" in
   "Home") load_conf home ;;
   "pi") load_conf pi ;;
   "mellon"*) load_conf login_server ;;
+  "localhost") load_conf phone ;;
   *) load_conf nexcess ;;
 esac
 
