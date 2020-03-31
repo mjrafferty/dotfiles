@@ -12,6 +12,7 @@ case "$HOST" in
   "Home") rc_conf="home" ;;
   "pi") rc_conf="pi" ;;
   "mellon"*) rc_conf="login_server" ;;
+  "localhost") rc_conf="phone" ;;
   *) rc_conf="nexcess" ;;
 esac
 
