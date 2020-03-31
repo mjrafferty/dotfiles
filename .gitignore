@@ -1,4 +1,6 @@
 .environment.sh
+.local/
+.zshenv
 vim/plugins/*
 vim/swp/
 vim/undo/
