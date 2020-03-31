@@ -9,7 +9,7 @@ case "$HOST" in
   "Nexcess-AST-000304.local") load_conf work ;;
   "Home") load_conf home ;;
   "pi") load_conf pi ;;
-  *"mellon"*) load_conf login_server ;;
+  "mellon"*) load_conf login_server ;;
   *) load_conf nexcess ;;
 esac
 

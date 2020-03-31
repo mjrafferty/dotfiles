@@ -9,7 +9,7 @@
 [[ -d "$XDG_DATA_HOME" ]] || mkdir -p "$XDG_DATA_HOME"
 
 ## Shell ##
-ZDOTDIR="${${(%):-%x}:P:h}"
+ZDOTDIR="$HOME/.local/config/zsh"
 
 HISTFILE="${XDG_DATA_HOME}/zsh_history"
 SAVEHIST="10000"
