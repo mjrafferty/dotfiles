@@ -1,14 +1,11 @@
-#! /bin/zsh
+# vim:ft=zsh
 
 ZHIST_ENABLE_LOG=1
 
 # Login as root
 _autoRoot() {
-
   /usr/bin/sudo HOME="$HOME" SSH_TTY="$SSH_TTY" TMUX="$TMUX" /bin/zsh;
-
   exit;
-
 }
 
 # Automatically aliases sudo commands to avoid typing sudo
@@ -43,15 +40,15 @@ _sourceClient() {
 
   setopt nohistsavebycopy
 
-  userEnv=("$(grep -Poh '^\s*source\s*\K.*' /home/"${USER}"/.bash{rc,_profile})");
+  userEnv=($(grep -Poh '^\s*source\s*\K.*' /home/"${USER}"/.bash{rc,_profile}));
 
-  for x in ${userEnv[*]}; do
+  for x in "${userEnv[@]}"; do
     source "$x";
   done
 
-  userPath=("$(grep -Poh '\s*PATH=\K.*' /home/"${USER}"/.bash{rc,_profile} | sed -e "s_\$HOME_/home/${USER}_g" -e "s_\$PATH_${PATH}_g")")
+  userPath=($(grep -Poh '\s*PATH=\K.*' /home/"${USER}"/.bash{rc,_profile} | sed -e "s_\$HOME_/home/${USER}_g" -e "s_\$PATH_${PATH}_g"))
 
-  for x in ${userPath[*]}; do
+  for x in "${userPath[@]}"; do
     PATH="$x";
   done
 
@@ -66,8 +63,8 @@ _mySetup () {
   mkdir -p ~/.vimfiles/{backup,swp,undo}
 
   # Create directory for preserving client/ticket data
-  mkdir -p "$HOME"/clients/"$TICKET";
   export TICKETDIR="${HOME}/clients/${TICKET}";
+  mkdir -p "${TICKETDIR}";
 
   [[ -r /etc/nexcess/server_notes.txt ]] && cat /etc/nexcess/server_notes.txt;
 
@@ -86,18 +83,15 @@ _rootOrSudo() {
 
   os_version=$(grep -Po 'release \K\d' /etc/centos-release);
 
-  # Only perform action when I'm my own user.
+  # Only perform action when Im my own user.
   if [[ $USER == "${HOME/*\//}" ]]; then
 
     if (( os_version == 7 )); then
-
       _sudoAlias;
-
     else
-
       _autoRoot;
-
     fi
+
   fi
 
 }
@@ -105,15 +99,11 @@ _rootOrSudo() {
 # Determines whether or not shell is being started as part of the "u" function or normal startup.
 _meOrClient() {
 
-  # Check to see that I'm running as a user that's neither myself or root
+  # Check to see that Im running as a user thats neither myself or root
   if [[ ${HOME/*\//} != "$USER" && "$USER" != "root" ]]; then
-
     _sourceClient;
-
   else
-
     _mySetup;
-
   fi
 
 }
@@ -134,26 +124,18 @@ _isLastShell() {
   local this_pid parent_pid other_shells;
 
   this_pid="$$"
-	parent_pid="$(ps -o ppid "$this_pid" | grep -o '[0-9]*')"
+  parent_pid="$(ps -o ppid "$this_pid" | grep -o '[0-9]*')"
 
   other_shells="$(pgrep -P "${parent_pid}" | grep -v "$this_pid")"
 
   if [[ $USER == "${HOME/*\//}" || $USER == "root"  ]]; then
-
     if [[ -z "$other_shells" ]]; then
-
       return 0;
-
     else
-
       return 1
-
     fi
-
   else
-
     return 1;
-
   fi
 
 }
@@ -179,8 +161,6 @@ _logout () {
       -path "./.zsh*" \
       \) -prune -o -exec rm -rf {} + 2> /dev/null;
 
-      #rm "${HOME}/.zsh-history${LOGIN_ID}.db"
-
   fi
 
 }
@@ -188,13 +168,14 @@ _logout () {
 # Main
 main() {
 
+  unfunction main
+
   # Source environment variables provided by login script
   [ -r ~/.environment.sh ] && source ~/.environment.sh;
 
   _rootOrSudo;
 
-  [ -r "${HOME}/.zsh/main.zsh" ] \
-    && source "${HOME}/.zsh/main.zsh"
+  load_conf main
 
   _meOrClient;
 
@@ -203,10 +184,10 @@ main() {
   # Expand PATH
   export PATH="${PATH}:/var/qmail/bin:/usr/local/bin:/usr/local/interworx/bin"
 
-  fpath=($HOME/.zsh/completions $fpath)
+  autoload -Uz add-zsh-hook \
+    && add-zsh-hook zshexit _logout;
 
-  autoload -Uz add-zsh-hook
-  add-zsh-hook zshexit _logout;
+  unfunction _aliasFunctions _autoRoot _meOrClient _mySetup _rootOrSudo _sourceClient _sudoAlias
 
 }
 

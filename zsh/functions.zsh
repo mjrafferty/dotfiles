@@ -1,39 +1,7 @@
 # vim:ft=zsh
 
-[[  -z  $AWK         ]]  &&  export readonly  AWK='/bin/awk'
-[[  -z  $CHECKQUOTA  ]]  &&  export readonly  CHECKQUOTA="$HOME/bin/checkquota"
-[[  -z  $CHKCONFIG   ]]  &&  export readonly  CHKCONFIG='/sbin/chkconfig'
-[[  -z  $CHOWN       ]]  &&  export readonly  CHOWN='/bin/chown'
-[[  -z  $COLUMN      ]]  &&  export readonly  COLUMN='/usr/bin/column'
-[[  -z  $CP          ]]  &&  export readonly  CP='/bin/cp'
-[[  -z  $CURL        ]]  &&  export readonly  CURL='/usr/bin/curl'
-[[  -z  $CUT         ]]  &&  export readonly  CUT='/bin/cut'
-[[  -z  $DATE        ]]  &&  export readonly  DATE='/bin/date'
-[[  -z  $DIG         ]]  &&  export readonly  DIG='/usr/bin/dig'
-[[  -z  $FIND        ]]  &&  export readonly  FIND='/bin/find'
-[[  -z  $GETUSR      ]]  &&  export readonly  GETUSR="$HOME/bin/getusr"
-[[  -z  $GREP        ]]  &&  export readonly  GREP='/bin/grep'
-[[  -z  $HEAD        ]]  &&  export readonly  HEAD='/usr/bin/head'
-[[  -z  $IP          ]]  &&  export readonly  IP='/sbin/ip'
-[[  -z  $LN          ]]  &&  export readonly  LN='/bin/ln'
-[[  -z  $LS          ]]  &&  export readonly  LS='/bin/ls'
-[[  -z  $MYSQL       ]]  &&  export readonly  MYSQL='/usr/bin/mysql'
-[[  -z  $NODEWORX    ]]  &&  export readonly  NODEWORX='/usr/bin/nodeworx'
-[[  -z  $NSLOOKUP    ]]  &&  export readonly  NSLOOKUP='/usr/bin/nslookup'
-[[  -z  $PS          ]]  &&  export readonly  PS='/bin/ps'
-[[  -z  $READLINK    ]]  &&  export readonly  READLINK='/bin/readlink'
-[[  -z  $SED         ]]  &&  export readonly  SED='/bin/sed'
-[[  -z  $SETFACL     ]]  &&  export readonly  SETFACL='/usr/bin/setfacl'
-[[  -z  $SORT        ]]  &&  export readonly  SORT='/bin/sort'
-[[  -z  $STATT       ]]  &&  export readonly  STATT='/usr/bin/stat'
-[[  -z  $SUDO        ]]  &&  export readonly  SUDO='/usr/bin/sudo'
-[[  -z  $SWAKS       ]]  &&  export readonly  SWAKS='/usr/bin/swaks'
-[[  -z  $TOUCH       ]]  &&  export readonly  TOUCH='/bin/touch'
-[[  -z  $TR          ]]  &&  export readonly  TR='/usr/bin/tr'
-[[  -z  $UNIQ        ]]  &&  export readonly  UNIQ='/usr/bin/uniq'
-[[  -z  $XARGS       ]]  &&  export readonly  XARGS='/usr/bin/xargs'
 # shellcheck disable=SC2155
-[[  -z  $MYSHELL     ]]  &&  export readonly  MYSHELL="$("$READLINK" /proc/$$/exe)"
+[[  -z  $MYSHELL     ]]  &&  export readonly MYSHELL="$(readlink /proc/$$/exe)"
 
 if [[ "$MYSHELL" =~ zsh ]]; then
   ARRAY_START="1";
@@ -43,7 +11,7 @@ fi
 
 ##### Disk Usage ######
 
-## Adjust user quota on the fly using $NODEWORX CLI
+## Adjust user quota on the fly using nodeworx CLI
 bumpquota(){
 
   local newQuota primaryDomain;
@@ -55,17 +23,17 @@ bumpquota(){
     U="$1";
     shift;
   elif [[ "$1" == '.' ]]; then
-    U="$($GETUSR)";
+    U="$(getusr)";
     shift;
   fi
 
   newQuota="$1";
-  primaryDomain="$(~iworx/bin/listaccounts.pex | $GREP "$U" | $AWK '{print $2}')"
+  primaryDomain="$(~iworx/bin/listaccounts.pex | grep "$U" | awk '{print $2}')"
 
-  $NODEWORX -u -n -c Siteworx -a edit --domain "$primaryDomain" --OPT_STORAGE "$newQuota" \
+  nodeworx -u -n -c Siteworx -a edit --domain "$primaryDomain" --OPT_STORAGE "$newQuota" \
     && echo -e "\nDisk Quota for $U has been set to $newQuota MB\n";
 
-  $CHECKQUOTA -u "$U";
+  checkquota -u "$U";
 }
 
 
@@ -77,11 +45,11 @@ iworxdb () {
   local user pass database socket;
 
   user="iworx";
-  pass="$($GREP '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | $CUT -d: -f3 | $CUT -d\@ -f1)";
+  pass="$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)";
   database="iworx";
-  socket="$($GREP '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | $AWK -F'[()]' '{print $2}')";
+  socket="$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | awk -F'[()]' '{print $2}')";
 
-  $MYSQL -u"$user" -p"$pass" -S"$socket" -D"$database";
+  mysql -u"$user" -p"$pass" -S"$socket" -D"$database";
 }
 
 # Vpopmail
@@ -90,11 +58,11 @@ vpopdb () {
   local user pass database socket;
 
   user="iworx_vpopmail"
-  pass="$($GREP -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | $CUT -d: -f3 | $CUT -d\@ -f1)"
+  pass="$(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | cut -d: -f3 | cut -d\@ -f1)"
   database="iworx_vpopmail";
-  socket="$($GREP -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | $AWK -F'[()]' '{print $2}')";
+  socket="$(grep -A1 '\[vpopmail\]' ~iworx/iworx.ini | tail -1 | awk -F'[()]' '{print $2}')";
 
-  $MYSQL -u"$user" -p"$pass" -S"$socket" -D"$database" "$@";
+  mysql -u"$user" -p"$pass" -S"$socket" -D"$database" "$@";
 }
 
 # ProFTPd
@@ -103,11 +71,11 @@ ftpdb () {
   local user pass database socket;
 
   user="iworx_ftp"
-  pass="$($GREP -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | $CUT -d: -f3 | $CUT -d\@ -f1)"
+  pass="$(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1 | cut -d: -f3 | cut -d\@ -f1)"
   database="iworx_ftp";
-  socket="$($GREP -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1| $AWK -F'[()]' '{print $2}')";
+  socket="$(grep -A1 '\[proftpd\]' ~iworx/iworx.ini | tail -1| awk -F'[()]' '{print $2}')";
 
-  $MYSQL -u"$user" -p"$pass" -S"$socket" -D"$database" "$@";
+  mysql -u"$user" -p"$pass" -S"$socket" -D"$database" "$@";
 }
 
 # Spam Assassin DB
@@ -116,11 +84,11 @@ spamdb () {
   local user pass database socket;
 
   user="iworx_spam"
-  pass="$($GREP bayes_sql_password /etc/mail/spamassassin/local.cf| $AWK '{print $2}')"
+  pass="$(grep bayes_sql_password /etc/mail/spamassassin/local.cf| awk '{print $2}')"
   database="iworx_spam";
-  socket="$($GREP 'user_scores_dsn' /etc/mail/spamassassin/local.cf | $SED -n 's|.*mysql_socket=\(.*\)|\1|p')";
+  socket="$(grep 'user_scores_dsn' /etc/mail/spamassassin/local.cf | sed -n 's|.*mysql_socket=\(.*\)|\1|p')";
 
-  $MYSQL -u"$user" -p"$pass" -S"$socket" -D"$database" "$@";
+  mysql -u"$user" -p"$pass" -S"$socket" -D"$database" "$@";
 }
 
 
@@ -130,9 +98,9 @@ spamdb () {
 domainips () {
   local D;
   echo;
-  for I in $($IP addr show | $AWK '/inet / {print $2}' | $CUT -d/ -f1 | $GREP -Ev '^127\.'); do
+  for I in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.'); do
     printf "  ${BRIGHT}${YELLOW}%-15s${NORMAL}  " "$I";
-    D=$($GREP -l "$I" /etc/httpd/conf.d/vhost_[^0]*.conf | $CUT -d_ -f2 | $SED 's/.conf$//');
+    D=$(grep -l "$I" /etc/httpd/conf.d/vhost_[^0]*.conf | cut -d_ -f2 | sed 's/.conf$//');
     for x in $D; do
       printf "%s " "$x";
     done;
@@ -144,18 +112,18 @@ domainips () {
 ## find ips that are not configured in any vhost files
 freeips () {
   echo;
-  for x in $($IP addr show | $AWK '/inet / {print $2}' | $CUT -d/ -f1 | $GREP -Ev '^127\.|^10\.|^172\.'); do
+  for x in $(ip addr show | awk '/inet / {print $2}' | cut -d/ -f1 | grep -Ev '^127\.|^10\.|^172\.'); do
     printf "\n%-15s " "$x";
-    $GREP -l "$x" /etc/httpd/conf.d/vhost_[^0]*.conf 2> /dev/null;
+    grep -l "$x" /etc/httpd/conf.d/vhost_[^0]*.conf 2> /dev/null;
   done \
-    | $GREP -v \.conf$ \
-    | $COLUMN -t;
+    | grep -v \.conf$ \
+    | column -t;
   echo
 }
 
 ## Add an ip to a Siteworx account
 addip () {
-  $NODEWORX -u -n -c Siteworx -a addip --domain "$(~iworx/bin/listaccounts.pex | $AWK "/$($GETUSR)/"'{print $2}')" --ipv4 "$1";
+  nodeworx -u -n -c Siteworx -a addip --domain "$(~iworx/bin/listaccounts.pex | awk "/$(getusr)/"'{print $2}')" --ipv4 "$1";
 }
 
 # Check several email blacklists for the given ip
@@ -170,8 +138,8 @@ blacklistcheck () {
   echo '++++++++++++++++++++++++++++';
   echo "$ip";
   echo 'PHONE: 866-639-2377';
-  $NSLOOKUP "$ip" \
-    | $GREP addr;
+  nslookup "$ip" \
+    | grep addr;
   echo 'http://multirbl.valli.org/lookup/'"$ip"'.html';
   echo 'http://www.senderbase.org/lookup/ip/?search_string='"$ip";
   echo 'https://www.senderscore.org/lookup.php?lookup='"$ip";
@@ -180,45 +148,45 @@ blacklistcheck () {
     echo;
     echo $x;
     echo '--------------------';
-    $SWAKS -q TO -t postmaster@$x -li "$ip" \
-      | $GREP -iE 'block|rdns|550|521|554';
+    swaks -q TO -t postmaster@$x -li "$ip" \
+      | grep -iE 'block|rdns|550|521|554';
   done ;
   echo;
   echo 'gmail.com';
   echo '-----------------------';
-  $SWAKS -4 -t iflcars.com@gmail.com -li "$ip"  \
-    | $GREP -iE 'block|rdns|550|521|554';
+  swaks -4 -t iflcars.com@gmail.com -li "$ip"  \
+    | grep -iE 'block|rdns|550|521|554';
   echo;
   echo;
 
 }
 
 
-####### $NODEWORX ##########
+####### nodeworx ##########
 
 # Show sites and their corresponding reseller
 resellers () {
-  ($NODEWORX -u -n -c Siteworx -a listAccounts \
-    | $SED 's/ /_/g' \
-    | $AWK '{print $5,$2,$10,$9}';
+  (nodeworx -u -n -c Siteworx -a listAccounts \
+    | sed 's/ /_/g' \
+    | awk '{print $5,$2,$10,$9}';
 
-  $NODEWORX -u -n -c Reseller -a listResellers \
-    | $SED 's/ /_/g' \
-    | $AWK '{print $1,"0Reseller",$3, $2}') \
-    | $SORT -n \
-    | $COLUMN -t \
-    | $SED 's/\(.*0Re.*\)/\n\1/' > /tmp/rslr;
+  nodeworx -u -n -c Reseller -a listResellers \
+    | sed 's/ /_/g' \
+    | awk '{print $1,"0Reseller",$3, $2}') \
+    | sort -n \
+    | column -t \
+    | sed 's/\(.*0Re.*\)/\n\1/' > /tmp/rslr;
 
   while read -r; do
-    $AWK '{if ($2 == "0Reseller") print "Reseller: " $3, "( "$4" )"; else if ($3 == "master") print ($2,$4); else print ($2,$3);}';
-  done < /tmp/rslr | $SED 's/_/ /g';
+    awk '{if ($2 == "0Reseller") print "Reseller: " $3, "( "$4" )"; else if ($3 == "master") print ($2,$4); else print ($2,$3);}';
+  done < /tmp/rslr | sed 's/_/ /g';
 }
 
 # Lookup Siteworx account details
 acctdetail () {
-  $NODEWORX -u -n -c Siteworx -a querySiteworxAccountDetails --domain "$(~iworx/bin/listaccounts.pex | $AWK "/^$($GETUSR)/ {print \$2}")" \
-    | $SED 's:\([a-zA-Z]\) \([a-zA-Z]\):\1_\2:g;s:\b1\b:YES:g;s:\b0\b:NO:g' \
-    | $COLUMN -t
+  nodeworx -u -n -c Siteworx -a querySiteworxAccountDetails --domain "$(~iworx/bin/listaccounts.pex | awk "/^$(getusr)/ {print \$2}")" \
+    | sed 's:\([a-zA-Z]\) \([a-zA-Z]\):\1_\2:g;s:\b1\b:YES:g;s:\b0\b:NO:g' \
+    | column -t
 }
 
 ######## Miscellaneous ########
@@ -227,12 +195,12 @@ acctdetail () {
 srvstatus(){
   local servicelist;
   # shellcheck disable=SC2207
-  servicelist=($($CHKCONFIG --list | $AWK '/3:on/ {print $1}' | sort));
+  servicelist=($(chkconfig --list | awk '/3:on/ {print $1}' | sort));
 
     printf "\n%-18s %s\n%-18s %s\n" " Service" " Status" "$(dashes 18)" "$(dashes 55)";
 
     for x in ${servicelist[*]}; do
-      printf "%-18s %s\n" " $x" " $(service "$x" status 2> /dev/null | $HEAD -1)";
+      printf "%-18s %s\n" " $x" " $(service "$x" status 2> /dev/null | head -1)";
     done;
     echo
 }
@@ -242,9 +210,9 @@ nameservers () {
   local nameservers;
   echo;
   # shellcheck disable=SC2207
-  nameservers=($($SED -n 's/ns[1-2]="\([^"]*\).*/\1/p' ~iworx/iworx.ini))
+  nameservers=($(sed -n 's/ns[1-2]="\([^"]*\).*/\1/p' ~iworx/iworx.ini))
   for (( x=ARRAY_START; x<${#nameservers[@]}+ARRAY_START; x++ )) do
-    echo "${nameservers[$x]} ($($DIG +short "${nameservers[$x]}"))";
+    echo "${nameservers[$x]} ($(dig +short "${nameservers[$x]}"))";
   done
   echo;
 }
@@ -253,32 +221,32 @@ nameservers () {
 maldetstat () {
   local files;
   # shellcheck disable=SC2207
-  files=($($AWK '{print $3}' /usr/local/maldetect/sess/session.hits."$1"));
+  files=($(awk '{print $3}' /usr/local/maldetect/sess/session.hits."$1"));
     for (( x=ARRAY_START; x<${#files[@]}+ARRAY_START; x++ )); do
-      $STATT "${files[$x]}";
+      statt "${files[$x]}";
     done
 }
 
 # Check for duplicate files
 finddups () {
-  $FIND "$1" -type f -print0 \
-    | $XARGS -0 md5sum \
-    | $SORT \
-    | $UNIQ -w32 --all-repeated=separate
+  find "$1" -type f -print0 \
+    | xargs -0 md5sum \
+    | sort \
+    | uniq -w32 --all-repeated=separate
 }
 
-## Add $DATE and time with username and open server_notes.txt for editing
+## Add date and time with username and open server_notes.txt for editing
 srvnotes () {
-  echo -e "\n#$($DATE) - ${SUDO_USER/nex/}" >> /etc/nexcess/server_notes.txt;
+  echo -e "\n#$(date) - sudo_USER/nex/}" >> /etc/nexcess/server_notes.txt;
   $EDITOR /etc/nexcess/server_notes.txt;
 }
 
 ## Generate nexinfo.php to view php info in browser
 nexinfo () {
   echo '<?php phpinfo(); ?>' > nexinfo.php \
-    && $CHOWN "$($GETUSR)". nexinfo.php;
-  echo -e "\nhttp://$(pwd | $SED 's:^/chroot::' | $CUT -d/ -f4-)/nexinfo.php created successfully.\n" \
-    | $SED 's/html\///';
+    && chown "$(getusr)". nexinfo.php;
+  echo -e "\nhttp://$(pwd | sed 's:^/chroot::' | cut -d/ -f4-)/nexinfo.php created successfully.\n" \
+    | sed 's/html\///';
 }
 
 ## System resource usage by account
@@ -286,11 +254,11 @@ sysusage () {
 
   local COLSORT=2;
 
-  printf "\n%-10s %10s %10s %10s %10s\n%s\n" "User" "Mem (MB)" "Process" "$CPU(%)" "MEM(%)" "$(dashes 54)";
-  $PS aux \
-    | $AWK ' !/^USER/ { mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' \
-    | $SORT -nrk$COLSORT \
-    | $HEAD;
+  printf "\n%-10s %10s %10s %10s %10s\n%s\n" "User" "Mem (MB)" "Process" "CPU(%)" "MEM(%)" "$(dashes 54)";
+  ps aux \
+    | awk ' !/^USER/ { mem[$1]+=$6; procs[$1]+=1; pcpu[$1]+=$3; pmem[$1]+=$4; } END { for (i in mem) { printf "%-10s %10.2f %10d %9.1f%% %9.1f%%\n", i, mem[i]/(1024), procs[i], pcpu[i], pmem[i] } }' \
+    | sort -nrk$COLSORT \
+    | head;
   echo;
 
 }
@@ -307,26 +275,26 @@ ddns () {
   else
     D="$*";
   fi
-  for x in $(echo "$D" | $SED 's_\(https\?://\)\?\([^/]*\).*_\2_' | $TR "[:upper:]" "[:lower:]"); do
+  for x in $(echo "$D" | sed 's_\(https\?://\)\?\([^/]*\).*_\2_' | tr "[:upper:]" "[:lower:]"); do
     echo -e "\nDNS Summary: $x\n$(dashes 79)";
     for y in a aaaa ns mx txt soa; do
-      $DIG +time=2 +tries=2 +short $y "$x" +noshort;
+      dig +time=2 +tries=2 +short $y "$x" +noshort;
       if [[ $y == 'ns' ]]; then
-        NS="$($DIG +short ns "$x")";
+        NS="$(dig +short ns "$x")";
         if [[ -n "$NS" ]]; then
-          $DIG +time=2 +tries=2 +short "$NS" +noshort \
-            | $GREP -v root;
+          dig +time=2 +tries=2 +short "$NS" +noshort \
+            | grep -v root;
         fi
       fi;
     done;
     echo;
-    $DIG +short txt _domainkey."$x" +noshort;
+    dig +short txt _domainkey."$x" +noshort;
     echo;
-    $DIG +short txt default._domainkey."$x" +noshort;
+    dig +short txt default._domainkey."$x" +noshort;
     echo;
-    $DIG +short txt _dmarc."$x" +noshort;
+    dig +short txt _dmarc."$x" +noshort;
     echo;
-    $DIG +short -x "$($DIG +time=2 +tries=2 +short "$x")" +noshort;
+    dig +short -x "$(dig +time=2 +tries=2 +short "$x")" +noshort;
     echo;
   done
 }
@@ -345,12 +313,12 @@ chkgzip () {
     DNAME="$*";
   fi
   for x in $DNAME; do
-    $CURL -I -H 'Accept-Encoding: gzip,deflate' "$x";
+    curl -I -H 'Accept-Encoding: gzip,deflate' "$x";
   done;
   echo
 }
 
-## List the daily snapshots for a database to see the $DATEs/times on the snapshots
+## List the daily snapshots for a database to see the dates/times on the snapshots
 lsnapshots () {
   local DBNAME;
   echo;
@@ -363,7 +331,7 @@ lsnapshots () {
   else
     DBNAME="$1";
   fi
-  $LS -lah /home/.snapshots/daily.*/localhost/mysql/"$DBNAME".sql.xz;
+  ls -lah /home/.snapshots/daily.*/localhost/mysql/"$DBNAME".sql.xz;
   echo
 }
 
@@ -371,7 +339,7 @@ lsnapshots () {
 magsymlinks () {
   local U D yn;
   echo;
-  U=$($GETUSR);
+  U=$(getusr);
   if [[ -z $1 ]]; then
     if [[ "$MYSHELL" =~ zsh ]]; then
       vared -p "Domain Name: " -c D;
@@ -382,7 +350,7 @@ magsymlinks () {
     D=$1;
   fi
   for X in app includes js lib media skin var; do
-    sudo -u "$U" "$LN" -s /home/"$U"/"$D"/html/$X/ $X;
+    sudo -u "$U" ln -s /home/"$U"/"$D"/html/$X/ $X;
   done;
   echo;
   if [[ "$MYSHELL" =~ zsh ]]; then
@@ -392,7 +360,7 @@ magsymlinks () {
   fi
   if [[ $yn == "y" ]]; then
     for Y in index.php .htaccess; do
-      sudo -u "$U" "$CP" /home/"$U"/"$D"/html/$Y .;
+      sudo -u "$U" cp /home/"$U"/"$D"/html/$Y .;
     done;
   fi
 }
@@ -413,37 +381,37 @@ u () {
 
   local user home item;
 
-  user="$(pwd | "$GREP" -Po "/(chroot/)?(home|local|data)/\K[^/]*")";
+  user="$(pwd | grep -Po "/(chroot/)?(home|local|data)/\K[^/]*")";
   home="$(mktemp -d)"
 
   chmod 711 "$HOME"
-  $SETFACL -m u:"$user":rwX "$home"
+  setfacl -m u:"$user":rwX "$home"
 
   # Give permissions on my home dir to new user
   find "$HOME" -mindepth 1 -maxdepth 1 ! -name .ssh \
     | while read -r item; do
-      $SETFACL -R -m u:"$user":rX "$item" 2> /dev/null
+      setfacl -R -m u:"$user":rX "$item" 2> /dev/null
       ln -s "$item" "${home}/${item##*/}"
     done
 
     if [[ -n "${__ZHIST_INPUT_PIPE}" ]]; then
-      $SETFACL -m u:"$user":rw "${__ZHIST_INPUT_PIPE}"
+      setfacl -m u:"$user":rw "${__ZHIST_INPUT_PIPE}"
     fi
 
     if [[ -e "/home/${user}/.composer" ]]; then
       ln -s "/home/${user}/.composer" "${home}/.composer"
     fi
 
-    $SETFACL -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,"${__ZHIST_DIR}",clients,.vimfiles} 2> /dev/null
+    setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,"${__ZHIST_DIR}",clients,.vimfiles} 2> /dev/null
 
   # Switch user
-  $SUDO HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
+  sudo HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
 
   # Give me permissions on any files the user created in my home dir
-  $SUDO -u "$user" "$FIND" "$home" -type f -user "$user" -exec $SETFACL -m u:"$USER":rwX {} +
+  sudo -u "$user" find "$home" -type f -user "$user" -exec setfacl -m u:"$USER":rwX {} +
 
   # Revoke the permissions given to that user
-  $SETFACL -R -x u:"$user" ~/
+  setfacl -R -x u:"$user" ~/
   chmod 700 "$HOME"
 
 }
@@ -461,9 +429,9 @@ brokenlinks () {
 IFS="
 "
 
-  for x in $("$FIND" "$check_path" -type l); do
+  for x in $(find "$check_path" -type l); do
 
-    link="$("$READLINK" "$x")" 2> /dev/null
+    link="$(readlink "$x")" 2> /dev/null
 
     if [[ ! "$link" == "/"* ]]; then
 
@@ -557,7 +525,7 @@ wolfram_alpha() {
 # Remove next if you are fine with text only api, and don't want to see any images
 test "No short answer available" = "$RESPONSE" \
   && echo ", downloading full answer..." \
-  && curl -s "https://api.wolframalpha.com/v1/simple?appid=$APPID&units=metric&foreground=$FG&background=$BG" --data-urlencode "i=$*" \
+  && curl -s "https://api.wolframalpha.com/v1/simple?appid=${APPID}&units=metric&foreground=${FG}&background=${BG}" --data-urlencode "i=$*" \
   | $VIEWER || exit 0
 }
 
@@ -586,4 +554,122 @@ unicode_chart() {
     echo
   done
 
+}
+
+update_brew () {
+
+  local f bin
+
+  brew update;
+  brew upgrade;
+  brew cleanup;
+
+  for f in $(find /usr/local/opt/*/bin/*); do
+
+    bin="${f##*/}";
+
+    if [[ -e /usr/local/bin/${bin} ]]; then
+      rm -f "/usr/local/bin/${bin}";
+    fi
+
+    ln -sf "$f" "/usr/local/bin/${bin}";
+
+  done
+
+  for f in $(find /usr/local/opt/{grep,gnu-sed,gawk,coreutils,findutils}/bin/g*); do
+
+    bin="${f##*/g}";
+
+    if [[ -e "/usr/local/bin/${bin}" ]]; then
+      rm -f "/usr/local/bin/${bin}";
+    fi
+
+    ln -sf "$f" "/usr/local/bin/${bin}";
+
+  done
+
+}
+
+organize_pictures() {
+
+  IFS="
+"
+  SOURCE_DIR="${1}"
+  DESTINATION_DIR="${2}"
+
+  for x in "${SOURCE_DIR}" "${DESTINATION_DIR}"; do
+    if [[ ! -d "${x}" ]]; then
+      echo "${x} is not a valid directory.";
+      return 1;
+    fi
+  done
+
+  for x in $(find "${SOURCE_DIR}" -type f ); do
+
+    date=$(jhead $x 2> /dev/null | grep 'Date/Time');
+
+    if [[ -n $date ]]; then
+
+      year=$(echo $date | cut -d: -f2 | sed 's/^ //');
+      month=$(echo $date | cut -d: -f3);
+
+      x=$(echo $x | sed 's/^\.\///');
+
+      echo "mkdir -p ${DESTINATION_DIR:-.}/${year}/${month}";
+      echo "mv ${x} ${DESTINATION_DIR:-.}/${year}/${month}/${x##*/}";
+
+    fi;
+
+  done 2> pics_error.log
+}
+
+orphaned_files () {
+
+  find / \( \
+    -path /home/matt \
+    -o -path /boot/efi \
+    -o -path /dev \
+    -o -path /etc/ca-certificates \
+    -o -path /etc/ssl \
+    -o -path /lib64/firmware \
+    -o -path /lib64/modules \
+    -o -path /proc \
+    -o -path /run \
+    -o -path /sys \
+    -o -path /tmp \
+    -o -path /opt/wine \
+    -o -path /opt/Windows_Users \
+    -o -path /usr/lib64/clang \
+    -o -path /usr/lib64/dracut \
+    -o -path /usr/lib64/gcc \
+    -o -path /usr/lib64/llvm \
+    -o -path /usr/lib64/mono \
+    -o -path /usr/lib64/portage \
+    -o -path /usr/local/portage \
+    -o -path /usr/portage \
+    -o -path /usr/share/mime \
+    -o -path /usr/src \
+    -o -path /var/cache \
+    -o -path /var/db \
+    -o -path /var/log \
+    -o -path /var/lib/sddm/.cache \
+    -o -path /var/tmp/portage \) \
+    -prune -o -type f -print0 \
+    | xargs -0 qfile -o 2>&1 \
+    | less
+
+}
+
+start_agent () {
+
+  rm ${SSH_ENV} 2> /dev/null;
+
+  /usr/bin/ssh-agent -t 43200 \
+    | sed 's/^echo/#echo/' > "${SSH_ENV}";
+
+  chmod 600 "${SSH_ENV}";
+
+  source "${SSH_ENV}" > /dev/null;
+
+  /usr/bin/ssh-add "${HOME}/.ssh/nex${USER}.id_rsa";
 }

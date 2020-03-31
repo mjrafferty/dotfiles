@@ -31,7 +31,7 @@ alias poweroff='systemctl poweroff'
 alias reboot='systemctl reboot'
 
 alias mountro="mount -o ro,remount /usr && mount -o ro,remount /boot && mount -o ro,remount /"
-alias mountrw="mount -o rw,remount /usr; mount -o rw,remount /boot; mount -o rw,remount /"
+alias mountrw="mount -o rw,remount /usr; mount -o rw,remount /boot/efi; mount -o rw,remount /;mount -o rw,remount /opt"
 
 if [[ -x "/usr/bin/colordiff" ]]; then
   alias diff="/usr/bin/colordiff"
@@ -81,3 +81,5 @@ alias sa='alias | grep -i'
 alias o=xdg-open
 alias pbc=pbcopy
 alias pbp=pbpaste
+
+alias checksums="equery --no-pipe check --only-failures '*'"

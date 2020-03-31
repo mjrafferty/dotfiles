@@ -1,4 +1,10 @@
-.zsh-history.db
 .environment.sh
-.zsh/zinit/*
-.vim/plugins/*
+vim/plugins/*
+vim/swp/
+vim/undo/
+vim/viminfo
+zsh-history.db
+zsh/.zcompdump
+zsh/.zcompdump.zwc
+zsh/.zsh_history
+zsh/zinit/*

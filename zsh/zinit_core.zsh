@@ -1,9 +1,10 @@
 # vim:ft=zsh
 
 ## Load zinit ##
-declare -A ZINIT
-ZINIT[HOME_DIR]="${HOME}/.zsh/zinit"
-ZPFX="${HOME}/.zsh/zinit/polaris"
+declare -gA ZINIT
+ZINIT[HOME_DIR]="${ZDOTDIR:-${HOME}/.zsh}/zinit"
+ZPFX="${ZDOTDIR:-${HOME}/.zsh}/zinit/polaris"
+ZINIT[COMPINIT_OPTS]="-C -i -d ${ZSH_COMPDUMP}"
 source "${ZINIT[HOME_DIR]}/bin/zinit.zsh"
 
 zload() {
@@ -15,10 +16,10 @@ zload() {
 
   if [[ "$wait" == "no" ]]; then
     zinit ice lucid ${@}
-    zinit light "$plugin"
+    zinit "light" "$plugin"
   else
     zinit ice lucid wait"$wait" ${@}
-    zinit light "$plugin"
+    zinit "light" "$plugin"
   fi
 
 }
@@ -47,7 +48,7 @@ zload  trapd00r/LS_COLORS                      'no'  atclone"dircolors -b LS_COL
 zload  zsh-users/zsh-completions               '0b'  blockf atpull'zinit creinstall -q  .'
 zload  zsh-users/zsh-autosuggestions           '0c'  atload'_zsh_autosuggest_start' compile'{src/*.zsh,src/strategies/*}'
 zload  zsh-users/zsh-history-substring-search  '0d'  atload'bindkey "^[[A" history-substring-search-up; bindkey "^[[B"  history-substring-search-down'
-zload  zdharma/fast-syntax-highlighting        '0e'  atload"ZINIT[COMPINIT_OPTS]=\"-C -i\" zpcompinit; zpcdreplay"
+zload  zdharma/fast-syntax-highlighting        '0e'  atload"zpcompinit; zpcdreplay"
 
 ZSH_AUTOSUGGEST_MANUAL_REBIND="true"
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
