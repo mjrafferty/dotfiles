@@ -1,4 +1,4 @@
-[submodule ".zsh/zinit/bin"]
-	path = .zsh/zinit/bin
+[submodule "zsh/zinit/bin"]
+	path = zsh/zinit/bin
 	url = https://github.com/zdharma/zinit
 	branch = master
