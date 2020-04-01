@@ -130,7 +130,7 @@ _getHistory() {
 
   if [[ -e "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log" ]]; then
 
-    sqlite3 ~/dotfiles/zhist.db < "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
+    sqlite3 ~/dotfiles/.local/share/zhist.db < "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
     rm "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
 
   fi
@@ -154,6 +154,8 @@ _mainRsync() {
   "$RSYNC" --compress --quiet --links --force --delete --chmod=o-rwx -rpt \
     --exclude 'clients/' \
     --exclude '.git/' \
+    --exclude '.gitignore' \
+    --exclude '.gitmodules' \
     --exclude '*.png' \
     --exclude '*.jpg' \
     --exclude '*.gif' \
@@ -180,10 +182,12 @@ _asyncRsync() {
     --exclude '*.jpg' \
     --exclude '*.gif' \
     --exclude 'plugins/vim-autoformat/samples' \
-    --exclude 'plugins/YouCompleteMe' \
+    --exclude 'swp/*' \
+    --exclude 'undo/*' \
+    --exclude 'backup/*' \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
     ~/dotfiles/vim/ \
-    "$1@$DESTINATION":~/.vim/ 2> /dev/null
+    "$1@$DESTINATION":~/vim/ 2> /dev/null
 
 }
 

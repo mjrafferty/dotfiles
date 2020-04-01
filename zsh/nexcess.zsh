@@ -59,9 +59,6 @@ _sourceClient() {
 # Basic setup to be run on shell startup
 _mySetup () {
 
-  # Create directories for files used by vim if necessary
-  mkdir -p ~/.vimfiles/{backup,swp,undo}
-
   # Create directory for preserving client/ticket data
   export TICKETDIR="${HOME}/clients/${TICKET}";
   mkdir -p "${TICKETDIR}";
@@ -148,14 +145,19 @@ _logout () {
 
     # Cleanup home folder on logout
     find . -mindepth 1 \( \
+      -path "./*history" -o \
       -path "./.bash_profile" -o \
+      -path "./.local" -o \
+      -path "./.my.cnf" -o \
+      -path "./.mytop" -o \
+      -path "./.ssh" -o \
+      -path "./.tmux.conf" -o \
+      -path "./.zshenv" -o \
+      -path "./SNAPS*" -o \
       -path "./bin" -o \
       -path "./clients" -o \
-      -path "./.mytop" -o \
-      -path "./*history" -o \
-      -path "./SNAPS*" -o \
-      -path "./.ssh" -o \
-      -path "./.local*" \
+      -path "./vim" -o \
+      -path "./zsh" \
       \) -prune -o -exec rm -rf {} + 2> /dev/null;
 
   fi
