@@ -153,12 +153,9 @@ _logout () {
       -path "./clients" -o \
       -path "./.mytop" -o \
       -path "./*history" -o \
-      -path "./.zsh-hist*" -o \
       -path "./SNAPS*" -o \
       -path "./.ssh" -o \
-      -path "./.zlogin*" -o \
-      -path "./.vim*" -o \
-      -path "./.zsh*" \
+      -path "./.local*" \
       \) -prune -o -exec rm -rf {} + 2> /dev/null;
 
   fi

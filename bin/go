@@ -126,12 +126,12 @@ _getHistory() {
 
   "$RSYNC" -ql -rpt --remove-source-files \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-    "$username@$DESTINATION:.zsh-history${LOGIN_ID}.log" "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log" 2> /dev/null
+    "$username@$DESTINATION:.local/share/zhist${LOGIN_ID}.log" "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log" 2> /dev/null
 
-  if [[ -e "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log" ]]; then
+  if [[ -e "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log" ]]; then
 
-    sqlite3 ~/dotfiles/.zsh-history.db < "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log"
-    rm "$HOME/dotfiles/.zsh-history${LOGIN_ID}.log"
+    sqlite3 ~/dotfiles/zhist.db < "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
+    rm "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
 
   fi
 
@@ -152,20 +152,18 @@ _getRemoteUser() {
 _mainRsync() {
 
   "$RSYNC" --compress --quiet --links --force --delete --chmod=o-rwx -rpt \
-    --exclude '.bash_history' \
-    --exclude 'clients' \
-    --exclude '.git' \
+    --exclude 'clients/' \
+    --exclude '.git/' \
     --exclude '*.png' \
     --exclude '*.jpg' \
     --exclude '*.gif' \
-    --exclude '.mysql_history' \
     --exclude '.mytop' \
-    --exclude 'no-rsync' \
+    --exclude 'no-rsync/' \
+    --exclude '*SNAPS*/' \
+    --exclude '.ssh/' \
+    --exclude 'vim/' \
+    --exclude '.mysql_history' \
     --exclude '.rediscli_history' \
-    --exclude '*SNAPS*' \
-    --exclude '.ssh' \
-    --exclude '.vim' \
-    --exclude '.vimfiles' \
     --exclude '.zsh_history' \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
     ~/dotfiles/ \
@@ -181,10 +179,10 @@ _asyncRsync() {
     --exclude '*.png' \
     --exclude '*.jpg' \
     --exclude '*.gif' \
-    --exclude 'bundle/vim-autoformat/samples' \
-    --exclude 'bundle/YouCompleteMe' \
+    --exclude 'plugins/vim-autoformat/samples' \
+    --exclude 'plugins/YouCompleteMe' \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-    ~/dotfiles/.vim/ \
+    ~/dotfiles/vim/ \
     "$1@$DESTINATION":~/.vim/ 2> /dev/null
 
 }
