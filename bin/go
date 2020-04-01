@@ -163,6 +163,7 @@ _mainRsync() {
     --exclude 'no-rsync/' \
     --exclude '*SNAPS*/' \
     --exclude '.ssh/' \
+    --exclude 'zsh/zinit/bin' \
     --exclude 'vim/' \
     --exclude '.mysql_history' \
     --exclude '.rediscli_history' \
