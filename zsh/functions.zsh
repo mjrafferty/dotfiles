@@ -402,7 +402,7 @@ u () {
       ln -s "/home/${user}/.composer" "${home}/.composer"
     fi
 
-    setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,.zsh-history*,"${__ZHIST_DIR}",clients,.vimfiles} 2> /dev/null
+    setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,vim,zsh,.local} 2> /dev/null
 
   # Switch user
   sudo HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
