@@ -2,11 +2,4 @@
 .local/
 .zshenv
 vim/plugins/*
-vim/swp/
-vim/undo/
-vim/viminfo
-.zsh-history.db
-zsh/.zcompdump
-zsh/.zcompdump.zwc
-zsh/.zsh_history
 zsh/zinit/*

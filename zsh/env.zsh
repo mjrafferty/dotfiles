@@ -22,8 +22,11 @@ fpath=(${ZDOTDIR}/completions $fpath)
 ZSH_COMPDUMP="${XDG_CACHE_HOME}/zsh_compdump"
 
 ## Vim ##
-export VIMDIR="${XDG_CONFIG_HOME}/vim"
-export VIMINIT=":source ${VIMDIR}/vimrc"
+export VIM_DIR="${XDG_CONFIG_HOME}/vim"
+export VIM_DATA_DIR="${XDG_DATA_HOME}/vim"
+export VIMINIT=":source ${VIM_DIR}/vimrc"
+
+[[ -d "${VIM_DATA_DIR}" ]] || mkdir -p "${VIM_DATA_DIR}"/{backup,swp,undo}
 
 ##### Environment Variables #####
 export LANG="en_US.UTF-8"

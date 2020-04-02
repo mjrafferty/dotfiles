@@ -1,10 +1,10 @@
-set runtimepath=$VIMDIR,$VIMDIR/after,$VIM,$VIMRUNTIME
+set runtimepath=$VIM_DIR,$VIM_DIR/after,$VIM,$VIMRUNTIME
 
 """""""""""""""""""""""""""""
 "     Begin Plugin load     "
 """""""""""""""""""""""""""""
 
-call plug#begin($VIMDIR . '/plugins')
+call plug#begin($VIM_DIR . '/plugins')
 Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }
 Plug 'Raimondi/delimitMate'
 if (has('python3'))
@@ -91,10 +91,10 @@ set undolevels=1000                " How many undos
 set undoreload=10000               " number of lines to save for undo "
 
 " Vim file locations
-set undodir=$VIMDIR/undo//
-set directory=$VIMDIR/swp//
-set backupdir=$VIMDIR/backup//
-set viminfo+=n$VIMDIR/viminfo
+set undodir=$VIM_DATA_DIR/undo//
+set directory=$VIM_DATA_DIR/swp//
+set backupdir=$VIM_DATA_DIR/backup//
+set viminfo+=n$VIM_DATA_DIR/viminfo
 
 " Mouse support
 if has('mouse')
@@ -169,7 +169,7 @@ let g:ycm_collect_identifiers_from_comments_and_strings = 1
 let g:ycm_collect_identifiers_from_tags_files = 1
 let g:ycm_seed_identifiers_with_syntax = 1
 let g:ycm_autoclose_preview_window_after_completion = 1
-let g:ycm_global_ycm_extra_conf = $VIMDIR . '/ycm_extra_conf.py'
+let g:ycm_global_ycm_extra_conf = $VIM_DIR . '/ycm_extra_conf.py'
 let g:ycm_confirm_extra_conf = 0
 
 " RainbowParentheses plugin settings
