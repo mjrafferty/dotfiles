@@ -9,5 +9,6 @@
 load_conf completion
 load_conf alias
 load_conf functions
+load_conf apollo
 
 autoload -Uz compinit && compinit

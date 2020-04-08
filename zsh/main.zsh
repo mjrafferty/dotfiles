@@ -13,3 +13,4 @@ load_conf completion
 load_conf alias
 load_conf functions
 load_conf options
+load_conf apollo
