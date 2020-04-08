@@ -29,4 +29,4 @@ bindkey "^[[B" history-substring-search-down
 [ -r "${ZDOTDIR}/zinit/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ] \
   && source "${ZDOTDIR}/zinit/plugins/zdharma---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
 
-autoload -Uz compinit && compinit -C -i
+autoload -Uz compinit && compinit -C -i -d ${ZSH_COMPDUMP}
