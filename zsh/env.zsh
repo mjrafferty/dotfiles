@@ -1,8 +1,14 @@
 # vim:ft=zsh
 
-[[ -n "$XDG_CACHE_HOME" ]] || export XDG_CACHE_HOME="${HOME}/.local/cache"
-[[ -n "$XDG_CONFIG_HOME" ]] || export XDG_CONFIG_HOME="${HOME}/.local/config"
-[[ -n "$XDG_DATA_HOME" ]] || export XDG_DATA_HOME="${HOME}/.local/share"
+if [[ "$USER" != "root" ]]; then
+  [[ -n "$XDG_CACHE_HOME" ]] || export XDG_CACHE_HOME="${HOME}/.local/cache"
+  [[ -n "$XDG_CONFIG_HOME" ]] || export XDG_CONFIG_HOME="${HOME}/.local/config"
+  [[ -n "$XDG_DATA_HOME" ]] || export XDG_DATA_HOME="${HOME}/.local/share"
+else
+  export XDG_CACHE_HOME="${HOME}/.local/cache"
+  export XDG_CONFIG_HOME="${HOME}/.local/config"
+  export XDG_DATA_HOME="${HOME}/.local/share"
+fi
 
 [[ -d "$XDG_CACHE_HOME" ]] || mkdir -p "$XDG_CACHE_HOME"
 [[ -d "$XDG_CONFIG_HOME" ]] || mkdir -p "$XDG_CONFIG_HOME"
