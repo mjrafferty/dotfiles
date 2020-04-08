@@ -11,4 +11,6 @@ load_conf alias
 load_conf functions
 load_conf apollo
 
-autoload -Uz compinit && compinit
+HISTFILE="${XDG_DATA_HOME}/zsh_history"
+
+autoload -Uz compinit && compinit -C -i -d ${ZSH_COMPDUMP}
