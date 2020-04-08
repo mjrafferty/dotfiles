@@ -46,10 +46,10 @@ _sourceClient() {
     source "$x";
   done
 
-  userPath=($(grep -Poh '\s*PATH=\K.*' /home/"${USER}"/.bash{rc,_profile} | sed -e "s_\$HOME_/home/${USER}_g" -e "s_\$PATH_${PATH}_g"))
+  userPath=($(grep -Poh '\s*(export)?\s*PATH=\K.*' /home/"${USER}"/.bash{rc,_profile} | sed -e "s_\$HOME_/home/${USER}_g"))
 
   for x in "${userPath[@]}"; do
-    PATH="$x";
+    PATH="${x/\$PATH/$PATH}";
   done
 
   source /etc/nexcess/bash_functions.sh
