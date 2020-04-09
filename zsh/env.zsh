@@ -41,7 +41,7 @@ export MANPAGER="less -inSFR"
 export EDITOR="vim"
 export VISUAL="vim"
 
-export PATH="${PATH}:${HOME}/bin:${HOME}/.local/bin"
+export PATH="/usr/local/sbin:${PATH}:${HOME}/bin:${HOME}/.local/bin"
 
 export LESSHISTFILE="${XDG_CACHE_HOME}/lesshist"
 export SQLITE_HISTORY="${XDG_CACHE_HOME}/sqlite_history"
