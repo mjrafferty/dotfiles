@@ -103,7 +103,7 @@ _findsite () {
 
   local servers uuid;
 
-  servers=$("$GREP" "\"value\":\"${1}\"" /home/domains.json | "$CUT" -d\" -f4)
+  servers=$("$GREP" "\"value\":.*\"${1}\"" /home/domains.json | "$CUT" -d\" -f4)
 
   if [[ -z "$servers" ]]; then
     return 1;

@@ -394,15 +394,16 @@ u () {
       ln -s "$item" "${home}/${item##*/}"
     done
 
-    if [[ -n "${__ZHIST_INPUT_PIPE}" ]]; then
-      setfacl -m u:"$user":rw "${__ZHIST_INPUT_PIPE}"
-    fi
+  if [[ -e "/home/${user}/.composer" ]]; then
+    ln -s "/home/${user}/.composer" "${home}/.composer"
+  fi
 
-    if [[ -e "/home/${user}/.composer" ]]; then
-      ln -s "/home/${user}/.composer" "${home}/.composer"
-    fi
+  setfacl -R -m u:"$user":rX "$HOME"/{vim,zsh,.local/config} 2> /dev/null
+  setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.local/{share,cache}} 2> /dev/null
 
-    setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,vim,zsh,.local} 2> /dev/null
+  if [[ -n "${__ZHIST_PIPE}" ]]; then
+    setfacl -m u:"$user":rw "${__ZHIST_PIPE}"
+  fi
 
   # Switch user
   sudo HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
