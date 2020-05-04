@@ -401,17 +401,26 @@ u () {
   setfacl -R -m u:"$user":rX "$HOME"/{vim,zsh,.local/config} 2> /dev/null
   setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.local/{share,cache}} 2> /dev/null
 
+  if [[ -n "$XDG_RUNTIME_DIR" ]]; then
+    setfacl -m u:"$user":rwX "${XDG_RUNTIME_DIR}"
+  fi
+
   if [[ -n "${__ZHIST_PIPE}" ]]; then
     setfacl -m u:"$user":rw "${__ZHIST_PIPE}"
   fi
 
   # Switch user
-  sudo HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
+  sudo XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR}" HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
 
   # Give me permissions on any files the user created in my home dir
   sudo -u "$user" find "$home" -type f -user "$user" -exec setfacl -m u:"$USER":rwX {} +
 
   # Revoke the permissions given to that user
+
+  if [[ -n "$XDG_RUNTIME_DIR" ]]; then
+    setfacl -R -x u:"$user" "${XDG_RUNTIME_DIR}"
+  fi
+
   setfacl -R -x u:"$user" ~/
   chmod 700 "$HOME"
 
