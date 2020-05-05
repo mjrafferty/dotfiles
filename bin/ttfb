@@ -6,7 +6,7 @@ readonly ARGA=("$@")
 readonly CAT='/bin/cat'
 readonly CURL='/usr/bin/curl'
 
-if [[ -z "${XDG_DATA_HOME}" ]]; then
+if [[ -n "${XDG_DATA_HOME}" ]]; then
   COOKIE_FILE="${XDG_DATA_HOME}/ttfb.cookies"
 else
   COOKIE_FILE="${HOME}/.ttfb.cookies"
