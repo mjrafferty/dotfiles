@@ -1,4 +1,4 @@
 #! /bin/bash
 
-zsh;
+zsh --login;
 exit;
