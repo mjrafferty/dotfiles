@@ -130,7 +130,7 @@ function _soapv2 () {
 
   try {
 
-    $client = new SoapClient('http'.$config["secure"].'://'.$config["domain"].'/api/v2_soap?wsdl=1', array('trace' => 1, 'connection_timeout' => 120));
+    $client = new SoapClient('http'.$config["secure"].'://'.$config["domain"].'/api/v2_soap?wsdl=1', array('compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP, 'trace' => 1, 'connection_timeout' => 120));
     $session = $client->login($config["user"], $config["pass"]);
 
     printf("Request:\n");
@@ -139,7 +139,7 @@ function _soapv2 () {
     printf("\nResponse:\n");
     echo $client->__getLastResponse();
 
-    $result = $client->catalogProductList($session);
+    $result = $client->catalogCategoryTree($session);
 
     printf("\nRequest:\n");
     echo $client->__getLastRequest();
