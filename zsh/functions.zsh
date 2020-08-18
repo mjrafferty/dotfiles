@@ -616,17 +616,22 @@ organize_pictures() {
 
   for x in $(find "${SOURCE_DIR}" -type f ); do
 
-    date=$(jhead $x 2> /dev/null | grep 'Date/Time');
+    date="$(identify -format '%[EXIF:DateTimeOriginal]' "$x" 2> /dev/null)"; 
+    [[ -z "$date" ]] && date="$(identify -format '%[EXIF:DateTime]' "$x")"; 
+    [[ -z "$date" ]] && date="$(identify -format '%[date:modify]' "$x")";
 
     if [[ -n $date ]]; then
 
-      year=$(echo $date | cut -d: -f2 | sed 's/^ //');
-      month=$(echo $date | cut -d: -f3);
+      year=$(echo $date | grep -Po '[1-2][0-9]{3}(?=.[0-9]{2}.[0-9]{2}.*)');
+      month=$(echo $date | grep -Po '[1-2][0-9]{3}.\K[0-9]{2}(?=.[0-9]{2}.*)');
 
       x=$(echo $x | sed 's/^\.\///');
 
       echo "mkdir -p ${DESTINATION_DIR:-.}/${year}/${month}";
+      mkdir -p "${DESTINATION_DIR:-.}/${year}/${month}";
+
       echo "mv ${x} ${DESTINATION_DIR:-.}/${year}/${month}/${x##*/}";
+      mv "${x}" "${DESTINATION_DIR:-.}/${year}/${month}/${x##*/}";
 
     fi;
 
@@ -682,4 +687,30 @@ start_agent () {
   source "${SSH_ENV}" > /dev/null;
 
   /usr/bin/ssh-add "${HOME}/.ssh/nex${USER}.id_rsa";
+}
+
+get() {
+
+  local -a curl_opts;
+
+  curl_opts=(
+    "--continue-at" "-"
+    "--location" 
+    "--progress-bar" 
+    "--remote-name" 
+    "--remote-time"
+    "--remote-header-name"
+    "--compressed" 
+    )
+
+    if [[ -n "$GET_COOKIES" ]]; then
+      curl_opts+=("--header" "Cookie: ${GET_COOKIES}")
+    fi
+
+    if [[ -n "$GET_USER_AGENT" ]]; then
+      curl_opts+=("--user-agent" "${GET_USER_AGENT}")
+    fi
+
+  curl ${curl_opts[@]} "${@}"
+
 }

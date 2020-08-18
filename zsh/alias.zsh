@@ -74,7 +74,6 @@ alias lt='ll -tr'
 alias lu='lt -u'
 alias lx='ll -XB'
 
-alias get='curl --continue-at - --location --progress-bar --remote-name --remote-time'
 alias http-serve='python3 -m http.server'
 alias sa='alias | grep -i'
 
