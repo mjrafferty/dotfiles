@@ -41,6 +41,7 @@ Plug 'terryma/vim-multiple-cursors'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-surround'
 if ( v:version > 800 )
+  let g:ale_completion_enabled = 1
   Plug 'w0rp/ale'
 endif
 Plug 'weynhamz/vim-plugin-minibufexpl'
@@ -156,11 +157,17 @@ nnoremap <cr> :noh<CR><CR>:<backspace>
 """""""""""""""""""""""""""""""""
 
 " ale plugin settings
-let g:ale_open_list = 1
-let g:ale_lint_delay = 5000
+"let g:ale_lint_delay = 5000
+let g:ale_hover_to_preview = 1
 let g:ale_sh_shellcheck_options = '-s bash'
 let g:ale_linters_sh_shellcheck_exclusions = "SC2016"
 let g:ale_yaml_yamllint_options='-d "{extends: relaxed, rules: {line-length: {max: 120}}}"'
+let g:ale_completion_tsserver_autoimport = 1
+let g:ale_fixers = {
+      \   '*': ['remove_trailing_lines', 'trim_whitespace'],
+      \   'php': ['phpcbf'],
+      \   'javascript': ['eslint'],
+      \}
 
 " YouCompleteMe plugin settings
 let g:ycm_always_populate_location_list = 1
@@ -192,6 +199,15 @@ let g:gutentags_cache_dir=$XDG_CACHE_HOME . '/gutentags'"
 
 " tagbar plugin settings
 let g:tagbar_width=30
+let g:tagbar_left = 1
+
+" Polyglot plugin settings
+let php_sql_query = 0
+let php_sql_heredoc = 0
+let php_sql_nowdoc = 0
+let php_html_load = 0
+let php_html_in_heredoc = 0
+let php_html_in_nowdoc = 0
 
 highlight TagbarHighlight ctermbg=DarkGray
 "----------------------------
@@ -270,13 +286,20 @@ augroup matchpairs
   autocmd FileType c,cpp,java set matchpairs+==:;
 augroup END
 
-" Automatically open tagbar for supported files
-if ( v:version >= 800 && executable('ctags'))
-  augroup tagbar
+if ( v:version > 800 )
+  augroup CloseLoclistWindowGroup
     autocmd!
-    autocmd VimEnter * nested :call tagbar#autoopen(1)
+    autocmd QuitPre * if empty(&buftype) | lclose | endif
   augroup END
 endif
+
+" Automatically open tagbar for supported files
+"if ( v:version >= 800 && executable('ctags'))
+  "augroup tagbar
+    "autocmd!
+    "autocmd VimEnter * nested :call tagbar#autoopen(1)
+  "augroup END
+"endif
 
 "-------------------------
 "----- End Autocmds ------

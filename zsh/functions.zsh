@@ -701,6 +701,7 @@ get() {
     "--remote-time"
     "--remote-header-name"
     "--compressed" 
+    "--retry" "5"
     )
 
     if [[ -n "$GET_COOKIES" ]]; then
