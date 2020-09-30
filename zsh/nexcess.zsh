@@ -17,7 +17,7 @@ _sudoAlias() {
 
   for x in ${sudo_cmds[*]}; do
 
-    if [[ "$x" =~ "/usr/nexkit/bin/nk" ]]; then
+    if [[ "$x" =~ "/usr/nexkit/bin/nk" && -r "/usr/nexkit/bin" ]]; then
 
       for y in /usr/nexkit/bin/nk*; do
 
