@@ -13,7 +13,7 @@ case "$HOST" in
   "pi") rc_conf="pi" ;;
   "mellon"*) rc_conf="login_server" ;;
   *".nexcess.net") rc_conf="nexcess" ;;
-  *".nxcli.net") rc_conf="nexcess" ;;
+  *"nxcli.net") rc_conf="nexcess" ;;
   "localhost") rc_conf="phone" ;;
   *) rc_conf="home" ;;
 esac
