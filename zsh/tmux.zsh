@@ -5,8 +5,8 @@ case "$HOST" in
   "Home") TMUX_CONF="${XDG_CONFIG_HOME}/tmux/default.conf" ;;
   "pi") TMUX_CONF="${XDG_CONFIG_HOME}/tmux/default.conf" ;;
   "mellon"*) TMUX_CONF="${XDG_CONFIG_HOME}/tmux/login_server.conf" ;;
-  *".nexcess.net") TMUX_CONF="${XDG_CONFIG_HOME}/tmux/default.conf" ;;
-  *"nxcli.net") TMUX_CONF="${XDG_CONFIG_HOME}/tmux/default.conf" ;;
+  *".nexcess.net") TMUX_CONF="${XDG_CONFIG_HOME}/tmux/nexcess.conf" ;;
+  *"nxcli.net") TMUX_CONF="${XDG_CONFIG_HOME}/tmux/nexcess.conf" ;;
   "localhost") TMUX_CONF="${XDG_CONFIG_HOME}/tmux/default.conf" ;;
   *) TMUX_CONF="${XDG_CONFIG_HOME}/tmux/default.conf" ;;
 esac
