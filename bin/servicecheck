@@ -184,7 +184,7 @@ _redis() {
 
       else
 
-        if "$GREP" -Pq "\s+/var/(tmp|run/redis-multi(/${name}|-${name}/redis).sock" /proc/net/unix; then
+        if "$GREP" -Pq "\s+/var/(tmp/${name}|run/redis-multi(/${name}|-${name}/redis)).sock" /proc/net/unix; then
           continue;
         fi
 
