@@ -1,0 +1,170 @@
+#! /bin/bash
+# ============
+# Bash configuration
+# -e exit on first error
+# -u error is variable unset
+# -x display commands for debugging
+set -eux
+
+# Script Arguments
+readonly ARGA=("$@")
+
+# Print usage
+_usage() {
+
+  cat <<- EOF
+  This is the usage
+EOF
+
+}
+
+# Convert long command line options into short ones for getopts
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--file"|"-f")
+        args="${args}-f "
+        ;;
+      "--user"|"-u")
+        args="${args}-u "
+        ;;
+      "--database"|"-d")
+        args="${args}-d "
+        ;;
+      "--password"|"-p")
+        args="${args}-p "
+        ;;
+      "--replace"|"-r")
+        args="${args}-r "
+        ;;
+      "--"*)
+        echo "$x is not a supported option." >&2
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+  done
+
+  echo "$args";
+
+}
+
+_catDump () {
+
+  local dump_file cat size
+
+  dump_file="$1"
+
+  echo 'SET foreign_key_checks = 0;'; 
+
+  case "$dump_file" in
+    (*.gz) cat="zcat"  ;;
+    (*.zip) cat="zcat"  ;;
+    (*.xz) cat="xzcat"  ;;
+    (*) cat="cat"  ;;
+  esac
+
+  size="$("$cat" "$dump_file" | wc --bytes)" 
+
+  "$cat" "$dump_file" \
+    | pv --wait --size "$size"
+
+  }
+
+_transform() {
+
+  local replacements;
+
+  replacements=(
+    '-e' 's/INSERT INTO/INSERT IGNORE INTO/g'
+    "${@}"
+  )
+
+  sed -r 's/DEFINER\s*\=\s*\S+\@\S+//g' \
+    | sed "${replacements[@]}"
+
+}
+
+_import() {
+
+  local user database password;
+
+  user="$1";
+  database="$2";
+  password="$3";
+
+  mysql --user "${user}" --database "${database}" --password "${password}"
+
+}
+
+# Main
+main () {
+
+  local cmdline dump_file user database password replacement replacements;
+
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts ":hf:u:d:p:r:" OPTION "${cmdline[@]}"; do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      f)
+        if [[ -f "$OPTARG" ]]; then
+          dump_file="$OPTARG";
+        else
+          echo "No file provided for -f.";
+          exit 1;
+        fi
+        ;; 
+      u)
+        user="$OPTARG";
+        ;;
+      d)
+        database="$OPTARG";
+        ;;
+      p)
+        password="$OPTARG";
+        ;;
+      r)
+        mapfile -t replacement < <(echo "$OPTARG" | tr ',' '\n' );
+        replacements+=('-e' "s~${replacement[0]}~${replacement[1]}~g")
+        ;;
+      "?")
+        echo "-${OPTARG} is not a supported option." >&2
+        ;;
+      *);;
+    esac
+    shift;
+  done
+
+  if [[ -z "$dump_file" ]]; then
+    if [[ -f "$1" ]]; then
+      dump_file="$1";
+    else
+      echo "No database dump provided";
+      exit 1;
+    fi
+  fi
+
+  ## TODO create db and user if not provided
+
+  ## TODO Verify db is empty, offer to backup and drop existing
+
+  _catDump "$dump_file" \
+    | _transform "${replacements[@]}" \
+    | _import "$user" "$database" "$password"
+
+}
+
+main "${ARGA[@]}";
