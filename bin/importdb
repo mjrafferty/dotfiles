@@ -1,10 +1,5 @@
 #! /bin/bash
 # ============
-# Bash configuration
-# -e exit on first error
-# -u error is variable unset
-# -x display commands for debugging
-set -eux
 
 # Script Arguments
 readonly ARGA=("$@")
@@ -57,6 +52,81 @@ _cmdline() {
 
 }
 
+_formatbytes() {
+
+  local column
+
+  column="$1"
+
+  if [[ -z "$column" ]]; then
+    column="1"
+  fi
+
+  awk "{
+    if ( \$${column} >= 1073741824  )
+      {
+        \$${column}=sprintf(\"%'.1fGB\",\$${column}/1024/1024/1024);
+      }
+    else if ( \$${column} >= 1048576  )
+      {
+        \$${column}=sprintf(\"%'.1fMB\",\$${column}/1024/1024);
+      }
+    else if ( \$${column} >= 1024  )
+      {
+        \$${column}=sprintf(\"%'.1fKB\",\$${column}/1024);
+      }
+    else
+      {
+        \$${column}=sprintf(\"%'.1fB\",\$${column});
+      }
+    print \$0;
+  }";
+
+}
+
+_admin_query () {
+
+  local mysql_args;
+
+  mysql_args=(
+    "--defaults-extra-file=/root/.my.cnf"
+    "--defaults-group-suffix=_root"
+    "--skip-column-names"
+    "-e"
+  )
+  mysql "${mysql_args[@]}" "$@"
+}
+
+_dumpDb () {
+
+  local database gzip mysqldump_args dump_file
+
+  database="$1"
+
+  mysqldump_args=(
+    "--defaults-extra-file=/root/.my.cnf"
+    "--defaults-group-suffix=_root"
+    "--opt"
+    "--skip-lock-tables"
+    "--routines"
+  )
+
+  if [ -x /usr/bin/pigz ]; then
+    gzip='/usr/bin/pigz'
+  else
+    gzip='/bin/gzip'
+  fi
+
+  dump_file="$HOME/${database}-$(date --iso-8601=minute).sql.gz"
+
+  printf "Dumping database...";
+  mysqldump "${mysqldump_args[@]}" "$database" | "$gzip" --fast > "$dump_file"
+  printf "Done\n";
+
+  echo "Dump file: $dump_file"
+
+}
+
 _catDump () {
 
   local dump_file cat size
@@ -72,7 +142,9 @@ _catDump () {
     (*) cat="cat"  ;;
   esac
 
+  printf "Calculating Size. Please wait...";
   size="$("$cat" "$dump_file" | wc --bytes)" 
+  printf "Done %s\n" "$(echo "$size" | _formatbytes 1)";
 
   "$cat" "$dump_file" \
     | pv --wait --size "$size"
@@ -101,7 +173,43 @@ _import() {
   database="$2";
   password="$3";
 
-  mysql --user "${user}" --database "${database}" --password "${password}"
+  mysql --user="${user}" --database="${database}" -p"${password}"
+
+}
+
+_dbIsEmpty() {
+
+  local database decision;
+
+  database="$1";
+
+  table_count="$(_admin_query "select count(*) from information_schema.tables where TABLE_SCHEMA=\"${database}\";")"
+
+  if ((table_count > 0)); then
+    read -r -p "Database ${database} not empty. Drop database? (y/N): " decision;
+
+    case "${decision}" in
+
+      "Yes"|"YES"|"yes"|"y"|"Y")
+
+        read -r -p "Backup existing database? (y/N): " decision;
+
+        case "${decision}" in
+
+          "Yes"|"YES"|"yes"|"y"|"Y")
+            _dumpDb "${database}";
+            ;;
+
+          *);;
+        esac
+
+        _admin_query "Drop database ${database}; create database ${database}" \
+          || return 3;
+        ;;
+
+      *) return 2;;
+    esac
+  fi
 
 }
 
@@ -160,6 +268,7 @@ main () {
   ## TODO create db and user if not provided
 
   ## TODO Verify db is empty, offer to backup and drop existing
+  _dbIsEmpty "$database" || return 2;
 
   _catDump "$dump_file" \
     | _transform "${replacements[@]}" \
