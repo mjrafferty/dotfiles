@@ -142,9 +142,9 @@ _catDump () {
     (*) cat="cat"  ;;
   esac
 
-  printf "Calculating Size. Please wait...";
+  printf "Calculating Size. Please wait..." >&2;
   size="$("$cat" "$dump_file" | wc --bytes)" 
-  printf "Done %s\n" "$(echo "$size" | _formatbytes 1)";
+  printf "Done %s\n" "$(echo "$size" | _formatbytes 1)" >&2;
 
   "$cat" "$dump_file" \
     | pv --wait --size "$size"
