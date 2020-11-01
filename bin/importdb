@@ -212,6 +212,21 @@ _dbIsEmpty() {
 
 }
 
+_accessTest () {
+
+  user="$1";
+  database="$2";
+  password="$3";
+
+  mysql --user="${user}" --database="${database}" -p"${password}" -e "exit"
+
+  if [[ "$?" != 0 ]]; then
+    echo "$user does not have access to $database or password incorrect.";
+    return 1;
+  fi
+
+}
+
 # Main
 main () {
 
@@ -277,6 +292,8 @@ main () {
   fi
 
   [[ -n "$password" ]] || { echo "No password provided"; return 5; }
+
+  _accesstest "$user" "$database" "$password" | return 6;
 
   _catDump "$dump_file" \
     | _transform "${replacements[@]}" \
