@@ -218,10 +218,10 @@ _accessTest () {
   database="$2";
   password="$3";
 
-  mysql --user="${user}" --database="${database}" -p"${password}" -e "exit"
+  mysql --user="${user}" --database="${database}" -p"${password}" -e "exit" 2> /dev/null
 
   if [[ "$?" != 0 ]]; then
-    echo "$user does not have access to $database or password incorrect.";
+    echo "User $user does not have access to Database $database or password incorrect.";
     return 1;
   fi
 
@@ -293,7 +293,7 @@ main () {
 
   [[ -n "$password" ]] || { echo "No password provided"; return 5; }
 
-  _accesstest "$user" "$database" "$password" | return 6;
+  _accessTest "$user" "$database" "$password" || return 6;
 
   _catDump "$dump_file" \
     | _transform "${replacements[@]}" \
