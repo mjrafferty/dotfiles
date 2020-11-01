@@ -284,16 +284,16 @@ main () {
 
   ## TODO create db and user if not provided
 
-  _dbIsEmpty "$database" || return 4;
-
   if [[ -z "$password" ]]; then
     read -r -s -p "Enter password: " password
     echo;
   fi
 
-  [[ -n "$password" ]] || { echo "No password provided"; return 5; }
+  [[ -n "$password" ]] || { echo "No password provided"; return 4; }
 
-  _accessTest "$user" "$database" "$password" || return 6;
+  _accessTest "$user" "$database" "$password" || return 5;
+
+  _dbIsEmpty "$database" || return 6;
 
   _catDump "$dump_file" \
     | _transform "${replacements[@]}" \
