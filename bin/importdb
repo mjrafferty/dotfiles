@@ -1,5 +1,4 @@
 #! /bin/bash
-# ============
 
 # Script Arguments
 readonly ARGA=("$@")
@@ -257,26 +256,27 @@ main () {
   done
 
   if [[ -z "$dump_file" ]]; then
-    if [[ -f "$1" ]]; then
-      dump_file="$1";
-    else
-      echo "No database dump provided";
-      exit 1;
-    fi
+    for arg in "$@"; do
+      if [[ -f "$arg" ]]; then
+        dump_file="$arg";
+      fi
+    done
   fi
 
-  [[ -n "$user" ]] || { echo "No user provided"; return 1; }
-  [[ -n "$database" ]] || { echo "No database provided"; return 2; }
+  [[ -n "$dump_file" ]] || { echo "No dump file provided"; return 1; }
+  [[ -n "$user" ]] || { echo "No user provided"; return 2; }
+  [[ -n "$database" ]] || { echo "No database provided"; return 3; }
 
   ## TODO create db and user if not provided
 
-  _dbIsEmpty "$database" || return 3;
+  _dbIsEmpty "$database" || return 4;
 
   if [[ -z "$password" ]]; then
     read -r -s -p "Enter password: " password
+    echo;
   fi
 
-  [[ -n "$password" ]] || { echo "No password provided"; return 4; }
+  [[ -n "$password" ]] || { echo "No password provided"; return 5; }
 
   _catDump "$dump_file" \
     | _transform "${replacements[@]}" \
