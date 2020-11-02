@@ -3,6 +3,9 @@
 # Script Arguments
 readonly ARGA=("$@")
 
+## Necessary Global variables
+UNIX_USER="";
+
 # Print usage
 _usage() {
 
@@ -48,6 +51,13 @@ _cmdline() {
   done
 
   echo "$args";
+
+}
+
+_getusr() {
+
+  pwd \
+    | grep -Po "/(chroot/)?(home|local|data)/\K[^/]*"
 
 }
 
@@ -212,6 +222,114 @@ _dbIsEmpty() {
 
 }
 
+_createDB () {
+
+  local database user siteworx_args decision;
+
+  database="${1/${UNIX_USER}_/}";
+  user="${2/${UNIX_USER}_/}";
+
+  read -r -p "Database ${database} does not exist. Create it? (y/N): " decision;
+  case "${decision}" in
+    "Yes"|"YES"|"yes"|"y"|"Y");;
+    *) return 1;;
+  esac
+
+  siteworx_args=(
+    "--user-auth"
+    "--non-interactive"
+    "--controller MysqlDb"
+    "--action add"
+    "--name $database"
+  )
+
+  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
+
+  siteworx_args=(
+    "--user-auth"
+    "--non-interactive"
+    "--controller MysqlPerms"
+    "--action add"
+    "--name $database"
+    "--user $user"
+    "--perms all"
+  )
+
+  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
+
+}
+
+_createUser() {
+
+  local database user password siteworx_args decision;
+
+  database="${1/${UNIX_USER}_/}";
+  user="${2/${UNIX_USER}_/}";
+  password="$3";
+
+  read -r -p "User $user does not exist. Create it? (y/N): " decision;
+  case "${decision}" in
+    "Yes"|"YES"|"yes"|"y"|"Y");;
+    *) return 1;;
+  esac
+
+  siteworx_args=(
+    "--user-auth"
+    "--non-interactive"
+    "--controller MysqlUser"
+    "--action add"
+    "--name $user"
+    "--password  $password"
+    "--confirm_password $password"
+  )
+
+  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
+
+  siteworx_args=(
+    "--user-auth"
+    "--non-interactive"
+    "--controller MysqlPerms"
+    "--action add"
+    "--name $database"
+    "--user $user"
+    "--perms all"
+  )
+
+  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
+
+}
+
+_createDBandUser() {
+
+  local database user password siteworx_args decision;
+
+  database="${1/${UNIX_USER}_/}";
+  user="${2/${UNIX_USER}_/}";
+  password="$3";
+
+  read -r -p "Database ${database} and user $user do not exist. Create both? (y/N): " decision;
+  case "${decision}" in
+    "Yes"|"YES"|"yes"|"y"|"Y");;
+    *) return 1;;
+  esac
+
+  siteworx_args=(
+    "--user-auth"
+    "--non-interactive"
+    "--controller MysqlDb"
+    "--action add"
+    "--name $database"
+    "--create-user 1"
+    "--user $user"
+    "--password $password"
+    "--confirm_password $password"
+    "--perms all"
+  )
+
+  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
+
+}
+
 _accessTest () {
 
   user="$1";
@@ -227,10 +345,33 @@ _accessTest () {
 
 }
 
+_isDB () {
+
+  local database output;
+  database="$1";
+
+  output="$(_admin_query "show databases like \"mjraffert_mage193\";")";
+
+  [[ -z $output ]] && return 1;
+
+}
+
+_isUser () {
+
+  local user output;
+  user="$1";
+
+  output="$(_admin_query "SELECT 1 FROM mysql.user WHERE user = \"$user\" limit 1")";
+
+  [[ -z $output ]] && return 1;
+
+}
+
+
 # Main
 main () {
 
-  local cmdline dump_file user database password replacement replacements;
+  local cmdline dump_file user database password replacement replacements make_db_or_user;
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
@@ -278,11 +419,28 @@ main () {
     done
   fi
 
+  UNIX_USER="$(_getusr)";
+
+  ## TODO create db and user if not provided
+
   [[ -n "$dump_file" ]] || { echo "No dump file provided"; return 1; }
   [[ -n "$user" ]] || { echo "No user provided"; return 2; }
   [[ -n "$database" ]] || { echo "No database provided"; return 3; }
 
-  ## TODO create db and user if not provided
+  if ! _isDB "$database"; then
+    make_db_or_user=1;
+  fi
+
+  if ! _isUser "$user"; then
+    make_db_or_user+=2;
+  fi
+
+  case "$make_db_or_user"; do
+    1) _createDB "$database" "$user";;
+    2) _createUser "$database" "$user" "$password";;
+    3) _createDBandUser "$database" "$user" "$password";;
+    *);;
+  esac
 
   if [[ -z "$password" ]]; then
     read -r -s -p "Enter password: " password
