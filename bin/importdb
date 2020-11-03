@@ -96,6 +96,56 @@ _formatbytes() {
 
 }
 
+_xkcd () {
+
+  if [[ "$ARGS" =~ --help$|-h$ ]]; then
+    _usage;
+    return 0;
+  fi
+
+  local wordList word rnd
+
+  if [ -r /usr/local/interworx/lib/dict/words ]; then
+
+    wordList='/usr/local/interworx/lib/dict/words';
+
+  elif [ -r /usr/share/dict/words ]; then
+
+    wordList='/usr/share/dict/words';
+
+  else
+    echo "No word list found.";
+    return 1;
+  fi
+
+  if [[ -x /usr/bin/shuf ]]; then
+
+    pass=$(shuf -n1000 "$wordList" | grep -E '^[a-z,A-Z]{4,12}$' | head -n4 | sed 's/^\([a-z]\)/\u\1/' | tr -d '\n| ');
+
+    echo "$pass"$(( (RANDOM % 9000) + 1000 ));
+
+  else
+
+    word=();
+
+    matchList=$(grep -E '^[a-z,A-Z]{4,12}$' $wordList);
+    IFS=" "
+    wcount=$(echo "$matchList" | wc -l | awk '{print $1}')
+
+    for ((x=0;x<4;x++)) do
+
+      rnd=$((RANDOM % wcount))
+
+      word[$x]=$(echo "$matchList" | sed -n "${rnd}p" | sed 's/^\([a-z]\)/\u\1/');
+
+    done;
+
+    echo "${word[0]}${word[1]}${word[2]}${word[3]}$(( RANDOM % 9000 + 1000 ))";
+
+  fi
+
+}
+
 _admin_query () {
 
   local mysql_args;
@@ -359,6 +409,24 @@ _isUser () {
 
 }
 
+_printAccess () {
+
+  local user database password;
+
+  user="$1";
+  database="$2";
+  password="$3";
+
+  cat <<- EOF
+
+Database: $database
+Username: $user
+Password: $password
+
+EOF
+
+} 
+
 
 # Main
 main () {
@@ -450,16 +518,18 @@ main () {
   case "$make_db_or_user" in
     1) 
       _createDB "$database" || return 5
-      _grantPerms "$database" "$user" || return 7
+      emptydb=1;
+      _grantPerms "$database" "$user" &> /dev/null
       ;;
     2)
-      password="testing123";
+      password="$(_xkcd)"
       _createUser "$user" "$password" || return 6
       _grantPerms "$database" "$user" || return 7
       ;;
     3)
-      password="testing123";
+      password="$(_xkcd)"
       _createDB "$database" || return 5
+      emptydb=1;
       _createUser "$user" "$password" || return 6
       _grantPerms "$database" "$user" || return 7
       ;;
@@ -467,6 +537,8 @@ main () {
   esac
 
   _accessTest "$user" "$database" "$password" || return 8;
+
+  _printAccess "$user" "$database" "$password";
 
   if (( emptydb != 1 )); then
     _dropDB "$database" || return 9;
