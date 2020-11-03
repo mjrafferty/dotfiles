@@ -226,7 +226,7 @@ _catDump () {
   "$cat" "$dump_file" \
     | pv --wait --size "$size"
 
-  }
+}
 
 _transform() {
 
