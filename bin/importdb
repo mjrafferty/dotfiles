@@ -476,7 +476,7 @@ _checkUnixUser () {
 # Main
 main () {
 
-  local cmdline dump_file user database password replacement replacements make_db_or_user emptydb;
+  local cmdline dump_file user database password replacement replacements make_db_or_user emptydb suffix temp_user temp_db input_user input_db;
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
@@ -535,7 +535,41 @@ main () {
 
   _checkUnixUser || return 2;
 
-  ## TODO create db and user if not provided
+  if [[ -z "$database" || -z "$user" ]]; then
+
+    suffix="$(date "+%s" | cut -c2-8)"
+    temp_db="${UNIX_USER}_${suffix}"
+    temp_user="${UNIX_USER}_${suffix}"
+
+    if [[ -z "$user" ]]; then
+
+      if ((ASSUME_YES != 1)); then
+        read -r -p "No user provided. Enter user name (default ${temp_user}): " input_user;
+      fi
+
+      if [[ -n "$input_user" ]]; then
+        user="$input_user";
+      else
+        user="$temp_user";
+      fi
+
+    fi
+
+    if [[ -z "$database" ]]; then
+
+      if ((ASSUME_YES != 1)); then
+        read -r -p "No database provided. Enter database name (default ${temp_db}): " input_db;
+      fi
+
+      if [[ -n "$input_db" ]]; then
+        database="$input_db";
+      else
+        database="$temp_db";
+      fi
+
+    fi
+
+  fi
 
   [[ -n "$user" ]] || { echo "No user provided"; return 3; }
   [[ -n "$database" ]] || { echo "No database provided"; return 4; }
