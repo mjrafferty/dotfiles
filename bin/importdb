@@ -345,8 +345,9 @@ _accessTest () {
   database="$2";
   password="$3";
 
-  mysql --user="${user}" --database="${database}" -p"${password}" -e "exit" 2> /dev/null
+  mysql --user="${user}" --database="${database}" --password="${password}" -e "exit" 2> /dev/null
 
+  # shellcheck disable=SC2181
   if [[ "$?" != 0 ]]; then
     echo "User $user does not have access to database $database or password incorrect.";
     return 1;
@@ -425,26 +426,32 @@ main () {
         ;;
       *);;
     esac
-    shift;
   done
 
   if [[ -z "$dump_file" ]]; then
+
     for arg in "$@"; do
       if [[ -f "$arg" ]]; then
         dump_file="$arg";
       fi
     done
+
+    [[ -n "$dump_file" ]] || { echo "No dump file provided"; return 1; }
+
   fi
 
   UNIX_USER="$(_getusr)";
 
+
   ## TODO create db and user if not provided
 
-  [[ -n "$dump_file" ]] || { echo "No dump file provided"; return 1; }
   [[ -n "$user" ]] || { echo "No user provided"; return 2; }
   [[ -n "$database" ]] || { echo "No database provided"; return 3; }
 
-  if ! _isDB "$database"; then
+
+  if _isDB "$database"; then
+    _dbIsEmpty "$database" || return 9;
+  else
     ((make_db_or_user=1));
   fi
 
@@ -452,12 +459,16 @@ main () {
     ((make_db_or_user+=2));
   fi
 
-  if [[ -z "$password" ]]; then
+
+  if [[ -z "$password" && "$make_db_or_user" -le 1 ]]; then
+
     read -r -s -p "Enter password: " password
     echo;
+
+    [[ -n "$password" ]] || { echo "No password provided"; return 4; }
+
   fi
 
-  [[ -n "$password" ]] || { echo "No password provided"; return 4; }
 
   case "$make_db_or_user" in
     1) _createDB "$database" "$user" || return 5;;
@@ -468,7 +479,6 @@ main () {
 
   _accessTest "$user" "$database" "$password" || return 8;
 
-  _dbIsEmpty "$database" || return 9;
 
   _catDump "$dump_file" \
     | _transform "${replacements[@]}" \
