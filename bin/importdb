@@ -182,7 +182,7 @@ _import() {
   database="$2";
   password="$3";
 
-  mysql --user="${user}" --database="${database}" -p"${password}"
+  mysql --user="${user}" --database="${database}" --password="${password}"
 
 }
 
@@ -226,8 +226,8 @@ _createDB () {
 
   local database user siteworx_args decision;
 
-  database="${1/${UNIX_USER}_/}";
-  user="${2/${UNIX_USER}_/}";
+  database="$1";
+  user="$2";
 
   read -r -p "Database ${database} does not exist. Create it? (y/N): " decision;
   case "${decision}" in
@@ -235,12 +235,15 @@ _createDB () {
     *) return 1;;
   esac
 
+  database="${database/${UNIX_USER}_/}";
+  user="${user/${UNIX_USER}_/}";
+
   siteworx_args=(
     "--user-auth"
     "--non-interactive"
-    "--controller MysqlDb"
-    "--action add"
-    "--name $database"
+    "--controller" "MysqlDb"
+    "--action" "add"
+    "--name" "$database"
   )
 
   sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
@@ -248,11 +251,11 @@ _createDB () {
   siteworx_args=(
     "--user-auth"
     "--non-interactive"
-    "--controller MysqlPerms"
-    "--action add"
-    "--name $database"
-    "--user $user"
-    "--perms all"
+    "--controller" "MysqlPerms"
+    "--action" "add"
+    "--name" "$database"
+    "--user" "$user"
+    "--perms" "all"
   )
 
   sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
@@ -263,8 +266,8 @@ _createUser() {
 
   local database user password siteworx_args decision;
 
-  database="${1/${UNIX_USER}_/}";
-  user="${2/${UNIX_USER}_/}";
+  database="$1";
+  user="$2";
   password="$3";
 
   read -r -p "User $user does not exist. Create it? (y/N): " decision;
@@ -273,14 +276,17 @@ _createUser() {
     *) return 1;;
   esac
 
+  database="${database/${UNIX_USER}_/}";
+  user="${user/${UNIX_USER}_/}";
+
   siteworx_args=(
     "--user-auth"
     "--non-interactive"
-    "--controller MysqlUser"
-    "--action add"
-    "--name $user"
-    "--password  $password"
-    "--confirm_password $password"
+    "--controller" "MysqlUser"
+    "--action" "add"
+    "--name" "$user"
+    "--password" "$password"
+    "--confirm_password" "$password"
   )
 
   sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
@@ -288,11 +294,11 @@ _createUser() {
   siteworx_args=(
     "--user-auth"
     "--non-interactive"
-    "--controller MysqlPerms"
-    "--action add"
-    "--name $database"
-    "--user $user"
-    "--perms all"
+    "--controller" "MysqlPerms"
+    "--action" "add"
+    "--name" "$database"
+    "--user" "$user"
+    "--perms" "all"
   )
 
   sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
@@ -303,8 +309,8 @@ _createDBandUser() {
 
   local database user password siteworx_args decision;
 
-  database="${1/${UNIX_USER}_/}";
-  user="${2/${UNIX_USER}_/}";
+  database="$1";
+  user="$2";
   password="$3";
 
   read -r -p "Database ${database} and user $user do not exist. Create both? (y/N): " decision;
@@ -313,17 +319,20 @@ _createDBandUser() {
     *) return 1;;
   esac
 
+  database="${database/${UNIX_USER}_/}";
+  user="${user/${UNIX_USER}_/}";
+
   siteworx_args=(
     "--user-auth"
     "--non-interactive"
-    "--controller MysqlDb"
-    "--action add"
-    "--name $database"
-    "--create-user 1"
-    "--user $user"
-    "--password $password"
-    "--confirm_password $password"
-    "--perms all"
+    "--controller" "MysqlDb"
+    "--action" "add"
+    "--name" "$database"
+    "--create-user" "1"
+    "--user" "$user"
+    "--password" "$password"
+    "--confirm_password" "$password"
+    "--perms" "all"
   )
 
   sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
@@ -339,7 +348,7 @@ _accessTest () {
   mysql --user="${user}" --database="${database}" -p"${password}" -e "exit" 2> /dev/null
 
   if [[ "$?" != 0 ]]; then
-    echo "User $user does not have access to Database $database or password incorrect.";
+    echo "User $user does not have access to database $database or password incorrect.";
     return 1;
   fi
 
@@ -350,9 +359,13 @@ _isDB () {
   local database output;
   database="$1";
 
-  output="$(_admin_query "show databases like \"mjraffert_mage193\";")";
+  output="$(_admin_query "show databases like \"${database}\";")";
 
-  [[ -z $output ]] && return 1;
+  if [[ -z $output ]]; then
+    return 1;
+  else
+    return 0;
+  fi
 
 }
 
@@ -363,7 +376,11 @@ _isUser () {
 
   output="$(_admin_query "SELECT 1 FROM mysql.user WHERE user = \"$user\" limit 1")";
 
-  [[ -z $output ]] && return 1;
+  if [[ -z $output ]]; then
+    return 1;
+  else
+    return 0;
+  fi
 
 }
 
@@ -428,19 +445,12 @@ main () {
   [[ -n "$database" ]] || { echo "No database provided"; return 3; }
 
   if ! _isDB "$database"; then
-    make_db_or_user=1;
+    ((make_db_or_user=1));
   fi
 
   if ! _isUser "$user"; then
-    make_db_or_user+=2;
+    ((make_db_or_user+=2));
   fi
-
-  case "$make_db_or_user"; do
-    1) _createDB "$database" "$user";;
-    2) _createUser "$database" "$user" "$password";;
-    3) _createDBandUser "$database" "$user" "$password";;
-    *);;
-  esac
 
   if [[ -z "$password" ]]; then
     read -r -s -p "Enter password: " password
@@ -449,9 +459,16 @@ main () {
 
   [[ -n "$password" ]] || { echo "No password provided"; return 4; }
 
-  _accessTest "$user" "$database" "$password" || return 5;
+  case "$make_db_or_user" in
+    1) _createDB "$database" "$user" || return 5;;
+    2) _createUser "$database" "$user" "$password" || return 6;;
+    3) _createDBandUser "$database" "$user" "$password" || return 7;;
+    *);;
+  esac
 
-  _dbIsEmpty "$database" || return 6;
+  _accessTest "$user" "$database" "$password" || return 8;
+
+  _dbIsEmpty "$database" || return 9;
 
   _catDump "$dump_file" \
     | _transform "${replacements[@]}" \
