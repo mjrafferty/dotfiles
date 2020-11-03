@@ -14,7 +14,7 @@ _usage() {
 
   importdb [options] <dump_file>
 
-  -f|--file <file>              Sql file
+  -f|--file <file>              Sql file. Compressed formats supported.
   -u|--user <user>              Database user (Optional)
   -U|--unix-user <user>         Unix user. Will attempt to get user from pwd if omitted.
   -d|--database <name>          Name of database. (Optional)
@@ -472,7 +472,7 @@ _checkUnixUser () {
     "--non-interactive"
     "--controller" "Siteworx"
     "--action" "querySiteworxAccounts"
-    "--acount_data" "unixuser"
+    "--account_data" "unixuser"
   )
 
   if nodeworx "${nodeworx_args[@]}" | grep -q "^${UNIX_USER}$"; then
