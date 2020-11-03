@@ -5,6 +5,7 @@ readonly ARGA=("$@")
 
 ## Necessary Global variables
 UNIX_USER="";
+ASSUME_YES="";
 
 # Print usage
 _usage() {
@@ -43,6 +44,9 @@ _cmdline() {
         ;;
       "--replace"|"-r")
         args="${args}-r "
+        ;;
+      "--assume-yes"|"-y")
+        args="${args}-y "
         ;;
       "--"*)
         echo "$x is not a supported option." >&2
@@ -261,13 +265,21 @@ _dropDB () {
 
   database="$1"
 
-  read -r -p "Database ${database} not empty. Drop database? (y/N): " decision;
+  if ((ASSUME_YES == 1)); then
+    decision="yes";
+  else
+    read -r -p "Database ${database} not empty. Drop database? (y/N): " decision;
+  fi
 
   case "${decision}" in
 
     "Yes"|"YES"|"yes"|"y"|"Y")
 
-      read -r -p "Backup existing database? (y/N): " decision;
+      if ((ASSUME_YES == 1)); then
+        decision="yes";
+      else
+        read -r -p "Backup existing database? (y/N): " decision;
+      fi
 
       case "${decision}" in
 
@@ -293,7 +305,12 @@ _createDB () {
 
   database="$1";
 
-  read -r -p "Database ${database} does not exist. Create it? (y/N): " decision;
+  if ((ASSUME_YES == 1)); then
+    decision="yes";
+  else
+    read -r -p "Database ${database} does not exist. Create it? (y/N): " decision;
+  fi
+
   case "${decision}" in
     "Yes"|"YES"|"yes"|"y"|"Y");;
     *) return 1;;
@@ -320,7 +337,12 @@ _createUser() {
   user="$1";
   password="$2";
 
-  read -r -p "User $user does not exist. Create it? (y/N): " decision;
+  if ((ASSUME_YES == 1)); then
+    decision="yes";
+  else
+    read -r -p "User $user does not exist. Create it? (y/N): " decision;
+  fi
+
   case "${decision}" in
     "Yes"|"YES"|"yes"|"y"|"Y");;
     *) return 1;;
@@ -419,6 +441,7 @@ _printAccess () {
 
   cat <<- EOF
 
+DB Connection Info
 Database: $database
 Username: $user
 Password: $password
@@ -427,7 +450,6 @@ EOF
 
 } 
 
-
 # Main
 main () {
 
@@ -435,7 +457,7 @@ main () {
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
-  while getopts ":hf:u:U:d:p:r:" OPTION "${cmdline[@]}"; do
+  while getopts ":hf:u:U:d:p:r:y" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
@@ -465,6 +487,9 @@ main () {
       r)
         mapfile -t replacement < <(echo "$OPTARG" | tr ',' '\n' );
         replacements+=('-e' "s~${replacement[0]}~${replacement[1]}~g")
+        ;;
+      y)
+        ASSUME_YES=1;
         ;;
       "?")
         echo "-${OPTARG} is not a supported option." >&2
@@ -528,20 +553,20 @@ main () {
       ;;
     3)
       password="$(_xkcd)"
-      _createDB "$database" || return 5
+      _createDB "$database" || return 8
       emptydb=1;
-      _createUser "$user" "$password" || return 6
-      _grantPerms "$database" "$user" || return 7
+      _createUser "$user" "$password" || return 9
+      _grantPerms "$database" "$user" || return 10
       ;;
     *);;
   esac
 
-  _accessTest "$user" "$database" "$password" || return 8;
+  _accessTest "$user" "$database" "$password" || return 11;
 
   _printAccess "$user" "$database" "$password";
 
   if (( emptydb != 1 )); then
-    _dropDB "$database" || return 9;
+    _dropDB "$database" || return 12;
   fi
 
   _catDump "$dump_file" \
