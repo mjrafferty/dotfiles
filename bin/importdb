@@ -450,6 +450,29 @@ EOF
 
 } 
 
+_checkUnixUser () {
+
+  local nodeworx_args;
+
+  [[ -n "$UNIX_USER" ]] || UNIX_USER="$(_getusr)";
+
+  nodeworx_args=(
+    "--user-auth"
+    "--non-interactive"
+    "--controller" "Siteworx"
+    "--action" "querySiteworxAccounts"
+    "--acount_data" "unixuser"
+  )
+
+  if nodeworx "${nodeworx_args[@]}" | grep -q "^${UNIX_USER}$"; then
+    return 0;
+  else
+    echo "User $UNIX_USER is not tied to a siteworx account.";
+    return 1;
+  fi
+
+}
+
 # Main
 main () {
 
@@ -510,13 +533,12 @@ main () {
 
   fi
 
-  [[ -n "$UNIX_USER" ]] || UNIX_USER="$(_getusr)";
-
+  _checkUnixUser || return 2;
 
   ## TODO create db and user if not provided
 
-  [[ -n "$user" ]] || { echo "No user provided"; return 2; }
-  [[ -n "$database" ]] || { echo "No database provided"; return 3; }
+  [[ -n "$user" ]] || { echo "No user provided"; return 3; }
+  [[ -n "$database" ]] || { echo "No database provided"; return 4; }
 
 
   if _isDB "$database"; then
@@ -535,38 +557,38 @@ main () {
     read -r -s -p "Enter password: " password
     echo;
 
-    [[ -n "$password" ]] || { echo "No password provided"; return 4; }
+    [[ -n "$password" ]] || { echo "No password provided"; return 5; }
 
   fi
 
 
   case "$make_db_or_user" in
     1) 
-      _createDB "$database" || return 5
+      _createDB "$database" || return 6
       emptydb=1;
       _grantPerms "$database" "$user" &> /dev/null
       ;;
     2)
       password="$(_xkcd)"
-      _createUser "$user" "$password" || return 6
-      _grantPerms "$database" "$user" || return 7
+      _createUser "$user" "$password" || return 7
+      _grantPerms "$database" "$user" || return 8
       ;;
     3)
       password="$(_xkcd)"
-      _createDB "$database" || return 8
+      _createDB "$database" || return 9
       emptydb=1;
-      _createUser "$user" "$password" || return 9
-      _grantPerms "$database" "$user" || return 10
+      _createUser "$user" "$password" || return 10
+      _grantPerms "$database" "$user" || return 11
       ;;
     *);;
   esac
 
-  _accessTest "$user" "$database" "$password" || return 11;
+  _accessTest "$user" "$database" "$password" || return 12;
 
   _printAccess "$user" "$database" "$password";
 
   if (( emptydb != 1 )); then
-    _dropDB "$database" || return 12;
+    _dropDB "$database" || return 13;
   fi
 
   _catDump "$dump_file" \
