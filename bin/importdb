@@ -18,7 +18,7 @@ _usage() {
   -u|--user <user>              Database user (Optional)
   -U|--unix-user <user>         Unix user. Will attempt to get user from pwd if omitted.
   -d|--database <name>          Name of database. (Optional)
-  -p|--password <pass>          Password for database user. Mandatory if not creating user.
+  -p|--password <pass>          Password for database user. Will prompt for it if omitted and required.
   -r|--replace <before,after>   Comma seperated string replacement during import. Can be used multiple times.
   -y|--assume-yes               Do not prompt user (Unless password is required)
   -h|--help                     Show this menu
