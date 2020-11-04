@@ -226,6 +226,8 @@ _catDump () {
   "$cat" "$dump_file" \
     | pv --wait --size "$size"
 
+  echo 'Show warnings;';
+
 }
 
 _transform() {
@@ -250,7 +252,7 @@ _import() {
   database="$2";
   password="$3";
 
-  mysql --user="${user}" --database="${database}" --password="${password}"
+  mysql --user="${user}" --database="${database}" --password="${password}" > "$HOME/importdb.log"
 
 }
 
