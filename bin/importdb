@@ -555,7 +555,7 @@ main () {
     if [[ -z "$user" ]]; then
 
       if ((ASSUME_YES != 1)); then
-        read -r -p "No user provided. Enter user name (default ${temp_user}): " input_user;
+        read -r -p "No user provided. Enter user name (7 char max, default ${temp_user}): " input_user;
       fi
 
       if [[ -n "$input_user" ]]; then
@@ -585,6 +585,9 @@ main () {
   [[ -n "$user" ]] || { echo "No user provided"; return 3; }
   [[ -n "$database" ]] || { echo "No database provided"; return 4; }
 
+  ## Add user prefix if not already present
+  [[ "$user" == ^"${UNIX_USER}_"* ]] || user="${UNIX_USER}_${user}";
+  [[ "$database" == ^"${UNIX_USER}_"* ]] || database="${UNIX_USER}_${database}";
 
   if _isDB "$database"; then
     _dbIsEmpty "$database" && emptydb=1;
