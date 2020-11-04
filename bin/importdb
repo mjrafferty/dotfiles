@@ -226,8 +226,6 @@ _catDump () {
   "$cat" "$dump_file" \
     | pv --wait --size "$size"
 
-  echo 'Show warnings;';
-
 }
 
 _transform() {
@@ -236,6 +234,7 @@ _transform() {
 
   replacements=(
     '-e' 's/INSERT INTO/INSERT IGNORE INTO/g'
+    '-e' 's/;$/; SHOW WARNINGS;/'
     "${@}"
   )
 
