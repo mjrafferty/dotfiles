@@ -586,8 +586,8 @@ main () {
   [[ -n "$database" ]] || { echo "No database provided"; return 4; }
 
   ## Add user prefix if not already present
-  [[ "$user" == ^"${UNIX_USER}_"* ]] || user="${UNIX_USER}_${user}";
-  [[ "$database" == ^"${UNIX_USER}_"* ]] || database="${UNIX_USER}_${database}";
+  [[ "$user" == "${UNIX_USER}_"* ]] || user="${UNIX_USER}_${user}";
+  [[ "$database" == "${UNIX_USER}_"* ]] || database="${UNIX_USER}_${database}";
 
   if _isDB "$database"; then
     _dbIsEmpty "$database" && emptydb=1;
