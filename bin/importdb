@@ -233,8 +233,7 @@ _transform() {
   local replacements;
 
   replacements=(
-    '-e' 's/INSERT INTO/INSERT IGNORE INTO/g'
-    '-e' 's/;$/; SHOW WARNINGS;/'
+    '-e' 's/^INSERT INTO/INSERT IGNORE INTO/g'
     "${@}"
   )
 
@@ -251,7 +250,7 @@ _import() {
   database="$2";
   password="$3";
 
-  mysql --user="${user}" --database="${database}" --password="${password}" > "$HOME/importdb.log"
+  mysql --user="${user}" --database="${database}" --password="${password}"
 
 }
 

@@ -1,6 +1,7 @@
 # vim:ft=zsh
 
 ZHIST_ENABLE_LOG=1
+HISTFILE=~/.zsh_history
 
 # Login as root
 _autoRoot() {
