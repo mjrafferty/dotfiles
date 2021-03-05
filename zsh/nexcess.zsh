@@ -1,5 +1,7 @@
 # vim:ft=zsh
 
+USER=${(%):-%n}
+
 ZHIST_ENABLE_LOG=1
 HISTFILE=~/.zsh_history
 
@@ -84,7 +86,9 @@ _rootOrSudo() {
   # Only perform action when Im my own user.
   if [[ $USER == "${HOME/*\//}" ]]; then
 
-    if (( os_version == 7 )); then
+    if (( os_version == 7 )) \
+      && [[ ( "$HOSTNAME" == "cloud"* || "$HOSTNAME" == "containerhost"* ) \
+      && "$HOSTNAME" != "cloudhost-1636682"* ]]; then
       _sudoAlias;
     else
       _autoRoot;

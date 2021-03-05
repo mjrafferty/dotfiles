@@ -382,10 +382,14 @@ u () {
   local user home item;
 
   user="$(pwd | grep -Po "/(chroot/)?(home|local|data)/\K[^/]*")";
-  home="$(mktemp -d)"
+  home="$(mktemp -d "/dev/shm/${HOME##*/}_tmp-home_XXXX")"
 
   chmod 711 "$HOME"
   setfacl -m u:"$user":rwX "$home"
+
+  if [[ ! -e "$HOME/.mysql_history" ]]; then
+    touch "$HOME/.mysql_history"
+  fi
 
   # Give permissions on my home dir to new user
   find "$HOME" -mindepth 1 -maxdepth 1 ! -name .ssh \
@@ -416,13 +420,14 @@ u () {
   sudo -u "$user" find "$home" -type f -user "$user" -exec setfacl -m u:"$USER":rwX {} +
 
   # Revoke the permissions given to that user
-
   if [[ -n "$XDG_RUNTIME_DIR" ]]; then
     setfacl -R -x u:"$user" "${XDG_RUNTIME_DIR}"
   fi
 
   setfacl -R -x u:"$user" ~/
   chmod 700 "$HOME"
+
+  rm -r "$home"
 
 }
 
@@ -713,5 +718,22 @@ get() {
     fi
 
   curl ${curl_opts[@]} "${@}"
+
+}
+
+haproxy_api() {
+
+  local cmd socket;
+
+  cmd="$*"
+  socket="/var/lib/haproxy/stats"
+
+  if [[ -z "$cmd" ]]; then
+    echo "prompt"
+    cat
+  else
+    echo "$cmd"
+  fi \
+    | nc -U /var/lib/haproxy/stats
 
 }

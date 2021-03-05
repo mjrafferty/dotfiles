@@ -437,6 +437,9 @@ main () {
   # If destination was not in cache, see if it is an abbreviated domain
   [[ -z "$DESTINATION" ]] && _abbrevDest
 
+  if [[ -z "$DESTINATION" && "$DOMAIN" == *".nxcli.net" ]]; then
+    DESTINATION="$DOMAIN"
+  fi
 
   # If domain is not an abbreviation or found in cache, see if it resolves to nexcess
   if [[ -z "$DESTINATION" ]]; then

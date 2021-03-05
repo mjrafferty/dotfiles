@@ -100,7 +100,7 @@ _arguments -s \
     {-b+,--boot=}'[Show data only from the specified boot or offset]::boot id or offset:_journalctl_boots' \
     '--list-boots[List boots ordered by time]' \
     {-k,--dmesg}'[Show only kernel messages from the current boot]' \
-    {-u+,--unit=}'[Show data only from the specified unit]:units:_journalctl_field_values _SYSTEMD_UNIT' \
+    {-u+,--unit=}'[Show data only from the specified unit]:units:($(systemctl list-unit-files --all --user --system --full --no-legend --no-pager))' \
     '--user-unit=[Show data only from the specified user session unit]:units:_journalctl_field_values USER_UNIT' \
     {-p+,--priority=}'[Show only messages within the specified priority range]:priority:_journalctl_field_values PRIORITY' \
     {-t+,--identifier=}'[Show only messages with the specified syslog identifier]:identifier:_journalctl_field_values SYSLOG_IDENTIFIER' \

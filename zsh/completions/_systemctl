@@ -95,7 +95,7 @@ __systemctl()
 {
   local -a _modes
   _modes=("--user" "--system")
-  sudo systemctl ${words:*_modes} --full --no-legend --no-pager "$@"
+  systemctl ${words:*_modes} --full --no-legend --no-pager "$@"
 }
 
 
