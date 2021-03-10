@@ -90,7 +90,7 @@ _rootOrSudo() {
       && [[ ( "$HOSTNAME" == "cloud"* || "$HOSTNAME" == "containerhost"* ) \
       && "$HOSTNAME" != "cloudhost-1636682"* ]]; then
       _sudoAlias;
-    else
+    elif [[ "$HOSTNAME" != "moose"* ]]; then
       _autoRoot;
     fi
 
@@ -156,14 +156,17 @@ _logout () {
       -path "./.my.cnf" -o \
       -path "./.mytop" -o \
       -path "./.ssh" -o \
-      -path "./.tmux.conf" -o \
       -path "./.zshenv" -o \
       -path "./SNAPS*" -o \
       -path "./bin" -o \
       -path "./clients" -o \
+      -path "./tmux" -o \
       -path "./vim" -o \
       -path "./zsh" \
       \) -prune -o -exec rm -rf {} + 2> /dev/null;
+
+    [[ -n "$__ZHIST_DB" && -e "$__ZHIST_DB" ]] \
+      && rm "$__ZHIST_DB"
 
   fi
 

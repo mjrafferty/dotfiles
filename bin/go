@@ -152,22 +152,21 @@ _getRemoteUser() {
 _mainRsync() {
 
   "$RSYNC" --compress --quiet --links --force --delete --chmod=o-rwx -rpt \
-    --exclude 'clients/' \
-    --exclude '.git/' \
-    --exclude '.gitignore' \
-    --exclude '.gitmodules' \
     --exclude '*.png' \
     --exclude '*.jpg' \
     --exclude '*.gif' \
+    --exclude '.git/' \
+    --exclude '.gitignore' \
+    --exclude '.gitmodules' \
     --exclude '.mytop' \
-    --exclude 'no-rsync/' \
-    --exclude '*SNAPS*/' \
     --exclude '.ssh/' \
-    --exclude 'zsh/zinit/bin' \
-    --exclude 'vim/' \
     --exclude '.mysql_history' \
     --exclude '.rediscli_history' \
     --exclude '.zsh_history' \
+    --exclude 'clients/' \
+    --exclude 'SNAPS*/' \
+    --exclude 'zsh/zinit/bin' \
+    --exclude 'vim/' \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
     ~/dotfiles/ \
     "$1@$DESTINATION":~/ 2> /dev/null
@@ -183,9 +182,6 @@ _asyncRsync() {
     --exclude '*.jpg' \
     --exclude '*.gif' \
     --exclude 'plugins/vim-autoformat/samples' \
-    --exclude 'swp/*' \
-    --exclude 'undo/*' \
-    --exclude 'backup/*' \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
     ~/dotfiles/vim/ \
     "$1@$DESTINATION":~/vim/ 2> /dev/null
