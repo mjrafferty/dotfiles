@@ -124,13 +124,16 @@ _getHistory() {
 
   username="$1"
 
+  lock_file="${HOME}/dotfiles/.local/share/.zhist.db.lock"
+  history_db="${HOME}/dotfiles/.local/share/zhist.db"
+
   "$RSYNC" -ql -rpt --remove-source-files \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
     "$username@$DESTINATION:.local/share/zhist${LOGIN_ID}.log" "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log" 2> /dev/null
 
   if [[ -e "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log" ]]; then
 
-    sqlite3 ~/dotfiles/.local/share/zhist.db < "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
+    flock "$lock_file" sqlite3 "$history_db" < "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
     rm "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
 
   fi
@@ -155,6 +158,7 @@ _mainRsync() {
     --exclude '*.png' \
     --exclude '*.jpg' \
     --exclude '*.gif' \
+    --exclude '*.zwc' \
     --exclude '.git/' \
     --exclude '.gitignore' \
     --exclude '.gitmodules' \
