@@ -192,7 +192,8 @@ main() {
   _aliasFunctions;
 
   # Expand PATH
-  export PATH="${PATH}:/var/qmail/bin:/usr/local/bin:/usr/local/interworx/bin"
+  setpath "/var/qmail/bin"
+  setpath "/usr/local/interworx/bin"
 
   autoload -Uz add-zsh-hook \
     && add-zsh-hook zshexit _logout;

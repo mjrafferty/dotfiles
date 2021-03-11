@@ -34,6 +34,8 @@ readonly WHOIS='/usr/bin/whois'
 readonly XXD='/usr/bin/xxd'
 readonly LOGIN_ID="$(uuidgen | cut -c1-6)";
 
+readonly HIST_LOCKFILE="${HOME}/.local/share/.zhist.db.lock"
+
 # Necessary Global Variables
 TICKET="";
 DOMAIN="";
@@ -124,7 +126,6 @@ _getHistory() {
 
   username="$1"
 
-  lock_file="${HOME}/dotfiles/.local/share/.zhist.db.lock"
   history_db="${HOME}/dotfiles/.local/share/zhist.db"
 
   "$RSYNC" -ql -rpt --remove-source-files \
@@ -133,7 +134,7 @@ _getHistory() {
 
   if [[ -e "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log" ]]; then
 
-    flock "$lock_file" sqlite3 "$history_db" < "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
+    flock "$HIST_LOCKFILE" sqlite3 "$history_db" < "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
     rm "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
 
   fi
@@ -215,6 +216,9 @@ _loginWrapper () {
     if [[ $("$STAT" -c '%a' ~/dotfiles/) -ne 700 ]]; then
       "$CHMOD" 700 ~/dotfiles;
     fi
+
+    # Don't do rsync if history database is locked by another process. Wait instead.
+    flock --timeout 15 "$HIST_LOCKFILE" true || { echo "Zhist database locked." >&2; exit 1;  }
 
     _mainRsync "$username"
 

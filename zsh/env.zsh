@@ -41,8 +41,6 @@ export MANPAGER="less -inSFR"
 export EDITOR="vim"
 export VISUAL="vim"
 
-export PATH="/usr/local/sbin:${PATH}:${HOME}/bin:${HOME}/.local/bin"
-
 export LESSHISTFILE="${XDG_CACHE_HOME}/lesshist"
 export SQLITE_HISTORY="${XDG_CACHE_HOME}/sqlite_history"
 
@@ -56,3 +54,22 @@ export LESS_TERMCAP_se="[0m"
 export LESS_TERMCAP_so="[00;47;30m"
 export LESS_TERMCAP_ue="[0m"
 export LESS_TERMCAP_us="[01;32m"
+
+## PATH settings ##
+setpath () {
+  case ":${PATH}:" in
+    *:"$1":*)
+      ;;
+    *)
+      if [ "$2" = "after" ] ; then
+        PATH=$PATH:$1
+      else
+        PATH=$1:$PATH
+      fi
+  esac
+}
+
+setpath "/usr/local/bin" after
+setpath "/usr/local/sbin" after
+setpath "${HOME}/bin" after
+setpath "${HOME}/.local/bin" after 

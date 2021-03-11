@@ -4,8 +4,6 @@ load_conf main
 
 alias disks="df -h | grep -v tmpfs | grep -Ev '^(dev|run)'"
 
-export PATH=/usr/local/bin:$PATH:~/bin
-
 #export TMUX="NO"
 
 orphaned_files() {
