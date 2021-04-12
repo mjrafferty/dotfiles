@@ -136,8 +136,7 @@ function main ()
   foreach ($keys as $key) {
 
     $short_key = preg_replace('/_([a-z,A-Z,0-9]){20,}(_.*)?$/','_{hash_value}\2',$key);
-
-    $hash_keys = $redis->hKeys($key);
+    $length = 0;
 
     if (array_key_exists($short_key,$key_count)) {
       $key_count[$short_key]+=1;
@@ -145,25 +144,44 @@ function main ()
       $key_count[$short_key]=1;
     }
 
-    if (is_array($hash_keys)) {
+    $type = $redis->type($key);
 
+    switch($type) {
+
+    case Redis::REDIS_HASH:
+      $hash_keys = $redis->hKeys($key);
       foreach ($hash_keys as $hkey) {
-        if (array_key_exists($short_key,$keysizes)) {
-          $keysizes[$short_key] += strlen($redis->hGet($key, $hkey));
-        } else {
-          $keysizes[$short_key] = strlen($redis->hGet($key, $hkey));
-        }
+        $length += strlen($redis->hGet($key, $hkey));
       }
+      break;
 
-    } else {
-
-      if (array_key_exists($short_key,$keysizes)) {
-        $keysizes[$short_key] += strlen($redis->get($key));
-      } else {
-        $keysizes[$short_key] = strlen($redis->get($key));
+    case Redis::REDIS_SET:
+      $set_members = $redis->sMembers($key);
+      foreach ($set_members as $member) {
+        $length += strlen($member);
       }
+      break;
+
+    case Redis::REDIS_LIST:
+      echo "List type not supported";
+      break;
+
+    case Redis::REDIS_ZSET:
+      echo "Zset type not supported";
+      break;
+
+    case Redis::REDIS_STRING:
+      $length = strlen($redis->get($key));
+      break;
 
     }
+
+    if (array_key_exists($short_key,$keysizes)) {
+      $keysizes[$short_key] += $length;
+    } else {
+      $keysizes[$short_key] = $length;
+    }
+
   }
 
   arsort($keysizes);
