@@ -381,7 +381,13 @@ u () {
 
   local user home item;
 
-  user="$(pwd | grep -Po "/(chroot/)?(home|local|data)/\K[^/]*")";
+  user="$(pwd | grep -Po "/(chroot/)?(home(/nexcess.net)?|local|data)/\K[^/]*")";
+
+  if [[ "$user" == "$USER" || "$user" == "$SUDO_USER" ]]; then
+    echo "You're already you."
+    return 1;
+  fi
+
   home="$(mktemp -d "/dev/shm/${HOME##*/}_tmp-home_XXXX")"
 
   chmod 711 "$HOME"
@@ -410,14 +416,17 @@ u () {
   fi
 
   if [[ -n "${__ZHIST_PIPE}" ]]; then
+    setfacl -m u:"$user":rwX "${ZHIST_RUNTIME_DIR}"
     setfacl -m u:"$user":rw "${__ZHIST_PIPE}"
+    setfacl -m u:"$user":rw "${__ZHIST_WATCH_FILE}"
+    setfacl -m u:"$user":r "${__ZHIST_PID_FILE}"
   fi
 
   # Switch user
   sudo XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR}" HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
 
   # Give me permissions on any files the user created in my home dir
-  sudo -u "$user" find "$home" -type f -user "$user" -exec setfacl -m u:"$USER":rwX {} +
+  sudo -u "$user" find "$home" -user "$user" -exec setfacl -m u:"$USER":rwX {} +
 
   # Revoke the permissions given to that user
   if [[ -n "$XDG_RUNTIME_DIR" ]]; then

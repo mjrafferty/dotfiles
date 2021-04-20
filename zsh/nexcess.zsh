@@ -66,6 +66,10 @@ _mySetup () {
   export TICKETDIR="${HOME}/clients/${TICKET}";
   mkdir -p "${TICKETDIR}";
 
+  if [[ -e "${HOME}/.local/share/zhist/zhist.db" ]]; then
+    mv "${HOME}/.local/share/zhist/zhist.db" "${HOME}/.local/share/zhist/${(%):-%m}.db"
+  fi
+
   [[ -r /etc/nexcess/server_notes.txt ]] && cat /etc/nexcess/server_notes.txt;
 
   # Source actions provided by login script
@@ -146,6 +150,9 @@ _logout () {
 
   if _isLastShell; then
 
+    [[ -n "$__ZHIST_DB" && -e "$__ZHIST_DB" ]] \
+      && rm "$__ZHIST_DB"
+
     cd "$HOME" || return 1;
 
     # Cleanup home folder on logout
@@ -165,8 +172,9 @@ _logout () {
       -path "./zsh" \
       \) -prune -o -exec rm -rf {} + 2> /dev/null;
 
-    [[ -n "$__ZHIST_DB" && -e "$__ZHIST_DB" ]] \
-      && rm "$__ZHIST_DB"
+    if [[ "$USER" == "root" && -n "$SUDO_USER" ]]; then
+      find . -mindepth 1 ! -user "$SUDO_USER" ! -type l -exec chown "${SUDO_USER}:${SUDO_USER}" {} +
+    fi
 
   fi
 

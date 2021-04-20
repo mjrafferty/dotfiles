@@ -34,7 +34,7 @@ readonly WHOIS='/usr/bin/whois'
 readonly XXD='/usr/bin/xxd'
 readonly LOGIN_ID="$(uuidgen | cut -c1-6)";
 
-readonly HIST_LOCKFILE="${HOME}/.local/share/.zhist.db.lock"
+readonly HIST_LOCKFILE="${HOME}/.local/share/zhist/.zhist.db.lock"
 
 # Necessary Global Variables
 TICKET="";
@@ -126,16 +126,16 @@ _getHistory() {
 
   username="$1"
 
-  history_db="${HOME}/dotfiles/.local/share/zhist.db"
+  history_db="${HOME}/dotfiles/.local/share/zhist/zhist.db"
 
   "$RSYNC" -ql -rpt --remove-source-files \
     -e "ssh -q -i ${IDENT_FILE} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no" \
-    "$username@$DESTINATION:.local/share/zhist${LOGIN_ID}.log" "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log" 2> /dev/null
+    "$username@$DESTINATION:.local/share/zhist/zhist-${LOGIN_ID}.log" "$HOME/dotfiles/.local/share/zhist/zhist-${LOGIN_ID}.log" 2> /dev/null
 
-  if [[ -e "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log" ]]; then
+  if [[ -e "$HOME/dotfiles/.local/share/zhist/zhist-${LOGIN_ID}.log" ]]; then
 
-    flock "$HIST_LOCKFILE" sqlite3 "$history_db" < "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
-    rm "$HOME/dotfiles/.local/share/zhist${LOGIN_ID}.log"
+    flock "$HIST_LOCKFILE" sqlite3 "$history_db" < "$HOME/dotfiles/.local/share/zhist/zhist-${LOGIN_ID}.log"
+    rm "$HOME/dotfiles/.local/share/zhist/zhist-${LOGIN_ID}.log"
 
   fi
 
