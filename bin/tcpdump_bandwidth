@@ -6,24 +6,23 @@ BEGIN {
 }
 
 {
-  if($15 != "" ) {
+  lengthof = gensub(/.*length ([0-9]*).*/,"\\1","g",$0);
 
-    if (match($5,/192.240.190.45/)) {
+  if (match($5,/192.240.172.30/)) {
 
-      gsub(/\.[0-9]*$/,"",$3);
-      incoming[$3]+=$15
-      incoming_total+=$15
+    gsub(/\.[0-9]*$/,"",$3);
+    incoming[$3]+=lengthof
+    incoming_total+=lengthof
 
-    } else if (match($3,/192.240.190.45/)) {
+  } else if (match($3,/192.240.172.30/)) {
 
-      gsub(/\.[0-9]*:/,"",$5);
-      outgoing[$5]+=$15
-      outgoing_total+=$15
+    gsub(/\.[0-9]*:/,"",$5);
+    outgoing[$5]+=lengthof
+    outgoing_total+=lengthof
 
-    }
-
-    total+=$15
   }
+
+  total+=lengthof
 
 }
 
@@ -31,12 +30,12 @@ END {
 
   ## Begin Sorting ##
   for (i in incoming) {
-    tmpidxi[sprintf("%16d ", incoming[i]),i] = i
+    tmpidxi[sprintf("%16f ", incoming[i]),i] = i
   }
   numi = asorti(tmpidxi)
 
   for (i in outgoing) {
-    tmpidxo[sprintf("%16d ", outgoing[i]),i] = i
+    tmpidxo[sprintf("%16f ", outgoing[i]),i] = i
   }
   numo = asorti(tmpidxo)
   ## End Sorting ##
@@ -45,18 +44,18 @@ END {
 
   for (i=numi; i>=numi-20; i--) {
     split(tmpidxi[i], tmpi, " ")
-    printf("%-16s %7d MB\n", tmpi[2], tmpi[1]/1024/1024)
+    printf("%-16s %7.2f MB\n", tmpi[2], tmpi[1]/1024/1024)
   }
-  printf("%16s %6d MB\n", "In Total:", incoming_total/1024/1024);
+  printf("%16s %6.2f MB\n", "In Total:", incoming_total/1024/1024);
 
   printf "\nOutgoing:\n"
 
   for (i=numo; i>=numo-20; i--) {
     split(tmpidxo[i], tmpo, " ")
-    printf("%-16s %7d MB\n", tmpo[2], tmpo[1]/1024/1024)
+    printf("%-16s %7.2f MB\n", tmpo[2], tmpo[1]/1024/1024)
   }
 
-  printf("%16s %6d MB\n", "Out Total:", outgoing_total/1024/1024);
-  printf("%16s %6d MB\n", "Total:", total/1024/1024);
+  printf("%16s %6.2f MB\n", "Out Total:", outgoing_total/1024/1024);
+  printf("%16s %6.2f MB\n", "Total:", total/1024/1024);
 
 }
