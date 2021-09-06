@@ -148,7 +148,7 @@ main () {
 
   for (( num=0; num<number; num++ )); do
 
-    "${CURL}" "${CURL_OPTS[@]}" "${ARGA[-1]}" > "${OUT_FILE}"
+    "${CURL}" "${CURL_OPTS[@]}" "${ARGA[${#ARGA[@]} - 1]}" > "${OUT_FILE}"
 
     declare -A stats;
 
