@@ -9,6 +9,7 @@ load_conf() {
 
 case "$HOST" in
   "Nexcess-AST-000304.local") rc_conf="work" ;;
+  "NEX-LW-2181.local") rc_conf="work" ;;
   "Home") rc_conf="home" ;;
   "pi") rc_conf="pi" ;;
   "mellon"*) rc_conf="login_server" ;;

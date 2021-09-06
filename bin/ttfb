@@ -1,6 +1,7 @@
 #! /usr/bin/env bash
 
-readonly ARGS="$*"
+USER_AGENT="TTFB test"
+
 readonly ARGA=("$@")
 
 readonly CAT='/bin/cat'
@@ -12,35 +13,184 @@ else
   COOKIE_FILE="${HOME}/.ttfb.cookies"
 fi
 
+WORKING_DIR="$(mktemp -d)"
+HEADER_FILE="${WORKING_DIR}/headers"
+ERR_FILE="${WORKING_DIR}/error"
+OUT_FILE="${WORKING_DIR}/out"
+
+WRITE_OUT="HTTP:%{http_code}\nConnect:%{time_connect}\nTTFB:%{time_starttransfer}\nTotal time:%{time_total}\nSpeed:%{speed_download}\nSize:%{size_download}"
+
+CURL_OPTS=(
+  "--insecure"
+  "--location"
+  "--silent"
+  "--show-error"
+  "--compressed"
+  "--cookie" "${COOKIE_FILE}"
+  "--cookie-jar" "${COOKIE_FILE}"
+  "--user-agent" "${USER_AGENT}"
+  "--dump-header" "${HEADER_FILE}"
+  "--output" "/dev/null"
+  "--stderr" "${ERR_FILE}"
+  "--write-out" "${WRITE_OUT}" 
+)
+
 _usage() {
   "$CAT" <<- EOF
 
   Usage: ttfb <domain>
 
+  -H|--headers
+  -s|--silent
+  -v|--verbose
+  -n|--number
+  -l|--loop
+  -a|--average
+  -p|--patern
+
 EOF
 }
 
-_timetofirstbyte () {
-  "$CURL" --insecure \
-    --cookie "${COOKIE_FILE}" \
-    --cookie-jar "${COOKIE_FILE}" \
-    --user-agent "TTFB test" \
-    --header "Accept-Encoding: gzip,deflate,br" \
-    --location \
-    --silent \
-    --output /dev/null \
-    --write-out "HTTP: %{http_code} Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} Speed: %{speed_download} b/s Size: %{size_download} b\n" "$1";
+# Convert long command line options into short ones for getopts
+_cmdline() {
+
+  local x;
+
+  for x in ${ARGA[*]}; do
+
+    case "$x" in
+      "--help"|"-h")
+        args="${args}-h "
+        ;;
+      "--headers"|"-H")
+        args="${args}-H "
+        ;;
+      "--silent"|"-s")
+        args="${args}-s "
+        ;;
+      "--verbose"|"-v")
+        args="${args}-v "
+        ;;
+      "--number"|"-n")
+        args="${args}-n "
+        ;;
+      "--loop"|"-l")
+        args="${args}-l "
+        ;;
+      "--average"|"-a")
+        args="${args}-a "
+        ;;
+      "--pattern"|"-p")
+        args="${args}-p "
+        ;;
+      "--"*)
+        echo "$x is not a supported option." >&2
+        ;;
+      *)
+        args="${args}${x} "
+        ;;
+    esac
+  done
+
+  echo "$args";
+
 }
 
+_cleanUp () {
+  rm -r "${WORKING_DIR}"
+}
 
 main () {
 
-  if [[ -z "$ARGS" || "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
-  fi
+  local cmdline dump_headers silent number stat header;
 
-  printf "%s\n" "$(_timetofirstbyte "${ARGA[0]}")";
+  trap "_cleanUp" EXIT;
+
+  mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
+
+  while getopts ":hHsvn:lap:" OPTION "${cmdline[@]}"; do
+
+    case $OPTION in
+      h)
+        _usage;
+        exit 0;
+        ;;
+      H)
+        dump_headers=1;
+        ;;
+      s)
+        silent=1;
+        ;;
+      v)
+        CURL_OPTS+=("--verbose")
+        ;;
+      n)
+        if [[ "${OPTARG}" == [0-9]* ]]; then
+          number="${OPTARG}"
+        else
+          echo "Argument to -n is not a valid number"
+          exit 1;
+        fi
+        ;;
+      l)
+        number=99999;
+        ;;
+      a)
+        ;;
+      p)
+        ;;
+      "?")
+        echo "-${OPTARG} is not a supported option." >&2
+        ;;
+      *);;
+    esac
+  done
+
+  for (( num=0; num<number; num++ )); do
+
+    "${CURL}" "${CURL_OPTS[@]}" "${ARGA[-1]}" > "${OUT_FILE}"
+
+    declare -A stats;
+
+    while read -r stat; do
+      stats[${stat%%:*}]="${stat#*:}"
+    done < "${OUT_FILE}"
+
+
+    declare -A headers;
+
+    if [[ -s "${HEADER_FILE}" && "$dump_headers" == 1 ]]; then
+
+      {
+        read -r status
+
+        while read -r header; do
+          if [[ "${header}" == *":"* ]]; then
+            headers[${header%%:*}]="${header#*: }"
+          fi
+        done
+
+      } < "${HEADER_FILE}"
+
+    fi
+
+
+    for header in "${!headers[@]}"; do
+      echo "${header}: ${headers[$header]}"
+    done
+
+    echo;
+
+    for stat in "${!stats[@]}"; do
+      echo "${stat}: ${stats[$stat]}"
+    done
+
+    [[ -s "${ERR_FILE}" ]] && cat "${ERR_FILE}"
+
+    echo;
+
+
+  done
 
 }
 

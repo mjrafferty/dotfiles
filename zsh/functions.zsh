@@ -746,3 +746,20 @@ haproxy_api() {
     | nc -U /var/lib/haproxy/stats
 
 }
+
+userhist() {
+
+  if [[ -n "$1" ]]; then
+    file="/home/${1}/.bash_history"
+  else
+    file="/home/$(getusr)/.bash_history"
+  fi
+
+  if [[ -r "${file}" ]]; then
+    awk 'BEGIN{counter=0} /^#/ {counter++; gsub(/^#/,"",$1); time=strftime("%Y-%m-%d %H:%M:%S", $1); printf(" %s  %s ",counter,time); next}{print $0}' "${file}"
+  else
+    echo "${file} does not exist or is not readable."
+    return 1;
+  fi
+
+}
