@@ -139,6 +139,7 @@ main () {
         number=99999;
         ;;
       a)
+        do_averages=1;
         ;;
       p)
         dump_headers=1;
@@ -163,9 +164,24 @@ main () {
 
     ## Collect data ##
     declare -A stats;
+    declare -A totals;
 
     while read -r stat; do
-      stats[${stat%%:*}]="${stat#*:}"
+      key="${stat%%:*}"
+      value="${stat#*:}"
+
+      stats[$key]="${value}"
+
+      if [[ "${do_averages}" == 1 ]]; then
+
+        if [[ -n "${totals[$key]}" ]]; then
+          totals[$key]="$(echo "${totals[$key]} + ${value}" | bc)"
+        else
+          totals[$key]="${value}"
+        fi
+
+      fi
+
     done < "${OUT_FILE}"
 
 
@@ -186,7 +202,8 @@ main () {
 
 
     ## Print ##
-    echo "--- Request ${num} BEGIN ---";
+    [[ "${silent}" != 1 ]] && echo "--- Request ${num} BEGIN ---";
+
     if [[ "${silent}" != 1 ]]; then
 
       echo "HTTP: ${stats[http_code]} Connect: ${stats[time_connect]} TTFB: ${stats[time_starttransfer]} Total time: ${stats[time_total]} Speed: ${stats[speed_download]} b/s Size: ${stats[size_download]} b"
@@ -211,13 +228,17 @@ main () {
 
     fi
 
-    echo "--- Request ${num} END ---";
-
+    [[ "${silent}" != 1 ]] && echo "--- Request ${num} END ---";
     ## Print ##
-
 
   done
 
+  if [[ "${do_averages}" == 1 ]]; then
+
+    echo "${totals[http_code]}" "${totals[time_connect]}" "${totals[time_starttransfer]}" "${totals[time_total]}" "${totals[speed_download]}" "${totals[size_download]}" "$number" \
+      | awk '{printf("\n\tAverages after %d requests:\nHTTP: %d Connect: %2f TTFB: %2f Total time: %2f Speed: %.3f b/s Size: %d b\n",$7,$1/$7,$2/$7,$3/$7,$4/$7,$5/$7,$6/$7)}'
+
+  fi
 }
 
 main;
