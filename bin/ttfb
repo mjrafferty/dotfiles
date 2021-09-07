@@ -202,7 +202,7 @@ main () {
 
 
     ## Print ##
-    [[ "${silent}" != 1 ]] && echo "--- Request ${num} BEGIN ---";
+    [[ "${silent}" != 1 && ${number} -gt 1 ]] && echo "--- Request ${num} BEGIN ---";
 
     if [[ "${silent}" != 1 ]]; then
 
@@ -228,7 +228,7 @@ main () {
 
     fi
 
-    [[ "${silent}" != 1 ]] && echo "--- Request ${num} END ---";
+    [[ "${silent}" != 1 && ${number} -gt 1 ]] && echo "--- Request ${num} END ---";
     ## Print ##
 
   done
