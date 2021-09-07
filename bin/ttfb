@@ -18,7 +18,7 @@ HEADER_FILE="${WORKING_DIR}/headers"
 ERR_FILE="${WORKING_DIR}/error"
 OUT_FILE="${WORKING_DIR}/out"
 
-WRITE_OUT="HTTP:%{http_code}\nConnect:%{time_connect}\nTTFB:%{time_starttransfer}\nTotal time:%{time_total}\nSpeed:%{speed_download}\nSize:%{size_download}"
+WRITE_OUT="http_code:%{http_code}\ntime_connect:%{time_connect}\ntime_starttransfer:%{time_starttransfer}\ntime_total:%{time_total}\nspeed_download:%{speed_download}\nsize_download:%{size_download}\n"
 
 CURL_OPTS=(
   "--insecure"
@@ -104,6 +104,9 @@ main () {
 
   local cmdline dump_headers silent number stat header;
 
+  number=1;
+  header_pattern="+(*)"
+
   trap "_cleanUp" EXIT;
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
@@ -138,6 +141,11 @@ main () {
       a)
         ;;
       p)
+        dump_headers=1;
+
+        pattern="${OPTARG//[-_]/}"
+        pattern="${pattern,,}"
+        header_pattern="+(${pattern//,/|})"
         ;;
       "?")
         echo "-${OPTARG} is not a supported option." >&2
@@ -146,10 +154,14 @@ main () {
     esac
   done
 
-  for (( num=0; num<number; num++ )); do
+  for (( num=1; num<=number; num++ )); do
 
+    ## Do request ##
     "${CURL}" "${CURL_OPTS[@]}" "${ARGA[${#ARGA[@]} - 1]}" > "${OUT_FILE}"
+    ## Do request ##
 
+
+    ## Collect data ##
     declare -A stats;
 
     while read -r stat; do
@@ -159,35 +171,49 @@ main () {
 
     declare -A headers;
 
-    if [[ -s "${HEADER_FILE}" && "$dump_headers" == 1 ]]; then
+    {
+      # Get rid of first line
+      read -r header
 
-      {
-        read -r status
+      while read -r header; do
+        if [[ "${header}" == *":"* ]]; then
+          headers[${header%%:*}]="${header#*: }"
+        fi
+      done
 
-        while read -r header; do
-          if [[ "${header}" == *":"* ]]; then
-            headers[${header%%:*}]="${header#*: }"
-          fi
-        done
+    } < "${HEADER_FILE}"
+    ## Collect data ##
 
-      } < "${HEADER_FILE}"
+
+    ## Print ##
+    echo "--- Request ${num} BEGIN ---";
+    if [[ "${silent}" != 1 ]]; then
+
+      echo "HTTP: ${stats[http_code]} Connect: ${stats[time_connect]} TTFB: ${stats[time_starttransfer]} Total time: ${stats[time_total]} Speed: ${stats[speed_download]} b/s Size: ${stats[size_download]} b"
+
+      [[ -s "${ERR_FILE}" ]] && cat "${ERR_FILE}"
+
 
     fi
 
+    if [[ -s "${HEADER_FILE}" && "$dump_headers" == 1 ]]; then
 
-    for header in "${!headers[@]}"; do
-      echo "${header}: ${headers[$header]}"
-    done
+      for header in "${!headers[@]}"; do
 
-    echo;
+        normalized_header="${header//[-_]/}"
+        normalized_header="${normalized_header,,}"
 
-    for stat in "${!stats[@]}"; do
-      echo "${stat}: ${stats[$stat]}"
-    done
+        if [[ "$normalized_header" == *${header_pattern}* ]]; then
+          echo "${header}: ${headers[$header]}"
+        fi
 
-    [[ -s "${ERR_FILE}" ]] && cat "${ERR_FILE}"
+      done
 
-    echo;
+    fi
+
+    echo "--- Request ${num} END ---";
+
+    ## Print ##
 
 
   done
