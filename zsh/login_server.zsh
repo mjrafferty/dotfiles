@@ -7,6 +7,7 @@ load_conf main
 SSH_ENV="$HOME/.ssh/environment"
 
 [[ -r ~/.ansible/bin/activate ]] && source ~/.ansible/bin/activate
+source ~/ansible/ansible.vars
 
 # Source SSH settings, if applicable
 if [ -r "${SSH_ENV}" ]; then

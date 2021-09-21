@@ -241,6 +241,8 @@ _maxclients () {
 
   local count max;
 
+  [[ ! -e /etc/httpd/conf/httpd.conf ]] && return
+
   count="$(( $("$PS" -Chttpd | "$WC" -l ) -1 ))";
   max="$("$SED" -n 's/^[^#]*MaxClients\s*\([0-9]*\).*/\1/p' /etc/httpd/conf/httpd.conf | "$HEAD" -n1)";
 

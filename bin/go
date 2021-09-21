@@ -277,7 +277,7 @@ _findDestination () {
 _setAction () {
 
   echo 'rm "$HOME"/action.sh' > "$HOME"/dotfiles/action.sh;
-  echo "sup_cdd ${DOMAIN}" >> "$HOME"/dotfiles/action.sh;
+  echo "[[ -e /etc/httpd/conf.d ]] && sup_cdd ${DOMAIN}" >> "$HOME"/dotfiles/action.sh;
 
   # Evaluates argument list and adds known commands to login command list
   for x in ${ARGA[*]}; do
