@@ -11,6 +11,7 @@ zload cjbassi/ytop              '0c' as"program" from"gh-r"
 zload cli/cli                   '0c' as"program" from"gh-r" mv"gh_* gh" pick"gh/bin/gh"
 zload denisidoro/navi           '0c' as"program" from"gh-r"
 zload donnemartin/haxor-news    '0c' as"program" atclone"pip install -e . ;pip install -r requirements-dev.txt" atpull"%atclone"
+zload huntrar/nav               '0c' as"program"
 zload isacikgoz/gitbatch        '0c' as"program" from"gh-r"
 zload isacikgoz/tldr            '0c' as'program' from'gh-r'
 zload jarun/bcal                '0c' as"program" make
