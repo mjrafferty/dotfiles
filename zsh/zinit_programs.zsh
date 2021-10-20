@@ -13,7 +13,6 @@ zload denisidoro/navi           '0c' as"program" from"gh-r"
 zload donnemartin/haxor-news    '0c' as"program" atclone"pip install -e . ;pip install -r requirements-dev.txt" atpull"%atclone"
 zload isacikgoz/gitbatch        '0c' as"program" from"gh-r"
 zload isacikgoz/tldr            '0c' as'program' from'gh-r'
-zload jallbrit/bonsai.sh        '0c' as"program" from"gitlab" mv"bonsai.sh -> bonsai" pick "bonsai"
 zload jarun/bcal                '0c' as"program" make
 zload jarun/ddgr                '0c' as"program" make
 zload jarun/googler             '0c' as"program" make

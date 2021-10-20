@@ -27,8 +27,8 @@ setopt list_types
 # Styles
 #
 # Use caching to make completion for commands such as dpkg and apt usable.
-#zstyle ':completion::complete:*' use-cache on
-#zstyle ':completion::complete:*' cache-path "${XDG_CACHE_HOME}/zsh_compcache"
+zstyle ':completion::complete:*' use-cache on
+zstyle ':completion::complete:*' cache-path "${XDG_CACHE_HOME}/zsh_compcache"
 
 zstyle ':completion:*'                                completer _expand _complete _match _approximate
 zstyle ':completion:*'                                expand prefix suffix   # If matches share a common prefix, insert it. Same with common suffix
