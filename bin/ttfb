@@ -83,6 +83,9 @@ _cmdline() {
       "--pattern"|"-p")
         args="${args}-p "
         ;;
+      "--cache-bust"|"-C")
+        args="${args}-C "
+        ;;
       "--"*)
         echo "$x is not a supported option." >&2
         ;;
@@ -111,7 +114,7 @@ main () {
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
-  while getopts ":hHsvn:lap:" OPTION "${cmdline[@]}"; do
+  while getopts ":hHsvn:lap:C" OPTION "${cmdline[@]}"; do
 
     case $OPTION in
       h)
@@ -148,6 +151,9 @@ main () {
         pattern="${pattern,,}"
         header_pattern="+(${pattern//,/|})"
         ;;
+      C)
+        cache_bust=1;
+        ;;
       "?")
         echo "-${OPTARG} is not a supported option." >&2
         ;;
@@ -155,10 +161,24 @@ main () {
     esac
   done
 
+  if [[ -z "$url" ]]; then
+    url="${ARGA[${#ARGA[@]} - 1]}" 
+  fi
+
   for (( num=1; num<=number; num++ )); do
 
+    if [[ "$cache_bust" == 1 ]]; then
+      if [[ "$url" == *"?"* ]]; then
+        test_url="${url}&${RANDOM}"
+      else
+        test_url="${url}?${RANDOM}"
+      fi
+    else
+      test_url="${url}"
+    fi
+
     ## Do request ##
-    "${CURL}" "${CURL_OPTS[@]}" "${ARGA[${#ARGA[@]} - 1]}" > "${OUT_FILE}"
+    "${CURL}" "${CURL_OPTS[@]}" "$test_url" > "${OUT_FILE}"
     ## Do request ##
 
 

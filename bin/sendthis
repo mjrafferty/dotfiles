@@ -46,9 +46,9 @@ _validateInput() {
     exit 1;
   fi
 
-  if [[ -n ${FILES[0]} ]]; then
+  if [[ -n "${FILES[0]}" ]]; then
 
-    for x in ${FILES[*]}; do
+    for x in "${FILES[@]}"; do
 
       if [[ ! -e "${PWD}/${x}" && ! -e "$x" ]]; then
         echo "$x does not exist";

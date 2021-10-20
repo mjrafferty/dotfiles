@@ -40,6 +40,7 @@ Plug 'sheerun/vim-polyglot'
 Plug 'terryma/vim-multiple-cursors'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-surround'
+Plug 'lepture/vim-jinja'
 if ( v:version > 800 )
   let g:ale_completion_enabled = 1
   Plug 'w0rp/ale'

@@ -194,6 +194,7 @@ main() {
 
   zstyle ':apollo:*:core:modules:left' modules 'git' 'virtualenv' 'quota' 'newline' 'root_indicator' 'context' 'vi_mode' 'dir' 'ruler'
   zstyle ':apollo:*:core:modules:right' modules 'background_jobs' 'command_execution_time' 'public_ip' 'newline' 'clock' 'date' 'newline' 'status' 'php_version' 
+  zstyle ':apollo:*:*:*:dir:*' bookmark_patterns "/home/????*/*/html;/html"
 
   _meOrClient;
 
