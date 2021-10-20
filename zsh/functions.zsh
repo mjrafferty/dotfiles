@@ -45,9 +45,9 @@ iworxdb () {
   local user pass database socket;
 
   user="iworx";
-  pass="$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)";
+  pass="$(grep '^dsn.orig="mysqli\?://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | cut -d: -f3 | cut -d\@ -f1)";
   database="iworx";
-  socket="$(grep '^dsn.orig="mysql://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | awk -F'[()]' '{print $2}')";
+  socket="$(grep '^dsn.orig="mysqli\?://iworx:[A-Za-z0-9]' /usr/local/interworx/iworx.ini | awk -F'[()]' '{print $2}')";
 
   mysql -u"$user" -p"$pass" -S"$socket" -D"$database";
 }
@@ -746,6 +746,37 @@ haproxy_api() {
     | nc -U /var/lib/haproxy/stats
 
 }
+
+haproxy_stats () {
+
+  sort="$1"
+  header="IP PHP/24h PHP_Rate/1m Conn_Rate/1m Conn_cur HTTP_Req_Rate/1m HTTP_Err_Rate/1m Bytes_In/24h Bytes_Out/24h Unique_Urls/24h Crawl_Rate/1m"
+
+  [[ -z "${sort}" ]] && sort="5"
+
+  {
+    echo "$header"
+
+    haproxy_api show table global-rates \
+      | awk '
+    {
+      if(match($1,/^0x/)){
+        {
+          gsub(/[^ ]*=/,"",$0);
+          gsub("::ffff:","",$2);
+          $1=""; $3=""; $4="";
+          print $0
+        }
+      }
+    }' \
+      | sort -k "$sort" -nr \
+      | sup_formatbytes 8 \
+      | sup_formatbytes 9
+  } \
+    | column -t
+
+}
+
 
 userhist() {
 
