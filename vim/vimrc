@@ -287,6 +287,12 @@ augroup matchpairs
   autocmd FileType c,cpp,java set matchpairs+==:;
 augroup END
 
+augroup filetype
+  autocmd!
+  autocmd BufRead,BufNewFile /etc/haproxy/* set ft=haproxy
+  autocmd BufRead,BufNewFile */apache/*.conf set ft=apache
+augroup END
+
 if ( v:version > 800 )
   augroup CloseLoclistWindowGroup
     autocmd!
