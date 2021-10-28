@@ -57,6 +57,11 @@ export LESS_TERMCAP_us="[01;32m"
 
 ## PATH settings ##
 setpath () {
+
+  if [[ ! -d "$1" ]]; then
+    return
+  fi
+
   case ":${PATH}:" in
     *:"$1":*)
       ;;

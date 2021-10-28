@@ -7,7 +7,6 @@ zload aperezdc/zsh-fzy                    '0c' atload"bindkey '\ec' fzy-cd-widge
 zload hlissner/zsh-autopair               '0c' nocompletions
 zload junegunn/fzf                        '0c' multisrc"shell/{completion,key-bindings}.zsh" id-as"junegunn/fzf_completions" pick"/dev/null"
 zload knu/zsh-manydots-magic              '2'  pick'manydots-magic' compile'manydots-magic'
-zload laggardkernel/git-ignore            '0c' has'git' pick'init.zsh' atload'alias gi="git-ignore"' blockf
 zload mdumitru/fancy-ctrl-z               '0c'
 zload paoloantinori/hhighlighter          '0c' pick"h.sh"
 zload seletskiy/zsh-fuzzy-search-and-edit '0d' atload"bindkey '^T' fzy-file-widget"

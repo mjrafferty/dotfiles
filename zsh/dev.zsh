@@ -1,10 +1,13 @@
 #! /bin/zsh
 
-[ -r "${HOME}/apollo-zsh-theme/apollo-zsh-theme.zsh" ] \
-  && source "${HOME}/apollo-zsh-theme/apollo-zsh-theme.zsh"
+[ -r "${HOME}/Repositories/apollo-zsh-theme/apollo-zsh-theme.zsh" ] \
+  && source "${HOME}/Repositories/apollo-zsh-theme/apollo-zsh-theme.zsh"
 
-[ -r "${HOME}/zhist/zhist.zsh" ] \
-  && source "${HOME}/zhist/zhist.zsh"
+[ -r "${HOME}/Repositories/zhist/zhist.zsh" ] \
+  && source "${HOME}/Repositories/zhist/zhist.zsh"
+
+[ -r "${HOME}/Repositories/zsh-apple-touchbar/zsh-apple-touchbar.zsh" ] \
+  && source "${HOME}/Repositories/zsh-apple-touchbar/zsh-apple-touchbar.zsh"
 
 load_conf completion
 load_conf alias
