@@ -46,6 +46,9 @@ export SQLITE_HISTORY="${XDG_CACHE_HOME}/sqlite_history"
 
 [[ -n $TMUX ]] && export TERM="screen-256color"
 
+# Volta nodejs tool manager
+export VOLTA_HOME="$HOME/.volta"
+
 ## Less colors ##
 export LESS_TERMCAP_mb="[01;31m"
 export LESS_TERMCAP_md="[01;31m"
@@ -78,3 +81,4 @@ setpath "/usr/local/bin" after
 setpath "/usr/local/sbin" after
 setpath "${HOME}/bin" after
 setpath "${HOME}/.local/bin" after 
+setpath "${VOLTA_HOME}/bin"

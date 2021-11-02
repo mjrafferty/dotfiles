@@ -145,6 +145,7 @@ nnoremap <F2> :set invpaste paste?<CR>
 set pastetoggle=<F2>
 set showmode
 
+nnoremap <F3> :call CopyMode()<CR>
 " Clear search highlighting by pressing Enter
 nnoremap <cr> :noh<CR><CR>:<backspace>
 
@@ -210,6 +211,8 @@ let php_html_load = 0
 let php_html_in_heredoc = 0
 let php_html_in_nowdoc = 0
 
+let g:indentguides_ignorelist = ['help']
+
 highlight TagbarHighlight ctermbg=DarkGray
 "----------------------------
 "---- End Plugin Settings ---
@@ -245,6 +248,50 @@ function! g:UltiSnips_Reverse() abort
     return "\<C-P>"
   endif
   return ""
+endfunction
+
+function! g:CopyMode() abort
+
+  let config = get(g:, "copymode")
+
+  if type(config) != 0 &&  has_key(config, 'active') == 1
+    if g:copymode.number
+      set number
+    endif
+    if g:copymode.relativenumber
+      set relativenumber
+    endif
+    let &mouse = g:copymode.mouse
+    if !g:copymode.indentguides
+      silent! IndentGuidesToggle
+    endif
+    if g:copymode.gitgutter
+      GitGutterToggle
+    endif
+    unlet g:copymode
+  else
+    let g:copymode = {'active': 1}
+    let g:copymode.number = &number
+    let g:copymode.relativenumber = &relativenumber
+    let g:copymode.mouse = &mouse
+    let g:copymode.indentguides = b:toggle_indentguides
+    let g:copymode.gitgutter = g:gitgutter_enabled
+
+    if g:copymode.number
+      set nonumber
+    endif
+    if g:copymode.relativenumber
+      set norelativenumber
+    endif
+    set mouse=
+    if !g:copymode.indentguides
+      silent! IndentGuidesToggle
+    endif
+    if g:copymode.gitgutter
+      GitGutterToggle
+    endif
+  endif
+  unlet config
 endfunction
 
 "-------------------------

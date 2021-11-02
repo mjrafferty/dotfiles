@@ -6,8 +6,8 @@
 [ -r "${HOME}/Repositories/zhist/zhist.zsh" ] \
   && source "${HOME}/Repositories/zhist/zhist.zsh"
 
-[ -r "${HOME}/Repositories/zsh-apple-touchbar/zsh-apple-touchbar.zsh" ] \
-  && source "${HOME}/Repositories/zsh-apple-touchbar/zsh-apple-touchbar.zsh"
+[ -r "${HOME}/Repositories/ztouch/ztouch.zsh" ] \
+  && source "${HOME}/Repositories/ztouch/ztouch.zsh"
 
 load_conf completion
 load_conf alias

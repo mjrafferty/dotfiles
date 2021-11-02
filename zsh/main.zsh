@@ -14,3 +14,4 @@ load_conf alias
 load_conf functions
 load_conf options
 load_conf apollo
+load_conf ztouch
