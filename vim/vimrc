@@ -141,11 +141,11 @@ let mapleader=" "
 set formatoptions=coql  " Text formating options
 
 " Toggle Paste Mode to save indentation
-nnoremap <F2> :set invpaste paste?<CR>
-set pastetoggle=<F2>
+nnoremap <F2> :call CopyMode()<CR>
+nnoremap <F3> :set invpaste paste?<CR>
+set pastetoggle=<F3>
 set showmode
 
-nnoremap <F3> :call CopyMode()<CR>
 " Clear search highlighting by pressing Enter
 nnoremap <cr> :noh<CR><CR>:<backspace>
 

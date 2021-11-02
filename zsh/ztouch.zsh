@@ -3,4 +3,5 @@ zstyle 'ztouch:commands' patterns \
 
 zstyle 'ztouch:vim' labels \
   "Help" \
+  "Copy" \
   "Paste"
