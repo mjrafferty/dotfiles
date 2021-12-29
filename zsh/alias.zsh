@@ -82,3 +82,5 @@ alias pbc=pbcopy
 alias pbp=pbpaste
 
 alias checksums="equery --no-pipe check --only-failures '*'"
+
+alias runpuppet="/opt/puppetlabs/bin/puppet agent --config /etc/puppetlabs/puppet/puppet.conf --onetime --no-daemonize --show_diff --logdest /var/log/puppet/agent.log"
