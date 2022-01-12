@@ -93,7 +93,7 @@ _php() {
   local configured_phps running_phps php_instances x
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_phps < <("$FIND" /etc/systemd -name 'php*.service' | "$GREP" -Po '[^/]*(?=.service)');
+    mapfile -t configured_phps < <("$FIND" /etc/systemd/system/multi-user.target.wants -name 'php*.service' | "$GREP" -Po '[^/]*(?=.service)');
   else
     mapfile -t configured_phps < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*php*fpm' | "$GREP" -Po '...\Kphp.*fpm');
   fi
@@ -125,7 +125,7 @@ _httpd () {
   local configured_httpd running_httpd;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_httpd < <("$FIND" /etc/systemd/system/*/ -name 'httpd.service' );
+    mapfile -t configured_httpd < <("$FIND" /etc/systemd/system/multi-user.target.wants -name 'httpd.service' );
   else
     mapfile -t configured_httpd < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*httpd' );
   fi
@@ -203,7 +203,7 @@ _mysqld() {
   local configured_mysqld running_mysqld;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_mysqld < <("$FIND" /etc/systemd -name 'mysqld.service');
+    mapfile -t configured_mysqld < <("$FIND" /etc/systemd/system/multi-user.target.wants -name 'mysqld.service');
   else
     mapfile -t configured_mysqld < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*mysqld');
   fi
@@ -223,7 +223,7 @@ _haproxy() {
   local configured_haproxy running_haproxy
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_haproxy < <("$FIND" /etc/systemd -name 'haproxy.service');
+    mapfile -t configured_haproxy < <("$FIND" /etc/systemd/system/multi-user.target.wants -name 'haproxy.service');
   else
     mapfile -t configured_haproxy < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*haproxy');
   fi
@@ -243,7 +243,7 @@ _varnish() {
   local configured_varnish running_varnish;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_varnish < <("$FIND" /etc/systemd -name 'varnish.service');
+    mapfile -t configured_varnish < <("$FIND" /etc/systemd/system/multi-user.target.wants -name 'varnish.service');
   else
     mapfile -t configured_varnish < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*varnish');
   fi
@@ -263,7 +263,7 @@ _pound() {
   local configured_pound running_pound;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_pound < <("$FIND" /etc/systemd -name 'pound.service');
+    mapfile -t configured_pound < <("$FIND" /etc/systemd/system/multi-user.target.wants -name 'pound.service');
   else
     mapfile -t configured_pound < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*pound');
   fi
@@ -283,7 +283,7 @@ _nginx() {
   local configured_nginx running_nginx;
 
   if (( OS_VERSION == 7 )); then
-    mapfile -t configured_nginx < <("$FIND" /etc/systemd -name 'nginx.service');
+    mapfile -t configured_nginx < <("$FIND" /etc/systemd/system/multi-user.target.wants -name 'nginx.service');
   else
     mapfile -t configured_nginx < <("$FIND" /etc/rc.d/rc3.d/ -name 'S*nginx');
   fi

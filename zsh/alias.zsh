@@ -84,3 +84,4 @@ alias pbp=pbpaste
 alias checksums="equery --no-pipe check --only-failures '*'"
 
 alias runpuppet="/opt/puppetlabs/bin/puppet agent --config /etc/puppetlabs/puppet/puppet.conf --onetime --no-daemonize --show_diff --logdest /var/log/puppet/agent.log"
+alias suvim='sudo XDG_CACHE_HOME="${XDG_CACHE_HOME}" HOME="${HOME}" VIMINIT="${VIMINIT}" VIM_DATA_DIR="${VIM_DATA_DIR}" VIM_DIR="${VIM_DIR}" /usr/local/bin/vim'

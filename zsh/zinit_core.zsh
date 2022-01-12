@@ -44,7 +44,7 @@ zsnip() {
 zload mafredri/zsh-async                     'no'
 zload mjrafferty/apollo-zsh-theme            'no' atinit'fpath+=(${XDG_DATA_HOME:-${HOME}/.local/share}/apollo/ $PWD/modules.zwc $PWD/modules)'
 zload mjrafferty/zhist                       '0c'
-zload mjrafferty/ztouch                      '0c'
+#zload mjrafferty/ztouch                      '0c'
 zload trapd00r/LS_COLORS                     'no' atclone"dircolors -b LS_COLORS > c.zsh" atpull'%atclone' pick"c.zsh"
 zload zsh-users/zsh-completions              '0b' blockf atpull'zinit creinstall -q  .'
 zload zsh-users/zsh-autosuggestions          '0c' atload'_zsh_autosuggest_start' compile'{src/*.zsh,src/strategies/*}'
