@@ -21,9 +21,229 @@ _usage() {
   -p|--password <pass>          Password for database user. Will prompt for it if omitted and required.
   -r|--replace <before,after>   Comma seperated string replacement during import. Can be used multiple times.
   -y|--assume-yes               Do not prompt user (Unless password is required)
+  -H|--host                     Hostname for db server (if not localhost)
   -h|--help                     Show this menu
 
 EOF
+
+}
+
+## Siteworx Operations ##
+_isDB () {
+
+  local database output;
+  database="$1";
+
+  siteworx_args=(
+    "--user-auth"
+    "--non-interactive"
+    "--controller" "MysqlDb"
+    "--action" "listMysqlDatabases"
+    "-o" "json"
+  )
+
+  output="$(sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}" | jq ".[] | select(.fqdn == \"${database}\")")"
+
+  if [[ -z $output ]]; then
+    return 1;
+  else
+    return 0;
+  fi
+
+}
+
+_isDB_Fallback () {
+
+  local database output;
+  database="$1";
+
+  output="$(_admin_query "show databases like \"${database}\";")";
+
+  if [[ -z $output ]]; then
+    return 1;
+  else
+    return 0;
+  fi
+
+}
+
+_isUser () {
+
+  local user output;
+  user="$1";
+
+  siteworx_args=(
+    "--user-auth"
+    "--non-interactive"
+    "--controller" "MysqlUser"
+    "--action" "list"
+    "-o" "json"
+  )
+
+  output="$(sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}" | jq -r ".[][0] | select(. == \"${user}\")")";
+
+  if [[ -z $output ]]; then
+    return 1;
+  else
+    return 0;
+  fi
+  
+}
+
+_isUser_Fallback () {
+
+  local user output;
+  user="$1";
+
+  output="$(_admin_query "SELECT 1 FROM mysql.user WHERE user = \"$user\" limit 1")";
+
+  if [[ -z $output ]]; then
+    return 1;
+  else
+    return 0;
+  fi
+
+}
+
+_createUser () {
+
+  local user password siteworx_args decision;
+
+  user="$1";
+  password="$2";
+
+  if ((ASSUME_YES == 1)); then
+    decision="yes";
+  else
+    read -r -p "User $user does not exist. Create it? (y/N): " decision;
+  fi
+
+  case "${decision}" in
+    "Yes"|"YES"|"yes"|"y"|"Y");;
+    *) return 1;;
+  esac
+
+  user="${user/${UNIX_USER}_/}";
+
+  siteworx_args=(
+    "--user-auth"
+    "--non-interactive"
+    "--controller" "MysqlUser"
+    "--action" "add"
+    "--name" "$user"
+    "--password" "$password"
+    "--confirm_password" "$password"
+  )
+
+  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
+
+}
+
+_createDB () {
+
+  local database siteworx_args decision;
+
+  database="$1";
+
+  if ((ASSUME_YES == 1)); then
+    decision="yes";
+  else
+    read -r -p "Database ${database} does not exist. Create it? (y/N): " decision;
+  fi
+
+  case "${decision}" in
+    "Yes"|"YES"|"yes"|"y"|"Y");;
+    *) return 1;;
+  esac
+
+  database="${database/${UNIX_USER}_/}";
+
+  siteworx_args=(
+    "--user-auth"
+    "--non-interactive"
+    "--controller" "MysqlDb"
+    "--action" "add"
+    "--name" "$database"
+  )
+
+  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
+
+}
+
+_accessTest () {
+
+  user="$1";
+  database="$2";
+  password="$3";
+
+  mysql --user="${user}" --database="${database}" --password="${password}" -e "exit" 2> /dev/null
+
+  # shellcheck disable=SC2181
+  if [[ "$?" != 0 ]]; then
+    echo "User $user does not have access to database $database or password incorrect.";
+    return 1;
+  fi
+
+}
+
+_grantPerms () {
+
+  local database user password siteworx_args decision;
+
+  database="${1/${UNIX_USER}_/}";
+  user="${2/${UNIX_USER}_/}";
+
+  siteworx_args=(
+    "--user-auth"
+    "--non-interactive"
+    "--controller" "MysqlPerms"
+    "--action" "add"
+    "--name" "$database"
+    "--user" "$user"
+    "--perms" "all"
+  )
+
+  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
+
+}
+
+_dropDB () {
+
+  local database
+
+  database="$1"
+
+  if ((ASSUME_YES == 1)); then
+    decision="yes";
+  else
+    read -r -p "Database ${database} not empty. Drop database? (y/N): " decision;
+  fi
+
+  case "${decision}" in
+
+    "Yes"|"YES"|"yes"|"y"|"Y")
+
+      if ((ASSUME_YES == 1)); then
+        decision="yes";
+      else
+        read -r -p "Backup existing database? (y/N): " decision;
+      fi
+
+      case "${decision}" in
+
+        "Yes"|"YES"|"yes"|"y"|"Y")
+          _dumpDb "${database}";
+          ;;
+
+        *);;
+      esac
+
+      _admin_query "Drop database ${database}; create database ${database}"  || return 1;
+
+      ;;
+
+    *) return 2;;
+  esac
 
 }
 
@@ -270,178 +490,6 @@ _dbIsEmpty() {
 
 }
 
-_dropDB () {
-
-  local database
-
-  database="$1"
-
-  if ((ASSUME_YES == 1)); then
-    decision="yes";
-  else
-    read -r -p "Database ${database} not empty. Drop database? (y/N): " decision;
-  fi
-
-  case "${decision}" in
-
-    "Yes"|"YES"|"yes"|"y"|"Y")
-
-      if ((ASSUME_YES == 1)); then
-        decision="yes";
-      else
-        read -r -p "Backup existing database? (y/N): " decision;
-      fi
-
-      case "${decision}" in
-
-        "Yes"|"YES"|"yes"|"y"|"Y")
-          _dumpDb "${database}";
-          ;;
-
-        *);;
-      esac
-
-      _admin_query "Drop database ${database}; create database ${database}"  || return 1;
-
-      ;;
-
-    *) return 2;;
-  esac
-
-}
-
-_createDB () {
-
-  local database siteworx_args decision;
-
-  database="$1";
-
-  if ((ASSUME_YES == 1)); then
-    decision="yes";
-  else
-    read -r -p "Database ${database} does not exist. Create it? (y/N): " decision;
-  fi
-
-  case "${decision}" in
-    "Yes"|"YES"|"yes"|"y"|"Y");;
-    *) return 1;;
-  esac
-
-  database="${database/${UNIX_USER}_/}";
-
-  siteworx_args=(
-    "--user-auth"
-    "--non-interactive"
-    "--controller" "MysqlDb"
-    "--action" "add"
-    "--name" "$database"
-  )
-
-  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
-
-}
-
-_createUser() {
-
-  local user password siteworx_args decision;
-
-  user="$1";
-  password="$2";
-
-  if ((ASSUME_YES == 1)); then
-    decision="yes";
-  else
-    read -r -p "User $user does not exist. Create it? (y/N): " decision;
-  fi
-
-  case "${decision}" in
-    "Yes"|"YES"|"yes"|"y"|"Y");;
-    *) return 1;;
-  esac
-
-  user="${user/${UNIX_USER}_/}";
-
-  siteworx_args=(
-    "--user-auth"
-    "--non-interactive"
-    "--controller" "MysqlUser"
-    "--action" "add"
-    "--name" "$user"
-    "--password" "$password"
-    "--confirm_password" "$password"
-  )
-
-  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
-
-}
-
-_grantPerms () {
-
-  local database user password siteworx_args decision;
-
-  database="${1/${UNIX_USER}_/}";
-  user="${2/${UNIX_USER}_/}";
-
-  siteworx_args=(
-    "--user-auth"
-    "--non-interactive"
-    "--controller" "MysqlPerms"
-    "--action" "add"
-    "--name" "$database"
-    "--user" "$user"
-    "--perms" "all"
-  )
-
-  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
-
-}
-
-_accessTest () {
-
-  user="$1";
-  database="$2";
-  password="$3";
-
-  mysql --user="${user}" --database="${database}" --password="${password}" -e "exit" 2> /dev/null
-
-  # shellcheck disable=SC2181
-  if [[ "$?" != 0 ]]; then
-    echo "User $user does not have access to database $database or password incorrect.";
-    return 1;
-  fi
-
-}
-
-_isDB () {
-
-  local database output;
-  database="$1";
-
-  output="$(_admin_query "show databases like \"${database}\";")";
-
-  if [[ -z $output ]]; then
-    return 1;
-  else
-    return 0;
-  fi
-
-}
-
-_isUser () {
-
-  local user output;
-  user="$1";
-
-  output="$(_admin_query "SELECT 1 FROM mysql.user WHERE user = \"$user\" limit 1")";
-
-  if [[ -z $output ]]; then
-    return 1;
-  else
-    return 0;
-  fi
-
-}
-
 _printAccess () {
 
   local user database password;
@@ -475,7 +523,7 @@ _checkUnixUser () {
     "--account_data" "unixuser"
   )
 
-  if nodeworx "${nodeworx_args[@]}" | grep -q "^${UNIX_USER}$"; then
+  if cnodeworx "${nodeworx_args[@]}" | grep -q "^${UNIX_USER}$"; then
     return 0;
   else
     echo "User $UNIX_USER is not tied to a siteworx account.";
@@ -544,7 +592,7 @@ main () {
 
   fi
 
-  _checkUnixUser || return 2;
+  #_checkUnixUser || return 2;
 
   if [[ -z "$database" || -z "$user" ]]; then
 
