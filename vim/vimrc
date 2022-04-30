@@ -141,6 +141,7 @@ let mapleader=" "
 set formatoptions=coql  " Text formating options
 
 " Toggle Paste Mode to save indentation
+map <F1> <Nop>
 nnoremap <F2> :call CopyMode()<CR>
 nnoremap <F3> :set invpaste paste?<CR>
 set pastetoggle=<F3>
