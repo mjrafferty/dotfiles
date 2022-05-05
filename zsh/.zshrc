@@ -14,6 +14,7 @@ case "$HOST" in
   "mellon"*) rc_conf="login_server" ;;
   *".nexcess.net") rc_conf="nexcess" ;;
   *"nxcli.net") rc_conf="nexcess" ;;
+  *".liquidweb.com") rc_conf="nexcess";;
   "localhost") rc_conf="phone" ;;
   *) rc_conf="home" ;;
 esac
