@@ -70,7 +70,6 @@ set ignorecase                     " Do case insensitive matching
 set incsearch                      " do incremental searching
 set laststatus=2
 set linebreak
-set listchars=""
 set nowrap                         " Do not wrap code
 set number                         " add line numbers
 set relativenumber                 " add relative line numbers
@@ -213,6 +212,8 @@ let php_html_in_heredoc = 0
 let php_html_in_nowdoc = 0
 
 let g:indentguides_ignorelist = ['help']
+let g:indentguides_spacechar = '┆'
+let g:indentguides_tabchar ='┆'
 
 highlight TagbarHighlight ctermbg=DarkGray
 "----------------------------
