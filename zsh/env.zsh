@@ -1,5 +1,7 @@
 # vim:ft=zsh
 
+setopt no_global_rcs
+
 if [[ "$USER" != "root" ]]; then
   [[ -n "$XDG_CACHE_HOME" ]] || export XDG_CACHE_HOME="${HOME}/.local/cache"
   [[ -n "$XDG_CONFIG_HOME" ]] || export XDG_CONFIG_HOME="${HOME}/.local/config"
@@ -77,8 +79,8 @@ setpath () {
   esac
 }
 
-setpath "/usr/local/bin" after
-setpath "/usr/local/sbin" after
-setpath "${HOME}/bin" after
-setpath "${HOME}/.local/bin" after 
+setpath "/usr/local/bin" 
+setpath "/usr/local/sbin"
+setpath "${HOME}/bin"
+setpath "${HOME}/.local/bin"
 setpath "${VOLTA_HOME}/bin"

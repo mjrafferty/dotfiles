@@ -12,3 +12,12 @@ load_conf zinit_programs
 if [[ -e "${ZDOTDIR}/.iterm2_shell_integration.zsh" ]]; then
   source "${ZDOTDIR}/.iterm2_shell_integration.zsh"
 fi
+
+if [[ -e "${HOME}/Dev/nxclient.token" ]]; then
+  source "${HOME}/Dev/nxclient.token"
+fi
+
+export PYENV_ROOT="${XDG_DATA_HOME}/pyenv"
+export PYENV_SHELL=zsh
+export PATH="/Users/mrafferty/.local/share/pyenv/shims:${PATH}"
+source '/usr/local/opt/pyenv/completions/pyenv.zsh'

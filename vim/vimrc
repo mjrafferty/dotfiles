@@ -70,6 +70,7 @@ set ignorecase                     " Do case insensitive matching
 set incsearch                      " do incremental searching
 set laststatus=2
 set linebreak
+set listchars=extends:>,precedes:<,nbsp:+,tab:┆ ,trail:·
 set nowrap                         " Do not wrap code
 set number                         " add line numbers
 set relativenumber                 " add relative line numbers
@@ -139,8 +140,13 @@ let mapleader=" "
 
 set formatoptions=coql  " Text formating options
 
+" Disable help shortcut
+noremap <F1> <Nop>
+inoremap <F1> <Nop>
+lnoremap <F1> <Nop>
+tnoremap <F1> <Nop>
+
 " Toggle Paste Mode to save indentation
-map <F1> <Nop>
 nnoremap <F2> :call CopyMode()<CR>
 nnoremap <F3> :set invpaste paste?<CR>
 set pastetoggle=<F3>
@@ -149,6 +155,8 @@ set showmode
 " Clear search highlighting by pressing Enter
 nnoremap <cr> :noh<CR><CR>:<backspace>
 
+let g:python_recommended_style = 0
+let g:python_highlight_all = 0
 
 "-------------------------------
 "------ End Vim Settings -------
@@ -165,11 +173,26 @@ let g:ale_sh_shellcheck_options = '-s bash'
 let g:ale_linters_sh_shellcheck_exclusions = "SC2016"
 let g:ale_yaml_yamllint_options='-d "{extends: relaxed, rules: {line-length: {max: 200}}}"'
 let g:ale_completion_tsserver_autoimport = 1
+
+let g:ale_linters_explicit = 1
+let g:ale_linters = {
+      \   'bash': ['shellcheck'],
+      \   'zsh': ['shellcheck'],
+      \   'python': ['pylint'],
+      \   'javascript': ['eslint'],
+      \   'yaml': ['yamllint'],
+      \}
+
 let g:ale_fixers = {
       \   '*': ['remove_trailing_lines', 'trim_whitespace'],
       \   'php': ['phpcbf'],
       \   'javascript': ['eslint'],
+      \   'python': ['yapf'],
       \}
+
+let g:ale_python_auto_pipenv = 1
+let g:ale_python_pylint_auto_pipenv = 1
+
 
 " YouCompleteMe plugin settings
 let g:ycm_always_populate_location_list = 1
@@ -201,7 +224,7 @@ let g:gutentags_cache_dir=$XDG_CACHE_HOME . '/gutentags'"
 
 " tagbar plugin settings
 let g:tagbar_width=30
-let g:tagbar_left = 1
+"let g:tagbar_left = 1
 
 " Polyglot plugin settings
 let php_sql_query = 0
@@ -357,6 +380,53 @@ endif
   "augroup END
 "endif
 
+augroup pyfold
+  autocmd!
+  autocmd! FileType python set foldmethod=indent
+augroup END
 "-------------------------
 "----- End Autocmds ------
 "-------------------------
+
+setlocal indentexpr=GetGooglePythonIndent(v:lnum)
+
+let s:maxoff = 50 " maximum number of lines to look backwards.
+
+function GetGooglePythonIndent(lnum)
+
+  " Indent inside parens.
+  " Align with the open paren unless it is at the end of the line.
+  " E.g.
+  "   open_paren_not_at_EOL(100,
+  "                         (200,
+  "                          300),
+  "                         400)
+  "   open_paren_at_EOL(
+  "       100, 200, 300, 400)
+  call cursor(a:lnum, 1)
+  let [par_line, par_col] = searchpairpos('(\|{\|\[', '', ')\|}\|\]', 'bW',
+        \ "line('.') < " . (a:lnum - s:maxoff) . " ? dummy :"
+        \ . " synIDattr(synID(line('.'), col('.'), 1), 'name')"
+        \ . " =~ '\\(Comment\\|String\\)$'")
+  if par_line > 0
+    call cursor(par_line, 1)
+    if par_col != col("$") - 1
+      return par_col
+    endif
+  endif
+
+  " Delegate the rest to the original function.
+  return GetPythonIndent(a:lnum)
+
+endfunction
+
+let pyindent_nested_paren="&sw*2"
+let pyindent_open_paren="&sw*2"
+
+"syn region  pythonFunctionFold	start="^\z(\s*\)\%(def\|class\)\>"
+  "\ end="\ze\%(\s*\n\)\+\%(\z1\s\)\@!." fold transparent
+
+"syn match   pythonComment /#\%(.\%({{{\|}}}\)\@!\)*$/
+  "\ contains=pythonTodo,@Spell
+"syn region  pythonFold matchgroup=pythonComment
+  "\ start='#.*{{{.*$' end='#.*}}}.*$' fold transparent
