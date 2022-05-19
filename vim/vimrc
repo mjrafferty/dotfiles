@@ -65,12 +65,8 @@ set conceallevel=3
 set gdefault
 set hidden
 set history=50                     " keep 50 lines of command line history
-set hlsearch
-set ignorecase                     " Do case insensitive matching
-set incsearch                      " do incremental searching
-set laststatus=2
-set linebreak
-set listchars=extends:>,precedes:<,nbsp:+,tab:┆ ,trail:·
+set listchars=extends:>,precedes:<,nbsp:+,tab:┆\ ,trail:·
+"set listchars=tab:»\ ,extends:›,precedes:‹,nbsp:·,trail:·
 set nowrap                         " Do not wrap code
 set number                         " add line numbers
 set relativenumber                 " add relative line numbers
@@ -144,7 +140,6 @@ set formatoptions=coql  " Text formating options
 noremap <F1> <Nop>
 inoremap <F1> <Nop>
 lnoremap <F1> <Nop>
-tnoremap <F1> <Nop>
 
 " Toggle Paste Mode to save indentation
 nnoremap <F2> :call CopyMode()<CR>

@@ -1,6 +1,8 @@
 # vim:ft=zsh
 
-setopt no_global_rcs
+## Mac has a '/usr/libexec/path_helper' in /etc/zprofile that breaks PATH
+[[ "${HOST}" == "NEX-LW-2181.local" ]] && \
+  setopt no_global_rcs
 
 if [[ "$USER" != "root" ]]; then
   [[ -n "$XDG_CACHE_HOME" ]] || export XDG_CACHE_HOME="${HOME}/.local/cache"
