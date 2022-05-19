@@ -8,7 +8,7 @@ setopt chase_dots
 
 ## Globbing Options
 setopt extended_glob
-setopt null_glob
+setopt nonomatch   # added in place of null_glob. Silences the "no files matched" error without causing the argument to be removed from command
 setopt multibyte
 setopt numeric_glob_sort
 
