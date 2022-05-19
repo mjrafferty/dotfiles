@@ -65,8 +65,12 @@ set conceallevel=3
 set gdefault
 set hidden
 set history=50                     " keep 50 lines of command line history
+set hlsearch
+set ignorecase                     " Do case insensitive matching
+set incsearch                      " do incremental searching
+set laststatus=2
+set linebreak
 set listchars=extends:>,precedes:<,nbsp:+,tab:┆\ ,trail:·
-"set listchars=tab:»\ ,extends:›,precedes:‹,nbsp:·,trail:·
 set nowrap                         " Do not wrap code
 set number                         " add line numbers
 set relativenumber                 " add relative line numbers
