@@ -689,20 +689,6 @@ orphaned_files () {
 
 }
 
-start_agent () {
-
-  rm ${SSH_ENV} 2> /dev/null;
-
-  /usr/bin/ssh-agent -t 43200 \
-    | sed 's/^echo/#echo/' > "${SSH_ENV}";
-
-  chmod 600 "${SSH_ENV}";
-
-  source "${SSH_ENV}" > /dev/null;
-
-  /usr/bin/ssh-add "${HOME}/.ssh/nex${USER}.id_rsa";
-}
-
 get() {
 
   local -a curl_opts;
