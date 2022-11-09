@@ -1,5 +1,13 @@
-#! /bin/env php
+#! /usr/bin/env php
 <?php
+
+$php_paths = [
+  '/opt/remi/php81/root/usr/bin/php',
+  '/opt/nexcess/php73u/root/usr/bin/php',
+  '/opt/remi/php80/root/usr/bin/php',
+  '/opt/nexcess/php72u/root/usr/bin/php',
+  '/opt/remi/php74/root/usr/bin/php',
+];
 
 function help()
 {
@@ -94,16 +102,44 @@ function formatBytes($bytes, $precision = 2)
 
 function printResults(array $info, array $output, array $count)
 {
-    printf("%10s\t%s\t%s\n", "Data", "Overhead", "Total Mem");
-    printf("%10s\t%s\t%s\n\n", formatBytes($info['used_memory_dataset']), formatBytes($info['used_memory_overhead']), formatBytes($info['used_memory']));
+    if (array_key_exists('used_memory_dataset', $info)) {
+        printf("%10s\t%s\t%s\n", "Data", "Overhead", "Total Mem");
+        printf("%10s\t%s\t%s\n\n", formatBytes($info['used_memory_dataset']), formatBytes($info['used_memory_overhead']), formatBytes($info['used_memory']));
+    }
     printf("%10s\t%s\t%s\n", "Size", "Count", "Key");
     foreach ($output as $key => $size) {
         printf("%10s\t%s\t%s\n", formatBytes($size), $count[$key], $key);
     }
 }
 
+function php_version_check()
+{
+    if (extension_loaded('redis')) {
+        return true;
+    }
+    return false;
+}
+
+function run_with_new_php()
+{
+    global $php_paths;
+    global $argv;
+
+    foreach ($php_paths as $path) {
+        if (file_exists($path)) {
+            passthru($path . ' ' . implode($argv, ' '));
+            exit;
+        }
+    }
+    die('No valid php version found');
+}
+
 function main()
 {
+    if (!php_version_check()) {
+        run_with_new_php();
+    }
+
     $config = _parseCmdLine();
     $redis = new Redis();
 
@@ -149,7 +185,7 @@ function main()
 
     arsort($keysizes);
 
-    if (strlen($config['number']) > 0) {
+    if (array_key_exists('number', $config) && strlen($config['number']) > 0) {
         $num = $config['number'];
     } else {
         $num = 10;
