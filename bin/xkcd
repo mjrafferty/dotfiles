@@ -32,7 +32,7 @@ main () {
     return 1;
   fi
 
-  if [[ -x /usr/bin/shuf ]]; then
+  if command -v shuf &> /dev/null; then
 
     pass=$(shuf -n1000 "$wordList" | grep -E '^[a-z,A-Z]{4,12}$' | head -n4 | sed 's/^\([a-z]\)/\u\1/' | tr -d '\n| ');
 

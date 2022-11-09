@@ -1,10 +1,9 @@
 #! /bin/env php
 <?php
 
-function help ()
+function help()
 {
-
-  $help = <<<HELP
+    $help = <<<HELP
   Calculate highest redis memory usage by key prefix.
 
     -s | --socket
@@ -15,185 +14,169 @@ function help ()
 
 
 HELP;
-
-  die($help);
-
+    die($help);
 }
 
-function _parseCmdLine ()
+function _parseCmdLine()
 {
+    $config = array(
+      'socket' => "",
+      'host' => "",
+      'port' => "",
+      'database' => ""
+    );
 
-  $config = array(
-    'socket' => "",
-    'host' => "",
-    'port' => "",
-    'database' => ""
-  );
+    $shortopts  = "s:H:p:d:n:h";
 
-  $shortopts  = "s:H:p:d:n:h";
+    $longopts  = array(
+      "socket:",
+      "host:",
+      "port:",
+      "databae:",
+      "number:",
+      "help"
+    );
 
-  $longopts  = array(
-    "socket:",
-    "host:",
-    "port:",
-    "databae:",
-    "number:",
-    "help"
-  );
+    $cmdline = getopt($shortopts, $longopts);
 
-  $cmdline = getopt($shortopts,$longopts);
+    foreach ($cmdline as $opt => $value) {
+        switch ($opt) {
+            case "s":
+            case "socket":
+                $config["socket"] = $value;
+                break;
 
-  foreach ($cmdline as $opt => $value) {
+            case "H":
+            case "host":
+                $config["host"] = $value;
+                break;
 
-    switch ($opt) {
+            case "p":
+            case "port":
+                $config["port"] = $value;
+                break;
 
-    case "s":
-    case "socket":
-      $config["socket"] = $value;
-      break;
+            case "d":
+            case "database":
+                $config["database"] = $value;
+                break;
 
-    case "H":
-    case "host":
-      $config["host"] = $value;
-      break;
+            case "n":
+            case "number":
+                $config["number"] = $value;
+                break;
 
-    case "p":
-    case "port":
-      $config["port"] = $value;
-      break;
+            case "h":
+            case "help":
+                help();
+                break;
 
-    case "d":
-    case "database":
-      $config["database"] = $value;
-      break;
-
-    case "n":
-    case "number":
-      $config["number"] = $value;
-      break;
-
-    case "h":
-    case "help":
-      help();
-      break;
-
-    default:
-      break;
-
+            default:
+                break;
+        }
     }
-  }
 
-  return $config;
-
+    return $config;
 }
 
-function formatBytes($bytes, $precision = 2) {
-
-  $units = array('B', 'KiB', 'MiB', 'GiB');
-
-  $bytes = max($bytes, 0);
-  $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-  $pow = min($pow, count($units) - 1);
-
-  $bytes /= (1 << (10 * $pow));
-
-  return round($bytes, $precision) . ' ' . $units[$pow];
-}
-
-function printResults(array $output, array $count) {
-
-  printf("%10s\t%s\t%s\n","Size","Count","Key");
-  foreach ($output as $key => $size) {
-    printf("%10s\t%s\t%s\n", formatBytes($size),$count[$key],$key);
-  }
-
-}
-
-function main ()
+function formatBytes($bytes, $precision = 2)
 {
+    $units = array('B', 'KiB', 'MiB', 'GiB');
 
-  $config = _parseCmdLine();
+    $bytes = max($bytes, 0);
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+    $pow = min($pow, count($units) - 1);
 
-  $redis = new Redis();
+    $bytes /= (1 << (10 * $pow));
 
-  if ( strlen($config['socket']) > 0 ) {
-    $redis->connect($config['socket']);
-  } elseif (strlen($config['host']) > 0 && strlen($config['port']) > 0 ) {
-    $redis->connect($config['host'], $config['port']);
-  } else {
-    help();
-  }
+    return round($bytes, $precision) . ' ' . $units[$pow];
+}
 
-  if ( strlen($config['database']) > 0 ) {
-    $redis->select($config['database']);
-  }
+function printResults(array $output, array $count)
+{
+    printf("%10s\t%s\t%s\n", "Size", "Count", "Key");
+    foreach ($output as $key => $size) {
+        printf("%10s\t%s\t%s\n", formatBytes($size), $count[$key], $key);
+    }
+}
 
-  $keys=$redis->keys('*');
+function main()
+{
+    $config = _parseCmdLine();
+    $redis = new Redis();
 
-  $keysizes = array();
-  $key_count = array();
-
-  foreach ($keys as $key) {
-
-    $short_key = preg_replace('/_([a-z,A-Z,0-9]){20,}(_.*)?$/','_{hash_value}\2',$key);
-    $length = 0;
-
-    if (array_key_exists($short_key,$key_count)) {
-      $key_count[$short_key]+=1;
+    if (strlen($config['socket']) > 0) {
+        $redis->connect($config['socket']);
+    } elseif (strlen($config['host']) > 0 && strlen($config['port']) > 0) {
+        $redis->connect($config['host'], $config['port']);
     } else {
-      $key_count[$short_key]=1;
+        help();
     }
 
-    $type = $redis->type($key);
-
-    switch($type) {
-
-    case Redis::REDIS_HASH:
-      $hash_keys = $redis->hKeys($key);
-      foreach ($hash_keys as $hkey) {
-        $length += strlen($redis->hGet($key, $hkey));
-      }
-      break;
-
-    case Redis::REDIS_SET:
-      $set_members = $redis->sMembers($key);
-      foreach ($set_members as $member) {
-        $length += strlen($member);
-      }
-      break;
-
-    case Redis::REDIS_LIST:
-      echo "List type not supported";
-      break;
-
-    case Redis::REDIS_ZSET:
-      echo "Zset type not supported";
-      break;
-
-    case Redis::REDIS_STRING:
-      $length = strlen($redis->get($key));
-      break;
-
+    if (strlen($config['database']) > 0) {
+        $redis->select($config['database']);
     }
 
-    if (array_key_exists($short_key,$keysizes)) {
-      $keysizes[$short_key] += $length;
+    $keys = $redis->keys('*');
+    $keysizes = array();
+    $key_count = array();
+
+    foreach ($keys as $key) {
+        $short_key = preg_replace('/_([a-z,A-Z,0-9]){20,}(_.*)?$/', '_{hash_value}\2', $key);
+        $length = 0;
+
+        if (array_key_exists($short_key, $key_count)) {
+            $key_count[$short_key]+=1;
+        } else {
+            $key_count[$short_key]=1;
+        }
+
+        $type = $redis->type($key);
+
+        switch($type) {
+            case Redis::REDIS_HASH:
+                $hash_keys = $redis->hKeys($key);
+                foreach ($hash_keys as $hkey) {
+                    $length += strlen($redis->hGet($key, $hkey));
+                }
+                break;
+
+            case Redis::REDIS_SET:
+                $set_members = $redis->sMembers($key);
+                foreach ($set_members as $member) {
+                    $length += strlen($member);
+                }
+                break;
+
+            case Redis::REDIS_LIST:
+                echo "List type not supported";
+                break;
+
+            case Redis::REDIS_ZSET:
+                echo "Zset type not supported";
+                break;
+
+            case Redis::REDIS_STRING:
+                $length = strlen($redis->get($key));
+                break;
+        }
+
+        if (array_key_exists($short_key, $keysizes)) {
+            $keysizes[$short_key] += $length;
+        } else {
+            $keysizes[$short_key] = $length;
+        }
+    }
+
+    arsort($keysizes);
+
+    if (strlen($config['number']) > 0) {
+        $num = $config['number'];
     } else {
-      $keysizes[$short_key] = $length;
+        $num = 10;
     }
 
-  }
-
-  arsort($keysizes);
-
-  if ( strlen($config['number']) > 0 ) {
-    $num = $config['number'];
-  } else {
-    $num = 10;
-  }
-
-  printResults(array_slice($keysizes,0,$num),$key_count);
-
+    printResults(array_slice($keysizes, 0, $num), $key_count);
 }
 
 main();

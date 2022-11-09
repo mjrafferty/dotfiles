@@ -26,6 +26,7 @@ CURL_OPTS=(
   "--silent"
   "--show-error"
   "--compressed"
+  "--globoff"
   "--cookie" "${COOKIE_FILE}"
   "--cookie-jar" "${COOKIE_FILE}"
   "--user-agent" "${USER_AGENT}"
@@ -56,7 +57,7 @@ _cmdline() {
 
   local x;
 
-  for x in ${ARGA[*]}; do
+  for x in "${ARGA[@]}"; do
 
     case "$x" in
       "--help"|"-h")
