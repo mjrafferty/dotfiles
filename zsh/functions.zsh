@@ -408,6 +408,8 @@ u () {
     ln -s "/home/${user}/.composer" "${home}/.composer"
   fi
 
+  
+
   setfacl -R -m u:"$user":rX "$HOME"/{vim,zsh,.local/config} 2> /dev/null
   setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.local/{share,cache}} 2> /dev/null
 
@@ -423,7 +425,7 @@ u () {
   fi
 
   # Switch user
-  sudo XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR}" HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
+  sudo PM2_HOME="/home/${user}/.pm2" XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR}" HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
 
   # Give me permissions on any files the user created in my home dir
   sudo -u "$user" find "$home" -user "$user" -exec setfacl -m u:"$USER":rwX {} +
