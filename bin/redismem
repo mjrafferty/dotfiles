@@ -1,13 +1,5 @@
-#! /usr/bin/env php
+#! /opt/remi/php73/root/bin/php
 <?php
-
-$php_paths = [
-  '/opt/remi/php81/root/usr/bin/php',
-  '/opt/nexcess/php73u/root/usr/bin/php',
-  '/opt/remi/php80/root/usr/bin/php',
-  '/opt/nexcess/php72u/root/usr/bin/php',
-  '/opt/remi/php74/root/usr/bin/php',
-];
 
 function help()
 {
@@ -112,34 +104,8 @@ function printResults(array $info, array $output, array $count)
     }
 }
 
-function php_version_check()
-{
-    if (extension_loaded('redis')) {
-        return true;
-    }
-    return false;
-}
-
-function run_with_new_php()
-{
-    global $php_paths;
-    global $argv;
-
-    foreach ($php_paths as $path) {
-        if (file_exists($path)) {
-            passthru($path . ' ' . implode($argv, ' '));
-            exit;
-        }
-    }
-    die('No valid php version found');
-}
-
 function main()
 {
-    if (!php_version_check()) {
-        run_with_new_php();
-    }
-
     $config = _parseCmdLine();
     $redis = new Redis();
 
