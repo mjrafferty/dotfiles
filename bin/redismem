@@ -92,8 +92,10 @@ function formatBytes($bytes, $precision = 2)
     return round($bytes, $precision) . ' ' . $units[$pow];
 }
 
-function printResults(array $output, array $count)
+function printResults(array $info, array $output, array $count)
 {
+    printf("%10s\t%s\t%s\n", "Data", "Overhead", "Total Mem");
+    printf("%10s\t%s\t%s\n\n", formatBytes($info['used_memory_dataset']), formatBytes($info['used_memory_overhead']), formatBytes($info['used_memory']));
     printf("%10s\t%s\t%s\n", "Size", "Count", "Key");
     foreach ($output as $key => $size) {
         printf("%10s\t%s\t%s\n", formatBytes($size), $count[$key], $key);
@@ -117,13 +119,14 @@ function main()
         $redis->select($config['database']);
     }
 
+    $info = $redis->info("MEMORY");
+
     $keys = $redis->keys('*');
     $keysizes = array();
     $key_count = array();
 
     foreach ($keys as $key) {
         $short_key = preg_replace('/_([a-z,A-Z,0-9]){20,}(_.*)?$/', '_{hash_value}\2', $key);
-        $length = 0;
 
         if (array_key_exists($short_key, $key_count)) {
             $key_count[$short_key]+=1;
@@ -131,34 +134,10 @@ function main()
             $key_count[$short_key]=1;
         }
 
-        $type = $redis->type($key);
+        $length = $redis->rawCommand('MEMORY', 'USAGE', $key);
 
-        switch($type) {
-            case Redis::REDIS_HASH:
-                $hash_keys = $redis->hKeys($key);
-                foreach ($hash_keys as $hkey) {
-                    $length += strlen($redis->hGet($key, $hkey));
-                }
-                break;
-
-            case Redis::REDIS_SET:
-                $set_members = $redis->sMembers($key);
-                foreach ($set_members as $member) {
-                    $length += strlen($member);
-                }
-                break;
-
-            case Redis::REDIS_LIST:
-                echo "List type not supported";
-                break;
-
-            case Redis::REDIS_ZSET:
-                echo "Zset type not supported";
-                break;
-
-            case Redis::REDIS_STRING:
-                $length = strlen($redis->get($key));
-                break;
+        if (is_bool($length)) {
+            continue;
         }
 
         if (array_key_exists($short_key, $keysizes)) {
@@ -176,7 +155,7 @@ function main()
         $num = 10;
     }
 
-    printResults(array_slice($keysizes, 0, $num), $key_count);
+    printResults($info, array_slice($keysizes, 0, $num), $key_count);
 }
 
 main();
