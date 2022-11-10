@@ -7,6 +7,8 @@ readonly ARGA=("$@")
 UNIX_USER="";
 ASSUME_YES="";
 
+declare -A SITEWORX_DATA
+
 # Print usage
 _usage() {
   cat <<- EOF
@@ -139,17 +141,25 @@ _xkcd () {
 }
 
 _dumpDb () {
-  local database gzip mysqldump_args dump_file
+  local database user password gzip mysqldump_args dump_file
 
   database="$1"
+  user="$2"
+  password="$3"
 
   mysqldump_args=(
-    "--defaults-extra-file=/root/.my.cnf"
-    "--defaults-group-suffix=_root"
     "--opt"
     "--skip-lock-tables"
     "--routines"
+    "--user=${user}"
+    "--password=${password}"
   )
+
+  host="${SITEWORX_DATA["${database}_db_host"]}"
+
+  if [[ "${host}" != "localhost" ]]; then
+    mysqldump_args+=("--host=${host}")
+  fi
 
   if [ -x /usr/bin/pigz ]; then
     gzip='/usr/bin/pigz'
@@ -207,7 +217,19 @@ _import() {
   database="$2";
   password="$3";
 
-  mysql --user="${user}" --database="${database}" --password="${password}"
+  mysql_args=(
+    "--user=${user}"
+    "--password=${password}"
+    "--database=${database}"
+  )
+
+  host="${SITEWORX_DATA["${database}_db_host"]}"
+
+  if [[ "${host}" != "localhost" ]]; then
+    mysql_args+=("--host=${host}")
+  fi
+
+  mysql "${mysql_args[@]}"
 }
 
 _siteworx() {
@@ -231,13 +253,7 @@ _dbIsEmpty() {
 
   database="$1";
 
-  siteworx_args=(
-    "--controller" "MysqlDb" 
-    "--action" "listMysqlDatabases"
-    "--output-style" "json"
-    )
-
-  size="$(_siteworx "${siteworx_args[@]}" | jq -r ".[] | select(.fqdn == \"$database\") | .storage")"
+  size="${SITEWORX_DATA["${database}_db_size"]}"
 
   if ((size > 0)); then
     return 1;
@@ -246,10 +262,45 @@ _dbIsEmpty() {
   fi
 }
 
+_collectData() {
+  siteworx_args=(
+    "--controller" "MysqlUser"
+    "--action" "listMysqlUsers"
+    "--output-style" "json"
+  )
+
+  read -r output <(_siteworx "${siteworx_args[@]}" | jq -r -c '.[] | .fqun + "|" + .name + "|" + .databases')
+  for line in "${output[@]}"; do
+    IFS='|' read -ra values <<< "${line}"
+    fqun="${values[0]}";
+    SITEWORX_DATA["${fqun}_user"]="${fqun}";
+    SITEWORX_DATA["${fqun}_user_name"]="${values[1]}";
+    SITEWORX_DATA["${fqun}_user_databases"]="${values[2]}";
+  done
+
+  siteworx_args=(
+    "--controller" "MysqlUser"
+    "--action" "listMysqlDatabases"
+    "--output-style" "json"
+  )
+
+  read -r output <(_siteworx "${siteworx_args[@]}" | jq -r -c '.[] | .fqdn + "|" + .name + "|" + .host + "|" + (.storage|tostring)')
+  for line in "${output[@]}"; do
+    IFS='|' read -ra values <<< "${line}"
+    fqdn="${values[0]}";
+    SITEWORX_DATA["${fqdn}_db"]="${fqdn}";
+    SITEWORX_DATA["${fqdn}_db_name"]="${values[1]}";
+    SITEWORX_DATA["${fqdn}_db_host"]="${values[2]}";
+    SITEWORX_DATA["${fqdn}_db_size"]="${values[3]}";
+  done
+}
+
 _dropDB () {
   local database siteworx_args
 
   database="$1"
+  user="$2"
+  password="$3"
 
   if ((ASSUME_YES == 1)); then
     decision="yes";
@@ -270,15 +321,15 @@ _dropDB () {
       case "${decision}" in
 
         "Yes"|"YES"|"yes"|"y"|"Y")
-          _dumpDb "${database}";
+          _dumpDb "${database}" "${user}" "${password}";
           ;;
 
         *);;
       esac
 
       siteworx_args=(
-        "--controller" "MysqlDb" 
-        "--action" "delete" 
+        "--controller" "MysqlDb"
+        "--action" "delete"
         "--name" "${database/${UNIX_USER}_/}"
         "--confirm_action" "1"
       )
@@ -366,16 +417,29 @@ _grantPerms () {
 }
 
 _accessTest () {
+  local mysql_args host;
+
   user="$1";
   database="$2";
   password="$3";
 
-  ## TODO siteworx --user-auth --non-interactive --controller MysqlPerms --action queryDatabaseUserPerms --name <database> -o json | jq -r '.[] | .name | select(. == "<user>")'
-  mysql --user="${user}" --database="${database}" --password="${password}" -e "exit" 2> /dev/null
+  mysql_args=(
+    "--user=${user}"
+    "--database=${database}"
+    "--password=${password}"
+  )
+
+  host="${SITEWORX_DATA["${database}_db_host"]}"
+
+  if [[ "${host}" != "localhost" ]]; then
+    mysql_args+=("--host=${host}")
+  fi
+
+  mysql "${mysql_args[@]}" -e "exit" 2> /dev/null
 
   # shellcheck disable=SC2181
   if [[ "$?" != 0 ]]; then
-    echo "User $user does not have access to database $database or password incorrect.";
+    echo "User $1 does not have access to database $2 or password incorrect.";
     return 1;
   fi
 }
@@ -384,13 +448,7 @@ _isDB () {
   local database output siteworx_args;
   database="$1";
 
-  siteworx_args=(
-    "--controller" "MysqlDb" 
-    "--action" "listMysqlDatabases"
-    "--output-style" "json"
-    )
-
-  output="$(_siteworx "${siteworx_args[@]}" | jq -r ".[] | select(.fqdn == \"$database\")")"
+  output="${SITEWORX_DATA["${database}_db"]}"
 
   if [[ -z $output ]]; then
     return 1;
@@ -404,12 +462,12 @@ _isUser () {
   user="$1";
 
   siteworx_args=(
-    "--controller" "MysqlUser" 
-    "--action" "list" 
+    "--controller" "MysqlUser"
+    "--action" "list"
     "--output-style" "json"
   )
 
-  output="$(_siteworx "${siteworx_args[@]}" | jq -r ".[][1] | select(. == \"$user\")")"
+  output="${SITEWORX_DATA["${user}_user"]}"
 
   if [[ -z $output ]]; then
     return 1;
@@ -511,6 +569,8 @@ main () {
 
   _checkUnixUser || return 2;
 
+  _collectData || return 2;
+
   if [[ -z "$database" || -z "$user" ]]; then
     suffix="$(date "+%s" | cut -c2-8)"
     temp_db="${UNIX_USER}_${suffix}"
@@ -592,7 +652,7 @@ main () {
   _printAccess "$user" "$database" "$password";
 
   if (( emptydb != 1 )); then
-    _dropDB "$database" || return 13;
+    _dropDB "$database" "$user" "$password" || return 13;
     _grantPerms "$database" "$user" || return 14
   fi
 
