@@ -9,7 +9,6 @@ ASSUME_YES="";
 
 # Print usage
 _usage() {
-
   cat <<- EOF
 
   importdb [options] <dump_file>
@@ -24,15 +23,13 @@ _usage() {
   -h|--help                     Show this menu
 
 EOF
-
 }
 
 # Convert long command line options into short ones for getopts
 _cmdline() {
-
   local x;
 
-  for x in ${ARGA[*]}; do
+  for x in "${ARGA[@]}"; do
 
     case "$x" in
       "--help"|"-h")
@@ -69,18 +66,14 @@ _cmdline() {
   done
 
   echo "$args";
-
 }
 
 _getusr() {
-
   pwd \
     | grep -Po "/(chroot/)?(home|local|data)/\K[^/]*"
-
 }
 
 _formatbytes() {
-
   local column
 
   column="$1"
@@ -108,39 +101,25 @@ _formatbytes() {
       }
     print \$0;
   }";
-
 }
 
 _xkcd () {
-
-  if [[ "$ARGS" =~ --help$|-h$ ]]; then
-    _usage;
-    return 0;
-  fi
-
   local wordList word rnd
 
   if [ -r /usr/local/interworx/lib/dict/words ]; then
-
     wordList='/usr/local/interworx/lib/dict/words';
-
   elif [ -r /usr/share/dict/words ]; then
-
     wordList='/usr/share/dict/words';
-
   else
     echo "No word list found.";
     return 1;
   fi
 
   if [[ -x /usr/bin/shuf ]]; then
-
     pass=$(shuf -n1000 "$wordList" | grep -E '^[a-z,A-Z]{4,12}$' | head -n4 | sed 's/^\([a-z]\)/\u\1/' | tr -d '\n| ');
 
     echo "$pass"$(( (RANDOM % 9000) + 1000 ));
-
   else
-
     word=();
 
     matchList=$(grep -E '^[a-z,A-Z]{4,12}$' $wordList);
@@ -156,13 +135,10 @@ _xkcd () {
     done;
 
     echo "${word[0]}${word[1]}${word[2]}${word[3]}$(( RANDOM % 9000 + 1000 ))";
-
   fi
-
 }
 
 _admin_query () {
-
   local mysql_args;
 
   mysql_args=(
@@ -175,7 +151,6 @@ _admin_query () {
 }
 
 _dumpDb () {
-
   local database gzip mysqldump_args dump_file
 
   database="$1"
@@ -201,11 +176,9 @@ _dumpDb () {
   printf "Done\n";
 
   echo "Dump file: $dump_file"
-
 }
 
 _catDump () {
-
   local dump_file cat size
 
   dump_file="$1"
@@ -225,11 +198,9 @@ _catDump () {
 
   "$cat" "$dump_file" \
     | pv --wait --size "$size"
-
 }
 
 _transform() {
-
   local replacements;
 
   replacements=(
@@ -239,11 +210,9 @@ _transform() {
 
   sed -r 's/DEFINER\s*\=\s*\S+\@\S+//g' \
     | sed "${replacements[@]}"
-
 }
 
 _import() {
-
   local user database password;
 
   user="$1";
@@ -251,11 +220,9 @@ _import() {
   password="$3";
 
   mysql --user="${user}" --database="${database}" --password="${password}"
-
 }
 
 _dbIsEmpty() {
-
   local database decision;
 
   database="$1";
@@ -267,11 +234,9 @@ _dbIsEmpty() {
   else
     return 0;
   fi
-
 }
 
 _dropDB () {
-
   local database
 
   database="$1"
@@ -307,11 +272,9 @@ _dropDB () {
 
     *) return 2;;
   esac
-
 }
 
 _createDB () {
-
   local database siteworx_args decision;
 
   database="$1";
@@ -338,11 +301,9 @@ _createDB () {
   )
 
   sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
-
 }
 
 _createUser() {
-
   local user password siteworx_args decision;
 
   user="$1";
@@ -372,11 +333,9 @@ _createUser() {
   )
 
   sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
-
 }
 
 _grantPerms () {
-
   local database user password siteworx_args decision;
 
   database="${1/${UNIX_USER}_/}";
@@ -393,11 +352,9 @@ _grantPerms () {
   )
 
   sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
-
 }
 
 _accessTest () {
-
   user="$1";
   database="$2";
   password="$3";
@@ -409,11 +366,9 @@ _accessTest () {
     echo "User $user does not have access to database $database or password incorrect.";
     return 1;
   fi
-
 }
 
 _isDB () {
-
   local database output;
   database="$1";
 
@@ -424,11 +379,9 @@ _isDB () {
   else
     return 0;
   fi
-
 }
 
 _isUser () {
-
   local user output;
   user="$1";
 
@@ -439,11 +392,9 @@ _isUser () {
   else
     return 0;
   fi
-
 }
 
 _printAccess () {
-
   local user database password;
 
   user="$1";
@@ -458,11 +409,9 @@ Username: $user
 Password: $password
 
 EOF
-
 } 
 
 _checkUnixUser () {
-
   local nodeworx_args;
 
   [[ -n "$UNIX_USER" ]] || UNIX_USER="$(_getusr)";
@@ -481,18 +430,15 @@ _checkUnixUser () {
     echo "User $UNIX_USER is not tied to a siteworx account.";
     return 1;
   fi
-
 }
 
 # Main
 main () {
-
   local cmdline dump_file user database password replacement replacements make_db_or_user emptydb suffix temp_user temp_db input_user input_db;
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
   while getopts ":hf:u:U:d:p:r:y" OPTION "${cmdline[@]}"; do
-
     case $OPTION in
       h)
         _usage;
@@ -533,7 +479,6 @@ main () {
   done
 
   if [[ -z "$dump_file" ]]; then
-
     for arg in "$@"; do
       if [[ -f "$arg" ]]; then
         dump_file="$arg";
@@ -541,19 +486,16 @@ main () {
     done
 
     [[ -n "$dump_file" ]] || { echo "No dump file provided"; return 1; }
-
   fi
 
   _checkUnixUser || return 2;
 
   if [[ -z "$database" || -z "$user" ]]; then
-
     suffix="$(date "+%s" | cut -c2-8)"
     temp_db="${UNIX_USER}_${suffix}"
     temp_user="${UNIX_USER}_${suffix}"
 
     if [[ -z "$user" ]]; then
-
       if ((ASSUME_YES != 1)); then
         read -r -p "No user provided. Enter user name (7 char max, default ${temp_user}): " input_user;
       fi
@@ -563,11 +505,9 @@ main () {
       else
         user="$temp_user";
       fi
-
     fi
 
     if [[ -z "$database" ]]; then
-
       if ((ASSUME_YES != 1)); then
         read -r -p "No database provided. Enter database name (default ${temp_db}): " input_db;
       fi
@@ -577,9 +517,7 @@ main () {
       else
         database="$temp_db";
       fi
-
     fi
-
   fi
 
   [[ -n "$user" ]] || { echo "No user provided"; return 3; }
@@ -642,7 +580,6 @@ main () {
   _catDump "$dump_file" \
     | _transform "${replacements[@]}" \
     | _import "$user" "$database" "$password"
-
 }
 
 main "${ARGA[@]}";
