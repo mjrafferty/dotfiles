@@ -138,18 +138,6 @@ _xkcd () {
   fi
 }
 
-_admin_query () {
-  local mysql_args;
-
-  mysql_args=(
-    "--defaults-extra-file=/root/.my.cnf"
-    "--defaults-group-suffix=_root"
-    "--skip-column-names"
-    "-e"
-  )
-  mysql "${mysql_args[@]}" "$@"
-}
-
 _dumpDb () {
   local database gzip mysqldump_args dump_file
 
@@ -183,7 +171,7 @@ _catDump () {
 
   dump_file="$1"
 
-  echo 'SET foreign_key_checks = 0;'; 
+  echo 'SET foreign_key_checks = 0;';
 
   case "$dump_file" in
     (*.gz) cat="zcat"  ;;
@@ -193,7 +181,7 @@ _catDump () {
   esac
 
   printf "Calculating Size. Please wait..." >&2;
-  size="$("$cat" "$dump_file" | wc --bytes)" 
+  size="$("$cat" "$dump_file" | wc --bytes)"
   printf "Done %s\n" "$(echo "$size" | _formatbytes 1)" >&2;
 
   "$cat" "$dump_file" \
@@ -222,14 +210,36 @@ _import() {
   mysql --user="${user}" --database="${database}" --password="${password}"
 }
 
+_siteworx() {
+  local siteworx_args
+
+  siteworx_args=(
+    "--user-auth"
+    "--non-interactive"
+    "${@}"
+  )
+
+  if [[ "$USER" == "$UNIX_USER" ]]; then
+    siteworx "${siteworx_args[@]}"
+  else
+    sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
+  fi
+}
+
 _dbIsEmpty() {
-  local database decision;
+  local database decision siteworx_args size;
 
   database="$1";
 
-  table_count="$(_admin_query "select count(*) from information_schema.tables where TABLE_SCHEMA=\"${database}\";")"
+  siteworx_args=(
+    "--controller" "MysqlDb" 
+    "--action" "listMysqlDatabases"
+    "--output-style" "json"
+    )
 
-  if ((table_count > 0)); then
+  size="$(_siteworx "${siteworx_args[@]}" | jq -r ".[] | select(.fqdn == \"$database\") | .storage")"
+
+  if ((size > 0)); then
     return 1;
   else
     return 0;
@@ -237,7 +247,7 @@ _dbIsEmpty() {
 }
 
 _dropDB () {
-  local database
+  local database siteworx_args
 
   database="$1"
 
@@ -266,8 +276,15 @@ _dropDB () {
         *);;
       esac
 
-      _admin_query "Drop database ${database}; create database ${database}"  || return 1;
+      siteworx_args=(
+        "--controller" "MysqlDb" 
+        "--action" "delete" 
+        "--name" "${database}"
+        "--confirm_action" "1"
+      )
 
+      _siteworx "${siteworx_args[@]}"
+      _createDB "${database}"
       ;;
 
     *) return 2;;
@@ -293,14 +310,12 @@ _createDB () {
   database="${database/${UNIX_USER}_/}";
 
   siteworx_args=(
-    "--user-auth"
-    "--non-interactive"
     "--controller" "MysqlDb"
     "--action" "add"
     "--name" "$database"
   )
 
-  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
+  _siteworx "${siteworx_args[@]}"
 }
 
 _createUser() {
@@ -323,8 +338,6 @@ _createUser() {
   user="${user/${UNIX_USER}_/}";
 
   siteworx_args=(
-    "--user-auth"
-    "--non-interactive"
     "--controller" "MysqlUser"
     "--action" "add"
     "--name" "$user"
@@ -332,7 +345,7 @@ _createUser() {
     "--confirm_password" "$password"
   )
 
-  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
+  _siteworx "${siteworx_args[@]}"
 }
 
 _grantPerms () {
@@ -342,8 +355,6 @@ _grantPerms () {
   user="${2/${UNIX_USER}_/}";
 
   siteworx_args=(
-    "--user-auth"
-    "--non-interactive"
     "--controller" "MysqlPerms"
     "--action" "add"
     "--name" "$database"
@@ -351,7 +362,7 @@ _grantPerms () {
     "--perms" "all"
   )
 
-  sudo -u "${UNIX_USER}" -- siteworx "${siteworx_args[@]}"
+  _siteworx "${siteworx_args[@]}"
 }
 
 _accessTest () {
@@ -359,6 +370,7 @@ _accessTest () {
   database="$2";
   password="$3";
 
+  ## TODO siteworx --user-auth --non-interactive --controller MysqlPerms --action queryDatabaseUserPerms --name <database> -o json | jq -r '.[] | .name | select(. == "<user>")'
   mysql --user="${user}" --database="${database}" --password="${password}" -e "exit" 2> /dev/null
 
   # shellcheck disable=SC2181
@@ -369,10 +381,16 @@ _accessTest () {
 }
 
 _isDB () {
-  local database output;
+  local database output siteworx_args;
   database="$1";
 
-  output="$(_admin_query "show databases like \"${database}\";")";
+  siteworx_args=(
+    "--controller" "MysqlDb" 
+    "--action" "listMysqlDatabases"
+    "--output-style" "json"
+    )
+
+  output="$(_siteworx "${siteworx_args[@]}" | jq -r ".[] | select(.fqdn == \"$database\")")"
 
   if [[ -z $output ]]; then
     return 1;
@@ -382,10 +400,16 @@ _isDB () {
 }
 
 _isUser () {
-  local user output;
+  local user output siteworx_args;
   user="$1";
 
-  output="$(_admin_query "SELECT 1 FROM mysql.user WHERE user = \"$user\" limit 1")";
+  siteworx_args=(
+    "--controller" "MysqlUser" 
+    "--action" "list" 
+    "--output-style" "json"
+  )
+
+  output="$(_siteworx "${siteworx_args[@]}" | jq -r ".[][0] | select(. == \"$user\")")"
 
   if [[ -z $output ]]; then
     return 1;
@@ -409,22 +433,19 @@ Username: $user
 Password: $password
 
 EOF
-} 
+}
 
 _checkUnixUser () {
-  local nodeworx_args;
+  local siteworx_args;
 
   [[ -n "$UNIX_USER" ]] || UNIX_USER="$(_getusr)";
 
-  nodeworx_args=(
-    "--user-auth"
-    "--non-interactive"
-    "--controller" "Siteworx"
-    "--action" "querySiteworxAccounts"
-    "--account_data" "unixuser"
+  siteworx_args=(
+    "--controller" "MysqlDb"
+    "--action" "win"
   )
 
-  if nodeworx "${nodeworx_args[@]}" | grep -q "^${UNIX_USER}$"; then
+  if _siteworx "${siteworx_args[@]}"; then
     return 0;
   else
     echo "User $UNIX_USER is not tied to a siteworx account.";
@@ -451,7 +472,7 @@ main () {
           echo "No file provided for -f.";
           exit 1;
         fi
-        ;; 
+        ;;
       u)
         user="$OPTARG";
         ;;
@@ -537,7 +558,6 @@ main () {
     ((make_db_or_user+=2));
   fi
 
-
   if [[ -z "$password" && "$make_db_or_user" -le 1 ]]; then
 
     read -r -s -p "Enter password: " password
@@ -547,9 +567,8 @@ main () {
 
   fi
 
-
   case "$make_db_or_user" in
-    1) 
+    1)
       _createDB "$database" || return 6
       emptydb=1;
       _grantPerms "$database" "$user" &> /dev/null
@@ -570,7 +589,6 @@ main () {
   esac
 
   _accessTest "$user" "$database" "$password" || return 12;
-
   _printAccess "$user" "$database" "$password";
 
   if (( emptydb != 1 )); then
