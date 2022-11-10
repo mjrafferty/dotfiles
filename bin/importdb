@@ -262,14 +262,14 @@ _dbIsEmpty() {
   fi
 }
 
-_collectData() {
+_collectUserData() {
   siteworx_args=(
     "--controller" "MysqlUser"
     "--action" "listMysqlUsers"
     "--output-style" "json"
   )
 
-  read -r output <(_siteworx "${siteworx_args[@]}" | jq -r -c '.[] | .fqun + "|" + .name + "|" + .databases')
+  mapfile -t output < <(_siteworx "${siteworx_args[@]}" | jq -r -c '.[] | .fqun + "|" + .name + "|" + .databases')
   for line in "${output[@]}"; do
     IFS='|' read -ra values <<< "${line}"
     fqun="${values[0]}";
@@ -277,14 +277,16 @@ _collectData() {
     SITEWORX_DATA["${fqun}_user_name"]="${values[1]}";
     SITEWORX_DATA["${fqun}_user_databases"]="${values[2]}";
   done
+}
 
+_collectDbData() {
   siteworx_args=(
-    "--controller" "MysqlUser"
+    "--controller" "MysqlDb"
     "--action" "listMysqlDatabases"
     "--output-style" "json"
   )
 
-  read -r output <(_siteworx "${siteworx_args[@]}" | jq -r -c '.[] | .fqdn + "|" + .name + "|" + .host + "|" + (.storage|tostring)')
+  mapfile -t output < <(_siteworx "${siteworx_args[@]}" | jq -r -c '.[] | .fqdn + "|" + .name + "|" + .host + "|" + (.storage|tostring)')
   for line in "${output[@]}"; do
     IFS='|' read -ra values <<< "${line}"
     fqdn="${values[0]}";
@@ -367,6 +369,8 @@ _createDB () {
   )
 
   _siteworx "${siteworx_args[@]}"
+
+  _collectDbData
 }
 
 _createUser() {
@@ -442,6 +446,8 @@ _accessTest () {
     echo "User $1 does not have access to database $2 or password incorrect.";
     return 1;
   fi
+
+  _collectUserData
 }
 
 _isDB () {
@@ -569,7 +575,8 @@ main () {
 
   _checkUnixUser || return 2;
 
-  _collectData || return 2;
+  _collectUserData || return 2;
+  _collectDbData || return 2;
 
   if [[ -z "$database" || -z "$user" ]]; then
     suffix="$(date "+%s" | cut -c2-8)"
