@@ -279,7 +279,7 @@ _dropDB () {
       siteworx_args=(
         "--controller" "MysqlDb" 
         "--action" "delete" 
-        "--name" "${database}"
+        "--name" "${database/${UNIX_USER}_/}"
         "--confirm_action" "1"
       )
 
@@ -409,7 +409,7 @@ _isUser () {
     "--output-style" "json"
   )
 
-  output="$(_siteworx "${siteworx_args[@]}" | jq -r ".[][0] | select(. == \"$user\")")"
+  output="$(_siteworx "${siteworx_args[@]}" | jq -r ".[][1] | select(. == \"$user\")")"
 
   if [[ -z $output ]]; then
     return 1;
@@ -593,6 +593,7 @@ main () {
 
   if (( emptydb != 1 )); then
     _dropDB "$database" || return 13;
+    _grantPerms "$database" "$user" || return 14
   fi
 
   _catDump "$dump_file" \
