@@ -693,12 +693,12 @@ main () {
       _grantPerms &> /dev/null
       ;;
     2)
-      password="$(_xkcd)"
+      _GLOABLS['password']="$(_xkcd)"
       _createUser || return 7
       _grantPerms || return 8
       ;;
     3)
-      password="$(_xkcd)"
+      _GLOABLS['password']="$(_xkcd)"
       _createDB || return 9
       emptydb=1;
       _createUser || return 10
