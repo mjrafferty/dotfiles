@@ -5,6 +5,7 @@ readonly ARGA=("$@")
 
 ## Necessary Global variables
 declare -A _GLOBALS
+declare -a _REPLACEMENTS
 
 # Print usage
 _usage() {
@@ -200,12 +201,9 @@ _catDump () {
 _transform() {
   local replacements;
 
-  mapfile -t replacement < <(echo "${_GLOBALS['replacements']}" | tr ',' '\n' );
-  replacements+=('-e' "s~${replacement[0]}~${replacement[1]}~g")
-
   replacements=(
     '-e' 's/^INSERT INTO/INSERT IGNORE INTO/g'
-    "${replacements[@]}"
+    "${_REPLACEMENTS[@]}"
   )
 
   sed -r 's/DEFINER\s*\=\s*\S+\@\S+//g' \
@@ -297,13 +295,21 @@ _collectDbData() {
   done
 }
 
+_assumeYes() {
+  if [[ "${_GLOBALS['assume_yes']}" == 1 ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 _dropDB () {
   local database unix_user siteworx_args
 
   database="$(_getDb)"
   unix_user="$(_getUnixUser)"
 
-  if ((ASSUME_YES == 1)); then
+  if _assumeYes; then
     decision="yes";
   else
     read -r -p "Database ${database} not empty. Drop database? (y/N): " decision;
@@ -311,7 +317,7 @@ _dropDB () {
 
   case "${decision}" in
     "Yes"|"YES"|"yes"|"y"|"Y")
-      if ((ASSUME_YES == 1)); then
+      if _assumeYes; then
         decision="yes";
       else
         read -r -p "Backup existing database? (y/N): " decision;
@@ -346,7 +352,7 @@ _createDB () {
   database="$(_getDb)"
   unix_user="$(_getUnixUser)"
 
-  if ((ASSUME_YES == 1)) || [[ "${yes}" == "yes" ]]; then
+  if _assumeYes || [[ "${yes}" == "yes" ]]; then
     decision="yes";
   else
     read -r -p "Database ${database} does not exist. Create it? (y/N): " decision;
@@ -376,7 +382,7 @@ _createUser() {
   unix_user="$(_getUnixUser)"
   password="$(_getPassword)"
 
-  if ((ASSUME_YES == 1)); then
+  if _assumeYes; then
     decision="yes";
   else
     read -r -p "User $user does not exist. Create it? (y/N): " decision;
@@ -565,7 +571,7 @@ _setUser() {
   if [[ -z "${_GLOBALS['user']}" ]]; then
     temp_user="${unix_user}_$(_getSuffix)"
 
-    if ((ASSUME_YES != 1)); then
+    if _assumeYes; then
       read -r -p "No user provided. Enter user name (7 char max, default ${temp_user}): " input_user;
     fi
 
@@ -599,7 +605,7 @@ _setDb() {
   if [[ -z "${_GLOBALS['database']}" ]]; then
     temp_db="${unix_user}_$(_getSuffix)"
 
-    if ((ASSUME_YES != 1)); then
+    if _assumeYes; then
       read -r -p "No database provided. Enter database name (default ${temp_db}): " input_db;
     fi
 
@@ -764,7 +770,8 @@ main () {
         _GLOBALS['host']="$OPTARG";
         ;;
       r)
-        _GLOBALS['replacements']="$OPTARG"
+        mapfile -t replacement < <(echo "${OPTARG}" | tr ',' '\n' );
+        _REPLACEMENTS+=('-e' "s~${replacement[0]}~${replacement[1]}~g")
         ;;
       y)
         _GLOBALS['assume_yes']=1;
