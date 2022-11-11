@@ -571,7 +571,7 @@ _setUser() {
   if [[ -z "${_GLOBALS['user']}" ]]; then
     temp_user="${unix_user}_$(_getSuffix)"
 
-    if _assumeYes; then
+    if ! _assumeYes; then
       read -r -p "No user provided. Enter user name (7 char max, default ${temp_user}): " input_user;
     fi
 
@@ -605,7 +605,7 @@ _setDb() {
   if [[ -z "${_GLOBALS['database']}" ]]; then
     temp_db="${unix_user}_$(_getSuffix)"
 
-    if _assumeYes; then
+    if ! _assumeYes; then
       read -r -p "No database provided. Enter database name (default ${temp_db}): " input_db;
     fi
 
