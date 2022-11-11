@@ -684,8 +684,6 @@ _useSiteworx() {
   _setSuffix
   _setUser
   _setDb
-  _setPassword
-  _setHost
 
   if ! _isDB; then
     ((make_db_or_user=1));
@@ -713,6 +711,9 @@ _useSiteworx() {
       ;;
     *);;
   esac
+
+  _setPassword
+  _setHost
 
   _accessTest
   _printAccess;
