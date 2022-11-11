@@ -143,10 +143,10 @@ _xkcd () {
 _dumpDb () {
   local database user password host gzip mysqldump_args dump_file
 
-  database="${_GLOBALS['database']}"
-  user="${_GLOBALS['user']}"
-  password="${_GLOBALS['password']}"
-  host="${_GLOBALS['host']}"
+  database="$(_getDb)"
+  user="$(_getUser)"
+  password="$(_getPassword)"
+  host="$(_getHost)"
 
   mysqldump_args=(
     "--opt"
@@ -200,9 +200,12 @@ _catDump () {
 _transform() {
   local replacements;
 
+  mapfile -t replacement < <(echo "${_GLOBALS['replacements']}" | tr ',' '\n' );
+  replacements+=('-e' "s~${replacement[0]}~${replacement[1]}~g")
+
   replacements=(
     '-e' 's/^INSERT INTO/INSERT IGNORE INTO/g'
-    "${@}"
+    "${replacements[@]}"
   )
 
   sed -r 's/DEFINER\s*\=\s*\S+\@\S+//g' \
@@ -210,12 +213,12 @@ _transform() {
 }
 
 _import() {
-  local user database password;
+  local user database password host;
 
-  database="${_GLOBALS['database']}"
-  user="${_GLOBALS['user']}"
-  password="${_GLOBALS['password']}"
-  host="${_GLOBALS['host']}"
+  database="$(_getDb)"
+  user="$(_getUser)"
+  password="$(_getPassword)"
+  host="$(_getHost)"
 
   mysql_args=(
     "--user=${user}"
@@ -244,30 +247,18 @@ _import() {
 _siteworx() {
   local siteworx_args
 
+  unix_user="$(_getUnixUser)"
+
   siteworx_args=(
     "--user-auth"
     "--non-interactive"
     "${@}"
   )
 
-  if [[ "$USER" == "${_GLOBALS['unix_user']}" ]]; then
+  if [[ "$USER" == "${unix_user}" ]]; then
     siteworx "${siteworx_args[@]}"
   else
-    sudo -u "${_GLOBALS['unix_user']}" -- siteworx "${siteworx_args[@]}"
-  fi
-}
-
-_dbIsEmpty() {
-  local database decision siteworx_args size;
-
-  database="${_GLOBALS['database']}"
-
-  size="${_GLOBALS["${database}_db_size"]}"
-
-  if ((size > 0)); then
-    return 1;
-  else
-    return 0;
+    sudo -u "${unix_user}" -- siteworx "${siteworx_args[@]}"
   fi
 }
 
@@ -307,9 +298,10 @@ _collectDbData() {
 }
 
 _dropDB () {
-  local database siteworx_args
+  local database unix_user siteworx_args
 
-  database="${_GLOBALS['database']}"
+  database="$(_getDb)"
+  unix_user="$(_getUnixUser)"
 
   if ((ASSUME_YES == 1)); then
     decision="yes";
@@ -335,7 +327,7 @@ _dropDB () {
       siteworx_args=(
         "--controller" "MysqlDb"
         "--action" "delete"
-        "--name" "${database/${_GLOBALS['unix_user']}_/}"
+        "--name" "${database/${unix_user}_/}"
         "--confirm_action" "1"
       )
 
@@ -348,10 +340,11 @@ _dropDB () {
 }
 
 _createDB () {
-  local database siteworx_args decision;
+  local database unix_user siteworx_args decision;
 
   yes="$1"
-  database="${_GLOBALS['database']}"
+  database="$(_getDb)"
+  unix_user="$(_getUnixUser)"
 
   if ((ASSUME_YES == 1)) || [[ "${yes}" == "yes" ]]; then
     decision="yes";
@@ -364,12 +357,10 @@ _createDB () {
     *) return 1;;
   esac
 
-  database="${database/${_GLOBALS['unix_user']}_/}";
-
   siteworx_args=(
     "--controller" "MysqlDb"
     "--action" "add"
-    "--name" "$database"
+    "--name" "${database/${unix_user}_/}"
   )
 
   _siteworx "${siteworx_args[@]}"
@@ -378,10 +369,12 @@ _createDB () {
 }
 
 _createUser() {
-  local user password siteworx_args decision;
+  local database user unix_user password siteworx_args decision;
 
-  user="${_GLOBALS['user']}"
-  password="${_GLOBALS['password']}"
+  database="$(_getDb)"
+  user="$(_getUser)"
+  unix_user="$(_getUnixUser)"
+  password="$(_getPassword)"
 
   if ((ASSUME_YES == 1)); then
     decision="yes";
@@ -397,7 +390,7 @@ _createUser() {
   siteworx_args=(
     "--controller" "MysqlUser"
     "--action" "add"
-    "--name" "${user/${_GLOBALS['unix_user']}_/}"
+    "--name" "${user/${unix_user}_/}"
     "--password" "$password"
     "--confirm_password" "$password"
   )
@@ -406,29 +399,33 @@ _createUser() {
 }
 
 _grantPerms () {
-  local database user password siteworx_args decision;
+  local database user siteworx_args ;
 
-  database="${_GLOBALS['database']}"
-  user="${_GLOBALS['user']}"
+  database="$(_getDb)"
+  user="$(_getUser)"
+  unix_user="$(_getUnixUser)"
 
   siteworx_args=(
     "--controller" "MysqlPerms"
     "--action" "add"
-    "--name" "${database/${_GLOBALS['unix_user']}_/}"
-    "--user" "${user/${_GLOBALS['unix_user']}_/}"
+    "--name" "${database/${unix_user}_/}"
+    "--user" "${user/${unix_user}_/}"
     "--perms" "all"
   )
 
   _siteworx "${siteworx_args[@]}"
+
+  _collectUserData
+  _collectDbData
 }
 
 _accessTest () {
-  local mysql_args host;
+  local mysql_args database user password host;
 
-  database="${_GLOBALS['database']}"
-  user="${_GLOBALS['user']}"
-  password="${_GLOBALS['password']}"
-  host="${_GLOBALS['host']}"
+  database="$(_getDb)"
+  user="$(_getUser)"
+  password="$(_getPassword)"
+  host="$(_getHost)"
 
   mysql_args=(
     "--user=${user}"
@@ -447,14 +444,13 @@ _accessTest () {
     echo "User $user does not have access to database $database or password incorrect.";
     return 1;
   fi
-
-  _collectUserData
 }
 
 _isDB () {
   local db;
 
-  db="${_GLOBALS["${_GLOBALS['database']}_db"]}"
+  db="$(_getDb)"
+  db="${_GLOBALS["${db}_db"]}"
 
   if [[ -z "$db" ]]; then
     return 1;
@@ -466,7 +462,8 @@ _isDB () {
 _isUser () {
   local user;
 
-  user="${_GLOBALS["${_GLOBALS['user']}_user"]}"
+  user="$(_getUser)"
+  user="${_GLOBALS["${user}_user"]}"
 
   if [[ -z "$user" ]]; then
     return 1;
@@ -478,10 +475,10 @@ _isUser () {
 _printAccess () {
   local user database password host;
 
-  database="${_GLOBALS['database']}"
-  user="${_GLOBALS['user']}"
-  password="${_GLOBALS['password']}"
-  host="${_GLOBALS['host']}"
+  database="$(_getDb)"
+  user="$(_getUser)"
+  password="$(_getPassword)"
+  host="$(_getHost)"
 
   cat <<- EOF
 
@@ -495,10 +492,9 @@ EOF
 }
 
 _checkUnixUser () {
-  local siteworx_args;
+  local unix_user siteworx_args;
 
-  [[ -n "${_GLOBALS['unix_user']}" ]] \
-    || _GLOBALS['unix_user']="$(_getusr)";
+  unix_user="$(_getUnixUser)"
 
   siteworx_args=(
     "--controller" "MysqlDb"
@@ -508,14 +504,214 @@ _checkUnixUser () {
   if _siteworx "${siteworx_args[@]}" &> /dev/null; then
     return 0;
   else
-    echo "User ${_GLOBALS['unix_user']} is not tied to a siteworx account.";
+    echo "User ${unix_user} is not tied to a siteworx account.";
     return 1;
   fi
 }
 
+_noSiteworx() {
+  if [[ -z "${_GLOBALS['database']}" ]]; then
+    read -r -p "No database provided. Enter database name: " database;
+    if [[ -z "$database" ]]; then
+      return 1
+    else
+      _GLOBALS['database']="${database}"
+    fi
+  fi
+
+  if [[ -z "${_GLOBALS['user']}" ]]; then
+    read -r -p "No user provided. Enter user name: " user;
+    if [[ -z "$user" ]]; then
+      return 1
+    else
+      _GLOBALS['user']="${user}"
+    fi
+  fi
+
+  if [[ -z "${_GLOBALS['password']}" ]]; then
+    read -r -s -p "Enter password: " password
+    echo;
+    if [[ -z "$password" ]]; then
+      return 1
+    else
+      _GLOBALS['password']="${password}"
+    fi
+  fi
+
+  if [[ -z "${_GLOBALS['host']}" ]]; then
+    _GLOBALS['host']="localhost"
+  fi
+
+  _catDump \
+    | _transform \
+    | _import
+}
+
+_getUnixUser() {
+  if [[ -z "${_GLOBALS['unix_user']}" ]]; then
+    _GLOBALS['unix_user']="$(_getusr)";
+  fi
+
+  echo "${_GLOBALS['unix_user']}"
+}
+
+_getUser() {
+  local temp_user input_user unix_user
+
+  unix_user=$(_getUnixUser)
+
+  if [[ -z "${_GLOBALS['user']}" ]]; then
+    temp_user="${unix_user}_$(_getSuffix)"
+
+    if ((ASSUME_YES != 1)); then
+      read -r -p "No user provided. Enter user name (7 char max, default ${temp_user}): " input_user;
+    fi
+
+    if [[ -n "$input_user" ]]; then
+      _GLOBALS['user']="$input_user";
+    else
+      _GLOBALS['user']="$temp_user";
+    fi
+  fi
+
+  if [[ -z "${_GLOBALS['user']}" ]]; then
+    echo "No user provided";
+    exit 3
+  fi
+
+  ## Add user prefix if not already present
+  if [[ "${_GLOBALS['user']}" != "${unix_user}_"* ]]; then
+    _GLOBALS['user']="${unix_user}_${_GLOBALS['user']}";
+  fi
+
+  echo "${_GLOBALS['user']}"
+}
+
+_getDb() {
+  local temp_db input_db unix_user
+
+  unix_user=$(_getUnixUser)
+
+  if [[ -z "${_GLOBALS['database']}" ]]; then
+    temp_db="${unix_user}_$(_getSuffix)"
+
+    if ((ASSUME_YES != 1)); then
+      read -r -p "No database provided. Enter database name (default ${temp_db}): " input_db;
+    fi
+
+    if [[ -n "$input_db" ]]; then
+      _GLOBALS['database']="$input_db";
+    else
+      _GLOBALS['database']="$temp_db";
+    fi
+  fi
+
+  if [[ -z "${_GLOBALS['database']}" ]]; then
+    echo "No database provided";
+    exit 4
+  fi
+
+  ## Add user prefix if not already present
+  if [[ "${_GLOBALS['database']}" != "${unix_user}_"* ]]; then
+    _GLOBALS['database']="${unix_user}_${_GLOBALS['database']}";
+  fi
+
+  echo "${_GLOBALS['database']}"
+}
+
+_getSuffix() {
+  if [[ -z "${_GLOBALS['suffix']}" ]]; then
+    _GLOBALS['suffix']="$(date "+%s" | cut -c2-8)"
+  fi
+
+  echo "${_GLOBALS['suffix']}"
+}
+
+_getPassword() {
+  local password
+
+  if [[ -z "${_GLOBALS['password']}" ]]; then
+    read -r -s -p "Enter password: " password
+    echo;
+
+    _GLOBALS['password']="${password}"
+  fi
+
+  if [[ -z "${_GLOBALS['password']}" ]]; then
+    echo "No password provided";
+    exit 5;
+  fi
+
+  echo "${_GLOBALS['password']}"
+}
+
+_getHost() {
+  local database
+
+  if [[ -z "${_GLOBALS['host']}" ]]; then
+    database="$(_getDb)"
+    _GLOBALS['host']="${_GLOBALS["${database}_db_host"]}"
+  fi
+
+  echo "${_GLOBALS['host']}"
+}
+
+_getDbSize() {
+  local database
+
+  database="$(_getDb)"
+  echo "${_GLOBALS["${database}_db_size"]}"
+}
+
+_useSiteworx() {
+  local make_db_or_user
+
+  _collectUserData
+  _collectDbData
+
+  if ! _isDB; then
+    ((make_db_or_user=1));
+  fi
+
+  if ! _isUser; then
+    ((make_db_or_user+=2));
+  fi
+
+  case "$make_db_or_user" in
+    1)
+      _createDB
+      _grantPerms &> /dev/null
+      ;;
+    2)
+      _GLOBALS['password']="$(_xkcd)"
+      _createUser
+      _grantPerms
+      ;;
+    3)
+      _GLOBALS['password']="$(_xkcd)"
+      _createDB
+      _createUser
+      _grantPerms
+      ;;
+    *);;
+  esac
+
+  _accessTest
+  _printAccess;
+
+  if (($(_getDbSize) > 0)); then
+    _dropDB
+    _grantPerms
+  fi
+
+  _catDump \
+    | _transform \
+    | _import
+}
+
 # Main
 main () {
-  local cmdline dump_file user database password replacement decision replacements make_db_or_user emptydb suffix temp_user temp_db input_user input_db;
+  local cmdline dump_file decision
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
@@ -549,8 +745,7 @@ main () {
         _GLOBALS['host']="$OPTARG";
         ;;
       r)
-        mapfile -t replacement < <(echo "$OPTARG" | tr ',' '\n' );
-        replacements+=('-e' "s~${replacement[0]}~${replacement[1]}~g")
+        _GLOBALS['replacements']="$OPTARG"
         ;;
       y)
         _GLOBALS['assume_yes']=1;
@@ -569,155 +764,21 @@ main () {
       fi
     done
 
-    [[ -n "${_GLOBALS['dump_file']}" ]] || { echo "No dump file provided"; return 1; }
+    [[ -n "${_GLOBALS['dump_file']}" ]] \
+      || { echo "No dump file provided"; return 1; }
   fi
 
   if ! _checkUnixUser; then
     read -r -p "Coninue without siteworx? (y/N):" decision;
     case "${decision}" in
       "Yes"|"YES"|"yes"|"y"|"Y")
-        if [[ -z "${_GLOBALS['database']}" ]]; then
-          read -r -p "No database provided. Enter database name: " database;
-          if [[ -z "$database" ]]; then
-            return 1
-          else
-            _GLOBALS['database']="${database}"
-          fi
-        fi
-        if [[ -z "${_GLOBALS['user']}" ]]; then
-          read -r -p "No user provided. Enter user name: " user;
-          if [[ -z "$user" ]]; then
-            return 1
-          else
-            _GLOBALS['user']="${user}"
-          fi
-        fi
-        if [[ -z "${_GLOBALS['password']}" ]]; then
-          read -r -s -p "Enter password: " password
-          echo;
-          if [[ -z "$password" ]]; then
-            return 1
-          else
-            _GLOBALS['password']="${password}"
-          fi
-        fi
-        if [[ -z "${_GLOBALS['host']}" ]]; then
-          _GLOBALS['host']="localhost"
-        fi
-
-        _catDump \
-          | _transform "${replacements[@]}" \
-          | _import
-
-        return;
+        _noSiteworx
         ;;
-      *) return 1;;
+      *);;
     esac
-  fi
-
-  if [[ -z "${_GLOBALS['database']}" || -z "${_GLOBALS['user']}" ]]; then
-    suffix="$(date "+%s" | cut -c2-8)"
-    temp_db="${_GLOBALS['unix_user']}_${suffix}"
-    temp_user="${_GLOBALS['unix_user']}_${suffix}"
-
-    if [[ -z "${_GLOBALS['user']}" ]]; then
-      if ((ASSUME_YES != 1)); then
-        read -r -p "No user provided. Enter user name (7 char max, default ${temp_user}): " input_user;
-      fi
-
-      if [[ -n "$input_user" ]]; then
-        _GLOBALS['user']="$input_user";
-      else
-        _GLOBALS['user']="$temp_user";
-      fi
-    fi
-
-    if [[ -z "${_GLOBALS['database']}" ]]; then
-      if ((ASSUME_YES != 1)); then
-        read -r -p "No database provided. Enter database name (default ${temp_db}): " input_db;
-      fi
-
-      if [[ -n "$input_db" ]]; then
-        _GLOBALS['database']="$input_db";
-      else
-        _GLOBALS['database']="$temp_db";
-      fi
-    fi
-  fi
-
-  [[ -n "${_GLOBALS['user']}" ]] \
-    || { echo "No user provided"; return 3; }
-
-  [[ -n "${_GLOBALS['database']}" ]] \
-    || { echo "No database provided"; return 4; }
-
-  ## Add user prefix if not already present
-  [[ "${_GLOBALS['user']}" == "${_GLOBALS['unix_user']}_"* ]] \
-    || _GLOBALS['user']="${_GLOBALS['unix_user']}_${_GLOBALS['user']}";
-
-  [[ "${_GLOBALS['database']}" == "${_GLOBALS['unix_user']}_"* ]] \
-    || _GLOBALS['database']="${_GLOBALS['unix_uxer']}_${_GLOBALS['database']}";
-
-  _collectUserData || return 2;
-  _collectDbData || return 2;
-
-  if _isDB; then
-    _dbIsEmpty && emptydb=1;
   else
-    ((make_db_or_user=1));
+    _useSiteworx
   fi
-
-  if ! _isUser; then
-    ((make_db_or_user+=2));
-  fi
-
-  if [[ -z "${_GLOBALS['password']}" && "$make_db_or_user" -le 1 ]]; then
-
-    read -r -s -p "Enter password: " password
-    echo;
-
-    _GLOBALS['password']="${password}"
-
-    [[ -n "${_GLOBALS['password']}" ]] \
-      || { echo "No password provided"; return 5; }
-  fi
-
-  if [[ -z "${_GLOBALS['host']}" ]]; then
-    _GLOBALS['host']="${_GLOBALS["${_GLOBALS['database']}_db_host"]}"
-  fi
-
-  case "$make_db_or_user" in
-    1)
-      _createDB || return 6
-      emptydb=1;
-      _grantPerms &> /dev/null
-      ;;
-    2)
-      _GLOBALS['password']="$(_xkcd)"
-      _createUser || return 7
-      _grantPerms || return 8
-      ;;
-    3)
-      _GLOBALS['password']="$(_xkcd)"
-      _createDB || return 9
-      emptydb=1;
-      _createUser || return 10
-      _grantPerms || return 11
-      ;;
-    *);;
-  esac
-
-  _accessTest || return 12;
-  _printAccess;
-
-  if (( emptydb != 1 )); then
-    _dropDB || return 13;
-    _grantPerms || return 14
-  fi
-
-  _catDump \
-    | _transform "${replacements[@]}" \
-    | _import
 }
 
 main "${ARGA[@]}";
