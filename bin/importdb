@@ -267,6 +267,10 @@ _collectUserData() {
     "--output-style" "json"
   )
 
+  database="$(_getDb)"
+
+  _GLOBALS["${database}_users"]=''
+
   mapfile -t output < <(_siteworx "${siteworx_args[@]}" | jq -r -c '.[] | .fqun + "|" + .name + "|" + .databases')
   for line in "${output[@]}"; do
     IFS='|' read -ra values <<< "${line}"
@@ -274,6 +278,13 @@ _collectUserData() {
     _GLOBALS["${fqun}_user"]="${fqun}";
     _GLOBALS["${fqun}_user_name"]="${values[1]}";
     _GLOBALS["${fqun}_user_databases"]="${values[2]}";
+
+    IFS=',' read -ra dbs <<< "${values[2]}"
+    for db in "${dbs[@]}"; do
+      if [[ "$db" == "${database}" ]]; then
+        _GLOBALS["${database}_users"]+="${fqun},"
+      fi
+    done
   done
 }
 
@@ -303,7 +314,7 @@ _assumeYes() {
   fi
 }
 
-_dropDB () {
+_cleanDb () {
   local database unix_user siteworx_args
 
   database="$(_getDb)"
@@ -339,6 +350,7 @@ _dropDB () {
 
       _siteworx "${siteworx_args[@]}"
       _createDB "yes"
+      _grantPerms "assigned"
       ;;
 
     *) return 2;;
@@ -405,21 +417,28 @@ _createUser() {
 }
 
 _grantPerms () {
-  local database user siteworx_args ;
+  local database assigned user users siteworx_args ;
+
+  if [[ "$1" == "assigned" ]]; then
+    assigned="$(_getAssignedUsers)"
+    IFS=',' read -ra users <<< "${assigned}"
+  else
+    users=("$(_getUser)")
+  fi
 
   database="$(_getDb)"
-  user="$(_getUser)"
   unix_user="$(_getUnixUser)"
 
-  siteworx_args=(
-    "--controller" "MysqlPerms"
-    "--action" "add"
-    "--name" "${database/${unix_user}_/}"
-    "--user" "${user/${unix_user}_/}"
-    "--perms" "all"
-  )
-
-  _siteworx "${siteworx_args[@]}"
+  for user in "${users[@]}"; do
+    siteworx_args=(
+      "--controller" "MysqlPerms"
+      "--action" "add"
+      "--name" "${database/${unix_user}_/}"
+      "--user" "${user/${unix_user}_/}"
+      "--perms" "all"
+    )
+    _siteworx "${siteworx_args[@]}"
+  done
 
   _collectUserData
   _collectDbData
@@ -492,7 +511,7 @@ DB Connection Info
 Database: $database
 Username: $user
 Password: $password
-Password: $host
+Hostname: $host
 
 EOF
 }
@@ -597,6 +616,11 @@ _getUser() {
   echo "${_GLOBALS['user']}"
 }
 
+_getAssignedUsers() {
+  database="$(_getDb)"
+  echo "${_GLOBALS["${database}_users"]}"
+}
+
 _setDb() {
   local temp_db input_db unix_user
 
@@ -684,12 +708,12 @@ _getDbSize() {
 _useSiteworx() {
   local make_db_or_user
 
-  _collectUserData
-  _collectDbData
-
   _setSuffix
   _setUser
   _setDb
+
+  _collectUserData
+  _collectDbData
 
   if ! _isDB; then
     ((make_db_or_user=1));
@@ -725,8 +749,7 @@ _useSiteworx() {
   _printAccess;
 
   if (($(_getDbSize) > 0)); then
-    _dropDB
-    _grantPerms
+    _cleanDb
   fi
 
   _catDump \
