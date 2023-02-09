@@ -94,7 +94,7 @@ _rootOrSudo() {
       && [[ ( "$HOSTNAME" == "cloud"* || "$HOSTNAME" == "containerhost"* ) \
       && "$HOSTNAME" != "cloudhost-1636682"* ]]; then
       _sudoAlias;
-    elif [[ "$HOSTNAME" != "moose"* ]]; then
+    elif [[ "$HOSTNAME" != "moose"* && "$HOSTNAME" != "rpmbuilder"*  ]]; then
       _autoRoot;
     fi
 

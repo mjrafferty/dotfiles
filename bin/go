@@ -143,6 +143,13 @@ _getHistory() {
 
 _getRemoteUser() {
 
+  case "$1" in
+    "rpmbuilder")
+      echo "$USER";
+      return;; 
+     *);;
+  esac
+
   ssh_ver=$("$CURL" "${DESTINATION}:22" 2> /dev/null | "$GREP" -Po 'OpenSSH_\K\d');
 
   if (( ssh_ver > 5 )); then
@@ -208,7 +215,7 @@ _loginWrapper () {
 
   local username;
 
-  username="$(_getRemoteUser)"
+  username="$(_getRemoteUser "$1")"
 
   # Run rsync asynchronously. Sleep code must be present in .zshrc to prevent errors
   if [[ -d "$HOME"/dotfiles/ ]]; then
@@ -469,7 +476,7 @@ main () {
     _setAction;
     _setEnv;
 
-    _loginWrapper || return 1;
+    _loginWrapper "$DESTINATION" || return 1;
 
     if [[ -z "$permanent" ]]; then
       timestamp="$("$DATE" "+%s")"
