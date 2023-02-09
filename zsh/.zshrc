@@ -8,15 +8,14 @@ load_conf() {
 }
 
 case "$HOST" in
-  "NEX-LW-2181"*) rc_conf="work" ;;
-  "Home") rc_conf="home" ;;
-  "pi") rc_conf="pi" ;;
-  "mellon"*) rc_conf="login_server" ;;
-  *".nexcess.net") rc_conf="nexcess" ;;
-  *"nxcli.net") rc_conf="nexcess" ;;
+  "NEX-LW-2181"*)    rc_conf="work" ;;
+  "pi")              rc_conf="pi" ;;
+  "mellon"*)         rc_conf="login_server" ;;
+  *".nexcess.net")   rc_conf="nexcess" ;;
+  *"nxcli.net")      rc_conf="nexcess" ;;
   *".liquidweb.com") rc_conf="nexcess";;
-  "localhost") rc_conf="phone" ;;
-  *) rc_conf="home" ;;
+  "localhost")       rc_conf="phone" ;;
+  *)                 rc_conf="home" ;;
 esac
 
 (( DEV_MODE == 1 )) && rc_conf="dev"
