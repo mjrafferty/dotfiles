@@ -5,50 +5,63 @@ set runtimepath=$VIM_DIR,$VIMRUNTIME,$VIM_DIR/after
 """""""""""""""""""""""""""""
 
 call plug#begin($VIM_DIR . '/plugins')
+
+Plug 'morhetz/gruvbox'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+
+Plug 'airblade/vim-gitgutter'
+Plug 'tpope/vim-fugitive'
+
+Plug 'Yggdroot/indentLine'
+Plug 'junegunn/rainbow_parentheses.vim'
+
+Plug 'andymass/vim-matchup'
+Plug 'easymotion/vim-easymotion'
+Plug 'editorconfig/editorconfig-vim'
+Plug 'junegunn/fzf.vim'
+Plug 'junegunn/goyo.vim', { 'for': 'markdown' }
+Plug 'junegunn/vim-easy-align'
+
 Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }
 Plug 'Raimondi/delimitMate'
+
+Plug 'mbbill/undotree'
+Plug 'mileszs/ack.vim'
+Plug 'preservim/nerdcommenter'
+Plug 'preservim/nerdtree'
+Plug 'terryma/vim-multiple-cursors'
+Plug 'tpope/vim-surround'
+Plug 'weynhamz/vim-plugin-minibufexpl'
+Plug 'AndrewRadev/splitjoin.vim'
+Plug 'gelguy/wilder.nvim'
+"Plug 'wellle/context.vim' ## cool but does not work well with mouse scrolling
+
+Plug 'pearofducks/ansible-vim'
+Plug 'lepture/vim-jinja'
+Plug 'rodjek/vim-puppet'
+
+if ( v:version > 704 || (v:version == 704 && has( 'patch1578'  )))
+  Plug 'Valloric/YouCompleteMe'
+endif
+
+if ( v:version >= 800 && executable('ctags'))
+  Plug 'ludovicchabant/vim-gutentags'
+  Plug 'majutsushi/tagbar'
+endif
+
+if ( v:version > 800 )
+  let g:ale_completion_enabled = 1
+  Plug 'w0rp/ale'
+endif
+
 if (has('python3'))
   Plug 'SirVer/ultisnips'
 else
   Plug 'SirVer/ultisnips', { 'tag': '3.2' }
 endif
-if ( v:version > 704 || (v:version == 704 && has( 'patch1578'  )))
-  Plug 'Valloric/YouCompleteMe'
-endif
-Plug 'airblade/vim-gitgutter'
-Plug 'andymass/vim-matchup'
-Plug 'easymotion/vim-easymotion'
-Plug 'editorconfig/editorconfig-vim'
 Plug 'honza/vim-snippets'
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
-Plug 'junegunn/fzf.vim'
-Plug 'junegunn/goyo.vim', { 'for': 'markdown' }
-Plug 'Yggdroot/indentLine'
-Plug 'junegunn/rainbow_parentheses.vim'
-Plug 'junegunn/vim-easy-align'
-if ( v:version >= 800 && executable('ctags'))
-  Plug 'ludovicchabant/vim-gutentags'
-  Plug 'majutsushi/tagbar'
-endif
-Plug 'mbbill/undotree'
-Plug 'mileszs/ack.vim'
-Plug 'morhetz/gruvbox'
-Plug 'pearofducks/ansible-vim'
-Plug 'preservim/nerdcommenter'
-Plug 'preservim/nerdtree'
-Plug 'terryma/vim-multiple-cursors'
-Plug 'tpope/vim-fugitive'
-Plug 'tpope/vim-surround'
-Plug 'lepture/vim-jinja'
-if ( v:version > 800 )
-  let g:ale_completion_enabled = 1
-  Plug 'w0rp/ale'
-endif
-Plug 'weynhamz/vim-plugin-minibufexpl'
-Plug 'AndrewRadev/splitjoin.vim'
-"Plug 'wellle/context.vim' ## cool but does not work well with mouse scrolling
-Plug 'gelguy/wilder.nvim'
+
 call plug#end()
 
 "-------------------------
@@ -179,6 +192,8 @@ let g:ale_sh_shellcheck_options = '-s bash'
 let g:ale_linters_sh_shellcheck_exclusions = "SC2016"
 let g:ale_yaml_yamllint_options='-d "{extends: relaxed, rules: {line-length: {max: 200}}}"'
 let g:ale_completion_tsserver_autoimport = 1
+let g:ale_puppet_puppetlint_executable = 'bundle'
+let g:ale_puppet_puppetlint_options = 'exec puppet-lint --no-documentation-check --no-autoloader_layout-check'
 
 let g:ale_linters_explicit = 1
 let g:ale_linters = {
@@ -189,6 +204,7 @@ let g:ale_linters = {
       \   'php': ['php', 'phpcs', 'psalm'],
       \   'javascript': ['eslint'],
       \   'yaml': ['yamllint'],
+      \   'puppet': ['puppetlint'],
       \}
 
 let g:ale_fixers = {
@@ -295,11 +311,14 @@ function! g:CopyMode() abort
       set relativenumber
     endif
     let &mouse = g:copymode.mouse
-    if !g:copymode.indentguides
-      silent! IndentGuidesToggle
+    if g:copymode.indentLine
+      IndentLinesToggle
     endif
     if g:copymode.gitgutter
       GitGutterToggle
+    endif
+    if g:copymode.gitgutter
+      TagbarToggle
     endif
     unlet g:copymode
   else
@@ -307,8 +326,9 @@ function! g:CopyMode() abort
     let g:copymode.number = &number
     let g:copymode.relativenumber = &relativenumber
     let g:copymode.mouse = &mouse
-    let g:copymode.indentguides = b:toggle_indentguides
+    let g:copymode.indentLine = g:indentLine_enabled
     let g:copymode.gitgutter = g:gitgutter_enabled
+    let g:copymode.tagbar = tagbar#IsOpen()
 
     if g:copymode.number
       set nonumber
@@ -317,11 +337,14 @@ function! g:CopyMode() abort
       set norelativenumber
     endif
     set mouse=
-    if !g:copymode.indentguides
-      silent! IndentGuidesToggle
+    if g:copymode.indentLine
+      IndentLinesToggle
     endif
     if g:copymode.gitgutter
       GitGutterToggle
+    endif
+    if g:copymode.gitgutter
+      TagbarToggle
     endif
   endif
   unlet config
@@ -348,8 +371,8 @@ augroup END
 augroup nerdtree
   autocmd!
 	" Start NERDTree. If a file is specified, move the cursor to its window.
-	autocmd StdinReadPre * let s:std_in=1
-	autocmd VimEnter * NERDTree | if argc() > 0 || exists("s:std_in") | wincmd p | endif
+	"autocmd StdinReadPre * let s:std_in=1
+	"autocmd VimEnter * NERDTree | if argc() > 0 || exists("s:std_in") | wincmd p | endif
 	" Open the existing NERDTree on each new tab.
 	autocmd BufWinEnter * if getcmdwintype() == '' | silent NERDTreeMirror | endif
 	" Close the tab if NERDTree is the only window remaining in it.
@@ -408,7 +431,7 @@ augroup END
 "----- End Autocmds ------
 "-------------------------
 
-setlocal indentexpr=GetGooglePythonIndent(v:lnum)
+"setlocal indentexpr=GetGooglePythonIndent(v:lnum)
 
 let s:maxoff = 50 " maximum number of lines to look backwards.
 

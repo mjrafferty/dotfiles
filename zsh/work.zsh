@@ -22,5 +22,9 @@ export PYENV_SHELL=zsh
 export PATH="/Users/mrafferty/.local/share/pyenv/shims:${PATH}"
 source '/usr/local/opt/pyenv/completions/pyenv.zsh'
 
+## Needed for puppet linting
+export BUNDLE_GEMFILE="${HOME}/Repositories/nexcess/Puppet/puppet6-Gemfile"
+export PUPPET_GEM_VERSION='~> 6.28.0'
+
 setpath /usr/local/opt/python@3.9/Frameworks/Python.framework/Versions/3.9/bin
 setpath "${HOME}/.composer/vendor/bin"
