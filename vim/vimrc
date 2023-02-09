@@ -34,7 +34,9 @@ Plug 'terryma/vim-multiple-cursors'
 Plug 'tpope/vim-surround'
 Plug 'weynhamz/vim-plugin-minibufexpl'
 Plug 'AndrewRadev/splitjoin.vim'
-Plug 'gelguy/wilder.nvim'
+if ( v:version >= 801 )
+  Plug 'gelguy/wilder.nvim'
+endif
 "Plug 'wellle/context.vim' ## cool but does not work well with mouse scrolling
 
 Plug 'pearofducks/ansible-vim'
@@ -255,10 +257,12 @@ let NERDTreeIgnore=['__pycache__$', '\.egg-info$']
 
 highlight TagbarHighlight ctermbg=DarkGray
 
-call wilder#setup({'modes': [':', '/', '?']})
-call wilder#set_option('renderer', wilder#wildmenu_renderer({
-      \ 'highlighter': wilder#basic_highlighter(),
-      \ }))
+if ( v:version >= 801 )
+  call wilder#setup({'modes': [':', '/', '?']})
+  call wilder#set_option('renderer', wilder#wildmenu_renderer({
+        \ 'highlighter': wilder#basic_highlighter(),
+        \ }))
+endif
 
 let g:airline_powerline_fonts = 1
 let g:airline_skip_empty_sections = 1
