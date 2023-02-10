@@ -304,8 +304,10 @@ function! g:CopyMode() abort
     if g:copymode.gitgutter
       GitGutterToggle
     endif
-    if g:copymode.gitgutter
-      TagbarToggle
+    if exists("g:plugs['tagbar']")
+      if g:copymode.gitgutter
+        TagbarToggle
+      endif
     endif
     unlet g:copymode
   else
@@ -315,7 +317,9 @@ function! g:CopyMode() abort
     let g:copymode.mouse = &mouse
     let g:copymode.indentLine = g:indentLine_enabled
     let g:copymode.gitgutter = g:gitgutter_enabled
-    let g:copymode.tagbar = tagbar#IsOpen()
+    if exists("g:plugs['tagbar']")
+      let g:copymode.tagbar = tagbar#IsOpen()
+    endif
 
     if g:copymode.number
       set nonumber
@@ -330,8 +334,10 @@ function! g:CopyMode() abort
     if g:copymode.gitgutter
       GitGutterToggle
     endif
-    if g:copymode.gitgutter
-      TagbarToggle
+    if exists("g:plugs['tagbar']")
+      if g:copymode.gitgutter
+        TagbarToggle
+      endif
     endif
   endif
   unlet config
