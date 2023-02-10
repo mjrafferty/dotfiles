@@ -1,0 +1,479 @@
+" vim:ft=vim
+
+"""""""""""""""""""""""""""""
+"     Begin Plugin load     "
+"""""""""""""""""""""""""""""
+
+call plug#begin($VIM_DIR . '/plugins')
+
+Plug 'morhetz/gruvbox'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+
+Plug 'airblade/vim-gitgutter'
+Plug 'tpope/vim-fugitive'
+
+Plug 'Yggdroot/indentLine'
+Plug 'junegunn/rainbow_parentheses.vim'
+
+Plug 'andymass/vim-matchup'
+Plug 'easymotion/vim-easymotion'
+Plug 'editorconfig/editorconfig-vim'
+Plug 'junegunn/fzf.vim'
+Plug 'junegunn/goyo.vim', { 'for': 'markdown' }
+Plug 'junegunn/vim-easy-align'
+
+Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }
+Plug 'Raimondi/delimitMate'
+
+Plug 'mbbill/undotree'
+Plug 'mileszs/ack.vim'
+Plug 'preservim/nerdcommenter'
+Plug 'preservim/nerdtree'
+Plug 'terryma/vim-multiple-cursors'
+Plug 'tpope/vim-surround'
+Plug 'weynhamz/vim-plugin-minibufexpl'
+Plug 'AndrewRadev/splitjoin.vim'
+if ( v:version >= 801 )
+  Plug 'gelguy/wilder.nvim'
+endif
+"Plug 'wellle/context.vim' ## cool but does not work well with mouse scrolling
+
+Plug 'pearofducks/ansible-vim'
+Plug 'lepture/vim-jinja'
+Plug 'rodjek/vim-puppet'
+
+if ( v:version > 704 || (v:version == 704 && has( 'patch1578'  )))
+  Plug 'Valloric/YouCompleteMe'
+endif
+
+if ( v:version >= 800 && executable('ctags'))
+  Plug 'ludovicchabant/vim-gutentags'
+  Plug 'majutsushi/tagbar'
+endif
+
+if ( v:version > 800 )
+  let g:ale_completion_enabled = 1
+  Plug 'w0rp/ale'
+endif
+
+if (has('python3'))
+  Plug 'SirVer/ultisnips'
+else
+  Plug 'SirVer/ultisnips', { 'tag': '3.2' }
+endif
+Plug 'honza/vim-snippets'
+
+call plug#end()
+
+"-------------------------
+"----- End Plugin load ---
+"-------------------------
+
+"""""""""""""""""""""""""""""
+"     Begin Vim Settings    "
+"""""""""""""""""""""""""""""
+
+" Misc settings
+set autowrite                      " Automatically save before commands like :next and :make
+set autoindent
+set backspace=2                    " Controls backspace behavior
+set conceallevel=3
+set gdefault
+set hidden
+set history=50                     " keep 50 lines of command line history
+set hlsearch
+set ignorecase                     " Do case insensitive matching
+set incsearch                      " do incremental searching
+set laststatus=2
+set linebreak
+set listchars=extends:>,precedes:<,nbsp:+,tab:┆\ ,trail:·
+set nowrap                         " Do not wrap code
+set number                         " add line numbers
+set relativenumber                 " add relative line numbers
+set ruler                          " show the cursor position all the time
+set scrolloff=3                    " keeps cursor away from top and bottom edges
+set showcmd                        " display incomplete commands
+set showmatch                      " Show matching brackets.
+set smartcase                      " Do smart case matching
+set smarttab
+set wildmenu
+set wildmode=full
+
+" Default regxp engine makes syntax highlighting  super slow for some reason
+set regexpengine=1
+set lazyredraw
+
+" Undo settings
+set undofile
+set undolevels=1000                " How many undos
+set undoreload=10000               " number of lines to save for undo "
+
+" Vim file locations
+set undodir=$VIM_DATA_DIR/undo//
+set directory=$VIM_DATA_DIR/swp//
+set backupdir=$VIM_DATA_DIR/backup//
+set viminfo+=n$VIM_DATA_DIR/viminfo
+
+" Mouse support
+if has('mouse')
+  set mouse=a
+endif
+
+" Indentation
+set tabstop=2
+set shiftwidth=2
+set expandtab
+
+" Code folding
+au FileType sh let g:sh_fold_enabled=5
+set foldmethod=indent
+set foldenable
+
+let php_folding=1
+let javaScript_fold=1
+
+syntax enable
+filetype plugin indent on
+set omnifunc=syntaxcomplete#Complete
+
+" Color scheme
+colorscheme gruvbox
+set background=dark
+:highlight Pmenu ctermbg=blue ctermfg=white
+:highlight PmenuSel ctermbg=cyan ctermfg=red
+:highlight PmenuSbar ctermbg=cyan ctermfg=green
+:highlight PmenuThumb ctermbg=white ctermfg=red
+:highlight Normal ctermbg=none
+
+"set dictionary+=/usr/share/dict/words
+
+set tags+=$XDG_CACHE_HOME/tags
+
+" Makes popup completion menu act more like an IDE
+set completeopt=menu,longest,menuone,preview
+set complete=.,w,b,u,k,kspell,s,i,d,]
+
+"Changes the leader key to <Spacebar> for custom shortcuts
+let mapleader=" "
+
+set formatoptions=coql  " Text formating options
+
+" Disable help shortcut
+noremap <F1> <Nop>
+inoremap <F1> <Nop>
+lnoremap <F1> <Nop>
+
+" Disable ex mode
+map q: <Nop>
+nnoremap Q <nop>
+
+" Toggle Paste Mode to save indentation
+nnoremap <F2> :call CopyMode()<CR>
+nnoremap <F3> :set invpaste paste?<CR>
+set pastetoggle=<F3>
+set showmode
+
+" Clear search highlighting by pressing Enter
+nnoremap <cr> :noh<CR><CR>:<backspace>
+
+let g:python_recommended_style = 0
+let g:python_highlight_all = 0
+
+"-------------------------------
+"------ End Vim Settings -------
+"-------------------------------
+
+"""""""""""""""""""""""""""""""""
+"     Begin Plugin Settings     "
+"""""""""""""""""""""""""""""""""
+
+" ale plugin settings
+"let g:ale_lint_delay = 5000
+let g:ale_hover_to_preview = 1
+let g:ale_sh_shellcheck_options = '-s bash'
+let g:ale_linters_sh_shellcheck_exclusions = "SC2016"
+let g:ale_yaml_yamllint_options='-d "{extends: relaxed, rules: {line-length: {max: 200}}}"'
+let g:ale_completion_tsserver_autoimport = 1
+let g:ale_puppet_puppetlint_executable = 'bundle'
+let g:ale_puppet_puppetlint_options = 'exec puppet-lint --no-documentation-check --no-autoloader_layout-check'
+
+let g:ale_linters_explicit = 1
+let g:ale_linters = {
+      \   'bash': ['shellcheck'],
+      \   'zsh': ['shellcheck'],
+      \   'sh': ['shellcheck'],
+      \   'python': ['pylint'],
+      \   'php': ['php', 'phpcs', 'psalm'],
+      \   'javascript': ['eslint'],
+      \   'yaml': ['yamllint'],
+      \   'puppet': ['puppetlint'],
+      \}
+
+let g:ale_fixers = {
+      \   '*': ['remove_trailing_lines', 'trim_whitespace'],
+      \   'php': ['php_cs_fixer'],
+      \   'javascript': ['eslint'],
+      \   'python': ['yapf'],
+      \}
+
+let g:ale_python_auto_pipenv = 1
+let g:ale_python_pylint_auto_pipenv = 1
+
+
+" YouCompleteMe plugin settings
+let g:ycm_always_populate_location_list = 1
+let g:ycm_complete_in_comments = 1
+let g:ycm_collect_identifiers_from_comments_and_strings = 1
+let g:ycm_collect_identifiers_from_tags_files = 1
+let g:ycm_seed_identifiers_with_syntax = 1
+let g:ycm_autoclose_preview_window_after_completion = 1
+let g:ycm_global_ycm_extra_conf = $VIM_DIR . '/ycm_extra_conf.py'
+let g:ycm_confirm_extra_conf = 0
+
+" RainbowParentheses plugin settings
+au VimEnter * RainbowParentheses
+let g:rainbow#blacklist = ['grey40']
+let g:rainbow#pairs = [['(', ')'], ['[', ']'],['{', '}']]
+
+" better key bindings for UltiSnipsExpandTrigger
+let g:UltiSnipsExpandTrigger = "<tab>"
+let g:UltiSnipsJumpForwardTrigger = "<tab>"
+let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
+let g:UltiSnipsSnippetDirectories=["UltiSnips", "mysnippets"]
+
+" delimitMate plugin settings
+let delimitMate_expand_space = 1
+let delimitMate_expand_cr= 1
+
+" gutentags plugin settings
+let g:gutentags_cache_dir=$XDG_CACHE_HOME . '/gutentags'"
+let g:gutentags_ctags_exclude = [ '*/vendor/*' ]
+
+" tagbar plugin settings
+let g:tagbar_width=30
+
+let NERDTreeIgnore=['__pycache__$', '\.egg-info$']
+
+highlight TagbarHighlight ctermbg=DarkGray
+
+if ( v:version >= 801 )
+  call wilder#setup({'modes': [':', '/', '?']})
+  call wilder#set_option('renderer', wilder#wildmenu_renderer({
+        \ 'highlighter': wilder#basic_highlighter(),
+        \ }))
+endif
+
+let g:airline_powerline_fonts = 1
+let g:airline_skip_empty_sections = 1
+let g:airline_theme = 'base16_gruvbox_dark_hard'
+"----------------------------
+"---- End Plugin Settings ---
+"----------------------------
+
+"""""""""""""""""""""""""""""
+"     Begin Functions       "
+"""""""""""""""""""""""""""""
+
+" Balances tab key functionality between plugins
+function! g:UltiSnips_Complete() abort
+  call UltiSnips#ExpandSnippet()
+  if g:ulti_expand_res == 0
+    if pumvisible()
+      return "\<C-n>"
+    else
+      call UltiSnips#JumpForwards()
+      if g:ulti_jump_forwards_res == 0
+        if delimitMate#ShouldJump()
+          return delimitMate#JumpMany()
+        endif
+        return "\<Tab>"
+      endif
+    endif
+  endif
+  return ""
+endfunction
+
+" Same as above but for Shift-Tab
+function! g:UltiSnips_Reverse() abort
+  call UltiSnips#JumpBackwards()
+  if g:ulti_jump_backwards_res == 0
+    return "\<C-P>"
+  endif
+  return ""
+endfunction
+
+function! g:CopyMode() abort
+
+  let config = get(g:, "copymode")
+
+  if type(config) != 0 &&  has_key(config, 'active') == 1
+    if g:copymode.number
+      set number
+    endif
+    if g:copymode.relativenumber
+      set relativenumber
+    endif
+    let &mouse = g:copymode.mouse
+    if g:copymode.indentLine
+      IndentLinesToggle
+    endif
+    if g:copymode.gitgutter
+      GitGutterToggle
+    endif
+    if g:copymode.gitgutter
+      TagbarToggle
+    endif
+    unlet g:copymode
+  else
+    let g:copymode = {'active': 1}
+    let g:copymode.number = &number
+    let g:copymode.relativenumber = &relativenumber
+    let g:copymode.mouse = &mouse
+    let g:copymode.indentLine = g:indentLine_enabled
+    let g:copymode.gitgutter = g:gitgutter_enabled
+    let g:copymode.tagbar = tagbar#IsOpen()
+
+    if g:copymode.number
+      set nonumber
+    endif
+    if g:copymode.relativenumber
+      set norelativenumber
+    endif
+    set mouse=
+    if g:copymode.indentLine
+      IndentLinesToggle
+    endif
+    if g:copymode.gitgutter
+      GitGutterToggle
+    endif
+    if g:copymode.gitgutter
+      TagbarToggle
+    endif
+  endif
+  unlet config
+endfunction
+
+"-------------------------
+"----- End Functions -----
+"-------------------------
+
+"""""""""""""""""""""""""
+"     Begin Autocmds    "
+"""""""""""""""""""""""""
+
+" Calls Tab key functions when Tab or Shift-Tab is pressed
+augroup tabs
+  autocmd!
+  autocmd InsertEnter *
+        \ exec "inoremap <silent> " . g:UltiSnipsExpandTrigger . " <C-R>=g:UltiSnips_Complete()<cr>"
+  autocmd InsertEnter *
+        \ exec "inoremap <silent> " . g:UltiSnipsJumpBackwardTrigger . " <C-R>=g:UltiSnips_Reverse()<cr>"
+augroup END
+
+" Closes Vim if NerdTree plugin is the only remaining buffer open
+augroup nerdtree
+  autocmd!
+	" Start NERDTree. If a file is specified, move the cursor to its window.
+	"autocmd StdinReadPre * let s:std_in=1
+	"autocmd VimEnter * NERDTree | if argc() > 0 || exists("s:std_in") | wincmd p | endif
+	" Open the existing NERDTree on each new tab.
+	autocmd BufWinEnter * if getcmdwintype() == '' | silent NERDTreeMirror | endif
+	" Close the tab if NERDTree is the only window remaining in it.
+  autocmd bufenter *
+        \ if winnr("$") == 1 && (exists("b:NERDTree") && b:NERDTree.isTabTree()) |
+        \   q |
+        \ endif
+augroup END
+
+" When editing a file, always jump to the last known cursor position.
+augroup cursorpos
+  autocmd!
+  autocmd BufReadPost *
+        \ if line("'\"") > 1 && line("'\"") <= line("$") |
+        \   exe "normal! g`\"" |
+        \ endif
+augroup END
+
+augroup matchpairs
+  autocmd!
+  autocmd FileType c,cpp,java set matchpairs+==:;
+augroup END
+
+augroup filetype
+  autocmd!
+  autocmd BufRead,BufNewFile /etc/haproxy/* set ft=haproxy
+  autocmd BufRead,BufNewFile */apache/*.conf set ft=apache
+augroup END
+
+if ( v:version > 800 )
+  augroup CloseLoclistWindowGroup
+    autocmd!
+    autocmd QuitPre * if empty(&buftype) | lclose | endif
+  augroup END
+endif
+
+" Automatically open tagbar for supported files
+if ( v:version >= 800 && executable('ctags'))
+  augroup tagbar
+    autocmd!
+    autocmd VimEnter * nested :call tagbar#autoopen(1)
+  augroup END
+endif
+
+
+augroup php
+  autocmd!
+  autocmd! FileType php set omnifunc=ale#completion#OmniFunc
+augroup END
+
+augroup pyfold
+  autocmd!
+  autocmd! FileType python set foldmethod=indent
+augroup END
+"-------------------------
+"----- End Autocmds ------
+"-------------------------
+
+"setlocal indentexpr=GetGooglePythonIndent(v:lnum)
+
+let s:maxoff = 50 " maximum number of lines to look backwards.
+
+function GetGooglePythonIndent(lnum)
+
+  " Indent inside parens.
+  " Align with the open paren unless it is at the end of the line.
+  " E.g.
+  "   open_paren_not_at_EOL(100,
+  "                         (200,
+  "                          300),
+  "                         400)
+  "   open_paren_at_EOL(
+  "       100, 200, 300, 400)
+  call cursor(a:lnum, 1)
+  let [par_line, par_col] = searchpairpos('(\|{\|\[', '', ')\|}\|\]', 'bW',
+        \ "line('.') < " . (a:lnum - s:maxoff) . " ? dummy :"
+        \ . " synIDattr(synID(line('.'), col('.'), 1), 'name')"
+        \ . " =~ '\\(Comment\\|String\\)$'")
+  if par_line > 0
+    call cursor(par_line, 1)
+    if par_col != col("$") - 1
+      return par_col
+    endif
+  endif
+
+  " Delegate the rest to the original function.
+  return GetPythonIndent(a:lnum)
+
+endfunction
+
+let pyindent_nested_paren="&sw*2"
+let pyindent_open_paren="&sw*2"
+
+"syn region  pythonFunctionFold	start="^\z(\s*\)\%(def\|class\)\>"
+  "\ end="\ze\%(\s*\n\)\+\%(\z1\s\)\@!." fold transparent
+
+"syn match   pythonComment /#\%(.\%({{{\|}}}\)\@!\)*$/
+  "\ contains=pythonTodo,@Spell
+"syn region  pythonFold matchgroup=pythonComment
+  "\ start='#.*{{{.*$' end='#.*}}}.*$' fold transparent

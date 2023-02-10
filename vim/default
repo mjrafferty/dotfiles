@@ -1,0 +1,48 @@
+" vim:ft=vim
+
+"""""""""""""""""""""""""""""
+"     Begin Plugin load     "
+"""""""""""""""""""""""""""""
+
+call plug#begin($VIM_DIR . '/plugins')
+Plug 'morhetz/gruvbox'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'airblade/vim-gitgutter'
+Plug 'tpope/vim-fugitive'
+Plug 'Yggdroot/indentLine'
+Plug 'junegunn/rainbow_parentheses.vim'
+Plug 'andymass/vim-matchup'
+Plug 'easymotion/vim-easymotion'
+Plug 'editorconfig/editorconfig-vim'
+Plug 'junegunn/fzf.vim'
+Plug 'junegunn/goyo.vim', { 'for': 'markdown' }
+Plug 'junegunn/vim-easy-align'
+Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }
+Plug 'Raimondi/delimitMate'
+Plug 'mbbill/undotree'
+Plug 'mileszs/ack.vim'
+Plug 'preservim/nerdcommenter'
+Plug 'preservim/nerdtree'
+Plug 'terryma/vim-multiple-cursors'
+Plug 'tpope/vim-surround'
+Plug 'weynhamz/vim-plugin-minibufexpl'
+Plug 'AndrewRadev/splitjoin.vim'
+Plug 'gelguy/wilder.nvim'
+Plug 'pearofducks/ansible-vim'
+Plug 'lepture/vim-jinja'
+Plug 'rodjek/vim-puppet'
+Plug 'Valloric/YouCompleteMe'
+Plug 'ludovicchabant/vim-gutentags'
+Plug 'majutsushi/tagbar'
+Plug 'w0rp/ale'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+call plug#end()
+
+"-------------------------
+"----- End Plugin load ---
+"-------------------------
+
+
+runtime common
