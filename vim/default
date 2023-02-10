@@ -43,6 +43,3 @@ call plug#end()
 "-------------------------
 "----- End Plugin load ---
 "-------------------------
-
-
-runtime common
