@@ -1,6 +1,6 @@
 set runtimepath=$VIM_DIR,$VIMRUNTIME,$VIM_DIR/after
 
-if $HOSTNAME =~ '(.nexcess.net|nxcli.net|.liquidweb.com)$' 
+if $HOSTNAME =~ '\(.nexcess.net\|nxcli.net\|.liquidweb.com\)$' 
   runtime compat
 else
   runtime default
