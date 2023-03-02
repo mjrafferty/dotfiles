@@ -38,9 +38,10 @@ set wildmenu
 set wildmode=full
 
 " Default regxp engine makes syntax highlighting  super slow for some reason
-set regexpengine=1
+"set regexpengine=1
 set lazyredraw
 let s:maxoff = 50 " maximum number of lines to look backwards.
+let g:loaded_matchparen = 1
 
 " Undo settings
 set undofile
@@ -68,8 +69,8 @@ au FileType sh let g:sh_fold_enabled=5
 set foldmethod=indent
 set foldenable
 
-let php_folding=1
-let javaScript_fold=1
+"let php_folding=1
+"let javaScript_fold=1
 
 syntax enable
 filetype plugin indent on
@@ -111,7 +112,7 @@ nnoremap <cr> :noh<CR><CR>:<backspace>
 let g:python_recommended_style = 0
 let g:python_highlight_all = 0
 
-"-------------------------------
+""-------------------------------
 "------ End Vim Settings -------
 "-------------------------------
 
@@ -247,9 +248,10 @@ if exists("g:plugs['gruvbox']")
 endif
 
 if exists("g:plugs['vim-airline']")
-  let g:airline_powerline_fonts = 1
-  let g:airline_skip_empty_sections = 1
+  "let g:airline_powerline_fonts = 1
+  "let g:airline_skip_empty_sections = 1
   let g:airline_theme = 'base16_gruvbox_dark_hard'
+  let g:airline_extensions = []
 endif
 "----------------------------
 "---- End Plugin Settings ---
