@@ -41,7 +41,7 @@ set wildmode=full
 "set regexpengine=1
 set lazyredraw
 let s:maxoff = 50 " maximum number of lines to look backwards.
-let g:loaded_matchparen = 1
+"let g:loaded_matchparen = 1
 
 " Undo settings
 set undofile
@@ -236,7 +236,6 @@ if exists("g:plugs['wilder.nvim']")
         \ }))
 endif
 
-
 if exists("g:plugs['gruvbox']")
   colorscheme gruvbox
   set background=dark
@@ -245,6 +244,10 @@ if exists("g:plugs['gruvbox']")
   :highlight PmenuSbar ctermbg=cyan ctermfg=green
   :highlight PmenuThumb ctermbg=white ctermfg=red
   :highlight Normal ctermbg=none
+endif
+
+if exists("g:plugs['indentLine']")
+  let g:indentLine_color_term = 239
 endif
 
 if exists("g:plugs['vim-airline']")

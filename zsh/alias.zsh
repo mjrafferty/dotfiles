@@ -37,7 +37,7 @@ if [[ -x "/usr/bin/colordiff" ]]; then
   alias diff="/usr/bin/colordiff"
 fi
 
-alias login='ssh -p 22005 -i ~/.ssh/nexcess mrafferty@mellon-login01.us-midwest-1.nexcess.net'
+alias login='ssh login01'
 
 alias connections="netstat -an | grep -Po '([0-9]{1,3}\.){3}[0-9]{1,3}(?=:\d+\s+[A-Z,_]+\s*$)' | sort | uniq -c | sort -hr"
 alias sshsync="rsync -p -v --progress -e ssh -a -u -z"

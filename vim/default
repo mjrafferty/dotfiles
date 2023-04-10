@@ -6,13 +6,13 @@
 
 call plug#begin($VIM_DIR . '/plugins')
 Plug 'morhetz/gruvbox'
-"Plug 'vim-airline/vim-airline'
-"Plug 'vim-airline/vim-airline-themes'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive'
 Plug 'Yggdroot/indentLine'
-"Plug 'junegunn/rainbow_parentheses.vim'
-"Plug 'andymass/vim-matchup'
+Plug 'junegunn/rainbow_parentheses.vim'
+Plug 'andymass/vim-matchup', { 'for': 'html' }
 Plug 'easymotion/vim-easymotion'
 Plug 'editorconfig/editorconfig-vim'
 Plug 'junegunn/fzf.vim'
