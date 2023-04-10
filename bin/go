@@ -215,7 +215,8 @@ _loginWrapper () {
 
   local username;
 
-  username="$(_getRemoteUser "$1")"
+  #username="$(_getRemoteUser "$1")"
+  username="$USER"
 
   # Run rsync asynchronously. Sleep code must be present in .zshrc to prevent errors
   if [[ -d "$HOME"/dotfiles/ ]]; then
