@@ -13,7 +13,6 @@ fi
 
 ## Adjust user quota on the fly using nodeworx CLI
 bumpquota(){
-
   local newQuota primaryDomain;
 
   if [[ -z "$*" || $1 == "*-h" ]]; then
@@ -41,7 +40,6 @@ bumpquota(){
 
 # Connect to the iworx database
 iworxdb () {
-
   local user pass database socket;
 
   user="iworx";
@@ -54,7 +52,6 @@ iworxdb () {
 
 # Vpopmail
 vpopdb () {
-
   local user pass database socket;
 
   user="iworx_vpopmail"
@@ -67,7 +64,6 @@ vpopdb () {
 
 # ProFTPd
 ftpdb () {
-
   local user pass database socket;
 
   user="iworx_ftp"
@@ -80,7 +76,6 @@ ftpdb () {
 
 # Spam Assassin DB
 spamdb () {
-
   local user pass database socket;
 
   user="iworx_spam"
@@ -128,7 +123,6 @@ addip () {
 
 # Check several email blacklists for the given ip
 blacklistcheck () {
-
   ip="$1";
 
   if [[ -z $ip ]]; then
@@ -158,7 +152,6 @@ blacklistcheck () {
     | grep -iE 'block|rdns|550|521|554';
   echo;
   echo;
-
 }
 
 
@@ -251,7 +244,6 @@ nexinfo () {
 
 ## System resource usage by account
 sysusage () {
-
   local COLSORT=2;
 
   printf "\n%-10s %10s %10s %10s %10s\n%s\n" "User" "Mem (MB)" "Process" "CPU(%)" "MEM(%)" "$(dashes 54)";
@@ -260,7 +252,6 @@ sysusage () {
     | sort -nrk$COLSORT \
     | head;
   echo;
-
 }
 
 ## Quick summary of domain DNS info
@@ -367,19 +358,17 @@ magsymlinks () {
 
 ## Print some dashes
 dashes () {
-
   local i;
 
   for ((i=0;i<=$1;i++)); do
     printf -- "-";
   done;
-
 }
 
 ## Switch to a user
 u () {
-
   local user home item;
+  local -a acls
 
   user="$(pwd | grep -Po "/(chroot/)?(home(/nexcess.net)?|local|data)/\K[^/]*")";
 
@@ -390,45 +379,76 @@ u () {
 
   home="$(mktemp -d "/dev/shm/${HOME##*/}_tmp-home_XXXX")"
 
-  chmod 711 "$HOME"
-  setfacl -m u:"$user":rwX "$home"
-
-  if [[ ! -e "$HOME/.mysql_history" ]]; then
-    touch "$HOME/.mysql_history"
-  fi
-
-  # Give permissions on my home dir to new user
-  find "$HOME" -mindepth 1 -maxdepth 1 ! -name .ssh \
-    | while read -r item; do
-      setfacl -R -m u:"$user":rX "$item" 2> /dev/null
-      ln -s "$item" "${home}/${item##*/}"
-    done
-
   if [[ -e "/home/${user}/.composer" ]]; then
     ln -s "/home/${user}/.composer" "${home}/.composer"
   fi
 
-  
+  acls=(
+    "${HOME}/.mysql_history"
+    "${HOME}/vim"
+    "${HOME}/zsh"
+    "${HOME}/.local/config"
+    "${HOME}/clients"
+    "${HOME}/.local/share"
+    "${HOME}/.local/cache"
+    "${ZHIST_RUNTIME_DIR}"
+    "${__ZHIST_PIPE}"
+    "${__ZHIST_WATCH_FILE}"
+    "${__ZHIST_PID_FILE}"
+  )
 
-  setfacl -R -m u:"$user":rX "$HOME"/{vim,zsh,.local/config} 2> /dev/null
-  setfacl -R -m u:"$user":rwX "$HOME"/{.zsh_history,clients,.local/{share,cache}} 2> /dev/null
+  _apply_acls() {
+    chmod 711 "$HOME"
+    setfacl -m "u:$user:rwX" "${HISTFILE}"
+    setfacl -m "u:$user:rwX" "${home}"
 
-  if [[ -n "$XDG_RUNTIME_DIR" ]]; then
-    setfacl -m u:"$user":rwX "${XDG_RUNTIME_DIR}"
-  fi
+    if [[ -n "${XDG_RUNTIME_DIR}" && -d "${XDG_RUNTIME_DIR}" ]]; then
+      setfacl -m "u:$user:rwX" "${XDG_RUNTIME_DIR}"
+    fi
 
-  if [[ -n "${__ZHIST_PIPE}" ]]; then
-    setfacl -m u:"$user":rwX "${ZHIST_RUNTIME_DIR}"
-    setfacl -m u:"$user":rw "${__ZHIST_PIPE}"
-    setfacl -m u:"$user":rw "${__ZHIST_WATCH_FILE}"
-    setfacl -m u:"$user":r "${__ZHIST_PID_FILE}"
-  fi
+    for item in "${acls[@]}"; do
+      if [[ -d "${item}" ]]; then
+        setfacl -R -m "u:$user:rwX" "${item}"
+      elif [[ -f "${item}" ]]; then
+        setfacl -m "u:$user:rw" "${item}"
+      fi
+    done
+  }
+
+  _apply_acls
+
+  _filewatcher() {
+    local start_time current_time
+    local max_runtime=7200
+    start_time="$(date '+%s')"
+    while true; do
+      if inotifywait -q -t 600 -e attrib "${HISTFILE}"; then
+        _apply_acls
+      fi
+      current_time="$(date '+%s')"
+      if (( current_time - start_time > max_runtime )); then
+        break;
+      fi
+    done
+  }
+
+  _filewatcher &
+
+  watcher_pid="$!"
 
   # Switch user
-  sudo PM2_HOME="/home/${user}/.pm2" XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR}" HOME="$home" TMUX="$TMUX" -u "$user" "$MYSHELL"
+  sudo \
+    PM2_HOME="/home/${user}/.pm2" \
+    XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR}" \
+    HOME="$home" \
+    TMUX="$TMUX" \
+    -u "$user" \
+    "$MYSHELL"
 
   # Give me permissions on any files the user created in my home dir
   sudo -u "$user" find "$home" -user "$user" -exec setfacl -m u:"$USER":rwX {} +
+
+  kill "$watcher_pid"
 
   # Revoke the permissions given to that user
   if [[ -n "$XDG_RUNTIME_DIR" ]]; then
@@ -439,12 +459,10 @@ u () {
   chmod 700 "$HOME"
 
   rm -r "$home"
-
 }
 
 ## Find broken symbolic links
 brokenlinks () {
-
   local tifs x check_path link dir;
 
   check_path="$1"
@@ -480,11 +498,9 @@ IFS="
   done
 
   IFS="$tifs";
-
 }
 
 phpunserialize () {
-
   local value
 
   value="$*"
@@ -497,15 +513,12 @@ phpunserialize () {
   value="$(echo "$value" | sed "s/'/\\\'/g")"
 
   php -r "echo print_r(unserialize('${value}'),true);"
-
 }
 
 ## Share a file with a quick and dirty web server
 shareFile() {
-
   { printf "HTTP/1.0 200 OK\nContent-Length: %s\r\n\r\n" "$(wc -c "$1")"; cat "$1"; } \
     | nc -l -p 8000
-
 }
 
 # Geoip lookup
@@ -538,7 +551,6 @@ bitcoin() {
 }
 
 wolfram_alpha() {
-
   # https://github.com/dmi3/bin/blob/master/wa
 
   APPID=$(cat ~/git/stuff/keys/wolfram_alpha) # Get one at https://products.wolframalpha.com/api/
@@ -556,7 +568,6 @@ test "No short answer available" = "$RESPONSE" \
 }
 
 unicode_chart() {
-
   local x y a
 
   for ((y=0;y<=65535;y++)); do
@@ -579,11 +590,9 @@ unicode_chart() {
     ((y--))
     echo
   done
-
 }
 
 update_brew () {
-
   local f bin
 
   brew update;
@@ -613,11 +622,9 @@ update_brew () {
     ln -sf "$f" "/usr/local/bin/${bin}";
 
   done
-
 }
 
 organize_pictures() {
-
   IFS="
 "
   SOURCE_DIR="${1}"
@@ -655,7 +662,6 @@ organize_pictures() {
 }
 
 orphaned_files () {
-
   find / \( \
     -path /home/matt \
     -o -path /boot/efi \
@@ -688,11 +694,9 @@ orphaned_files () {
     -prune -o -type f -print0 \
     | xargs -0 qfile -o 2>&1 \
     | less
-
 }
 
 get() {
-
   local -a curl_opts;
 
   curl_opts=(
@@ -715,11 +719,9 @@ get() {
     fi
 
   curl ${curl_opts[@]} "${@}"
-
 }
 
 haproxy_api() {
-
   local cmd socket;
 
   cmd="$*"
@@ -732,11 +734,9 @@ haproxy_api() {
     echo "$cmd"
   fi \
     | nc -U /var/lib/haproxy/stats
-
 }
 
 haproxy_stats () {
-
   sort="$1"
   header="IP PHP/24h PHP_Rate/1m Conn_Rate/1m Conn_cur HTTP_Req_Rate/1m HTTP_Err_Rate/1m Bytes_In/24h Bytes_Out/24h Unique_Urls/24h Crawl_Rate/1m"
 
@@ -762,12 +762,10 @@ haproxy_stats () {
       | sup_formatbytes 9
   } \
     | column -t
-
 }
 
 
 userhist() {
-
   if [[ -n "$1" ]]; then
     file="/home/${1}/.bash_history"
   else
@@ -780,5 +778,4 @@ userhist() {
     echo "${file} does not exist or is not readable."
     return 1;
   fi
-
 }
