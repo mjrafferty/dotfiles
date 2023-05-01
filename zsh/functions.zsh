@@ -384,13 +384,16 @@ u () {
   fi
 
   acls=(
+    "${HOME}/bin"
+    "${HOME}/clients"
+    "${HOME}/.local"
+    "${HOME}/.my.cnf"
     "${HOME}/.mysql_history"
+    "${HOME}/.mytop"
     "${HOME}/vim"
     "${HOME}/zsh"
-    "${HOME}/.local/config"
-    "${HOME}/clients"
-    "${HOME}/.local/share"
-    "${HOME}/.local/cache"
+    "${HOME}/.zshenv"
+    "${HOME}/.zsh_history"
     "${ZHIST_RUNTIME_DIR}"
     "${__ZHIST_PIPE}"
     "${__ZHIST_WATCH_FILE}"
@@ -399,19 +402,20 @@ u () {
 
   _apply_acls() {
     chmod 711 "$HOME"
-    setfacl -m "u:$user:rwX" "${HISTFILE}"
-    setfacl -m "u:$user:rwX" "${home}"
+    setfacl -m "u:${user}:rwX" "${HISTFILE}"
+    setfacl -m "u:${user}:rwX" "${home}"
 
     if [[ -n "${XDG_RUNTIME_DIR}" && -d "${XDG_RUNTIME_DIR}" ]]; then
-      setfacl -m "u:$user:rwX" "${XDG_RUNTIME_DIR}"
+      setfacl -m "u:${user}:rwX" "${XDG_RUNTIME_DIR}"
     fi
 
     for item in "${acls[@]}"; do
       if [[ -d "${item}" ]]; then
-        setfacl -R -m "u:$user:rwX" "${item}"
+        setfacl -R -m "u:${user}:rwX" "${item}"
       elif [[ -f "${item}" ]]; then
-        setfacl -m "u:$user:rw" "${item}"
+        setfacl -m "u:${user}:rw" "${item}"
       fi
+      ln -s "${item}" "${home}"
     done
   }
 
@@ -432,7 +436,7 @@ u () {
     done
   }
 
-  _filewatcher &
+  _filewatcher &!
 
   watcher_pid="$!"
 
@@ -452,7 +456,7 @@ u () {
 
   # Revoke the permissions given to that user
   if [[ -n "$XDG_RUNTIME_DIR" ]]; then
-    setfacl -R -x u:"$user" "${XDG_RUNTIME_DIR}"
+    setfacl -R -x u:"${user}" "${XDG_RUNTIME_DIR}"
   fi
 
   setfacl -R -x u:"$user" ~/
