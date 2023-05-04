@@ -448,10 +448,11 @@ u () {
     -u "$user" \
     "$MYSHELL"
 
+  kill "$watcher_pid"
+
   # Give me permissions on any files the user created in my home dir
   sudo -u "$user" find "$home" -user "$user" -exec setfacl -m u:"$USER":rwX {} +
-
-  kill "$watcher_pid"
+  sudo -u "$user" find "$XDG_RUNTIME_DIR" -user "$user" -exec setfacl -m u:"$USER":rwX {} +
 
   # Revoke the permissions given to that user
   if [[ -n "$XDG_RUNTIME_DIR" ]]; then
