@@ -13,27 +13,19 @@ _autoRoot() {
 
 # Automatically aliases sudo commands to avoid typing sudo
 _sudoAlias() {
-
   local sudo_cmds x y
 
   sudo_cmds=($(sudo -l | grep -Po "\(ALL\) NOPASSWD:\K.*" | tr -d '\n|,'));
 
   for x in ${sudo_cmds[*]}; do
-
     if [[ "$x" =~ "/usr/nexkit/bin/nk" && -r "/usr/nexkit/bin" ]]; then
-
       for y in /usr/nexkit/bin/nk*; do
-
         alias "${y/*\//}"="sudo $y";
-
       done
     elif [[ ! "$x" =~ "^-" ]]; then
-
       alias "${x/*\//}"="sudo $x";
-
     fi
   done
-
 }
 
 # Used with the "u" function to pull the client's configuration into mine.
@@ -90,11 +82,11 @@ _rootOrSudo() {
   # Only perform action when Im my own user.
   if [[ $USER == "${HOME/*\//}" ]]; then
 
-    if (( os_version == 7 )) \
-      && [[ ( "$HOSTNAME" == "cloud"* || "$HOSTNAME" == "containerhost"* ) \
-      && "$HOSTNAME" != "cloudhost-1636682"* ]]; then
-      _sudoAlias;
-    elif [[ "$HOSTNAME" != "moose"* && "$HOSTNAME" != "rpmbuilder"*  ]]; then
+    #if (( os_version == 7 )) \
+      #&& [[ ( "$HOSTNAME" == "cloud"* || "$HOSTNAME" == "containerhost"* ) \
+      #&& "$HOSTNAME" != "cloudhost-1636682"* ]]; then
+      #_sudoAlias;
+    if [[ "$HOSTNAME" != "moose"* && "$HOSTNAME" != "rpmbuilder"*  ]]; then
       _autoRoot;
     fi
 
