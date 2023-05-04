@@ -365,11 +365,6 @@ dashes () {
   done;
 }
 
-## Switch to root 
-r () {
-  /usr/bin/sudo HOME="${HOME}" XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR}" "/bin/zsh"
-}
-
 ## Switch to a user
 u () {
   local user home item;
