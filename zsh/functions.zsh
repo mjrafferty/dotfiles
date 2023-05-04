@@ -384,16 +384,16 @@ u () {
   fi
 
   acls=(
-    "bin"
-    "clients"
-    ".local"
-    ".my.cnf"
-    ".mysql_history"
-    ".mytop"
-    "vim"
-    "zsh"
-    ".zshenv"
-    ".zsh_history"
+    "${HOME}/bin"
+    "${HOME}/clients"
+    "${HOME}/.local"
+    "${HOME}/.my.cnf"
+    "${HOME}/.mysql_history"
+    "${HOME}/.mytop"
+    "${HOME}/vim"
+    "${HOME}/zsh"
+    "${HOME}/.zshenv"
+    "${HOME}/.zsh_history"
   )
 
   for item in "${acls[@]}"; do
