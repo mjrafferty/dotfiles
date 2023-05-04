@@ -384,21 +384,21 @@ u () {
   fi
 
   acls=(
-    "${HOME}/bin"
-    "${HOME}/clients"
-    "${HOME}/.local"
-    "${HOME}/.my.cnf"
-    "${HOME}/.mysql_history"
-    "${HOME}/.mytop"
-    "${HOME}/vim"
-    "${HOME}/zsh"
-    "${HOME}/.zshenv"
-    "${HOME}/.zsh_history"
-    "${ZHIST_RUNTIME_DIR}"
-    "${__ZHIST_PIPE}"
-    "${__ZHIST_WATCH_FILE}"
-    "${__ZHIST_PID_FILE}"
+    "bin"
+    "clients"
+    ".local"
+    ".my.cnf"
+    ".mysql_history"
+    ".mytop"
+    "vim"
+    "zsh"
+    ".zshenv"
+    ".zsh_history"
   )
+
+  for item in "${acls[@]}"; do
+    ln -s "${item}" "${home}"
+  done
 
   _apply_acls() {
     chmod 711 "$HOME"
@@ -406,7 +406,7 @@ u () {
     setfacl -m "u:${user}:rwX" "${home}"
 
     if [[ -n "${XDG_RUNTIME_DIR}" && -d "${XDG_RUNTIME_DIR}" ]]; then
-      setfacl -m "u:${user}:rwX" "${XDG_RUNTIME_DIR}"
+      setfacl -R -m "u:${user}:rwX" "${XDG_RUNTIME_DIR}"
     fi
 
     for item in "${acls[@]}"; do
@@ -415,7 +415,6 @@ u () {
       elif [[ -f "${item}" ]]; then
         setfacl -m "u:${user}:rw" "${item}"
       fi
-      ln -s "${item}" "${home}"
     done
   }
 
