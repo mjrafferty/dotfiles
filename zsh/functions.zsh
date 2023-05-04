@@ -425,7 +425,7 @@ u () {
     local max_runtime=7200
     start_time="$(date '+%s')"
     while true; do
-      if inotifywait -q -t 600 -e attrib "${HISTFILE}"; then
+      if inotifywait -q -t 600 -e attrib "${HISTFILE}" &> /dev/null; then
         _apply_acls
       fi
       current_time="$(date '+%s')"
@@ -452,14 +452,14 @@ u () {
 
   # Give me permissions on any files the user created in my home dir
   sudo -u "$user" find "$home" -user "$user" -exec setfacl -m u:"$USER":rwX {} +
-  sudo -u "$user" find "$XDG_RUNTIME_DIR" -user "$user" -exec setfacl -m u:"$USER":rwX {} +
+  setfacl -R -x u:"$user" ~/
 
   # Revoke the permissions given to that user
   if [[ -n "$XDG_RUNTIME_DIR" ]]; then
+    sudo -u "$user" find "$XDG_RUNTIME_DIR" -user "$user" -exec setfacl -m u:"$USER":rwX {} +
     setfacl -R -x u:"${user}" "${XDG_RUNTIME_DIR}"
   fi
 
-  setfacl -R -x u:"$user" ~/
   chmod 700 "$HOME"
 
   rm -r "$home"
