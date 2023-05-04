@@ -7,7 +7,7 @@ HISTFILE=~/.zsh_history
 
 # Login as root
 _autoRoot() {
-  /usr/bin/sudo HOME="$HOME" SSH_TTY="$SSH_TTY" TMUX="$TMUX" /bin/zsh;
+  /usr/bin/sudo HOME="$HOME" XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR}" SSH_TTY="$SSH_TTY" TMUX="$TMUX" /bin/zsh;
   exit;
 }
 
