@@ -804,3 +804,27 @@ bw_auto() {
 }
 
 alias bw=bw_auto
+
+puppet_facts() {
+  local puppet_url server cert_query
+
+  server="$1"
+
+  if [[ -z "${server}" ]]; then
+    echo "Must provide a hostname to query"
+    return 1
+  fi
+
+  puppet_url="http://yy-db-62188.us-midwest-1.nexcess.net:8080/pdb/query/v4"
+  cert_query="query=facts[]{name=\"fqdn\" and value~\"${server}\"}"
+  cert="$(curl -s "${puppet_url}" --get --data-urlencode "${cert_query}" | jq -r '.[] | .certname')"
+
+  if [[ -z "${cert}" ]]; then
+    echo "No puppter certificate found for ${server}"
+    return 1;
+  fi
+
+  fact_query="query=[\"=\",\"certname\",\"${cert}\"]"
+  
+  curl -s "${puppet_url}/facts" --get --data-urlencode "${fact_query}"
+}
