@@ -704,7 +704,6 @@ get() {
   local -a curl_opts;
 
   curl_opts=(
-    "--continue-at" "-"
     "--location" 
     "--progress-bar" 
     "--remote-name" 
@@ -783,3 +782,25 @@ userhist() {
     return 1;
   fi
 }
+
+
+bw_auto() {
+	local bw_status output session_id 
+
+  BW_PASSWORD_FILE="${HOME}/Documents/bw.txt"
+
+	if [[ -n "${BW_PASSWORD_FILE}" && -e "${BW_PASSWORD_FILE}" ]]; then
+		bw_status="$(\bw status | jq -r .status)"
+
+		if [[ "${bw_status}" == "locked" ]]; then
+			output="$(\bw unlock --passwordfile "${BW_PASSWORD_FILE}")"
+			session_id="$(echo "$output" | grep -m1 -Po 'export BW_SESSION="\K[^"]*')"
+			export BW_SESSION="${session_id}"
+		fi
+	fi
+
+  \bw "$@"
+
+}
+
+alias bw=bw_auto
