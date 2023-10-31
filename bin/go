@@ -81,45 +81,6 @@ EOF
 
 }
 
-################################ BEGIN CHRIS ORLANDO'S WORK ##############################################
-_urlencode () {
-  echo -ne "$1" \
-    | "$XXD" -plain \
-    | "$TR" -d '\n' \
-    | "$SED" 's/\(..\)/%\1/g'
-}
-
-_uuid2fqdn () {
-  "$CURL" -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
-    --data "query=$(_urlencode '["=", "name", "fqdn"]')" \
-    | "$GREP" -oP '(?<=value":")[^"]*'
-}
-
-_uuid2ip () {
-  "$CURL" -sG "http://yy-puppetdb02.us-midwest-1.nexcess.net:8080/pdb/query/v4/nodes/$*/facts" \
-    --data "query=$(_urlencode '["=", "name", "ipaddress"]')" \
-    | "$GREP" -oP '(?<=value":")[^"]*'
-}
-
-_findsite () {
-
-  local servers uuid;
-
-  servers=$("$GREP" "\"value\":.*\"${1}\"" /home/domains.json | "$CUT" -d\" -f4)
-
-  if [[ -z "$servers" ]]; then
-    return 1;
-  fi
-
-  for uuid in $servers; do
-
-    _uuid2fqdn "$uuid" | "$TR" '\n' '\t';
-    _uuid2ip "$uuid";
-
-  done
-}
-################################ END CHRIS ORLANDO'S WORK ##############################################
-
 _getHistory() {
 
   local username
@@ -249,7 +210,7 @@ _findDestination () {
   declare -a find_servers
 
   # If site not pointed at nexcess
-  findsitelist=$(_findsite "$DOMAIN");
+  findsitelist=$(findsite "$DOMAIN");
 
   mapfile -t find_servers < <(echo "${findsitelist}" | "$AWK" '{print $1}');
 
