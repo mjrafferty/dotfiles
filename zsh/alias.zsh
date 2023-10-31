@@ -2,12 +2,6 @@
 
 alias r="/usr/bin/sudo HOME=$HOME $SHELL"
 
-## preserve-root ##
-alias rm='rm --preserve-root'
-alias chown='chown --preserve-root'
-alias chmod='chmod --preserve-root'
-alias chgrp='chgrp --preserve-root'
-
 ## nocorrect ##
 alias cd='nocorrect cd'
 alias cp='nocorrect cp'

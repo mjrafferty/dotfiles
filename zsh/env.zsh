@@ -86,3 +86,5 @@ setpath "/usr/local/sbin"
 setpath "${HOME}/bin"
 setpath "${HOME}/.local/bin"
 setpath "${VOLTA_HOME}/bin"
+
+export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME}/__pycache__/"

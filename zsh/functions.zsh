@@ -704,7 +704,6 @@ get() {
   local -a curl_opts;
 
   curl_opts=(
-    "--continue-at" "-"
     "--location" 
     "--progress-bar" 
     "--remote-name" 
@@ -782,4 +781,50 @@ userhist() {
     echo "${file} does not exist or is not readable."
     return 1;
   fi
+}
+
+
+bw_auto() {
+	local bw_status output session_id 
+
+  BW_PASSWORD_FILE="${HOME}/Documents/bw.txt"
+
+	if [[ -n "${BW_PASSWORD_FILE}" && -e "${BW_PASSWORD_FILE}" ]]; then
+		bw_status="$(\bw status | jq -r .status)"
+
+		if [[ "${bw_status}" == "locked" ]]; then
+			output="$(\bw unlock --passwordfile "${BW_PASSWORD_FILE}")"
+			session_id="$(echo "$output" | grep -m1 -Po 'export BW_SESSION="\K[^"]*')"
+			export BW_SESSION="${session_id}"
+		fi
+	fi
+
+  \bw "$@"
+
+}
+
+alias bw=bw_auto
+
+puppet_facts() {
+  local puppet_url server cert_query
+
+  server="$1"
+
+  if [[ -z "${server}" ]]; then
+    echo "Must provide a hostname to query"
+    return 1
+  fi
+
+  puppet_url="http://yy-db-62188.us-midwest-1.nexcess.net:8080/pdb/query/v4"
+  cert_query="query=facts[]{name=\"fqdn\" and value~\"${server}\"}"
+  cert="$(curl -s "${puppet_url}" --get --data-urlencode "${cert_query}" | jq -r '.[] | .certname')"
+
+  if [[ -z "${cert}" ]]; then
+    echo "No puppter certificate found for ${server}"
+    return 1;
+  fi
+
+  fact_query="query=[\"=\",\"certname\",\"${cert}\"]"
+  
+  curl -s "${puppet_url}/facts" --get --data-urlencode "${fact_query}"
 }
