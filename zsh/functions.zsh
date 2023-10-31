@@ -422,7 +422,7 @@ u () {
 
   _filewatcher() {
     local start_time current_time
-    local max_runtime=7200
+    local max_runtime=28800
     start_time="$(date '+%s')"
     while true; do
       if inotifywait -q -t 600 -e attrib "${HISTFILE}" &> /dev/null; then
