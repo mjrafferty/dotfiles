@@ -169,7 +169,7 @@ _run () {
     sleep 10;
     if [[ -n "${daemon_time}" ]]; then
       printf -v current_time '%(%s)T\n' '-1'
-      if ((start_time + daemon_time > current_time)); then
+      if ((current_time - start_time > daemon_time)); then
         break
       fi
     fi
