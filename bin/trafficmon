@@ -4,7 +4,7 @@
 readonly ARGA=("$@")
 
 # Configurable Variables
-readonly OUTPUT_FILE="/var/log/trafficmon.log"
+readonly OUTPUT_FILE="${HOME}/trafficmon.log"
 readonly IPTABLES_PREFIX="Outbound Connection: "
 
 # iptables --insert OUTPUT --out-interface eth0 --match state --protocol tcp --state NEW --match limit --limit 6/m --limit-burst 1 --jump LOG --log-uid --log-prefix "Outbound Connection: "
@@ -49,6 +49,9 @@ _cmdline () {
       "--ip-address"|"-i")
         args="${args}-i "
         ;;
+      "--daemonize"|"-d")
+        args="${args}-d "
+        ;;
       "--kill"|"-k")
         args="${args}-k "
         ;;
@@ -62,38 +65,6 @@ _cmdline () {
   done
 
   echo "$args";
-}
-
-_capture () {
-  local port pid;
-
-  port="$1";
-
-  {
-    netstat -tnap \
-      | grep --line-buffered -Po "^(\S+\s+){3}\S+:${port}.*\s+\K\d+(?=/\w+)"  \
-      | while read -r pid; do
-          date "+%F-%T";
-          printf "\nPS:\n"
-          ps -lf -p "$pid"
-          printf "\nLSOF:\n "
-          lsof -Pn -p "$pid"
-          printf "\n\n"
-        done
-    echo;
-  } >> "$OUTPUT_FILE"
-}
-
-_monitor () {
-  local ip port
-  
-  trap "_cleanUp" EXIT
-
-  journalctl --dmesg --follow --lines=0 --priority=alert --output=cat \
-    | grep --line-buffered -Po "^${IPTABLES_PREFIX}.*DST=${ip}.*PROTO=\w+ SPT=\K\d+" \
-    | while read -r port;  do
-      _capture "$port";
-    done
 }
 
 _checkIpTables () {
@@ -146,11 +117,56 @@ _removeRule () {
   iptables "${rule_options[@]}"
 }
 
+_capture () {
+  local port pid;
+
+  port="$1";
+
+  {
+    netstat -tnap \
+      | grep --line-buffered -Po "^(\S+\s+){3}\S+:${port}.*\s+\K\d+(?=/\w+)"  \
+      | while read -r pid; do
+          date "+%F-%T";
+          printf "\nPS:\n"
+          ps -lf -p "$pid"
+          printf "\nLSOF:\n "
+          lsof -Pn -p "$pid"
+          printf "\n\n"
+        done
+    echo;
+  } >> "$OUTPUT_FILE"
+}
+
+_monitor () {
+  local ip port daemon_time
+  local -a timeout
+  daemon_time="$1"
+  
+  trap "_cleanUp" EXIT
+
+  if [[ -n "${daemon_time}" ]]; then
+    timeout=(timeout "${daemon_time}")
+  else
+    timeout=()
+  fi
+
+  "${timeout[@]}" journalctl --dmesg --follow --lines=0 --priority=alert --output=cat 2> /dev/null \
+    | grep --line-buffered -Po "^${IPTABLES_PREFIX}.*DST=${ip}.*PROTO=\w+ SPT=\K\d+" \
+    | while read -r port;  do
+      _capture "$port";
+    done
+}
+
 # Monitor for incoming requests
 _run () {
+  local daemon_time
+  daemon_time="$1"
+
   # Perform monitoring in background
-  _monitor &
+  _monitor "${daemon_time}" &
   MONITOR_PID="$!"
+  
+  trap "_cleanUp" EXIT
 
   while [[ -e /proc/"$MONITOR_PID" ]]; do
     if ! _checkIpTables; then
@@ -169,7 +185,7 @@ _cleanUp () {
 
   _removeRule 2> /dev/null
 
-  pgid="$(ps --no-headers -o pgid "$$")"
+  pgid="$(ps --no-headers -o pgid "$BASHPID")"
   if [[ -n "${pgid}" ]]; then
     pkill -g "${pgid/ /}";
   fi
@@ -194,15 +210,23 @@ _kill() {
 
 # Main
 main () {
-  local option cmdline
+  local option cmdline daemon_time
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
-  while getopts ":hki:" option "${cmdline[@]}"; do
+  while getopts ":hd:ki:" option "${cmdline[@]}"; do
     case $option in
       h)
         _usage;
         exit 0;
+        ;;
+      d)
+        if [[ "$OPTARG" == [0-9]* ]]; then
+          daemon_time="$(( $(echo "$OPTARG" | "$GREP" -Po '\d*') * 3600 ))";
+        else
+          echo "Invalid daemon time.";
+          exit 1;
+        fi
         ;;
       k)
         _kill;
@@ -223,13 +247,18 @@ main () {
     exit 2
   fi
 
-  _run &
-  main_pid="$!"
-
-  printf "\ntrafficmon is now running. Run with -k to end.\n\n"
-  printf "Tracking outbound requests to %s\n" "${DESTINATION_IP}"
-  printf "Main PID: %s\n" "${main_pid}"
-  printf "Log file: %s\n" "$OUTPUT_FILE"
+  if [[ -z "${daemon_time}" ]]; then
+    printf "Tracking outbound requests to %s\n" "${DESTINATION_IP}"
+    printf "Log file: %s\n" "$OUTPUT_FILE"
+    _run
+  else
+    _run "${daemon_time}" &
+    main_pid="$!"
+    printf "\ntrafficmon is now running. Run with -k to end.\n\n"
+    printf "Tracking outbound requests to %s\n" "${DESTINATION_IP}"
+    printf "Main PID: %s\n" "${main_pid}"
+    printf "Log file: %s\n" "$OUTPUT_FILE"
+  fi
 }
 
 main
