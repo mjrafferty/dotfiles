@@ -138,19 +138,11 @@ _capture () {
 }
 
 _monitor () {
-  local ip port daemon_time
-  local -a timeout
-  daemon_time="$1"
+  local ip port
   
   trap "_cleanUp" EXIT
 
-  if [[ -n "${daemon_time}" ]]; then
-    timeout=(timeout "${daemon_time}")
-  else
-    timeout=()
-  fi
-
-  "${timeout[@]}" journalctl --dmesg --follow --lines=0 --priority=alert --output=cat 2> /dev/null \
+  journalctl --dmesg --follow --lines=0 --priority=alert --output=cat 2> /dev/null \
     | grep --line-buffered -Po "^${IPTABLES_PREFIX}.*DST=${ip}.*PROTO=\w+ SPT=\K\d+" \
     | while read -r port;  do
       _capture "$port";
@@ -159,12 +151,14 @@ _monitor () {
 
 # Monitor for incoming requests
 _run () {
-  local daemon_time
+  local daemon_time start_time current_time
   daemon_time="$1"
 
   # Perform monitoring in background
-  _monitor "${daemon_time}" &
+  _monitor &
   MONITOR_PID="$!"
+
+  printf -v start_time '%(%s)T\n' '-1'
   
   trap "_cleanUp" EXIT
 
@@ -173,6 +167,12 @@ _run () {
       _addRule
     fi
     sleep 10;
+    if [[ -n "${daemon_time}" ]]; then
+      printf -v current_time '%(%s)T\n' '-1'
+      if ((start_time + daemon_time > current_time)); then
+        break
+      fi
+    fi
   done
 
   _cleanUp
@@ -187,7 +187,7 @@ _cleanUp () {
 
   pgid="$(ps --no-headers -o pgid "$BASHPID")"
   if [[ -n "${pgid}" ]]; then
-    pkill -g "${pgid/ /}";
+    pkill -g "${pgid/ /}" &> /dev/null;
   fi
 }
 
@@ -203,7 +203,7 @@ _kill() {
   mapfile -t pgids < <(ps --no-headers -o pgid "${pids[@]}")
 
   for pgid in "${pgids[@]}"; do
-    pkill -g "${pgid/ /}";
+    pkill -g "${pgid/ /}" &> /dev/null;
   done
 }
 
@@ -222,7 +222,7 @@ main () {
         ;;
       d)
         if [[ "$OPTARG" == [0-9]* ]]; then
-          daemon_time="$(( $(echo "$OPTARG" | "$GREP" -Po '\d*') * 3600 ))";
+          daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
         else
           echo "Invalid daemon time.";
           exit 1;
