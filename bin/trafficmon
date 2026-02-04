@@ -129,7 +129,7 @@ _capture () {
           date "+%F-%T";
           printf "\nPS:\n"
           ps -lf -p "$pid"
-          printf "\nLSOF:\n "
+          printf "\nLSOF:\n"
           lsof -Pn -p "$pid"
           printf "\n\n"
         done
@@ -155,7 +155,7 @@ _run () {
   daemon_time="$1"
 
   # Perform monitoring in background
-  _monitor &
+  _monitor &> /dev/null &
   MONITOR_PID="$!"
 
   printf -v start_time '%(%s)T\n' '-1'
@@ -252,7 +252,7 @@ main () {
     printf "Log file: %s\n" "$OUTPUT_FILE"
     _run
   else
-    _run "${daemon_time}" &
+    _run "${daemon_time}" &> /dev/null &
     main_pid="$!"
     printf "\ntrafficmon is now running. Run with -k to end.\n\n"
     printf "Tracking outbound requests to %s\n" "${DESTINATION_IP}"
