@@ -7,11 +7,8 @@ readonly ARGA=("$@")
 readonly OUTPUT_FILE="${HOME}/trafficmon.log"
 readonly IPTABLES_PREFIX="Outbound Connection: "
 
-# iptables --insert OUTPUT --out-interface eth0 --match state --protocol tcp --state NEW --match limit --limit 6/m --limit-burst 1 --jump LOG --log-uid --log-prefix "Outbound Connection: "
-
 # Necessary Global Variables
 DESTINATION_IP=""
-MONITOR_PID=""
 
 # Print usage
 _usage () {
@@ -129,7 +126,7 @@ _capture () {
           date "+%F-%T";
           printf "\nPS:\n"
           ps -lf -p "$pid"
-          printf "\nLSOF:\n"
+          printf "\nLSOF:\n "
           lsof -Pn -p "$pid"
           printf "\n\n"
         done
@@ -151,18 +148,18 @@ _monitor () {
 
 # Monitor for incoming requests
 _run () {
-  local daemon_time start_time current_time
+  local monitor_pid daemon_time start_time current_time
   daemon_time="$1"
 
   # Perform monitoring in background
   _monitor &> /dev/null &
-  MONITOR_PID="$!"
+  monitor_pid="$!"
 
   printf -v start_time '%(%s)T\n' '-1'
   
   trap "_cleanUp" EXIT
 
-  while [[ -e /proc/"$MONITOR_PID" ]]; do
+  while [[ -e /proc/"$monitor_pid" ]]; do
     if ! _checkIpTables; then
       _addRule
     fi
