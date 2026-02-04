@@ -70,12 +70,10 @@ _capture () {
   port="$1";
 
   {
-    date "+%F-%T";
-
-    printf "Netstat:\n";
     netstat -tnap \
       | grep --line-buffered -Po "^(\S+\s+){3}\S+:${port}.*\s+\K\d+(?=/\w+)"  \
       | while read -r pid; do
+          date "+%F-%T";
           printf "\nPS:\n"
           ps -lf -p "$pid"
           printf "\nLSOF:\n "
@@ -83,11 +81,13 @@ _capture () {
           printf "\n\n"
         done
     echo;
-  } >> "$OUTPUT_FILE" 2>&1
+  } >> "$OUTPUT_FILE"
 }
 
 _monitor () {
   local ip port
+  
+  trap "_cleanUp" EXIT
 
   journalctl --dmesg --follow --lines=0 --priority=alert --output=cat \
     | grep --line-buffered -Po "^${IPTABLES_PREFIX}.*DST=${ip}.*PROTO=\w+ SPT=\K\d+" \
@@ -152,30 +152,43 @@ _run () {
   _monitor &
   MONITOR_PID="$!"
 
-  trap "_cleanUp" EXIT;
-  trap 'return' INT QUIT TERM;
-
   while [[ -e /proc/"$MONITOR_PID" ]]; do
     if ! _checkIpTables; then
       _addRule
     fi
-    ## Restart monitor if log has rotated
-    #if [[ "$current_messages_inode" != "$last_messages_inode" ]]; then
-      #pkill -P "$MONITOR_PID" &> /dev/null
-      #kill "$MONITOR_PID" &> /dev/null
-      #_monitor &
-      #MONITOR_PID="$!"
-    #fi
-
-    sleep 60;
+    sleep 10;
   done
+
+  _cleanUp
 }
 
 
 # Clean up any changes made
 _cleanUp () {
-  _removeRule
-  kill "$MONITOR_PID" 2> /dev/null
+  local pgid
+
+  _removeRule 2> /dev/null
+
+  pgid="$(ps --no-headers -o pgid "$$")"
+  if [[ -n "${pgid}" ]]; then
+    pkill -g "${pgid/ /}";
+  fi
+}
+
+_kill() {
+  local pids pgids pgid
+  mapfile -t pids < <(pgrep -P 1 -f trafficmon)
+
+  if [[ -z "${pids[0]}" ]]; then
+    echo "No processes found."
+    return
+  fi
+
+  mapfile -t pgids < <(ps --no-headers -o pgid "${pids[@]}")
+
+  for pgid in "${pgids[@]}"; do
+    pkill -g "${pgid/ /}";
+  done
 }
 
 
@@ -192,7 +205,7 @@ main () {
         exit 0;
         ;;
       k)
-        pkill -f trafficmon;
+        _kill;
         exit
         ;;
       i)
