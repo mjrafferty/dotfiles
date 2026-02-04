@@ -14,20 +14,19 @@ DESTINATION_IP=""
 _usage () {
   cat <<- EOF
 
-  Captures outbound traffic. Pulls data on which process is running the outbound
-  traffic. Outputs data to "$OUTPUT_FILE".
+  Captures outbound traffic to a given IP address. Pulls data on which process
+  is running the outbound traffic. Outputs data to "$OUTPUT_FILE".
 
   Usage:
 
-  outboundtrace [options]
+  trafficmon [options] <ip address>
 
-  -h|--help                        Prints this message.
+  -d|--daemonize [hours]    Runs process as a daemon for specified length of
+                            time in hours.
 
-  -i|--ip-address REMOTE_ADDR      IP address initiating process.
+  -k|--kill                 Kills daemonized trafficmon instance.
 
-  -k|--kill                        Kills daemonized outboundtrace instance.
-
-  -r|--rotate                      Rotates logs
+  -h|--help                 Prints this message.
   
 EOF
 }
@@ -229,15 +228,14 @@ main () {
         _kill;
         exit
         ;;
-      i)
-        DESTINATION_IP="$OPTARG";
-        ;;
       "?")
         echo "-${OPTARG} is not a supported option." >&2
         ;;
       *);;
     esac
   done
+
+  DESTINATION_IP="${ARGA[$((OPTIND - 1))]}"
 
   if [[ -z "${DESTINATION_IP}" ]]; then
     echo "Destination IP address is required" >&2
