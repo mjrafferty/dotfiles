@@ -4,41 +4,23 @@
 readonly ARGS="$*"
 readonly ARGA=("$@")
 
-# Alias executables to prevent PATH issues
-readonly CAT='/bin/cat'
-readonly CHMOD='/bin/chmod'
-readonly DATE='/bin/date'
-readonly GREP='/bin/grep'
-readonly HEAD='/usr/bin/head'
-readonly LSOF='/usr/sbin/lsof'
-readonly MKDIR='/bin/mkdir'
-readonly PGREP='/usr/bin/pgrep'
-readonly PKILL='/usr/bin/pkill'
-readonly PS='/bin/ps'
-readonly SLEEP='/bin/sleep'
-readonly STRACE='/usr/bin/strace'
-readonly TEE='/usr/bin/tee'
-
 # Configurable Variables
 readonly OUTPUT_DIR="${HOME}/clients/maltrace"
 readonly TRAFFIC_LOG="${OUTPUT_DIR}/traffic.log"
 readonly PROCESS_LOG="${OUTPUT_DIR}/process.log"
-readonly MAIN_IP="$(ifconfig | "$GREP" -Po 'inet addr:\K\S+' | "$HEAD" -n1)"
+#shellcheck disable=SC2155
+readonly MAIN_IP="$(ifconfig | grep -Po 'inet addr:\K\S+' | head -n1)"
 
 # Necessary Global Variables
 MONITOR_PID=""
 
 # Print usage
 _usage() {
-  "$CAT" <<- EOF
-
-  Captures "$STRACE" and php GLOBALS variable information of one or matching
-  requests to a website. Outputs data to "$OUTPUT_DIR". Can also be run on each
-  node of a cluster without conflict.
+  cat <<- EOF
 
   Usage:
 
-  capstrace [options]
+  maltrace [options]
 
   -h|--help                        Prints this message.
 
@@ -58,11 +40,9 @@ EOF
 
 # Convert long command line options into short ones for getopts
 _cmdline() {
-
   local x;
 
-  for x in ${ARGA[*]}; do
-
+  for x in "${ARGA[@]}"; do
     local args
 
     case "$x" in
@@ -85,96 +65,78 @@ _cmdline() {
         args="${args}${x} ";
         ;;
     esac
-
   done
 
   echo "$args";
-
 }
 
 # Perform setup tasks
 _setup() {
-
   # Create output directory if necessary and restrict perms
-  [[ -d "$OUTPUT_DIR" ]] || "$MKDIR" -p "${OUTPUT_DIR}";
-  "$CHMOD" 700 "${OUTPUT_DIR}"
-
+  [[ -d "$OUTPUT_DIR" ]] || mkdir -p "${OUTPUT_DIR}";
+  chmod 700 "${OUTPUT_DIR}"
 }
 
 # Clean up any changes made
 _cleanUp() {
-
-  "$PKILL" -P "$MONITOR_PID" &> /dev/null
+  pkill -P "$MONITOR_PID" &> /dev/null
   kill "$MONITOR_PID" &> /dev/null
-
 }
 
 # Find PID of connecting process
 _findPid() {
-
   local port;
 
   while [[ -e /proc/"$PPID" ]]; do
-
     read -r port;
 
     netstat -tnap \
-      | "$GREP" -Po "${MAIN_IP}:${port}.*\s+\K\d+(?=/\S+\s+$)"
+      | grep -Po "${MAIN_IP}:${port}.*\s+\K\d+(?=/\S+\s+$)"
 
     # Flush stdin
     while read -re -t 0.1; do
       : ;
     done;
-
   done
-
 }
 
 # Log process info
 _logData() {
-
   local pid;
 
   while [[ -e /proc/"$PPID" ]]; do
-
     read -r pid;
 
-    "$DATE" "+%F-%T";
-    "$PS" -lf -p "$pid"
+    date "+%F-%T";
+    ps -lf -p "$pid"
 
     echo;
-    "$LSOF" -Pn -p "$pid"
+    lsof -Pn -p "$pid"
     printf "\n\n\n"
-
   done >> "$PROCESS_LOG"
-
 }
 
 # Monitor and log traffic
 _monitor() {
-
   local address;
 
   address="$1"
 
   tcpdump -l -nn dst "$address" \
-    | "$TEE" -a "$TRAFFIC_LOG" \
-    | "$GREP" -Po --line-buffered "${MAIN_IP}.\K\d+" \
+    | tee -a "$TRAFFIC_LOG" \
+    | grep -Po --line-buffered "${MAIN_IP}.\K\d+" \
     | _findPid \
     | _logData;
-
 }
 
 # Main
 main () {
-
   local cmdline address daemon_time x main_pid start_time current_time;
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
   # Parse command line options
   while getopts ":hi:d:k" OPTION "${cmdline[@]}"; do
-
     case $OPTION in
       h)
         _usage;
@@ -184,11 +146,11 @@ main () {
         address="$OPTARG";
         ;;
       d)
-        daemon_time="$(( $(echo "$OPTARG" | "$GREP" -Po '\d*') * 3600 ))";
+        daemon_time="$(( $(echo "$OPTARG" | grep -Po '\d*') * 3600 ))";
         ;;
       k)
-        main_pid="$("$PGREP" -o maltrace -P 1)";
-        MONITOR_PID="$("$PGREP" -oP "$main_pid")";
+        main_pid="$(pgrep -o maltrace -P 1)";
+        MONITOR_PID="$(pgrep -oP "$main_pid")";
         _cleanUp;
         exit;
         ;;
@@ -197,11 +159,9 @@ main () {
         ;;
       *);;
     esac
-
   done
 
   trap "_cleanUp" EXIT;
-
   _setup;
 
   _monitor "$address" &> /dev/null &
@@ -209,37 +169,28 @@ main () {
   MONITOR_PID="$!"
 
   if [[ $daemon_time ]]; then
-
-    start_time="$("$DATE" "+%s")"
+    start_time="$(date "+%s")"
 
     while [[ -e /proc/"$MONITOR_PID" ]]; do
-
-      current_time="$("$DATE" "+%s")"
+      current_time="$(date "+%s")"
 
       if (( current_time > (start_time + daemon_time) )) ; then
         break;
       fi
 
-      "$SLEEP" 5;
-
+      sleep 5;
     done
 
     _cleanUp;
-
   else
-
     # Handle user exiting capstrace
-
     printf "Waiting for process. Press enter to stop.\n";
-
     read -r;
-
   fi
-
 }
 
 # Background script if run in daemon mode
-if echo "$ARGS" | "$GREP" -Pq '\s*(-d|--daemonize) \d*'; then
+if echo "$ARGS" | grep -Pq '\s*(-d|--daemonize) \d*'; then
   main &> /dev/null &
 else
   main;
