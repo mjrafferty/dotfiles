@@ -4,21 +4,39 @@
 readonly ARGA=("$@")
 
 # Configurable Variables
-readonly IPTABLES_LOG_FILE="/var/log/messages"
 readonly OUTPUT_FILE="/var/log/trafficmon.log"
+readonly IPTABLES_PREFIX="Outbound Connection: "
+
+# iptables --insert OUTPUT --out-interface eth0 --match state --protocol tcp --state NEW --match limit --limit 6/m --limit-burst 1 --jump LOG --log-uid --log-prefix "Outbound Connection: "
 
 # Necessary Global Variables
-SERVER_IP="$(ifconfig | grep -m1 -Po 'inet addr:\K[0-9,.]*')"
+DESTINATION_IP=""
+MONITOR_PID=""
 
 # Print usage
-_usage() {
+_usage () {
   cat <<- EOF
 
+  Captures outbound traffic. Pulls data on which process is running the outbound
+  traffic. Outputs data to "$OUTPUT_FILE".
+
+  Usage:
+
+  outboundtrace [options]
+
+  -h|--help                        Prints this message.
+
+  -i|--ip-address REMOTE_ADDR      IP address initiating process.
+
+  -k|--kill                        Kills daemonized outboundtrace instance.
+
+  -r|--rotate                      Rotates logs
+  
 EOF
 }
 
 # Convert long command line options into short ones for getopts
-_cmdline() {
+_cmdline () {
   local x;
 
   for x in "${ARGA[@]}"; do
@@ -27,6 +45,9 @@ _cmdline() {
     case "$x" in
       "--help"|"-h")
         args="${args}-h "
+        ;;
+      "--ip-address"|"-i")
+        args="${args}-i "
         ;;
       "--kill"|"-k")
         args="${args}-k "
@@ -51,15 +72,13 @@ _capture () {
   {
     date "+%F-%T";
 
-    printf "Netstat: ";
+    printf "Netstat:\n";
     netstat -tnap \
-      | grep "${SERVER_IP}:${port}" \
-      | tee -a /dev/stderr \
-      | grep --line-buffered -Po '\d+(?=/\w+)' \
+      | grep --line-buffered -Po "^(\S+\s+){3}\S+:${port}.*\s+\K\d+(?=/\w+)"  \
       | while read -r pid; do
-          printf "\nPS\n: "
+          printf "\nPS:\n"
           ps -lf -p "$pid"
-          printf "\nLSOF\n: "
+          printf "\nLSOF:\n "
           lsof -Pn -p "$pid"
           printf "\n\n"
         done
@@ -68,38 +87,85 @@ _capture () {
 }
 
 _monitor () {
-  local port
+  local ip port
 
-  tail -fn0 "${IPTABLES_LOG_FILE}" \
-    | grep --line-buffered -Po 'PROTO=\w+ SPT=\K\d+' \
+  journalctl --dmesg --follow --lines=0 --priority=alert --output=cat \
+    | grep --line-buffered -Po "^${IPTABLES_PREFIX}.*DST=${ip}.*PROTO=\w+ SPT=\K\d+" \
     | while read -r port;  do
       _capture "$port";
     done
 }
 
+_checkIpTables () {
+  if iptables-save -t filter | grep -q "${DESTINATION_IP}.*${IPTABLES_PREFIX}"; then
+    return
+  else
+    return 1
+  fi
+}
+
+_addRule () {
+  local -a rule_options
+
+  rule_options=(
+    --insert OUTPUT
+    --destination "${DESTINATION_IP}"
+    --protocol tcp
+    --match state
+    --state NEW
+    --match limit
+    --limit 6/m
+    --limit-burst 1
+    --jump LOG
+    --log-uid
+    --log-prefix "${IPTABLES_PREFIX}"
+    --log-level alert
+    )
+
+  iptables "${rule_options[@]}"
+}
+
+_removeRule () {
+  local -a rule_options
+
+  rule_options=(
+    --delete OUTPUT
+    --destination "${DESTINATION_IP}"
+    --protocol tcp
+    --match state
+    --state NEW
+    --match limit
+    --limit 6/m
+    --limit-burst 1
+    --jump LOG
+    --log-uid
+    --log-prefix "${IPTABLES_PREFIX}"
+    --log-level alert
+    )
+
+  iptables "${rule_options[@]}"
+}
+
 # Monitor for incoming requests
 _run () {
-  local last_messages_inode current_messages_inode
-
-  last_messages_inode="$(stat -c "%i" "${IPTABLES_LOG_FILE}")"
-
   # Perform monitoring in background
   _monitor &
   MONITOR_PID="$!"
 
+  trap "_cleanUp" EXIT;
   trap 'return' INT QUIT TERM;
 
   while [[ -e /proc/"$MONITOR_PID" ]]; do
-    current_messages_inode="$(stat -c "%i" "${IPTABLES_LOG_FILE}")"
-
-    ## Restart monitor if log has rotated
-    if [[ "$current_messages_inode" != "$last_messages_inode" ]]; then
-      pkill -P "$MONITOR_PID" &> /dev/null
-      kill "$MONITOR_PID" &> /dev/null
-      _monitor &
-      MONITOR_PID="$!"
-      last_messages_inode="${current_messages_inode}";
+    if ! _checkIpTables; then
+      _addRule
     fi
+    ## Restart monitor if log has rotated
+    #if [[ "$current_messages_inode" != "$last_messages_inode" ]]; then
+      #pkill -P "$MONITOR_PID" &> /dev/null
+      #kill "$MONITOR_PID" &> /dev/null
+      #_monitor &
+      #MONITOR_PID="$!"
+    #fi
 
     sleep 60;
   done
@@ -107,24 +173,30 @@ _run () {
 
 
 # Clean up any changes made
-_cleanUp() {
+_cleanUp () {
+  _removeRule
   kill "$MONITOR_PID" 2> /dev/null
 }
 
+
 # Main
 main () {
-  local cmdline
+  local option cmdline
 
   mapfile -t cmdline < <(_cmdline | tr ' ' '\n');
 
-  while getopts ":hk" OPTION "${cmdline[@]}"; do
-    case $OPTION in
+  while getopts ":hki:" option "${cmdline[@]}"; do
+    case $option in
       h)
         _usage;
         exit 0;
         ;;
       k)
         pkill -f trafficmon;
+        exit
+        ;;
+      i)
+        DESTINATION_IP="$OPTARG";
         ;;
       "?")
         echo "-${OPTARG} is not a supported option." >&2
@@ -133,10 +205,18 @@ main () {
     esac
   done
 
-  trap "_cleanUp" EXIT;
+  if [[ -z "${DESTINATION_IP}" ]]; then
+    echo "Destination IP address is required" >&2
+    exit 2
+  fi
 
-  _run;
-  _cleanUp;
+  _run &
+  main_pid="$!"
+
+  printf "\ntrafficmon is now running. Run with -k to end.\n\n"
+  printf "Tracking outbound requests to %s\n" "${DESTINATION_IP}"
+  printf "Main PID: %s\n" "${main_pid}"
+  printf "Log file: %s\n" "$OUTPUT_FILE"
 }
 
-main &
+main
