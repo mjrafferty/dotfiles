@@ -174,7 +174,6 @@ _run () {
   _cleanUp
 }
 
-
 # Clean up any changes made
 _cleanUp () {
   local pgid
@@ -202,7 +201,6 @@ _kill() {
     pkill -g "${pgid/ /}" &> /dev/null;
   done
 }
-
 
 # Main
 main () {
