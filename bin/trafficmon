@@ -2,9 +2,10 @@
 
 # Script Arguments
 readonly ARGA=("$@")
+readonly SCRIPT_NAME="${0##*/}"
 
 # Configurable Variables
-readonly OUTPUT_FILE="${HOME}/trafficmon.log"
+readonly OUTPUT_FILE="${HOME}/${SCRIPT_NAME}.log"
 readonly IPTABLES_PREFIX="Outbound Connection: "
 
 # Necessary Global Variables
@@ -19,12 +20,12 @@ _usage () {
 
   Usage:
 
-  trafficmon [options] <ip address>
+  ${SCRIPT_NAME} [options] <ip address>
 
   -d|--daemonize [hours]    Runs process as a daemon for specified length of
                             time in hours.
 
-  -k|--kill                 Kills daemonized trafficmon instance.
+  -k|--kill                 Kills daemonized ${SCRIPT_NAME} instance.
 
   -h|--help                 Prints this message.
   
@@ -188,7 +189,7 @@ _cleanUp () {
 
 _kill() {
   local pids pgids pgid
-  mapfile -t pids < <(pgrep -P 1 -f trafficmon)
+  mapfile -t pids < <(pgrep -P 1 -f ${SCRIPT_NAME})
 
   if [[ -z "${pids[0]}" ]]; then
     echo "No processes found."
@@ -247,7 +248,7 @@ main () {
   else
     _run "${daemon_time}" &> /dev/null &
     main_pid="$!"
-    printf "\ntrafficmon is now running. Run with -k to end.\n\n"
+    printf "\n%s is now running. Run with -k to end.\n\n" "${SCRIPT_NAME}"
     printf "Tracking outbound requests to %s\n" "${DESTINATION_IP}"
     printf "Main PID: %s\n" "${main_pid}"
     printf "Log file: %s\n" "$OUTPUT_FILE"
