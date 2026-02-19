@@ -5,7 +5,7 @@ declare -gA ZINIT
 ZINIT[HOME_DIR]="${ZDOTDIR:-${HOME}/.zsh}/zinit"
 ZPFX="${ZDOTDIR:-${HOME}/.zsh}/zinit/polaris"
 ZINIT[COMPINIT_OPTS]="-C -i -d ${ZSH_COMPDUMP}"
-source "${ZINIT[HOME_DIR]}/bin/zinit.zsh"
+source "${ZINIT[HOME_DIR]}/bin/zinit.zsh" 2> /dev/null || return 1
 
 zload() {
 
