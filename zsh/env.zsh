@@ -11,12 +11,12 @@ case "${HOST}" in
     ;;
   mellon*)
     setopt no_global_rcs
-    source /etc/profile.d/*
+    source /etc/profile.d/*.sh
     source /etc/profile
     ;;
   *)
     setopt no_global_rcs
-    source /etc/profile.d/*
+    source /etc/profile.d/*.sh
     source /etc/profile
     ;;
 esac
