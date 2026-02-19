@@ -1,8 +1,20 @@
 # vim:ft=zsh
 
+HISTFILE="${XDG_DATA_HOME}/zsh_history"
+SAVEHIST="10000"
+HISTSIZE="10000"
+
 ## Mac has a '/usr/libexec/path_helper' in /etc/zprofile that breaks PATH
-[[ "${HOST}" == "NEX-LW-2181.local" ]] && \
-  setopt no_global_rcs
+case "${HOST}" in
+  "NEX-LW-2181.local")
+    setopt no_global_rcs
+    ;;
+  mellon*)
+    setopt no_global_rcs
+    source /etc/profile.d/*
+    source /etc/profile
+    ;;
+esac
 
 if [[ "$USER" != "root" ]]; then
   [[ -n "$XDG_CACHE_HOME" ]] || export XDG_CACHE_HOME="${HOME}/.local/cache"
@@ -21,9 +33,6 @@ fi
 ## Shell ##
 ZDOTDIR="${XDG_CONFIG_HOME}/zsh"
 
-HISTFILE="${XDG_DATA_HOME}/zsh_history"
-SAVEHIST="10000"
-HISTSIZE="10000"
 
 KEYTIMEOUT=1
 
