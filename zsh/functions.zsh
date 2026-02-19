@@ -828,3 +828,9 @@ puppet_facts() {
   
   curl -s "${puppet_url}/facts" --get --data-urlencode "${fact_query}"
 }
+auth_lw() {
+  read -r "LWUSER?Username> "
+  read -r -s "LWPASS?Password> "
+  export LWUSER LWPASS;
+  echo
+}
