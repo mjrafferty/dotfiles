@@ -3,7 +3,7 @@
 USER=${(%):-%n}
 
 ZHIST_ENABLE_LOG=1
-HISTFILE=~/.zsh_history
+#HISTFILE=~/.zsh_history
 
 # Login as root
 _autoRoot() {
