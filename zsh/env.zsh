@@ -14,6 +14,11 @@ case "${HOST}" in
     source /etc/profile.d/*
     source /etc/profile
     ;;
+  *)
+    setopt no_global_rcs
+    source /etc/profile.d/*
+    source /etc/profile
+    ;;
 esac
 
 if [[ "$USER" != "root" ]]; then
