@@ -6,18 +6,10 @@ HISTSIZE="10000"
 
 ## Mac has a '/usr/libexec/path_helper' in /etc/zprofile that breaks PATH
 case "${HOST}" in
-  "NEX-LW-2181.local")
-    setopt no_global_rcs
-    ;;
-  mellon*)
-    setopt no_global_rcs
-    source /etc/profile.d/*.sh
-    source /etc/profile
-    ;;
   *)
     setopt no_global_rcs
-    source /etc/profile.d/*.sh
-    source /etc/profile
+    [[ -e /etc/profile.d ]] && source /etc/profile.d/*.sh
+    [[ -e /etc/profile ]] && source /etc/profile
     ;;
 esac
 
