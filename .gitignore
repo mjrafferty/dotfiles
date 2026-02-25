@@ -5,3 +5,4 @@ vim/plugins/*
 zsh/zinit/*
 zsh/.iterm2
 zsh/.iterm2_shell_integration.zsh
+bin/shellcheck

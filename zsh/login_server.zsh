@@ -6,3 +6,4 @@
 load_conf main
 
 start_agent
+source "${HOME}/.venv/bin/activate"

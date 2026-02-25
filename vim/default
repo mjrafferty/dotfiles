@@ -32,7 +32,9 @@ Plug 'gelguy/wilder.nvim'
 Plug 'pearofducks/ansible-vim'
 Plug 'lepture/vim-jinja'
 Plug 'rodjek/vim-puppet'
-Plug 'Valloric/YouCompleteMe'
+if ( v:version > 910 )
+  Plug 'ycm-core/YouCompleteMe'
+endif
 "Plug 'ludovicchabant/vim-gutentags'
 "Plug 'majutsushi/tagbar'
 Plug 'w0rp/ale'

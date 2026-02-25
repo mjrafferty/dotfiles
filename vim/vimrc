@@ -1,7 +1,9 @@
 set runtimepath=$VIM_DIR,$VIMRUNTIME,$VIM_DIR/after
 
 " Load plugins
-if $HOST =~ '\(.nexcess.net\|nxcli.net\|.liquidweb.com\)$' 
+if $HOST =~ '^mellon'
+  runtime default
+elseif $HOST =~ '\(.nexcess.net\|nxcli.net\|.liquidweb.com\)$'
   runtime compat
 else
   runtime default
