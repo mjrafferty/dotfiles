@@ -28,11 +28,11 @@ Plug 'terryma/vim-multiple-cursors'
 Plug 'tpope/vim-surround'
 Plug 'weynhamz/vim-plugin-minibufexpl'
 Plug 'AndrewRadev/splitjoin.vim'
-Plug 'gelguy/wilder.nvim'
+"Plug 'gelguy/wilder.nvim'
 Plug 'pearofducks/ansible-vim'
 Plug 'lepture/vim-jinja'
 Plug 'rodjek/vim-puppet'
-if ( v:version > 910 )
+if ( v:version >= 901 )
   Plug 'ycm-core/YouCompleteMe'
 endif
 "Plug 'ludovicchabant/vim-gutentags'
