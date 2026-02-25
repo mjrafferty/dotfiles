@@ -1,18 +1,5 @@
 # vim:ft=zsh
 
-HISTFILE="${XDG_DATA_HOME}/zsh_history"
-SAVEHIST="10000"
-HISTSIZE="10000"
-
-## Mac has a '/usr/libexec/path_helper' in /etc/zprofile that breaks PATH
-case "${HOST}" in
-  *)
-    setopt no_global_rcs
-    [[ -e /etc/profile.d ]] && source /etc/profile.d/*.sh
-    [[ -e /etc/profile ]] && source /etc/profile
-    ;;
-esac
-
 if [[ "$USER" != "root" ]]; then
   [[ -n "$XDG_CACHE_HOME" ]] || export XDG_CACHE_HOME="${HOME}/.local/cache"
   [[ -n "$XDG_CONFIG_HOME" ]] || export XDG_CONFIG_HOME="${HOME}/.local/config"
@@ -30,8 +17,20 @@ fi
 ## Shell ##
 ZDOTDIR="${XDG_CONFIG_HOME}/zsh"
 
+HISTFILE="${XDG_DATA_HOME}/zsh_history"
+SAVEHIST="10000"
+HISTSIZE="10000"
 
 KEYTIMEOUT=1
+
+## Mac has a '/usr/libexec/path_helper' in /etc/zprofile that breaks PATH
+case "${HOST}" in
+  *)
+    setopt no_global_rcs
+    [[ -e /etc/profile.d ]] && source /etc/profile.d/*.sh
+    [[ -e /etc/profile ]] && source /etc/profile
+    ;;
+esac
 
 fpath=(${ZDOTDIR}/completions $fpath)
 
