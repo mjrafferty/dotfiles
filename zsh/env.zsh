@@ -27,8 +27,8 @@ KEYTIMEOUT=1
 case "${HOST}" in
   *)
     setopt no_global_rcs
-    [[ -e /etc/profile.d ]] && source /etc/profile.d/*.sh
-    [[ -e /etc/profile ]] && source /etc/profile
+    [[ -e /etc/profile.d/nexfunc.sh ]] && source /etc/profile.d/nexfunc.sh
+    #[[ -e /etc/profile ]] && source /etc/profile
     ;;
 esac
 
