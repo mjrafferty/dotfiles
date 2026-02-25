@@ -27,7 +27,12 @@ KEYTIMEOUT=1
 case "${HOST}" in
   *)
     setopt no_global_rcs
-    [[ -e /etc/profile.d/nexfunc.sh ]] && source /etc/profile.d/nexfunc.sh
+    if [[ -e /etc/profile.d ]]; then
+      for i in /etc/profile.d/*.sh; do
+        [[ "${i}" =~ sclenable ]] && continue
+        source "$i"
+      done
+    fi
     #[[ -e /etc/profile ]] && source /etc/profile
     ;;
 esac
