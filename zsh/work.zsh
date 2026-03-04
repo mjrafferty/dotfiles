@@ -9,10 +9,6 @@ load_conf main
 load_conf zinit_optional
 load_conf zinit_programs
 
-if [[ -e "${ZDOTDIR}/.iterm2_shell_integration.zsh" ]]; then
-  source "${ZDOTDIR}/.iterm2_shell_integration.zsh"
-fi
-
 if [[ -e "${HOME}/Dev/nxclient.token" ]]; then
   source "${HOME}/Dev/nxclient.token"
 fi
@@ -26,7 +22,6 @@ source '/usr/local/opt/pyenv/completions/pyenv.zsh'
 export BUNDLE_GEMFILE="${HOME}/Repositories/nexcess/Puppet/puppet6-Gemfile"
 export PUPPET_GEM_VERSION='~> 6.28.0'
 
-#setpath /usr/local/opt/python@3.9/Frameworks/Python.framework/Versions/3.9/bin
 setpath "${HOME}/.composer/vendor/bin"
 
-alias ls=exa
+type exa &> /dev/null && alias ls=exa
