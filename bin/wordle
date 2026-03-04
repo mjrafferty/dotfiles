@@ -5,7 +5,8 @@ readonly WORD_LIST="${HOME}/wordle.txt"
 
 # Main
 main () {
-  local option 
+  local option letter 
+  local -a matches likely_letters guesses new_guesses
   local one='.' two='.' three='.' four='.' five='.' no=" " yes_str="a-z"
   local -a yes=(. . . . .)
 
@@ -18,11 +19,11 @@ main () {
       5) five="${OPTARG}"; yes+=("${OPTARG}") ;;
       n) no="${OPTARG}" ;;
       y) index=0; yes_str="";
-      for letter in ${OPTARG//[a-z]/& }; do
-        yes[index]=$letter
-        yes_str+="$letter"
-        (( index+=1 ))
-      done
+        for letter in ${OPTARG//[a-z]/& }; do
+          yes[index]=$letter
+          yes_str+="$letter"
+          (( index+=1 ))
+        done
         ;;
       "?")
         echo "-${OPTARG} is not a supported option." >&2
@@ -31,25 +32,30 @@ main () {
     esac
   done
 
-  output=$(grep -v "[${no}]" "${WORD_LIST}" \
-    | grep "${yes[0]}" \
-    | grep "${yes[1]}" \
-    | grep "${yes[2]}" \
-    | grep "${yes[3]}" \
-    | grep "${yes[4]}" \
-    | grep "^${one}${two}${three}${four}${five}$")
+  mapfile -t matches < <(
+    grep -v "[${no}]" "${WORD_LIST}" \
+      | grep "${yes[0]}" \
+      | grep "${yes[1]}" \
+      | grep "${yes[2]}" \
+      | grep "${yes[3]}" \
+      | grep "${yes[4]}" \
+      | grep "^${one}${two}${three}${four}${five}$"
+    )
 
-  printf "Word List\n==========\n%s\n" "${output[@]}"
+  printf "Word List\n==========\n"
+  printf "%s\n" "${matches[@]}"
   echo
 
-  mapfile -t likely_letters < <(for i in {a..z}; do
-    printf "%s\t" "${i}";
-    grep -c "$i" <(printf "%s\n" "${output[@]}")
-  done \
-    | grep -v "[${yes[*]}]" \
-    | grep -v -- "[^0-9]0 *$" \
-    | sort -k2nr \
-| awk '{print $1}')
+  mapfile -t likely_letters < <(
+    for letter in {a..z}; do
+      printf "%s\t" "${letter}";
+      grep -c "$letter" <(printf "%s\n" "${matches[@]}")
+    done \
+      | grep -v "[${yes[*]}]" \
+      | grep -v -- "[^0-9]0 *$" \
+      | sort -k2nr \
+      | awk '{print $1}'
+    )
 
   if [[ "${#likely_letters[@]}" -gt 2 ]]; then
     printf "Remaining Letters: %s\n\n" "${likely_letters[*]}"
@@ -58,9 +64,7 @@ main () {
 
     for letter in "${likely_letters[@]}"; do
       mapfile -t new_guesses < <(printf "%s\n" "${guesses[@]}" | grep "$letter")
-      if [[ ${#new_guesses[@]} -gt 0 ]]; then
-        guesses=("${new_guesses[@]}")
-      fi
+      [[ ${#new_guesses[@]} -gt 0 ]] && guesses=("${new_guesses[@]}")
     done
 
     printf "Suggested Guesses\n=============\n"
