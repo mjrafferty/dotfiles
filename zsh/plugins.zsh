@@ -3,12 +3,15 @@
 ZPLUGINDIR="${ZDOTDIR}/plugins"
 
 plug() {
-  local url="${1}"
-  local use_file="${2}"
-  local plugin_name plugin_dir
-  local -a initfiles=()
+  local url use_file plugin_name plugin_dir
+  local -a initfiles
+  url="${1}"
+  use_file="${2}"
+  initfiles=()
 
-  [[ ! -d "${ZPLUGINDIR}" ]] && mkdir "${ZPLUGINDIR}"
+  if [[ ! -d "${ZPLUGINDIR}" ]]; then
+    mkdir "${ZPLUGINDIR}"
+  fi
 
   plugin_name="${url:t}"
   plugin_dir="${ZPLUGINDIR}/${plugin_name}"
@@ -42,7 +45,7 @@ plug trapd00r/LS_COLORS
 plug zsh-users/zsh-completions
 plug zsh-users/zsh-autosuggestions
 plug zsh-users/zsh-history-substring-search
-plug zdharma-continuum/fast-syntax-highlighting
+#plug zdharma-continuum/fast-syntax-highlighting
 
 plug MichaelAquilina/zsh-you-should-use you-should-use.plugin.zsh
 plug RobSis/zsh-completion-generator     #'0b' '[[ -n ${ZLAST_COMMANDS[(r)gcom*]}  ]]' atload'gcomp(){ \gencomp $1 && zinit creinstall -q RobSis/zsh-completion-generator; }' pick'zsh-completion-generator.plugin.zsh'
@@ -52,7 +55,7 @@ plug knu/zsh-manydots-magic manydots-magic
 plug mdumitru/fancy-ctrl-z
 plug seletskiy/zsh-fuzzy-search-and-edit #'0d' atload"bindkey '^T' fzy-file-widget"
 plug soimort/translate-shell             #'0c' if'[[ -n "$commands[gawk]" ]]'
-plug wfxr/forgit                         #'0c' has'git'
+#plug wfxr/forgit                         #'0c' has'git'
 plug zdharma-continuum/history-search-multi-word
 
 #plug tldr-pages/tldr
