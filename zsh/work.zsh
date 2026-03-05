@@ -6,8 +6,8 @@ zstyle ':apollo:*:*:*:dir:*' bookmark_patterns "$HOME/Repositories/*" "$HOME/*"
 zstyle ':apollo:*:*:*:dir:*' bookmarks "dotfiles=$HOME/.dotfiles"
 
 load_conf main
-load_conf zinit_optional
-load_conf zinit_programs
+#load_conf zinit_optional
+#load_conf zinit_programs
 
 if [[ -e "${HOME}/Dev/nxclient.token" ]]; then
   source "${HOME}/Dev/nxclient.token"

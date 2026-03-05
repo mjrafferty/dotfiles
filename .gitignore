@@ -2,7 +2,5 @@
 .local/
 .zshenv
 vim/plugins/*
-zsh/zinit/*
-zsh/.iterm2
-zsh/.iterm2_shell_integration.zsh
+zsh/plugins
 bin/shellcheck

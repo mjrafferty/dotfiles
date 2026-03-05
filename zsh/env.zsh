@@ -1,5 +1,16 @@
 # vim:ft=zsh
 
+#exec {log_fd}>~/.zsh_log
+#print_trace() {
+  #local timestamp="${(%):-%D}:${(%):-%T}:"
+
+  #print "${timestamp} Error in $1 in at line $2 code $3"
+  #print "${timestamp} ARGS: ${@[@]:4}"
+  #print "${timestamp} Call trace: ${(Oaj: -> :)functrace[@]}"
+  #print "${timestamp} ---------------------------------------------"
+#} &>>$log_fd
+#trap 'print_trace ${(%):-%N} $LINENO $? $* &>> ~/.zsh_log' ZERR
+
 if [[ "$USER" != "root" ]]; then
   [[ -n "$XDG_CACHE_HOME" ]] || export XDG_CACHE_HOME="${HOME}/.local/cache"
   [[ -n "$XDG_CONFIG_HOME" ]] || export XDG_CONFIG_HOME="${HOME}/.local/config"
@@ -99,3 +110,8 @@ setpath "${HOME}/.local/bin"
 setpath "${VOLTA_HOME}/bin"
 
 export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME}/__pycache__/"
+
+ZSH_AUTOSUGGEST_MANUAL_REBIND="true"
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
+ZSH_AUTOSUGGEST_USE_ASYNC="true"
+ZSH_AUTOSUGGEST_STRATEGY=( history match_prev_cmd )
