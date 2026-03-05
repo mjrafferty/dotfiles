@@ -10,7 +10,9 @@ Plug 'morhetz/gruvbox'
 "Plug 'vim-airline/vim-airline-themes'
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive'
-Plug 'Yggdroot/indentLine'
+if ( v:version >= 800 )
+  Plug 'Yggdroot/indentLine'
+endif
 "Plug 'junegunn/rainbow_parentheses.vim'
 "Plug 'andymass/vim-matchup'
 Plug 'easymotion/vim-easymotion'
@@ -31,7 +33,9 @@ Plug 'AndrewRadev/splitjoin.vim'
 Plug 'pearofducks/ansible-vim'
 Plug 'lepture/vim-jinja'
 Plug 'rodjek/vim-puppet'
-Plug 'SirVer/ultisnips', { 'tag': '3.2' }
+if ( v:version >= 800 )
+  Plug 'SirVer/ultisnips', { 'tag': '3.2' }
+endif
 Plug 'honza/vim-snippets'
 call plug#end()
 

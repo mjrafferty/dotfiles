@@ -38,7 +38,9 @@ endif
 "Plug 'ludovicchabant/vim-gutentags'
 "Plug 'majutsushi/tagbar'
 Plug 'w0rp/ale'
-Plug 'SirVer/ultisnips'
+if ( v:version >= 800 )
+  Plug 'SirVer/ultisnips'
+endif
 Plug 'honza/vim-snippets'
 call plug#end()
 

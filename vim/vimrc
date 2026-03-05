@@ -267,33 +267,35 @@ endif
 "     Begin Functions       "
 """""""""""""""""""""""""""""
 
-" Balances tab key functionality between plugins
-function! g:UltiSnips_Complete() abort
-  call UltiSnips#ExpandSnippet()
-  if g:ulti_expand_res == 0
-    if pumvisible()
-      return "\<C-n>"
-    else
-      call UltiSnips#JumpForwards()
-      if g:ulti_jump_forwards_res == 0
-        if delimitMate#ShouldJump()
-          return delimitMate#JumpMany()
+if exists("g:plugs['ultisnips']")
+  " Balances tab key functionality between plugins
+  function! g:UltiSnips_Complete() abort
+    call UltiSnips#ExpandSnippet()
+    if g:ulti_expand_res == 0
+      if pumvisible()
+        return "\<C-n>"
+      else
+        call UltiSnips#JumpForwards()
+        if g:ulti_jump_forwards_res == 0
+          if delimitMate#ShouldJump()
+            return delimitMate#JumpMany()
+          endif
+          return "\<Tab>"
         endif
-        return "\<Tab>"
       endif
     endif
-  endif
-  return ""
-endfunction
+    return ""
+  endfunction
 
-" Same as above but for Shift-Tab
-function! g:UltiSnips_Reverse() abort
-  call UltiSnips#JumpBackwards()
-  if g:ulti_jump_backwards_res == 0
-    return "\<C-P>"
-  endif
-  return ""
-endfunction
+  " Same as above but for Shift-Tab
+  function! g:UltiSnips_Reverse() abort
+    call UltiSnips#JumpBackwards()
+    if g:ulti_jump_backwards_res == 0
+      return "\<C-P>"
+    endif
+    return ""
+  endfunction
+endif
 
 function! g:CopyMode() abort
   let config = get(g:, "copymode")
