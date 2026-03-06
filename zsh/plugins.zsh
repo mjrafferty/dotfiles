@@ -45,23 +45,7 @@ plug trapd00r/LS_COLORS
 plug zsh-users/zsh-completions
 plug zsh-users/zsh-autosuggestions
 plug zsh-users/zsh-history-substring-search
-#plug zdharma-continuum/fast-syntax-highlighting
-
-plug MichaelAquilina/zsh-you-should-use you-should-use.plugin.zsh
-plug RobSis/zsh-completion-generator     #'0b' '[[ -n ${ZLAST_COMMANDS[(r)gcom*]}  ]]' atload'gcomp(){ \gencomp $1 && zinit creinstall -q RobSis/zsh-completion-generator; }' pick'zsh-completion-generator.plugin.zsh'
-plug ael-code/zsh-colored-man-pages
-plug hlissner/zsh-autopair               #'0c' nocompletions
-plug knu/zsh-manydots-magic manydots-magic
+plug zsh-users/zsh-syntax-highlighting
+plug hlissner/zsh-autopair
 plug mdumitru/fancy-ctrl-z
-plug seletskiy/zsh-fuzzy-search-and-edit #'0d' atload"bindkey '^T' fzy-file-widget"
-plug soimort/translate-shell             #'0c' if'[[ -n "$commands[gawk]" ]]'
-#plug wfxr/forgit                         #'0c' has'git'
-plug zdharma-continuum/history-search-multi-word
-
-#plug tldr-pages/tldr
-#plug junegunn/fzf                        #'0c' multisrc"shell/{completion,key-bindings}.zsh" id-as"junegunn/fzf_completions" pick"/dev/null"
-#plug aperezdc/zsh-fzy                    #'0c' atload"bindkey '\ec' fzy-cd-widget; bindkey '^T' fzy-file-widget"
-
-## Snippets ##
-#zsnip  OMZ::plugins/extract               '0c' svn
-#zsnip  OMZ::plugins/git-extras            '0c' svn
+#plug zdharma-continuum/history-search-multi-word
