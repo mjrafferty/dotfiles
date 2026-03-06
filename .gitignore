@@ -4,3 +4,4 @@
 vim/plugins/*
 zsh/plugins
 bin/shellcheck
+bin/fzf
