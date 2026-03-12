@@ -1,29 +1,45 @@
 #! /usr/bin/env bash
 
 readonly ARGA=("$@")
+declare -a YES=(. . . . .)
+REPLY=""
+
+process_arg() {
+  local optarg="${1}"
+  local neg_string=""
+  REPLY=""
+
+  [[ "${#optarg}" -eq 1 ]] && REPLY="${optarg}" && return
+
+  for letter in ${optarg//[a-z.]/& }; do
+    [[ "${letter}" == "." ]] && continue
+    neg_string+="${letter}"
+    for ((i=0; i < ${#YES[@]}; i++)); do
+      [[ "${YES[$i]}" == "${i}" ]] && break
+      if [[ "${YES[$i]}" == "." ]]; then
+        YES[i]="${letter}"
+        break
+      fi
+    done
+  done
+
+  REPLY="[^${neg_string}]"
+}
 
 # Main
 main () {
   local option letter 
   local -a matches likely_letters guesses new_guesses
-  local one='.' two='.' three='.' four='.' five='.' no=" " yes_str="a-z"
-  local -a yes=(. . . . .)
+  local one='.' two='.' three='.' four='.' five='.' no=" "
 
-  while getopts "1:2:3:4:5:y:n:" option "${ARGA[@]}"; do
+  while getopts "1:2:3:4:5:n:" option "${ARGA[@]}"; do
     case $option in
-      1) one="${OPTARG}"; yes+=("${OPTARG}") ;;
-      2) two="${OPTARG}"; yes+=("${OPTARG}") ;;
-      3) three="${OPTARG}"; yes+=("${OPTARG}") ;;
-      4) four="${OPTARG}"; yes+=("${OPTARG}") ;;
-      5) five="${OPTARG}"; yes+=("${OPTARG}") ;;
+      1) process_arg "${OPTARG}"; one="${REPLY}";;
+      2) process_arg "${OPTARG}"; two="${REPLY}";;
+      3) process_arg "${OPTARG}"; three="${REPLY}";;
+      4) process_arg "${OPTARG}"; four="${REPLY}";;
+      5) process_arg "${OPTARG}"; five="${REPLY}";;
       n) no="${OPTARG}" ;;
-      y) index=0; yes_str="";
-        for letter in ${OPTARG//[a-z]/& }; do
-          yes[index]=$letter
-          yes_str+="$letter"
-          (( index+=1 ))
-        done
-        ;;
       "?")
         echo "-${OPTARG} is not a supported option." >&2
         ;;
@@ -31,36 +47,27 @@ main () {
     esac
   done
 
-  mapfile -t matches < <(
-    grep -v "[${no}]" <(printf "%s\n" "${WORD_LIST[@]}") \
-      | grep "${yes[0]}" \
-      | grep "${yes[1]}" \
-      | grep "${yes[2]}" \
-      | grep "${yes[3]}" \
-      | grep "${yes[4]}" \
-      | grep "^${one}${two}${three}${four}${five}$"
-    )
 
-  mapfile -t matches_full < <(
+  mapfile -t matches < <(
     grep -v "[${no}]" <(printf "%s\n" "${WORD_LIST_FULL[@]}") \
-      | grep "${yes[0]}" \
-      | grep "${yes[1]}" \
-      | grep "${yes[2]}" \
-      | grep "${yes[3]}" \
-      | grep "${yes[4]}" \
+      | grep "${YES[0]}" \
+      | grep "${YES[1]}" \
+      | grep "${YES[2]}" \
+      | grep "${YES[3]}" \
+      | grep "${YES[4]}" \
       | grep "^${one}${two}${three}${four}${five}$"
     )
 
   printf "Word List\n==========\n"
-  printf "%s\n" "${matches_full[@]}"
+  printf "%s\n" "${matches[@]}"
   echo
 
   mapfile -t likely_letters < <(
     for letter in {a..z}; do
       printf "%s\t" "${letter}";
-      grep -c "$letter" <(printf "%s\n" "${matches_full[@]}")
+      grep -c "$letter" <(printf "%s\n" "${matches[@]}")
     done \
-      | grep -v "[${yes[*]}]" \
+      | grep -v "[${YES[*]}]" \
       | grep -v -- "[^0-9]0 *$" \
       | sort -k2nr \
       | awk '{print $1}'
@@ -69,20 +76,33 @@ main () {
   if [[ "${#likely_letters[@]}" -gt 2 ]]; then
     printf "Remaining Letters: %s\n\n" "${likely_letters[*]}"
 
-    mapfile -t guesses < <(grep "[${yes_str}]" <(printf "%s\n" "${WORD_LIST_FULL[@]}"))
+    mapfile -t guesses < <(printf "%s\n" "${matches[@]}")
+    mapfile -t use_letters < <(printf "%s\n" "${WORD_LIST_FULL[@]}")
 
     for letter in "${likely_letters[@]}"; do
       mapfile -t new_guesses < <(printf "%s\n" "${guesses[@]}" | grep "$letter")
+      mapfile -t new_use_letters < <(printf "%s\n" "${use_letters[@]}" | grep "$letter")
       [[ ${#new_guesses[@]} -gt 0 ]] && guesses=("${new_guesses[@]}")
+      [[ ${#new_use_letters[@]} -gt 0 ]] && use_letters=("${new_use_letters[@]}")
     done
 
     printf "Suggested Guesses\n=============\n"
-    mapfile -t grep_args < <(printf -- "-e\n%s\n" "${matches_full[@]}")
+    mapfile -t grep_args < <(printf -- "-e\n%s\n" "${guesses[@]}")
     mapfile -t new_guesses < <(printf "%s\n" "${WORD_LIST[@]}" | grep -F "${grep_args[@]}")
     if [[ ${#new_guesses[@]} -gt 0 ]]; then
       printf "%s\n" "${new_guesses[@]}"
     else
       printf "%s\n" "${guesses[@]}"
+    fi
+
+    echo
+    printf "Use Letters\n=============\n"
+    mapfile -t grep_args < <(printf -- "-e\n%s\n" "${use_letters[@]}")
+    mapfile -t new_use_letters < <(printf "%s\n" "${WORD_LIST[@]}" | grep -F "${grep_args[@]}")
+    if [[ ${#new_use_letters[@]} -gt 0 ]]; then
+      printf "%s\n" "${new_use_letters[@]}"
+    else
+      printf "%s\n" "${use_letters[@]}"
     fi
   fi
 }
