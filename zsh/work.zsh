@@ -16,12 +16,14 @@ fi
 export PYENV_ROOT="${XDG_DATA_HOME}/pyenv"
 export PYENV_SHELL=zsh
 export PATH="/Users/mrafferty/.local/share/pyenv/shims:${PATH}"
-source '/usr/local/opt/pyenv/completions/pyenv.zsh'
+[[ -e /opt/homebrew/opt/pyenv/completions/pyenv.zsh ]] && \
+  source '/opt/homebrew/opt/pyenv/completions/pyenv.zsh'
 
 ## Needed for puppet linting
 export BUNDLE_GEMFILE="${HOME}/Repositories/nexcess/Puppet/puppet6-Gemfile"
 export PUPPET_GEM_VERSION='~> 6.28.0'
 
 setpath "${HOME}/.composer/vendor/bin"
+setpath /opt/homebrew/bin
 
 type exa &> /dev/null && alias ls=exa

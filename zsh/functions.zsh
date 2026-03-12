@@ -603,27 +603,27 @@ update_brew () {
   brew upgrade;
   brew cleanup;
 
-  for f in $(find /usr/local/opt/*/bin/*); do
+  for f in $(find /opt/homebrew/opt/*/bin/*); do
 
     bin="${f##*/}";
 
-    if [[ -e /usr/local/bin/${bin} ]]; then
-      rm -f "/usr/local/bin/${bin}";
+    if [[ -e /opt/homebrew/bin/${bin} ]]; then
+      rm -f "/opt/homebrew/bin/${bin}";
     fi
 
-    ln -sf "$f" "/usr/local/bin/${bin}";
+    ln -sf "$f" "/opt/homebrew/bin/${bin}";
 
   done
 
-  for f in $(find /usr/local/opt/{grep,gnu-sed,gawk,coreutils,findutils}/bin/g*); do
+  for f in $(find /opt/homebrew/opt/{grep,gnu-sed,gawk,coreutils,findutils}/bin/g*); do
 
     bin="${f##*/g}";
 
-    if [[ -e "/usr/local/bin/${bin}" ]]; then
-      rm -f "/usr/local/bin/${bin}";
+    if [[ -e "/opt/homebrew/bin/${bin}" ]]; then
+      rm -f "/opt/homebrew/bin/${bin}";
     fi
 
-    ln -sf "$f" "/usr/local/bin/${bin}";
+    ln -sf "$f" "/opt/homebrew/bin/${bin}";
 
   done
 }

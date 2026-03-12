@@ -8,7 +8,7 @@ load_conf() {
 }
 
 case "$HOST" in
-  "NEX-LW-2181"*)    rc_conf="work" ;;
+  "NEX-LW-2181"*|mrafferty-MacBook-Pro*)    rc_conf="work" ;;
   "pi")              rc_conf="pi" ;;
   "mellon"*)         rc_conf="login_server" ;;
   *".nexcess.net")   rc_conf="nexcess" ;;
